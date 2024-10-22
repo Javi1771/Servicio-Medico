@@ -1,101 +1,151 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+"use client";
+
+import React, { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 
-export default function Home() {
+const Home = () => {
+  const [openMenu, setOpenMenu] = useState<string | null>(null);
+
+  const handleMouseEnter = (menu: string) => {
+    setOpenMenu(menu);
+  };
+
+  const handleMouseLeave = () => {
+    setOpenMenu(null);
+  };
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
+    <div className="min-h-screen bg-gradient-to-b from-gray-800 to-gray-900 text-white flex flex-col items-center py-10">
+      <header className="flex items-center mb-8">
         <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
+          src="/heraldica.png"
+          alt="App Icon"
+          width={200}
+          height={200}
+          className="mr-4 shadow-md transform transition-transform duration-300 hover:scale-105"
         />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+        <h1 className="text-4xl font-bold shadow-md transform transition-transform duration-300 hover:scale-105">
+          Servicio Médico SJR
+        </h1>
+      </header>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      {/* Contenedor responsivo para botones */}
+      <div className="flex flex-col md:flex-row justify-center space-x-0 md:space-x-4 space-y-4 md:space-y-0 w-full max-w-md mx-auto">
+        <SidebarButton
+          title="Consultas"
+          options={["Signos Vitales", "Diagnostico", "Recetas"]}
+          isOpen={openMenu === "Consultas"}
+          handleMouseEnter={() => handleMouseEnter("Consultas")}
+          handleMouseLeave={handleMouseLeave}
+        />
+        <SidebarButton
+          title="Catálogos"
+          options={[
+            "Beneficiarios",
+            "Especialidades",
+            "Medicamentos",
+            "Enfermedades Crónicas",
+            "Usuarios",
+            "Proveedores",
+          ]}
+          isOpen={openMenu === "Catálogos"}
+          handleMouseEnter={() => handleMouseEnter("Catálogos")}
+          handleMouseLeave={handleMouseLeave}
+        />
+        <SidebarButton
+          title="Capturas"
+          options={[
+            "Pase a Especialidad",
+            "Surtimientos",
+            "Orden de Estudio de Laboratorio",
+            "Incapacidades",
+            "Gastos",
+          ]}
+          isOpen={openMenu === "Capturas"}
+          handleMouseEnter={() => handleMouseEnter("Capturas")}
+          handleMouseLeave={handleMouseLeave}
+        />
+        <SidebarButton
+          title="Cancelaciones"
+          options={["Formatos"]}
+          isOpen={openMenu === "Cancelaciones"}
+          handleMouseEnter={() => handleMouseEnter("Cancelaciones")}
+          handleMouseLeave={handleMouseLeave}
+        />
+        <SidebarButton
+          title="Reportes"
+          options={["Incapacidades", "Costos"]}
+          isOpen={openMenu === "Reportes"}
+          handleMouseEnter={() => handleMouseEnter("Reportes")}
+          handleMouseLeave={handleMouseLeave}
+        />
+        <button className="bg-red-600 p-4 rounded-lg shadow-md hover:bg-red-500 transition text-center mt-4 md:mt-0 w-full md:w-auto transform transition-transform duration-300 hover:scale-105 border-2 border-red-700">
+          Salir
+        </button>
+      </div>
     </div>
   );
+};
+
+interface SidebarButtonProps {
+  title: string;
+  options: string[];
+  isOpen: boolean;
+  handleMouseEnter: () => void;
+  handleMouseLeave: () => void;
 }
+
+const SidebarButton: React.FC<SidebarButtonProps> = ({
+  title,
+  options,
+  isOpen,
+  handleMouseEnter,
+  handleMouseLeave,
+}) => {
+  return (
+    <div
+      className="relative"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
+      <button className="bg-gray-800 p-4 rounded-lg shadow-md hover:bg-gray-700 transition flex justify-between items-center w-full md:w-48 transform transition-transform duration-300 hover:scale-105 border-2 border-gray-600">
+        <span className="text-sm font-semibold">{title}</span>
+        <svg
+          className={`w-4 h-4 ml-2 transition-transform ${
+            isOpen ? "transform rotate-180" : ""
+          }`}
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          aria-hidden="true"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M19 9l-7 7-7-7"
+          />
+        </svg>
+      </button>
+      {isOpen && (
+        <div className="absolute left-0 bg-gray-700 text-white rounded-lg shadow-lg w-full mt-1 z-10">
+          {options.map((option, index) => (
+            <Link
+              key={index}
+              href={`/${title.toLowerCase()}/${option
+                .replace(/\s+/g, "-")
+                .toLowerCase()}`}
+              className="block px-6 py-2 text-sm hover:bg-gray-600 transition duration-150 ease-in-out rounded-lg"
+            >
+              {option}
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default Home;
