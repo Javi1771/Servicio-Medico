@@ -1,12 +1,9 @@
 import React, { useState } from "react";
 
 const Medicamentos = () => {
-  // Estado para manejar los medicamentos actuales
   const [medicamentos, setMedicamentos] = useState([{ medicamento: "", indicaciones: "", tratamiento: "" }]);
   const [mostrarNuevoMedicamento, setMostrarNuevoMedicamento] = useState(false);
   const [nuevoMedicamento, setNuevoMedicamento] = useState({ nombre: "", tipo: "" });
-
-  // Historial con un dato precargado de prueba
   const [historialMedicamentos, setHistorialMedicamentos] = useState([
     {
       fecha: "2024-10-01",
@@ -17,37 +14,30 @@ const Medicamentos = () => {
     },
   ]);
 
-  // Lista de opciones para el tipo de medicamento
   const tiposDeMedicamento = ["Controlado", "Especialidad", "Genérico", "Patente"];
-
-  // Lista de medicamentos disponibles para el desplegable
   const listaMedicamentos = ["Ibuprofeno", "Paracetamol", "Amoxicilina"];
 
-  // Manejar cambios en los campos de medicamento
   const handleMedicamentoChange = (index, field, value) => {
     const nuevosMedicamentos = [...medicamentos];
     nuevosMedicamentos[index][field] = value;
     setMedicamentos(nuevosMedicamentos);
   };
 
-  // Agregar o quitar un medicamento
   const agregarMedicamento = () => setMedicamentos([...medicamentos, { medicamento: "", indicaciones: "", tratamiento: "" }]);
   const quitarMedicamento = (index) => setMedicamentos(medicamentos.filter((_, i) => i !== index));
 
-  // Manejar el nuevo medicamento
   const handleNuevoMedicamentoChange = (field, value) => setNuevoMedicamento({ ...nuevoMedicamento, [field]: value });
 
   const guardarNuevoMedicamento = () => {
     if (nuevoMedicamento.nombre && nuevoMedicamento.tipo) {
-      listaMedicamentos.push(nuevoMedicamento.nombre); // Agregar a la lista
-      setMostrarNuevoMedicamento(false); // Cerrar la ventana emergente
-      setNuevoMedicamento({ nombre: "", tipo: "" }); // Limpiar campos
+      listaMedicamentos.push(nuevoMedicamento.nombre);
+      setMostrarNuevoMedicamento(false);
+      setNuevoMedicamento({ nombre: "", tipo: "" });
     } else {
       alert("Por favor, completa todos los campos.");
     }
   };
 
-  // Guardar medicamentos en el historial
   const guardarMedicamentoEnHistorial = () => {
     const fechaActual = new Date().toLocaleDateString();
     medicamentos.forEach((medicamento) => {
@@ -55,29 +45,27 @@ const Medicamentos = () => {
         const nuevoMedicamento = {
           fecha: fechaActual,
           ...medicamento,
-          diagnostico: "General", // Puedes actualizar esto si tienes un campo de diagnóstico
+          diagnostico: "General",
         };
         setHistorialMedicamentos((prevHistorial) => [...prevHistorial, nuevoMedicamento]);
       }
     });
-    // Reiniciar los campos de medicamentos
     setMedicamentos([{ medicamento: "", indicaciones: "", tratamiento: "" }]);
   };
 
   return (
-    <div className="bg-gray-800 p-8 rounded-lg shadow-lg">
-      <h3 className="text-3xl font-bold mb-6 text-white">Prescripción de Medicamentos</h3>
+    <div className="bg-gray-800 p-4 md:p-8 rounded-lg shadow-lg">
+      <h3 className="text-2xl md:text-3xl font-bold mb-4 md:mb-6 text-white">Prescripción de Medicamentos</h3>
 
       {medicamentos.map((medicamento, index) => (
-        <div key={index} className="mb-6 bg-gray-700 p-4 rounded-lg shadow-inner">
-          <div className="flex space-x-4">
-            {/* Medicamento */}
-            <div className="flex-1">
+        <div key={index} className="mb-4 md:mb-6 bg-gray-700 p-4 rounded-lg shadow-inner">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
               <label className="text-white font-semibold">Medicamento:</label>
               <select
                 value={medicamento.medicamento}
                 onChange={(e) => handleMedicamentoChange(index, "medicamento", e.target.value)}
-                className="block w-full rounded-lg bg-gray-600 border-gray-500 text-white p-3 mt-2"
+                className="block w-full rounded-lg bg-gray-600 border-gray-500 text-white p-2 md:p-3 mt-2"
               >
                 <option value="">Seleccionar Medicamento</option>
                 {listaMedicamentos.map((med, i) => (
@@ -87,29 +75,28 @@ const Medicamentos = () => {
                 ))}
               </select>
             </div>
-            {/* Indicaciones */}
-            <div className="flex-1">
+
+            <div>
               <label className="text-white font-semibold">Indicaciones:</label>
               <textarea
                 value={medicamento.indicaciones}
                 onChange={(e) => handleMedicamentoChange(index, "indicaciones", e.target.value)}
-                className="block w-full rounded-lg bg-gray-600 border-gray-500 text-white p-3 mt-2"
+                className="block w-full rounded-lg bg-gray-600 border-gray-500 text-white p-2 md:p-3 mt-2"
                 placeholder="Escribe las indicaciones"
               />
             </div>
-            {/* Tratamiento */}
-            <div className="flex-1">
+
+            <div>
               <label className="text-white font-semibold">Tratamiento:</label>
               <textarea
                 value={medicamento.tratamiento}
                 onChange={(e) => handleMedicamentoChange(index, "tratamiento", e.target.value)}
-                className="block w-full rounded-lg bg-gray-600 border-gray-500 text-white p-3 mt-2"
+                className="block w-full rounded-lg bg-gray-600 border-gray-500 text-white p-2 md:p-3 mt-2"
                 placeholder="Escribe el tratamiento"
               />
             </div>
           </div>
 
-          {/* Botones para agregar/quitar medicamentos */}
           <div className="flex justify-between mt-4">
             <button
               onClick={agregarMedicamento}
@@ -129,7 +116,6 @@ const Medicamentos = () => {
         </div>
       ))}
 
-      {/* Botón para añadir nuevo medicamento */}
       <div className="text-right">
         <button
           onClick={() => setMostrarNuevoMedicamento(true)}
@@ -139,7 +125,6 @@ const Medicamentos = () => {
         </button>
       </div>
 
-      {/* Guardar medicamentos en el historial */}
       <div className="text-right mt-6">
         <button
           onClick={guardarMedicamentoEnHistorial}
@@ -149,26 +134,23 @@ const Medicamentos = () => {
         </button>
       </div>
 
-      {/* Ventana emergente para agregar nuevo medicamento */}
       {mostrarNuevoMedicamento && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-gray-800 p-8 rounded-lg shadow-lg w-1/3">
-            <h3 className="text-3xl font-bold mb-6 text-white">Nuevo Medicamento</h3>
-            {/* Nombre del medicamento */}
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 p-4">
+          <div className="bg-gray-800 p-6 md:p-8 rounded-lg shadow-lg w-full max-w-md">
+            <h3 className="text-2xl md:text-3xl font-bold mb-4 md:mb-6 text-white">Nuevo Medicamento</h3>
             <label className="text-white font-semibold">Nombre:</label>
             <input
               type="text"
               value={nuevoMedicamento.nombre}
               onChange={(e) => handleNuevoMedicamentoChange("nombre", e.target.value)}
-              className="block w-full rounded-lg bg-gray-600 border-gray-500 text-white p-3 mb-4"
+              className="block w-full rounded-lg bg-gray-600 border-gray-500 text-white p-2 md:p-3 mb-4"
               placeholder="Nombre del medicamento"
             />
-            {/* Tipo de medicamento */}
             <label className="text-white font-semibold">Tipo:</label>
             <select
               value={nuevoMedicamento.tipo}
               onChange={(e) => handleNuevoMedicamentoChange("tipo", e.target.value)}
-              className="block w-full rounded-lg bg-gray-600 border-gray-500 text-white p-3 mb-4"
+              className="block w-full rounded-lg bg-gray-600 border-gray-500 text-white p-2 md:p-3 mb-4"
             >
               <option value="">Seleccionar tipo</option>
               {tiposDeMedicamento.map((tipo, index) => (
@@ -178,7 +160,6 @@ const Medicamentos = () => {
               ))}
             </select>
 
-            {/* Botones para guardar o cancelar */}
             <div className="flex justify-between mt-4">
               <button
                 onClick={guardarNuevoMedicamento}
@@ -197,32 +178,33 @@ const Medicamentos = () => {
         </div>
       )}
 
-      {/* Tabla de medicamentos otorgados */}
       {historialMedicamentos.length > 0 && (
-        <div className="bg-gray-700 p-6 rounded-lg shadow-lg mt-8">
-          <h3 className="text-3xl font-bold mb-6 text-white">Historial de Medicamentos Otorgados</h3>
-          <table className="min-w-full bg-gray-800 rounded-lg shadow-lg text-left">
-            <thead>
-              <tr className="bg-gray-700 text-white">
-                <th className="p-3">Fecha</th>
-                <th className="p-3">Medicamento</th>
-                <th className="p-3">Indicaciones de Uso</th>
-                <th className="p-3">Tratamiento</th>
-                <th className="p-3">Diagnóstico</th>
-              </tr>
-            </thead>
-            <tbody>
-              {historialMedicamentos.map((med, index) => (
-                <tr key={index} className="hover:bg-gray-600 transition-colors duration-300">
-                  <td className="py-3 px-4">{med.fecha}</td>
-                  <td className="py-3 px-4">{med.medicamento}</td>
-                  <td className="py-3 px-4">{med.indicaciones}</td>
-                  <td className="py-3 px-4">{med.tratamiento}</td>
-                  <td className="py-3 px-4">{med.diagnostico}</td>
+        <div className="bg-gray-700 p-4 md:p-6 rounded-lg shadow-lg mt-8">
+          <h3 className="text-2xl md:text-3xl font-bold mb-4 md:mb-6 text-white">Historial de Medicamentos Otorgados</h3>
+          <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-gray-700">
+            <table className="min-w-full bg-gray-800 rounded-lg shadow-lg text-left table-auto">
+              <thead>
+                <tr className="bg-gray-700 text-white">
+                  <th className="p-2 md:p-3">Fecha de Otorgamiento</th>
+                  <th className="p-2 md:p-3">Medicamento</th>
+                  <th className="p-2 md:p-3">Indicaciones de Uso</th>
+                  <th className="p-2 md:p-3">Tratamiento</th>
+                  <th className="p-2 md:p-3">Diagnóstico</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {historialMedicamentos.map((med, index) => (
+                  <tr key={index} className="hover:bg-gray-600 transition-colors duration-300">
+                    <td className="py-2 md:py-3 px-2 md:px-4 whitespace-normal">{med.fecha}</td>
+                    <td className="py-2 md:py-3 px-2 md:px-4 whitespace-normal">{med.medicamento}</td>
+                    <td className="py-2 md:py-3 px-2 md:px-4 whitespace-normal">{med.indicaciones}</td>
+                    <td className="py-2 md:py-3 px-2 md:px-4 whitespace-normal">{med.tratamiento}</td>
+                    <td className="py-2 md:py-3 px-2 md:px-4 whitespace-normal">{med.diagnostico}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>

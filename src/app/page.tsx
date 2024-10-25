@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import React, { useState } from "react";
@@ -17,22 +16,35 @@ const Home = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-800 to-gray-900 text-white flex flex-col items-center py-10">
-      <header className="flex items-center mb-8">
+    <div className="min-h-screen bg-gradient-to-b from-blue-900 to-black text-white flex flex-col items-center pt-10">
+      <div className="relative w-full h-48 sm:h-60 md:h-80 lg:h-96 overflow-hidden">
         <Image
-          src="/heraldica.png"
-          alt="App Icon"
-          width={200}
-          height={200}
-          className="mr-4 shadow-md transform transition-transform duration-300 hover:scale-105"
+          src="/baner_sjr.png"
+          alt="Banner"
+          layout="fill"
+          objectFit="cover"
+          className="opacity-50"
         />
-        <h1 className="text-4xl font-bold shadow-md transform transition-transform duration-300 hover:scale-105">
-          Servicio Médico SJR
-        </h1>
-      </header>
+        <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center space-x-6 p-4">
+          <div className="flex items-center space-x-6">
+            <div className="relative w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 lg:w-56 lg:h-56 border-4 border-white rounded-full overflow-hidden transform transition-transform duration-300 hover:scale-105">
+              <Image
+                src="/logo_sjr.png"
+                alt="Logo"
+                layout="fill"
+                objectFit="cover"
+                className="rounded-full"
+              />
+            </div>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white tracking-wide whitespace-nowrap">
+              Servicio Médico SJR
+            </h1>
+          </div>
+        </div>
+      </div>
 
-      {/* Contenedor responsivo para botones */}
-      <div className="flex flex-col md:flex-row justify-center space-x-0 md:space-x-4 space-y-4 md:space-y-0 w-full max-w-md mx-auto">
+      {/* Main content */}
+      <div className="flex flex-col md:flex-row justify-center space-x-0 md:space-x-4 space-y-4 md:space-y-0 w-full max-w-2xl mx-auto mt-8">
         <SidebarButton
           title="Consultas"
           options={["Signos Vitales", "Diagnostico", "Recetas"]}
@@ -106,7 +118,7 @@ const SidebarButton: React.FC<SidebarButtonProps> = ({
 }) => {
   return (
     <div
-      className="relative"
+      className="relative w-full md:w-auto"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
