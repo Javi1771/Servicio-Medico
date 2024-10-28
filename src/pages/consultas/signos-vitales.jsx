@@ -9,7 +9,7 @@ const MySwal = withReactContent(Swal);
 
 //* Función para calcular la edad en años, meses y días
 const calcularEdad = (fechaNacimiento) => {
-  const [dia, mes, año] = fechaNacimiento.split(" ")[0].split("/"); 
+  const [dia, mes, año] = fechaNacimiento.split(" ")[0].split("/");
   const fechaFormateada = `${año}-${mes}-${dia}`;
 
   const hoy = new Date();
@@ -55,8 +55,11 @@ const SignosVitales = () => {
     peso: "",
     glucosa: "",
   });
+  const [empleadoEncontrado, setEmpleadoEncontrado] = useState(false); //* Estado para habilitar contenido
 
   const [pacientes, setPacientes] = useState([]); //* Estado para almacenar pacientes
+
+  const [consultaSeleccionada, setConsultaSeleccionada] = useState(""); //* Estado para el radio button
 
   const handleAdd = () => {
     setShowConsulta(true);
@@ -77,6 +80,7 @@ const SignosVitales = () => {
       glucosa: "",
     });
     setNomina("");
+    setEmpleadoEncontrado(false); //* Reiniciar estado de empleado encontrado
   };
 
   const handleCloseModal = () => {
@@ -109,10 +113,11 @@ const SignosVitales = () => {
           confirmButtonText: "Aceptar",
           confirmButtonColor: "#FF6347",
           customClass: {
-            popup: "animated bounceIn", 
+            popup: "animated bounceIn",
           },
-          timer: 5000, 
+          timer: 5000,
         });
+        setEmpleadoEncontrado(false); //! Deshabilitar contenido
         return;
       }
 
@@ -130,21 +135,22 @@ const SignosVitales = () => {
         department: data.departamento || "",
         workstation: data.puesto || "",
       });
+      setEmpleadoEncontrado(true); //* Habilitar contenido al encontrar empleado
     } catch (error) {
       console.error("Error al obtener datos del empleado:", error);
       MySwal.fire({
         icon: "error",
-        title: "<span style='color: white;'>Error</span>", 
-        html: "<span style='color: white;'>Hubo un problema al buscar la nómina. Intenta nuevamente.</span>", 
-        background: "#1F2937", 
-        confirmButtonColor: "#FF6347", 
-        cancelButtonColor: "#f44336", 
-        confirmButtonText: "<span style='color: white;'>OK</span>", 
+        title: "<span style='color: white;'>Error</span>",
+        html: "<span style='color: white;'>Hubo un problema al buscar la nómina. Intenta nuevamente.</span>",
+        background: "#1F2937",
+        confirmButtonColor: "#FF6347",
+        cancelButtonColor: "#f44336",
+        confirmButtonText: "<span style='color: white;'>OK</span>",
         showClass: {
           popup: "animate__animated animate__fadeInDown",
         },
         hideClass: {
-          popup: "animate__animated animate__fadeOutUp", 
+          popup: "animate__animated animate__fadeOutUp",
         },
         customClass: {
           popup: "border border-gray-500 shadow-lg rounded-lg",
@@ -154,8 +160,9 @@ const SignosVitales = () => {
           url("/images/nyan-cat.gif")
           left top
           no-repeat
-        `, 
+        `,
       });
+      setEmpleadoEncontrado(false); //! Deshabilitar contenido en caso de error
     }
   };
 
@@ -176,17 +183,17 @@ const SignosVitales = () => {
       ...signosVitales,
     };
 
-     //* Añadir nuevo paciente
+    //* Añadir nuevo paciente
     setPacientes((prevState) => [...prevState, nuevoPaciente]);
     handleCloseModal();
   };
 
   const handleReload = () => {
-    setPacientes([...pacientes]); 
+    setPacientes([...pacientes]);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-800 to-gray-900 text-white flex flex-col items-center p-4 md:p-8">
+    <div className="min-h-screen bg-gray-900 text-white px-4 py-8 md:px-12">
       <div className="flex flex-col md:flex-row items-center justify-between w-full mb-6">
         <div className="flex items-center space-x-4">
           <Image
@@ -280,131 +287,208 @@ const SignosVitales = () => {
             <p className="text-xs md:text-sm mb-2">
               Fecha: {new Date().toLocaleDateString()}
             </p>
+
+            {/* Campo de Número de Nómina */}
             <input
               type="text"
               value={nomina}
               onChange={(e) => setNomina(e.target.value)}
               placeholder="Número de Nómina"
-              className="mt-2 mb-4 p-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:border-yellow-400 transition duration-200 w-full"
+              className="mt-2 mb-4 p-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:border-blue-400 transition duration-200 w-full"
             />
             <button
               onClick={handleSearch}
-              className="bg-yellow-600 px-4 md:px-5 py-2 rounded-lg hover:bg-yellow-500 transition duration-200 font-semibold w-full"
+              className="bg-blue-600 px-4 md:px-5 py-2 rounded-lg hover:bg-blue-500 transition duration-200 font-semibold w-full"
             >
               Buscar
             </button>
 
-            {/* Datos del paciente */}
-            <div className="flex flex-row mt-6 items-center bg-gray-900 p-4 rounded-lg shadow-md space-x-4">
-              <Image
-                src={patientData.photo}
-                alt="Foto del Paciente"
-                width={96}
-                height={96}
-                className="w-24 h-24 rounded-full border-4 border-yellow-400 shadow-lg"
-              />
-              <div className="flex-1">
-                <p className="text-lg md:text-xl font-semibold">
-                  Paciente: {patientData.name || ""}
-                </p>
-                <p className="text-sm md:text-md">
-                  Edad: {patientData.age || ""}
-                </p>
-                <p className="text-sm md:text-md">
-                  Departamento: {patientData.department || ""}
-                </p>
-                <p className="text-sm md:text-md">
-                  Puesto: {patientData.workstation || ""}
-                </p>
-              </div>
-            </div>
+            {/* Contenido deshabilitado hasta que se encuentre el empleado */}
+            <fieldset
+              disabled={!empleadoEncontrado}
+              className={!empleadoEncontrado ? "opacity-50" : ""}
+            >
+              {/* Sección para seleccionar Empleado o Beneficiario */}
+              <fieldset
+                disabled={!empleadoEncontrado}
+                className={
+                  !empleadoEncontrado ? "opacity-50 cursor-not-allowed" : ""
+                }
+              >
+                <div className="flex flex-col items-center mt-8 mb-8 p-8 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 rounded-xl border border-white-500 shadow-2xl backdrop-blur-lg w-full max-w-xs sm:max-w-md md:max-w-lg mx-auto neon-container">
+                  <p className="text-lg font-semibold mb-6 text-center text-white tracking-wider neon-title">
+                    ¿Quién va a consulta?
+                  </p>
+                  <div className="flex flex-col sm:flex-row sm:justify-center items-center space-y-6 sm:space-y-0 sm:space-x-8 w-full px-6">
+                    <label
+                      className={`relative flex flex-col items-center p-6 rounded-xl bg-gradient-to-r from-gray-800 to-gray-900 border border-gray-700 shadow-lg ${
+                        empleadoEncontrado
+                          ? consultaSeleccionada === "empleado"
+                            ? "shadow-blue-500 scale-105 transition-transform transform"
+                            : "hover:shadow-blue-500/80 hover:scale-105 transition-transform transform"
+                          : "cursor-not-allowed"
+                      } neon-card transition duration-500 ease-out`}
+                    >
+                      <input
+                        type="radio"
+                        name="consulta"
+                        value="empleado"
+                        className="form-radio h-6 w-6 text-blue-500 focus:ring-blue-400 focus:ring-2 cursor-pointer absolute top-4 right-4 opacity-0"
+                        checked={consultaSeleccionada === "empleado"}
+                        onChange={() => setConsultaSeleccionada("empleado")}
+                        disabled={!empleadoEncontrado}
+                      />
+                      <span className="text-white text-lg font-semibold flex items-center space-x-2 neon-text">
+                        <span className="text-blue-400 text-2xl glowing-icon">
+                          👔
+                        </span>
+                        <span className="uppercase tracking-wider">
+                          Empleado
+                        </span>
+                      </span>
+                    </label>
+                    <label
+                      className={`relative flex flex-col items-center p-6 rounded-xl bg-gradient-to-r from-gray-800 to-gray-900 border border-gray-700 shadow-lg ${
+                        empleadoEncontrado
+                          ? consultaSeleccionada === "beneficiario"
+                            ? "shadow-yellow-500 scale-105 transition-transform transform"
+                            : "hover:shadow-yellow-500/80 hover:scale-105 transition-transform transform"
+                          : "cursor-not-allowed"
+                      } neon-card transition duration-500 ease-out`}
+                    >
+                      <input
+                        type="radio"
+                        name="consulta"
+                        value="beneficiario"
+                        className="form-radio h-6 w-6 text-yellow-500 focus:ring-yellow-400 focus:ring-2 cursor-pointer absolute top-4 right-4 opacity-0"
+                        checked={consultaSeleccionada === "beneficiario"}
+                        onChange={() => setConsultaSeleccionada("beneficiario")}
+                        disabled={!empleadoEncontrado}
+                      />
+                      <span className="text-white text-lg font-semibold flex items-center space-x-2 neon-text">
+                        <span className="text-yellow-400 text-2xl glowing-icon">
+                          👨‍👩‍👧‍👦
+                        </span>
+                        <span className="uppercase tracking-wider">
+                          Beneficiario
+                        </span>
+                      </span>
+                    </label>
+                  </div>
+                </div>
+              </fieldset>
 
-            {/* Formulario de Signos Vitales */}
-            <div className="mt-6">
-              <h3 className="text-xl md:text-2xl font-bold mb-4">
-                Signos Vitales
-              </h3>
-              <form className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <label>
-                  T/A:
-                  <input
-                    type="text"
-                    name="ta"
-                    value={signosVitales.ta}
-                    onChange={handleVitalChange}
-                    className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white p-2"
-                  />
-                </label>
-                <label>
-                  Temperatura ( °C ):
-                  <input
-                    type="number"
-                    name="temperatura"
-                    value={signosVitales.temperatura}
-                    onChange={handleVitalChange}
-                    className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white p-2"
-                  />
-                </label>
-                <label>
-                  FC ( por minuto ):
-                  <input
-                    type="number"
-                    name="fc"
-                    value={signosVitales.fc}
-                    onChange={handleVitalChange}
-                    className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white p-2"
-                  />
-                </label>
-                <label>
-                  Oxigenación ( % ):
-                  <input
-                    type="number"
-                    name="oxigenacion"
-                    value={signosVitales.oxigenacion}
-                    onChange={handleVitalChange}
-                    className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white p-2"
-                  />
-                </label>
-                <label>
-                  Altura ( cm ):
-                  <input
-                    type="number"
-                    name="altura"
-                    value={signosVitales.altura}
-                    onChange={handleVitalChange}
-                    className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white p-2"
-                  />
-                </label>
-                <label>
-                  Peso ( kg ):
-                  <input
-                    type="number"
-                    name="peso"
-                    value={signosVitales.peso}
-                    onChange={handleVitalChange}
-                    className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white p-2"
-                  />
-                </label>
-                <label>
-                  Glucosa ( mg / dL ):
-                  <input
-                    type="number"
-                    name="glucosa"
-                    value={signosVitales.glucosa}
-                    onChange={handleVitalChange}
-                    className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white p-2"
-                  />
-                </label>
-              </form>
-              <div className="mt-6">
-                <button
-                  onClick={handleSave}
-                  className="bg-yellow-600 px-4 md:px-5 py-2 rounded-lg hover:bg-yellow-500 transition duration-200 font-semibold w-full"
-                >
-                  Guardar Signos Vitales
-                </button>
+              {/* Datos del paciente */}
+              <div className="flex flex-row mt-6 items-center bg-gray-900 p-4 rounded-lg shadow-md space-x-4">
+                <Image
+                  src={patientData.photo}
+                  alt="Foto del Paciente"
+                  width={96}
+                  height={96}
+                  className="w-24 h-24 rounded-full border-4 border-blue-400 shadow-lg"
+                />
+                <div className="flex-1">
+                  <p className="text-lg md:text-xl font-semibold">
+                    Paciente: {patientData.name || ""}
+                  </p>
+                  <p className="text-sm md:text-md">
+                    Edad: {patientData.age || ""}
+                  </p>
+                  <p className="text-sm md:text-md">
+                    Departamento: {patientData.department || ""}
+                  </p>
+                  <p className="text-sm md:text-md">
+                    Puesto: {patientData.workstation || ""}
+                  </p>
+                </div>
               </div>
-            </div>
+
+              {/* Formulario de Signos Vitales */}
+              <div className="mt-6">
+                <h3 className="text-xl md:text-2xl font-bold mb-4">
+                  Signos Vitales
+                </h3>
+                <form className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <label>
+                    T/A:
+                    <input
+                      type="text"
+                      name="ta"
+                      value={signosVitales.ta}
+                      onChange={handleVitalChange}
+                      className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white p-2"
+                    />
+                  </label>
+                  <label>
+                    Temperatura ( °C ):
+                    <input
+                      type="number"
+                      name="temperatura"
+                      value={signosVitales.temperatura}
+                      onChange={handleVitalChange}
+                      className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white p-2"
+                    />
+                  </label>
+                  <label>
+                    FC ( por minuto ):
+                    <input
+                      type="number"
+                      name="fc"
+                      value={signosVitales.fc}
+                      onChange={handleVitalChange}
+                      className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white p-2"
+                    />
+                  </label>
+                  <label>
+                    Oxigenación ( % ):
+                    <input
+                      type="number"
+                      name="oxigenacion"
+                      value={signosVitales.oxigenacion}
+                      onChange={handleVitalChange}
+                      className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white p-2"
+                    />
+                  </label>
+                  <label>
+                    Altura ( cm ):
+                    <input
+                      type="number"
+                      name="altura"
+                      value={signosVitales.altura}
+                      onChange={handleVitalChange}
+                      className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white p-2"
+                    />
+                  </label>
+                  <label>
+                    Peso ( kg ):
+                    <input
+                      type="number"
+                      name="peso"
+                      value={signosVitales.peso}
+                      onChange={handleVitalChange}
+                      className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white p-2"
+                    />
+                  </label>
+                  <label>
+                    Glucosa ( mg / dL ):
+                    <input
+                      type="number"
+                      name="glucosa"
+                      value={signosVitales.glucosa}
+                      onChange={handleVitalChange}
+                      className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white p-2"
+                    />
+                  </label>
+                </form>
+                <div className="mt-6">
+                  <button
+                    onClick={handleSave}
+                    className="bg-yellow-600 px-4 md:px-5 py-2 rounded-lg hover:bg-yellow-500 transition duration-200 font-semibold w-full">
+                    Guardar Signos Vitales
+                  </button>
+                </div>
+              </div>
+            </fieldset>
           </div>
         </div>
       )}
