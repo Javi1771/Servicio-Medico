@@ -1,0 +1,69 @@
+/* Estilos del contenedor principal */
+.formContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  background-color: #f2f2f2;
+  border-radius: 8px;
+  width: 300px;
+  margin: 0 auto;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.formTitle {
+  font-family: Poppins-Bold, sans-serif;
+  font-size: 24px;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.label {
+  font-family: Poppins-Regular, sans-serif;
+  color: #666;
+  margin-bottom: 5px;
+}
+
+.input {
+  font-family: Poppins-Regular, sans-serif;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  margin-bottom: 15px;
+  width: 100%;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #57b846;
+  box-shadow: 0 0 5px rgba(87, 184, 70, 0.5);
+}
+
+.button {
+  font-family: Montserrat-Bold, sans-serif;
+  background-color: #57b846;
+  color: #fff;
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  width: 100%;
+  text-transform: uppercase;
+  transition: background-color 0.3s ease;
+}
+
+.button:hover {
+  background-color: #333;
+}
+
+.errorMessage {
+  color: #c80000;
+  font-family: Poppins-Medium, sans-serif;
+  margin-top: 10px;
+}
