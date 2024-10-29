@@ -61,6 +61,13 @@ const SignosVitales = () => {
 
   const [consultaSeleccionada, setConsultaSeleccionada] = useState(""); //* Estado para el radio button
 
+  //* Estado para el botón de guardar
+  const isFormComplete = Object.values(signosVitales).every(
+    (value) => value.trim() !== ""
+  );
+
+  const [beneficiaryData, setBeneficiaryData] = useState(null); //* Estado para almacenar información del beneficiario
+
   const handleAdd = () => {
     setShowConsulta(true);
     setPatientData({
@@ -81,6 +88,13 @@ const SignosVitales = () => {
     });
     setNomina("");
     setEmpleadoEncontrado(false); //* Reiniciar estado de empleado encontrado
+  };
+
+  const handleRadioChange = (value) => {
+    setConsultaSeleccionada(value);
+    if (value === "beneficiario") {
+      handleSearchBeneficiary();
+    }
   };
 
   const handleCloseModal = () => {
@@ -191,6 +205,58 @@ const SignosVitales = () => {
   const handleReload = () => {
     setPacientes([...pacientes]);
   };
+
+  const handleSearchBeneficiary = async () => {
+    try {
+      const response = await fetch("/api/beneficiario", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ nomina }),
+      });
+  
+      if (!response.ok) throw new Error("Error al buscar beneficiario");
+  
+      const data = await response.json();
+      const edad = data.F_NACIMIENTO ? calcularEdad(data.F_NACIMIENTO) : "";
+      const edadString = edad
+        ? `${edad.años} años, ${edad.meses} meses y ${edad.dias} días`
+        : "";
+  
+      setBeneficiaryData({
+        name: `${data.NOMBRE} ${data.A_PATERNO} ${data.A_MATERNO}`,
+        age: edadString,
+        parentesco: data.PARENTESCO_DESC || "No especificado",
+      });
+    } catch (error) {
+      console.error("Error al buscar beneficiario:", error);
+      MySwal.fire({
+        icon: "error",
+        title: "<span style='color: white;'>Error al buscar el beneficiario</span>",
+        html: "<span style='color: white;'>Hubo un problema al buscar el beneficiario.</span>",
+        background: "#1F2937",
+        confirmButtonColor: "#FF6347",
+        cancelButtonColor: "#f44336",
+        confirmButtonText: "<span style='color: white;'>OK</span>",
+        showClass: {
+          popup: "animate__animated animate__fadeInDown",
+        },
+        hideClass: {
+          popup: "animate__animated animate__fadeOutUp",
+        },
+        customClass: {
+          popup: "border border-gray-500 shadow-lg rounded-lg",
+        },
+        backdrop: `
+          rgba(0,0,0,0.8)
+          url("/images/nyan-cat.gif")
+          left top
+          no-repeat
+        `,
+      });
+    }
+  };  
 
   return (
     <div className="min-h-screen bg-gray-900 text-white px-4 py-8 md:px-12">
@@ -320,60 +386,81 @@ const SignosVitales = () => {
                     ¿Quién va a consulta?
                   </p>
                   <div className="flex flex-col sm:flex-row sm:justify-center items-center space-y-6 sm:space-y-0 sm:space-x-8 w-full px-6">
-                    <label
-                      className={`relative flex flex-col items-center p-6 rounded-xl bg-gradient-to-r from-gray-800 to-gray-900 border border-gray-700 shadow-lg ${
-                        empleadoEncontrado
-                          ? consultaSeleccionada === "empleado"
-                            ? "shadow-blue-500 scale-105 transition-transform transform"
-                            : "hover:shadow-blue-500/80 hover:scale-105 transition-transform transform"
-                          : "cursor-not-allowed"
-                      } neon-card transition duration-500 ease-out`}
-                    >
-                      <input
-                        type="radio"
-                        name="consulta"
-                        value="empleado"
-                        className="form-radio h-6 w-6 text-blue-500 focus:ring-blue-400 focus:ring-2 cursor-pointer absolute top-4 right-4 opacity-0"
-                        checked={consultaSeleccionada === "empleado"}
-                        onChange={() => setConsultaSeleccionada("empleado")}
-                        disabled={!empleadoEncontrado}
-                      />
-                      <span className="text-white text-lg font-semibold flex items-center space-x-2 neon-text">
-                        <span className="text-blue-400 text-2xl glowing-icon">
-                          👔
+                    <div className="flex flex-col sm:flex-row sm:justify-center items-center space-y-6 sm:space-y-0 sm:space-x-8 w-full px-6">
+                      {/* Label de Empleado */}
+                      <label
+                        className={`relative flex flex-col items-center p-6 rounded-xl bg-gradient-to-r from-gray-800 to-gray-900 border border-gray-700 shadow-lg ${
+                          empleadoEncontrado
+                            ? consultaSeleccionada === "empleado"
+                              ? "shadow-blue-500 scale-105 transition-transform transform"
+                              : "hover:shadow-blue-500/80 hover:scale-105 transition-transform transform"
+                            : "cursor-not-allowed"
+                        } neon-card transition duration-500 ease-out`}
+                      >
+                        <input
+                          type="radio"
+                          name="consulta"
+                          value="empleado"
+                          className="form-radio h-6 w-6 text-blue-500 focus:ring-blue-400 focus:ring-2 cursor-pointer absolute top-4 right-4 opacity-0"
+                          checked={consultaSeleccionada === "empleado"}
+                          onChange={() => handleRadioChange("empleado")}
+                          disabled={!empleadoEncontrado}
+                        />
+                        <span className="text-white text-lg font-semibold flex items-center space-x-2 neon-text">
+                          <span className="text-blue-400 text-2xl glowing-icon">
+                            👔
+                          </span>
+                          <span className="uppercase tracking-wider">
+                            Empleado
+                          </span>
                         </span>
-                        <span className="uppercase tracking-wider">
-                          Empleado
+                      </label>
+
+                      {/* Label de Beneficiario */}
+                      <label
+                        className={`relative flex flex-col items-center p-6 rounded-xl bg-gradient-to-r from-gray-800 to-gray-900 border border-gray-700 shadow-lg ${
+                          empleadoEncontrado
+                            ? consultaSeleccionada === "beneficiario"
+                              ? "shadow-yellow-500 scale-105 transition-transform transform"
+                              : "hover:shadow-yellow-500/80 hover:scale-105 transition-transform transform"
+                            : "cursor-not-allowed"
+                        } neon-card transition duration-500 ease-out`}
+                      >
+                        <input
+                          type="radio"
+                          name="consulta"
+                          value="beneficiario"
+                          className="form-radio h-6 w-6 text-yellow-500 focus:ring-yellow-400 focus:ring-2 cursor-pointer absolute top-4 right-4 opacity-0"
+                          checked={consultaSeleccionada === "beneficiario"}
+                          onChange={() => {
+                            handleRadioChange("beneficiario"); // Mantén esta función para actualizar el estado
+                            handleSearchBeneficiary(); // Llama a esta función para realizar la consulta en la base de datos
+                          }}
+                          disabled={!empleadoEncontrado}
+                        />
+                        <span className="text-white text-lg font-semibold flex items-center space-x-2 neon-text">
+                          <span className="text-yellow-400 text-2xl glowing-icon">
+                            👨‍👩‍👧‍👦
+                          </span>
+                          <span className="uppercase tracking-wider">
+                            Beneficiario
+                          </span>
                         </span>
-                      </span>
-                    </label>
-                    <label
-                      className={`relative flex flex-col items-center p-6 rounded-xl bg-gradient-to-r from-gray-800 to-gray-900 border border-gray-700 shadow-lg ${
-                        empleadoEncontrado
-                          ? consultaSeleccionada === "beneficiario"
-                            ? "shadow-yellow-500 scale-105 transition-transform transform"
-                            : "hover:shadow-yellow-500/80 hover:scale-105 transition-transform transform"
-                          : "cursor-not-allowed"
-                      } neon-card transition duration-500 ease-out`}
-                    >
-                      <input
-                        type="radio"
-                        name="consulta"
-                        value="beneficiario"
-                        className="form-radio h-6 w-6 text-yellow-500 focus:ring-yellow-400 focus:ring-2 cursor-pointer absolute top-4 right-4 opacity-0"
-                        checked={consultaSeleccionada === "beneficiario"}
-                        onChange={() => setConsultaSeleccionada("beneficiario")}
-                        disabled={!empleadoEncontrado}
-                      />
-                      <span className="text-white text-lg font-semibold flex items-center space-x-2 neon-text">
-                        <span className="text-yellow-400 text-2xl glowing-icon">
-                          👨‍👩‍👧‍👦
-                        </span>
-                        <span className="uppercase tracking-wider">
-                          Beneficiario
-                        </span>
-                      </span>
-                    </label>
+                      </label>
+                    </div>
+
+                    {/* Información del Beneficiario */}
+                    {consultaSeleccionada === "beneficiario" &&
+                      beneficiaryData && (
+                        <div className="bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-lg mx-auto mt-4">
+                          <p className="text-xl font-semibold text-yellow-500">
+                            Información del Beneficiario
+                          </p>
+                          <p>Nombre: {beneficiaryData.name}</p>
+                          <p>Edad: {beneficiaryData.age}</p>
+                          <p>Parentesco: {beneficiaryData.parentesco}</p>
+                        </div>
+                      )}
                   </div>
                 </div>
               </fieldset>
@@ -480,10 +567,17 @@ const SignosVitales = () => {
                     />
                   </label>
                 </form>
+
                 <div className="mt-6">
                   <button
                     onClick={handleSave}
-                    className="bg-yellow-600 px-4 md:px-5 py-2 rounded-lg hover:bg-yellow-500 transition duration-200 font-semibold w-full">
+                    disabled={!isFormComplete} //todo: El botón estará deshabilitado si no están todos los campos llenos
+                    className={`px-4 md:px-5 py-2 rounded-lg font-semibold w-full transition duration-200 ${
+                      isFormComplete
+                        ? "bg-yellow-600 hover:bg-yellow-500"
+                        : "bg-gray-400 cursor-not-allowed"
+                    }`}
+                  >
                     Guardar Signos Vitales
                   </button>
                 </div>
