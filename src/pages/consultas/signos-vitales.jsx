@@ -43,6 +43,8 @@ const SignosVitales = () => {
     age: "",
     department: "",
     workstation: "",
+    grupoNomina: "",
+    cuotaSindical: "",
   });
   const [nomina, setNomina] = useState("");
   const [showConsulta, setShowConsulta] = useState(false);
@@ -58,7 +60,6 @@ const SignosVitales = () => {
   const [empleadoEncontrado, setEmpleadoEncontrado] = useState(false); //* Estado para habilitar contenido
 
   const [pacientes, setPacientes] = useState([]); //* Estado para almacenar pacientes
-
   const [consultaSeleccionada, setConsultaSeleccionada] = useState(""); //* Estado para el radio button
 
   const handleAdd = () => {
@@ -69,6 +70,8 @@ const SignosVitales = () => {
       age: "",
       department: "",
       workstation: "",
+      grupoNomina: "",
+      cuotaSindical: "",
     });
     setSignosVitales({
       ta: "",
@@ -134,6 +137,8 @@ const SignosVitales = () => {
         age: edadString || "",
         department: data.departamento || "",
         workstation: data.puesto || "",
+        grupoNomina: data.grupoNomina || "",
+        cuotaSindical: data.cuotaSindical || "",
       });
       setEmpleadoEncontrado(true); //* Habilitar contenido al encontrar empleado
     } catch (error) {
@@ -379,28 +384,59 @@ const SignosVitales = () => {
               </fieldset>
 
               {/* Datos del paciente */}
-              <div className="flex flex-row mt-6 items-center bg-gray-900 p-4 rounded-lg shadow-md space-x-4">
+              <div className="flex flex-col md:flex-row md:items-start mt-6 bg-gray-900 p-4 rounded-lg shadow-md space-y-4 md:space-y-0 md:space-x-6">
                 <Image
                   src={patientData.photo}
                   alt="Foto del Paciente"
                   width={96}
                   height={96}
-                  className="w-24 h-24 rounded-full border-4 border-blue-400 shadow-lg"
+                  className="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-blue-400 shadow-lg"
                 />
                 <div className="flex-1">
-                  <p className="text-lg md:text-xl font-semibold">
-                    Paciente: {patientData.name || ""}
-                  </p>
-                  <p className="text-sm md:text-md">
-                    Edad: {patientData.age || ""}
-                  </p>
-                  <p className="text-sm md:text-md">
-                    Departamento: {patientData.department || ""}
-                  </p>
-                  <p className="text-sm md:text-md">
-                    Puesto: {patientData.workstation || ""}
-                  </p>
+                  <div className="mb-2">
+                    <p className="text-lg md:text-xl font-semibold text-gray-200">
+                      Paciente:{" "}
+                      <span className="font-normal">
+                        {patientData.name || ""}
+                      </span>
+                    </p>
+                    <p className="text-sm md:text-md text-gray-300">
+                      Edad:{" "}
+                      <span className="font-normal">
+                        {patientData.age || ""}
+                      </span>
+                    </p>
+                    <p className="text-sm md:text-md text-gray-300">
+                      Departamento:{" "}
+                      <span className="font-normal">
+                        {patientData.department || ""}
+                      </span>
+                    </p>
+                    <p className="text-sm md:text-md text-gray-300">
+                      Puesto:{" "}
+                      <span className="font-normal">
+                        {patientData.workstation || ""}
+                      </span>
+                    </p>
+                  </div>
                 </div>
+
+                {/* Información Sindicalización */}
+                {patientData.grupoNomina === "NS" && (
+                  <div className="md:ml-auto mt-4 md:mt-0 p-4 bg-gradient-to-br from-gray-800 to-gray-700 rounded-lg shadow-lg flex flex-col items-center md:items-end text-right text-white">
+                    <p className="text-md font-bold text-yellow-400">
+                      <span className="block">SINDICALIZADO</span>
+                    </p>
+                    <p className="text-sm md:text-md">
+                      Sindicato:{" "}
+                      <span className="font-semibold">
+                        {patientData.cuotaSindical === "S"
+                          ? "SUTSMSJR"
+                          : "SITAM"}
+                      </span>
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* Formulario de Signos Vitales */}
@@ -483,7 +519,8 @@ const SignosVitales = () => {
                 <div className="mt-6">
                   <button
                     onClick={handleSave}
-                    className="bg-yellow-600 px-4 md:px-5 py-2 rounded-lg hover:bg-yellow-500 transition duration-200 font-semibold w-full">
+                    className="bg-yellow-600 px-4 md:px-5 py-2 rounded-lg hover:bg-yellow-500 transition duration-200 font-semibold w-full"
+                  >
                     Guardar Signos Vitales
                   </button>
                 </div>
