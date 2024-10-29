@@ -1,0 +1,16 @@
+/* styles/Tabla.module.css */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+}
+
+.th, .td {
+  border: 10px solid #ddd;
+  padding: 8px;
+  text-align: center; /* Centra el texto */
+}
+
+.th {
+  background-color: #f2f2f2;
+}

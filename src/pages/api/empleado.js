@@ -1,5 +1,4 @@
 const url = 'http://172.16.0.7:8082/ServiceEmp/ServiceEmp.svc?wsdl';
-
 export default async function handler(req, res) {
   if (req.method === 'POST') {
     const { num_nom } = req.body;
@@ -55,3 +54,4 @@ export default async function handler(req, res) {
     res.status(405).end(`Método ${req.method} no permitido`);
   }
 }
+
