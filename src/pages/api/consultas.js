@@ -1,4 +1,3 @@
-// pages/api/consultaEjemplo.js
 import sql from 'mssql';
 
 const dbConfig = {

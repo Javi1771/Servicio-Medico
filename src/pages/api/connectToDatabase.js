@@ -1,29 +1,37 @@
-// pages/api/connectToDatabase.js
 import sql from 'mssql';
 
-// Configuración de la conexión
 const dbConfig = {
-  user: 'teamSM',          // Usuario de SQL Server
-  password: 'sm2024',    // Contraseña
-  server: '172.16.0.3',        // Dirección del servidor
-  database: 'PRESIDENCIA', // Nombre de la base de datos
+  user: process.env.DB_USER || 'teamSM',
+  password: process.env.DB_PASSWORD || 'sm2024',
+  server: process.env.DB_SERVER || '172.16.0.3',
+  database: process.env.DB_DATABASE || 'PRESIDENCIA',
   options: {
-    encrypt: false,              // Opcional: Dependiendo de tu configuración de SQL Server
-    trustServerCertificate: true // Necesario para conexiones locales sin un certificado SSL
+    encrypt: process.env.DB_ENCRYPT === 'true', 
+    trustServerCertificate: process.env.DB_TRUST_SERVER_CERTIFICATE === 'true',
+  },
+};
+
+let pool;
+
+export const connectToDatabase = async () => {
+  try {
+    if (!pool) {
+      pool = await sql.connect(dbConfig);
+      console.log('Conexión a la base de datos exitosa');
+      console.log("Server:", process.env.DB_SERVER); // Debería mostrar "172.16.0.3"
+    }
+    return pool;
+  } catch (error) {
+    console.error('Error al conectar con la base de datos:', error);
+    throw error;
   }
 };
 
 export default async function handler(req, res) {
   try {
-    // Crear una conexión a la base de datos
-    const pool = await sql.connect(dbConfig);
-    console.log('Conexión a la base de datos exitosa');
+    await connectToDatabase();
     res.status(200).json({ message: 'Conexión exitosa' });
   } catch (error) {
-    console.error('Error al conectar con la base de datos:', error);
     res.status(500).json({ message: 'Error de conexión', error });
-  } finally {
-    // Cierra la conexión
-    sql.close();
   }
 }
