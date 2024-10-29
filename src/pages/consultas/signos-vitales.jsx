@@ -76,6 +76,8 @@ const SignosVitales = () => {
       age: "",
       department: "",
       workstation: "",
+      grupoNomina: "",
+      cuotaSindical: "",
     });
     setSignosVitales({
       ta: "",
@@ -142,13 +144,15 @@ const SignosVitales = () => {
         ? `${edad.años} años, ${edad.meses} meses y ${edad.dias} días`
         : "";
 
-      setPatientData({
-        photo: "/user_icon_.png",
-        name: `${data.nombre} ${data.a_paterno} ${data.a_materno}` || "",
-        age: edadString || "",
-        department: data.departamento || "",
-        workstation: data.puesto || "",
-      });
+        setPatientData({
+          photo: "/user_icon_.png",
+          name: `${data.nombre} ${data.a_paterno} ${data.a_materno}` || "",
+          age: edadString || "",
+          department: data.departamento || "",
+          workstation: data.puesto || "",
+          grupoNomina: data.grupoNomina || "",
+          cuotaSindical: data.cuotaSindical || "",
+        });
       setEmpleadoEncontrado(true); //* Habilitar contenido al encontrar empleado
     } catch (error) {
       console.error("Error al obtener datos del empleado:", error);
@@ -488,7 +492,24 @@ const SignosVitales = () => {
                     Puesto: {patientData.workstation || ""}
                   </p>
                 </div>
+                              {/* Información Sindicalización */}
+                              {patientData.grupoNomina === "NS" && (
+                  <div className="md:ml-auto mt-4 md:mt-0 p-4 bg-gradient-to-br from-gray-800 to-gray-700 rounded-lg shadow-lg flex flex-col items-center md:items-end text-right text-white">
+                    <p className="text-md font-bold text-yellow-400">
+                      <span className="block">SINDICALIZADO</span>
+                    </p>
+                    <p className="text-sm md:text-md">
+                      Sindicato:{" "}
+                      <span className="font-semibold">
+                        {patientData.cuotaSindical === "S"
+                          ? "SUTSMSJR"
+                          : "SITAM"}
+                      </span>
+                    </p>
+                  </div>
+                )}
               </div>
+
 
               {/* Formulario de Signos Vitales */}
               <div className="mt-6">
