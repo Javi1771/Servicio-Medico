@@ -18,7 +18,7 @@ export const connectToDatabase = async () => {
     if (!pool) {
       pool = await sql.connect(dbConfig);
       console.log('Conexión a la base de datos exitosa');
-      console.log("Server:", process.env.DB_SERVER); // Debería mostrar "172.16.0.3"
+      console.log("Server:", process.env.DB_SERVER); //? Debería mostrar "172.16.0.3"
     }
     return pool;
   } catch (error) {

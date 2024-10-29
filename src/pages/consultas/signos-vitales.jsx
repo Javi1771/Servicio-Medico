@@ -60,7 +60,7 @@ const SignosVitales = () => {
   const [empleadoEncontrado, setEmpleadoEncontrado] = useState(false); //* Estado para habilitar contenido
 
   const [pacientes, setPacientes] = useState([]); //* Estado para almacenar pacientes
-  const [consultaSeleccionada, setConsultaSeleccionada] = useState(""); //* Estado para el radio button
+  const [consultaSeleccionada, setConsultaSeleccionada] = useState("empleado"); //* Estado para el radio button que siempre inicie en empleado
 
   //* Estado para el botón de guardar
   const isFormComplete = Object.values(signosVitales).every(
@@ -145,15 +145,15 @@ const SignosVitales = () => {
         ? `${edad.años} años, ${edad.meses} meses y ${edad.dias} días`
         : "";
 
-        setPatientData({
-          photo: "/user_icon_.png",
-          name: `${data.nombre} ${data.a_paterno} ${data.a_materno}` || "",
-          age: edadString || "",
-          department: data.departamento || "",
-          workstation: data.puesto || "",
-          grupoNomina: data.grupoNomina || "",
-          cuotaSindical: data.cuotaSindical || "",
-        });
+      setPatientData({
+        photo: "/user_icon_.png",
+        name: `${data.nombre} ${data.a_paterno} ${data.a_materno}` || "",
+        age: edadString || "",
+        department: data.departamento || "",
+        workstation: data.puesto || "",
+        grupoNomina: data.grupoNomina || "",
+        cuotaSindical: data.cuotaSindical || "",
+      });
       setEmpleadoEncontrado(true); //* Habilitar contenido al encontrar empleado
     } catch (error) {
       console.error("Error al obtener datos del empleado:", error);
@@ -220,25 +220,23 @@ const SignosVitales = () => {
         },
         body: JSON.stringify({ nomina }),
       });
-  
+
       if (!response.ok) throw new Error("Error al buscar beneficiario");
-  
+
       const data = await response.json();
-      const edad = data.F_NACIMIENTO ? calcularEdad(data.F_NACIMIENTO) : "";
-      const edadString = edad
-        ? `${edad.años} años, ${edad.meses} meses y ${edad.dias} días`
-        : "";
-  
+
+      //* Utiliza la edad recibida directamente en lugar de calcularla
       setBeneficiaryData({
         name: `${data.NOMBRE} ${data.A_PATERNO} ${data.A_MATERNO}`,
-        age: edadString,
+        age: data.EDAD, //* Edad ya calculada en la base de datos
         parentesco: data.PARENTESCO_DESC || "No especificado",
       });
     } catch (error) {
       console.error("Error al buscar beneficiario:", error);
       MySwal.fire({
         icon: "error",
-        title: "<span style='color: white;'>Error al buscar el beneficiario</span>",
+        title:
+          "<span style='color: white;'>Error al buscar el beneficiario</span>",
         html: "<span style='color: white;'>Hubo un problema al buscar el beneficiario.</span>",
         background: "#1F2937",
         confirmButtonColor: "#FF6347",
@@ -261,7 +259,7 @@ const SignosVitales = () => {
         `,
       });
     }
-  };  
+  };
 
   return (
     <div className="min-h-screen bg-gray-900 text-white px-4 py-8 md:px-12">
@@ -438,7 +436,7 @@ const SignosVitales = () => {
                           className="form-radio h-6 w-6 text-yellow-500 focus:ring-yellow-400 focus:ring-2 cursor-pointer absolute top-4 right-4 opacity-0"
                           checked={consultaSeleccionada === "beneficiario"}
                           onChange={() => {
-                            handleRadioChange("beneficiario"); // Mantén esta función para actualizar el estado
+                            handleRadioChange("beneficiario");
                             handleSearchBeneficiary(); // Llama a esta función para realizar la consulta en la base de datos
                           }}
                           disabled={!empleadoEncontrado}
@@ -453,19 +451,6 @@ const SignosVitales = () => {
                         </span>
                       </label>
                     </div>
-
-                    {/* Información del Beneficiario */}
-                    {consultaSeleccionada === "beneficiario" &&
-                      beneficiaryData && (
-                        <div className="bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-lg mx-auto mt-4">
-                          <p className="text-xl font-semibold text-yellow-500">
-                            Información del Beneficiario
-                          </p>
-                          <p>Nombre: {beneficiaryData.name}</p>
-                          <p>Edad: {beneficiaryData.age}</p>
-                          <p>Parentesco: {beneficiaryData.parentesco}</p>
-                        </div>
-                      )}
                   </div>
                 </div>
               </fieldset>
@@ -473,7 +458,11 @@ const SignosVitales = () => {
               {/* Datos del paciente */}
               <div className="flex flex-col md:flex-row md:items-start mt-6 bg-gray-900 p-4 rounded-lg shadow-md space-y-4 md:space-y-0 md:space-x-6">
                 <Image
-                  src={patientData.photo}
+                  src={
+                    consultaSeleccionada === "beneficiario" && beneficiaryData
+                      ? beneficiaryData.photo || "/user_icon_.png" // Usa la foto del beneficiario o la imagen predeterminada
+                      : patientData.photo || "/user_icon_.png" // Usa la foto del empleado o la imagen predeterminada
+                  }
                   alt="Foto del Paciente"
                   width={96}
                   height={96}
@@ -484,47 +473,74 @@ const SignosVitales = () => {
                     <p className="text-lg md:text-xl font-semibold text-gray-200">
                       Paciente:{" "}
                       <span className="font-normal">
-                        {patientData.name || ""}
+                        {consultaSeleccionada === "beneficiario" &&
+                        beneficiaryData
+                          ? beneficiaryData.name
+                          : patientData.name || ""}
                       </span>
                     </p>
+
                     <p className="text-sm md:text-md text-gray-300">
                       Edad:{" "}
                       <span className="font-normal">
-                        {patientData.age || ""}
+                        {consultaSeleccionada === "beneficiario" &&
+                        beneficiaryData
+                          ? beneficiaryData.age // Muestra la edad recibida de la API
+                          : patientData.age || ""}
                       </span>
                     </p>
+
+                    {/* Departamento permanece constante */}
                     <p className="text-sm md:text-md text-gray-300">
                       Departamento:{" "}
                       <span className="font-normal">
                         {patientData.department || ""}
                       </span>
                     </p>
-                    <p className="text-sm md:text-md text-gray-300">
-                      Puesto:{" "}
-                      <span className="font-normal">
-                        {patientData.workstation || ""}
-                      </span>
-                    </p>
+
+                    {/* Mostrar Puesto solo si el empleado está seleccionado */}
+                    {consultaSeleccionada === "empleado" && (
+                      <p className="text-sm md:text-md text-gray-300">
+                        Puesto:{" "}
+                        <span className="font-normal">
+                          {patientData.workstation || ""}
+                        </span>
+                      </p>
+                    )}
+
+                    {/* Mostrar Parentesco solo si el beneficiario está seleccionado */}
+                    {consultaSeleccionada === "beneficiario" && (
+                      <p className="text-sm md:text-md text-gray-300">
+                        Parentesco:{" "}
+                        <span className="font-normal">
+                          {consultaSeleccionada === "beneficiario" &&
+                          beneficiaryData
+                            ? beneficiaryData.parentesco || ""
+                            : ""}
+                        </span>
+                      </p>
+                    )}
                   </div>
                 </div>
-                              {/* Información Sindicalización */}
-                              {patientData.grupoNomina === "NS" && (
-                  <div className="md:ml-auto mt-4 md:mt-0 p-4 bg-gradient-to-br from-gray-800 to-gray-700 rounded-lg shadow-lg flex flex-col items-center md:items-end text-right text-white">
-                    <p className="text-md font-bold text-yellow-400">
-                      <span className="block">SINDICALIZADO</span>
-                    </p>
-                    <p className="text-sm md:text-md">
-                      Sindicato:{" "}
-                      <span className="font-semibold">
-                        {patientData.cuotaSindical === "S"
-                          ? "SUTSMSJR"
-                          : "SITAM"}
-                      </span>
-                    </p>
-                  </div>
-                )}
-              </div>
 
+                {/* Información Sindicalización */}
+                {consultaSeleccionada === "empleado" &&
+                  patientData.grupoNomina === "NS" && (
+                    <div className="md:ml-auto mt-4 md:mt-0 p-4 bg-gradient-to-br from-gray-800 to-gray-700 rounded-lg shadow-lg flex flex-col items-center md:items-end text-right text-white">
+                      <p className="text-md font-bold text-yellow-400">
+                        <span className="block">SINDICALIZADO</span>
+                      </p>
+                      <p className="text-sm md:text-md">
+                        Sindicato:{" "}
+                        <span className="font-semibold">
+                          {patientData.cuotaSindical === "S"
+                            ? "SUTSMSJR"
+                            : "SITAM"}
+                        </span>
+                      </p>
+                    </div>
+                  )}
+              </div>
 
               {/* Formulario de Signos Vitales */}
               <div className="mt-6">
