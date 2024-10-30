@@ -4,6 +4,8 @@ import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
+
+
 const Home = () => {
   const [openMenu, setOpenMenu] = useState<string | null>(null);
 
@@ -47,20 +49,21 @@ const Home = () => {
       <div className="flex flex-col md:flex-row justify-center space-x-0 md:space-x-4 space-y-4 md:space-y-0 w-full max-w-2xl mx-auto mt-8">
         <SidebarButton
           title="Consultas"
-          options={["Signos Vitales", "Diagnostico", "Recetas"]}
+          options={["Signos Vitales", 
+            "Diagnostico", 
+            "Recetas"]}
           isOpen={openMenu === "Consultas"}
           handleMouseEnter={() => handleMouseEnter("Consultas")}
           handleMouseLeave={handleMouseLeave}
         />
         <SidebarButton
-          title="Catálogos"
+          title="Catalogos"
           options={[
             "Beneficiarios",
             "Especialidades",
             "Medicamentos",
             "Enfermedades Crónicas",
-            "Usuarios",
-            "Proveedores",
+            "usuarios-y-Proveedores",
           ]}
           isOpen={openMenu === "Catálogos"}
           handleMouseEnter={() => handleMouseEnter("Catálogos")}
@@ -159,5 +162,4 @@ const SidebarButton: React.FC<SidebarButtonProps> = ({
     </div>
   );
 };
-
 export default Home;

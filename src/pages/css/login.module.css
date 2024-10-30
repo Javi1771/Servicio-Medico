@@ -1,69 +1,99 @@
+/* Estilos del fondo de pantalla con gradiente */
+.body {
+  background-image: url('/fondo_login.png'); /* Cambia '/path/to/your/image.jpg' por la ruta de tu imagen */
+  background-size: cover; /* Asegura que la imagen cubra toda la pantalla */
+  background-position: center; /* Centra la imagen */
+  background-repeat: no-repeat; /* Evita que la imagen se repita */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  margin: 0;
+}
+
+
 /* Estilos del contenedor principal */
 .formContainer {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 20px;
-  background-color: #f2f2f2;
-  border-radius: 8px;
-  width: 300px;
-  margin: 0 auto;
-  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+  padding: 30px 20px;
+  background: rgba(255, 255, 255, 0.1); /* Fondo semitransparente para efecto de glassmorphism */
+  border-radius: 16px;
+  width: 400px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37); /* Sombras para dar profundidad */
+  backdrop-filter: blur(10px); /* Efecto de difuminado */
+  border: 1px solid rgba(255, 255, 255, 0.18);
 }
 
+/* Título del formulario */
 .formTitle {
-  font-family: Poppins-Bold, sans-serif;
+  font-family: 'Poppins-Bold', sans-serif;
   font-size: 24px;
-  color: #333;
+  color: #ffffff; /* Color blanco para resaltar */
   margin-bottom: 20px;
+  text-align: center;
 }
 
 .form {
   display: flex;
   flex-direction: column;
   width: 100%;
+  gap: 10px; /* Añade espacio entre los elementos */
 }
 
+/* Ajuste de simetría en los campos de entrada */
 .label {
-  font-family: Poppins-Regular, sans-serif;
-  color: #666;
+  font-family: 'Poppins-Regular', sans-serif;
+  color: #ffffff;
   margin-bottom: 5px;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
 }
 
 .input {
-  font-family: Poppins-Regular, sans-serif;
+  font-family: 'Poppins-Regular', sans-serif;
   padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  margin-top: 5px;
   margin-bottom: 15px;
-  width: 100%;
+  background: rgba(255, 255, 255, 0.2); /* Fondo semitransparente */
+  color: #ffffff;
+  width: 100%; /* Asegura que el ancho sea consistente */
+  box-sizing: border-box; /* Evita que padding afecte el ancho total */
 }
 
 .input:focus {
   outline: none;
-  border-color: #57b846;
-  box-shadow: 0 0 5px rgba(87, 184, 70, 0.5);
+  border-color: #46b8b8;
+  box-shadow: 0 4px 8px rgba(87, 184, 70, 0.3);
 }
 
+/* Botón de envío */
 .button {
-  font-family: Montserrat-Bold, sans-serif;
-  background-color: #57b846;
-  color: #fff;
+  font-family: 'Montserrat-Bold', sans-serif;
+  background-color: #466ab8;
+  color: #ffffff;
   padding: 10px;
   border: none;
-  border-radius: 5px;
+  border-radius: 8px;
   cursor: pointer;
   width: 100%;
   text-transform: uppercase;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.3s ease, transform 0.3s ease;
 }
 
 .button:hover {
-  background-color: #333;
+  background-color: #333333;
+  transform: scale(1.05);
 }
 
+/* Mensaje de error */
 .errorMessage {
-  color: #c80000;
-  font-family: Poppins-Medium, sans-serif;
+  color: #ff4f4f;
+  font-family: 'Poppins-Medium', sans-serif;
   margin-top: 10px;
 }

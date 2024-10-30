@@ -1,5 +1,6 @@
 import sql from 'mssql';
 import bcrypt from 'bcrypt';
+import { RESPONSE_LIMIT_DEFAULT } from 'next/dist/server/api-utils';
 
 const config = {
   user: 'teamSM',
@@ -32,27 +33,16 @@ try {
     const user = result.recordset[0];
 
     if (!user) {
-        return res.status(401).json({ success: false, message: 'Usuario no encontrado' });
+      return res.status(401).json({ success: false, message: 'Usuario no encontrado' });
     }
 
-    // Verificar si la contraseña ingresada coincide con la almacenada en texto plano
-    if (user.password === password) {
-        // Si coincide, encriptar la nueva contraseña
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        // Actualizar la contraseña en la base de datos con la versión encriptada
-        await sql.query`UPDATE USUARIOS SET password = ${hashedPassword} WHERE usuario = ${usuario}`;
-
-        return res.status(200).json({ success: true, message: 'Contraseña encriptada y login exitoso' });
-    }
-
-    // Si la contraseña no coincide en texto plano, verificar si está encriptada
+    // Verificar si la contraseña ingresada coincide con la almacenada (hasheada)
     const isMatch = await bcrypt.compare(password, user.password);
-    
+
     if (isMatch) {
-        return res.status(200).json({ success: true, message: 'Login exitoso' });
+      return res.status(200).json({ success: true, message: 'Login exitoso' });
     } else {
-        return res.status(401).json({ success: false, message: 'Contraseña incorrecta' });
+      return res.status(401).json({ success: false, message: 'Contraseña incorrecta' });
     }
 } catch (error) {
     console.error(error);

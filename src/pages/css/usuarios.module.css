@@ -1,0 +1,131 @@
+/* Estilos existentes */
+.container {
+  padding: 20px;
+  margin: auto;
+  margin-top: 30px;
+  max-width: 90%;
+  width: 90%;
+  overflow-x: auto;
+  background: rgba(0, 0, 0, 0.386); /* Fondo semi-transparente */
+  backdrop-filter: blur(15px); /* Desenfoque para el efecto de glassmorphism */
+  border-radius: 10px;
+  border: 1px solid rgba(18, 18, 18, 0.3); /* Borde semi-transparente */
+  color: rgb(255, 255, 255);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.413);
+}
+
+.title {
+  font-size: 24px;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.error {
+  color: red;
+  text-align: center;
+  margin-top: 10px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background: rgba(255, 255, 255, 0.1); /* Fondo blanco semi-transparente para la tabla */
+  border-radius: 5px;
+  overflow: hidden; /* Asegura que los bordes redondeados se mantengan */
+  backdrop-filter: blur(10px); /* Efecto de desenfoque */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.table th,
+.table td {
+  padding: 12px; /* Espaciado interno */
+  text-align: left;
+  border: 1px solid rgba(0, 0, 0, 0.3); /* Borde semi-transparente */
+  color: #ffffff; /* Color del texto en la tabla a blanco */
+}
+
+.table th {
+  background-color: #557492; /* Color del encabezado */
+  color: #ffffff; /* Color del texto en el encabezado */
+  font-weight: bold;
+}
+
+.table tr:nth-child(even) {
+  background-color: rgba(115, 175, 233, 0.5); /* Color de fila par */
+}
+
+.table tr:hover {
+  background-color: rgba(0, 137, 145, 0.5); /* Color de fondo al pasar el mouse */
+  transition: background-color 0.3s ease;
+}
+
+.searchInput {
+  margin-bottom: 20px;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 4px;
+  width: 100%; /* Ocupa el 100% del contenedor */
+  background: rgba(255, 255, 255, 0.1); /* Fondo blanco semi-transparente */
+  color: white; /* Color del texto */
+  backdrop-filter: blur(10px); /* Efecto de desenfoque */
+}
+
+.buttonContainer {
+  margin-bottom: 20px;
+  display: flex; /* Usar flexbox para alinear botones */
+  justify-content: flex-start; /* Alinear los botones al inicio */
+  flex-wrap: wrap; /* Permitir que los botones se ajusten en líneas múltiples */
+}
+
+.button {
+  margin-right: 10px;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 5px;
+  background-color: rgba(0, 200, 255, 0.333); /* Azul semi-transparente */
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  flex: 1; /* Permitir que los botones crezcan */
+  min-width: 100px; /* Ancho mínimo para cada botón */
+}
+
+.button:hover {
+  background-color: rgba(0, 123, 255, 1); /* Azul completo al pasar el mouse */
+}
+
+.banner {
+  display: block; /* Asegura que la imagen se comporte como un bloque */
+  margin: 0 auto; /* Centra la imagen horizontalmente */
+  width: 100%; /* Ajusta el ancho al 100% del contenedor */
+  max-width: 800px; /* Limita el ancho máximo (ajusta según sea necesario) */
+  height: auto; /* Mantiene la proporción de la imagen */
+  margin-bottom: 20px; /* Espacio debajo del banner */
+  border-radius: 10px; /* Bordes redondeados (opcional) */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Sombra para dar profundidad (opcional) */
+}
+
+.body {
+  background: linear-gradient(to right, #161616, #2575fc); /* Gradiente en el body */
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+  .buttonContainer {
+      flex-direction: column; /* Botones en columna en pantallas pequeñas */
+      align-items: flex-start; /* Alinear los botones a la izquierda */
+  }
+
+  .button {
+      margin-bottom: 10px; /* Espacio entre botones en columna */
+      width: 100%; /* Botones ocupan el 100% del ancho */
+  }
+}
