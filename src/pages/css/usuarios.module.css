@@ -78,23 +78,6 @@
   flex-wrap: wrap; /* Permitir que los botones se ajusten en líneas múltiples */
 }
 
-.button {
-  margin-right: 10px;
-  padding: 10px 15px;
-  border: none;
-  border-radius: 5px;
-  background-color: rgba(0, 200, 255, 0.333); /* Azul semi-transparente */
-  color: white;
-  cursor: pointer;
-  transition: background-color 0.3s;
-  flex: 1; /* Permitir que los botones crezcan */
-  min-width: 100px; /* Ancho mínimo para cada botón */
-}
-
-.button:hover {
-  background-color: rgba(0, 123, 255, 1); /* Azul completo al pasar el mouse */
-}
-
 .banner {
   display: block; /* Asegura que la imagen se comporte como un bloque */
   margin: 0 auto; /* Centra la imagen horizontalmente */
@@ -107,7 +90,7 @@
 }
 
 .body {
-  background: linear-gradient(to right, #161616, #2575fc); /* Gradiente en el body */
+  background: linear-gradient(to right, #9401ae, #2575fc); /* Gradiente en el body */
   margin: 0;
   padding: 0;
   font-family: Arial, sans-serif;
@@ -128,4 +111,222 @@
       margin-bottom: 10px; /* Espacio entre botones en columna */
       width: 100%; /* Botones ocupan el 100% del ancho */
   }
+}
+
+
+
+
+
+
+/* From Uiverse.io by TaniaDou */ 
+.button {
+  padding: 1rem 2rem;
+  border-radius: 0.5rem;
+  border: none;
+  font-size: 1rem;
+  font-weight: 400;
+  color: #f4f0ff;
+  text-align: center;
+  position: relative;
+  cursor: pointer;
+  flex: 1; /* Permitir que los botones crezcan */
+  min-width: 100px; /* Ancho mínimo para cada botón */
+  margin: 0 0.5rem; /* Agregar un margen horizontal entre los botones */
+
+}
+
+.button::before {
+  content: "";
+  display: block;
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 100%;
+  border-radius: 0.5rem;
+  background: linear-gradient(
+      180deg,
+      rgba(8, 77, 126, 0) 0%,
+      rgba(8, 77, 126, 0.42) 100%
+    ),
+    rgba(47, 255, 255, 0.24);
+  box-shadow: inset 0 0 12px rgba(151, 200, 255, 0.44);
+  z-index: -1;
+}
+
+.button::after {
+  content: "";
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+      180deg,
+      rgba(8, 77, 126, 0) 0%,
+      rgba(8, 77, 126, 0.42) 100%
+    ),
+    rgba(47, 255, 255, 0.24);
+  box-shadow: inset 0 0 12px rgba(151, 200, 255, 0.44);
+  border-radius: 0.5rem;
+  opacity: 0;
+  z-index: -1;
+  transition: all 0.3s ease-in;
+}
+
+.button:hover::after {
+  opacity: 1;
+}
+
+.button-border {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  border-radius: 0.5rem;
+  z-index: -1;
+}
+
+.button-border::before {
+  content: "";
+  position: absolute;
+  border-radius: 0.5rem;
+  padding: 1px;
+  inset: 0;
+  background: linear-gradient(
+      180deg,
+      rgba(184, 238, 255, 0.24) 0%,
+      rgba(184, 238, 255, 0) 100%
+    ),
+    linear-gradient(0deg, rgba(184, 238, 255, 0.32), rgba(184, 238, 255, 0.32));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  pointer-events: none;
+}
+.dropdown {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid rgb(255, 255, 255);
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.4);
+  color: rgb(255, 255, 255);
+}
+
+
+
+
+/* Fondo oscuro sólido para el overlay del modal */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(74, 74, 74, 0.283); /* Fondo oscuro sólido */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+/* Mantener el estilo original del modalContent */
+.modalContent {
+  background: #1c1c1c; /* Fondo sólido en color negro grisáceo */
+  padding: 30px;
+  border-radius: 12px;
+  width: 95%;
+  max-width: 600px;
+  box-shadow: 
+    0 0 15px rgba(0, 21, 255, 0.5),   /* Cian claro */
+    0 0 25px rgba(255, 149, 0, 0.4),   /* Azul más oscuro */
+    0 0 35px rgba(0, 72, 255, 0.3),   /* Magenta */
+    0 0 45px rgba(255, 0, 0, 0.2);    /* Naranja oscuro */
+  text-align: center;
+  color: #ffffff;
+  z-index: 1001;
+  max-height: 90vh; /* Para mantener el modal visible */
+  overflow-y: auto; /* Scroll si el contenido es demasiado largo */
+}
+
+/* Encabezado del modal */
+.modalHeader {
+  margin-bottom: 10px;
+  font-size: 1.6em;
+  font-weight: bold;
+  color: #ffffff;
+}
+
+/* Estilo para el formulario del modal en grid */
+.modalForm {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* Dos columnas */
+  gap: 15px; /* Espacio entre inputs */
+}
+
+/* Inputs en la estructura de grid */
+.modalForm input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #666; /* Borde gris */
+  border-radius: 6px;
+  background: #2a2a2a; /* Fondo oscuro */
+  color: #ffffff;
+  caret-color: #b3b3b3; /* Color del cursor */
+  outline: none;
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+/* Selector de especialidad y tipo de usuario */
+.modalForm select {
+  width: 100%;
+  padding: 10px;
+  margin: 0;
+  border: 1px solid #666; /* Borde gris */
+  border-radius: 6px;
+  background: #2a2a2a; /* Fondo oscuro */
+  color: #ffffff;
+  outline: none;
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+/* Efecto al enfocar los inputs */
+.modalForm input:focus, .modalForm select:focus {
+  border-color: #00bcd4; /* Borde cian al enfocar */
+  background: #333333; /* Fondo ligeramente más oscuro */
+}
+
+/* Hacer que el botón de envío ocupe toda la fila */
+.formSubmitBtn {
+  grid-column: span 2; /* Botón a lo largo de dos columnas */
+  padding: 12px;
+  background-color: #007BFF;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.formSubmitBtn:hover {
+  background-color: #0056b3;
+}
+
+/* Estilo para el botón de cerrar */
+.closeButton {
+  grid-column: span 2; /* Cierra modal en fila completa */
+  background-color: #f44336;
+  color: white;
+  padding: 10px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  margin-top: 15px;
+  transition: background 0.3s ease;
+}
+
+.closeButton:hover {
+  background-color: #d32f2f;
 }
