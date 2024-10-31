@@ -1,10 +1,10 @@
 import sql from 'mssql';
 
 const dbConfig = {
-  user: process.env.DB_USER || 'teamSM',
-  password: process.env.DB_PASSWORD || 'sm2024',
-  server: process.env.DB_SERVER || '172.16.0.3',
-  database: process.env.DB_DATABASE || 'PRESIDENCIA',
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  server: process.env.DB_SERVER,
+  database: process.env.DB_DATABASE,
   options: {
     encrypt: process.env.DB_ENCRYPT === 'true', 
     trustServerCertificate: process.env.DB_TRUST_SERVER_CERTIFICATE === 'true',
@@ -18,7 +18,7 @@ export const connectToDatabase = async () => {
     if (!pool) {
       pool = await sql.connect(dbConfig);
       console.log('Conexión a la base de datos exitosa');
-      console.log("Server:", process.env.DB_SERVER); //? Debería mostrar "172.16.0.3"
+      console.log("Server:", process.env.DB_SERVER); 
     }
     return pool;
   } catch (error) {

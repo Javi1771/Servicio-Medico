@@ -28,8 +28,8 @@ export default async function handler(req, res) {
       const [result] = await client.GetEmpleadoAsync(empObject);
 
       //* Imprimir el resultado completo en consola
-      // console.log('Resultado completo del servicio SOAP:');
-      // console.log(JSON.stringify(result, null, 2));
+      console.log('Resultado completo del servicio SOAP:');
+      console.log(JSON.stringify(result, null, 2));
 
       //* Verificar si se encontró el resultado y devolverlo
       if (result && result.GetEmpleadoResult) {

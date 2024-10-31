@@ -8,14 +8,14 @@ export default async function handler(req, res) {
 
     try {
       const pool = await connectToDatabase();
-      const result = await pool.request()
-        .input("nomina", sql.VarChar, nomina)
+      const result = await pool.request().input("nomina", sql.VarChar, nomina)
         .query(`
           SELECT 
             B.NOMBRE, 
             B.A_PATERNO, 
             B.A_MATERNO, 
             B.F_NACIMIENTO, 
+            P.ID_PARENTESCO AS ID_PARENTESCO,
             P.PARENTESCO AS PARENTESCO_DESC,
             DATEDIFF(YEAR, B.F_NACIMIENTO, GETDATE()) AS YEARS,
             DATEDIFF(MONTH, DATEADD(YEAR, DATEDIFF(YEAR, B.F_NACIMIENTO, GETDATE()), B.F_NACIMIENTO), GETDATE()) AS MONTHS,
@@ -26,17 +26,19 @@ export default async function handler(req, res) {
         `);
 
       if (result.recordset.length > 0) {
-        const beneficiaryData = result.recordset[0];
-        //* Combina los años, meses y días en un solo campo para mayor facilidad en el frontend
-        beneficiaryData.EDAD = `${beneficiaryData.YEARS} años, ${beneficiaryData.MONTHS} meses, ${beneficiaryData.DAYS} días`;
-        
-        console.log("Datos del beneficiario con edad:", beneficiaryData); //* Verificar salida
-        res.status(200).json(beneficiaryData);
+        //* Añade el campo EDAD en cada beneficiario
+        const beneficiaries = result.recordset.map(beneficiary => ({
+          ...beneficiary,
+          EDAD: `${beneficiary.YEARS} años, ${beneficiary.MONTHS} meses, ${beneficiary.DAYS} días`
+        }));
+
+        console.log("Lista de beneficiarios:", beneficiaries); //! Verifica la salida
+        res.status(200).json({ beneficiarios: beneficiaries });
       } else {
-        res.status(404).json({ message: "Beneficiario no encontrado" });
+        res.status(404).json({ message: "No se encontraron beneficiarios para esta nómina" });
       }
     } catch (error) {
-      console.error("Error al buscar beneficiario:", error);
+      console.error("Error al buscar beneficiarios:", error);
       res.status(500).json({ message: "Error de conexión", error });
     }
   } else {
