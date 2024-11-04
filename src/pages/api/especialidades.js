@@ -1,23 +1,12 @@
-import sql from 'mssql';
-
-const dbConfig = {
-  user: 'teamSM',           
-  password: 'sm2024',       
-  server: '172.16.0.3',            
-  database: 'PRESIDENCIA',  
-  options: {
-    encrypt: false,                 
-    trustServerCertificate: true   
-  }
-};
+import { connectToDatabase } from '../api/connectToDatabase'; // Asegúrate de que la ruta sea correcta
 
 export default async function handler(req, res) {
   try {
-    // Conectar a la base de datos
-    const pool = await sql.connect(dbConfig);
-    
+    // Conectar a la base de datos utilizando tu función
+    const pool = await connectToDatabase(); // Asegúrate de que esta función devuelva el pool correcto
+
     // Realizar la consulta
-    const result = await pool.request().query('SELECT * FROM especialidades'); // Cambia 'tu_tabla' por el nombre de tu tabla
+    const result = await pool.request().query('SELECT * FROM especialidades'); // Cambia 'especialidades' por el nombre de tu tabla si es necesario
 
     // Imprimir los resultados en la consola
     console.log('Resultados de la consulta:', result.recordset);

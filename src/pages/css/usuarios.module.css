@@ -6,7 +6,7 @@
   max-width: 90%;
   width: 90%;
   overflow-x: auto;
-  background: rgba(0, 0, 0, 0.386); /* Fondo semi-transparente */
+  background: rgba(0, 0, 0, 0.34); /* Fondo semi-transparente */
   backdrop-filter: blur(15px); /* Desenfoque para el efecto de glassmorphism */
   border-radius: 10px;
   border: 1px solid rgba(18, 18, 18, 0.3); /* Borde semi-transparente */
@@ -90,7 +90,7 @@
 }
 
 .body {
-  background: linear-gradient(to right, #9401ae, #2575fc); /* Gradiente en el body */
+  background: linear-gradient(to right, #d7d0b7, #25c6fc, #00bd6b); /* Gradiente en el body */
   margin: 0;
   padding: 0;
   font-family: Arial, sans-serif;
@@ -224,7 +224,7 @@
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: rgba(74, 74, 74, 0.283); /* Fondo oscuro sólido */
+  background-color: rgba(210, 210, 210, 0.283); /* Fondo oscuro sólido */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -329,4 +329,124 @@
 
 .closeButton:hover {
   background-color: #d32f2f;
+}
+
+
+/** ESTILOS MODAL SUCCES USUARIO **/
+.successModal {
+  position: absolute;
+  top: 50px; /* Ajusta la posición según sea necesario */
+  left: 50%; /* Centrado horizontal */
+  transform: translate(-50%, 0); /* Centrado correcto */
+  background-color: #000; /* Color de fondo negro */
+  color: white; /* Texto blanco */
+  padding: 20px 40px; /* Aumentar el tamaño del padding */
+  border-radius: 10px; /* Bordes redondeados */
+  border: 2px solid #39ff14; /* Borde verde neón */
+  z-index: 1000; /* Asegúrate de que esté en la parte superior */
+  box-shadow: 0 0 10px rgba(57, 255, 20, 0.5); /* Sombra para un efecto neón */
+  animation: fadeIn 0.5s, fadeOut 0.5s 2.5s; /* Animaciones de entrada y salida */
+  font-size: 18px; /* Aumentar el tamaño de la fuente */
+  text-align: center; /* Centrar el texto */
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+
+/**ESTILOS ICONO INPPUT**/
+.inputContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.icon {
+  position: absolute;
+  left: 10px; /* Ajusta según necesites */
+  cursor: pointer;
+}
+
+.inputWithIcon {
+  padding-left: 60px; /* Espacio para el icono */
+}
+
+
+
+
+/**estilos editar y eliminar**/
+.editbutton {
+  display: inline;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 35px;
+  border-radius: 15px;
+  background-color: rgb(255, 242, 95);
+  cursor: pointer;
+  border: 3px solid rgb(255, 201, 201);
+  transition-duration: 0.3s;
+}
+.editbutton {
+  width: 15px;
+}
+.editbutton {
+  width: 17px;
+  transform-origin: right;
+  transition-duration: 0.3s;
+}
+.editbutton:hover .bin-top {
+  transform: rotate(45deg);
+}
+.binbutton:hover {
+  background-color: rgb(255, 0, 0);
+}
+.binbutton:active {
+  transform: scale(0.9);
+}
+
+
+
+
+
+/* From Uiverse.io by vinodjangid07 */ 
+.editButton {
+  background-color: yellow; /* Color amarillo */
+  border: none;
+  border-radius: 5px; /* Bordes redondeados */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Sombra para profundidad */
+  color: black; /* Color del icono */
+  cursor: pointer;
+  padding: 10px;
+  transition: all 0.3s ease; /* Transición suave */
+  margin-right: 10px; /* Añade espacio entre los botones */
+}
+
+.editButton:hover {
+  transform: translateY(-2px); /* Mueve el botón hacia arriba al pasar el mouse */
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3); /* Aumenta la sombra */
+}
+
+.binButton {
+  background-color: red; /* Color rojo */
+  border: none;
+  border-radius: 5px; /* Bordes redondeados */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Sombra para profundidad */
+  color: white; /* Color del icono */
+  cursor: pointer;
+  padding: 10px;
+  transition: all 0.3s ease; /* Transición suave */
+}
+
+.binButton:hover {
+  transform: translateY(-2px); /* Mueve el botón hacia arriba al pasar el mouse */
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3); /* Aumenta la sombra */
 }

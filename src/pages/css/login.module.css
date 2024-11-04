@@ -1,9 +1,9 @@
 /* Estilos del fondo de pantalla con gradiente */
 .body {
-  background-image: url('/fondo_login.png'); /* Cambia '/path/to/your/image.jpg' por la ruta de tu imagen */
-  background-size: cover; /* Asegura que la imagen cubra toda la pantalla */
-  background-position: center; /* Centra la imagen */
-  background-repeat: no-repeat; /* Evita que la imagen se repita */
+  background-image: url('/fondo_login.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -11,27 +11,48 @@
   margin: 0;
 }
 
-
-/* Estilos del contenedor principal */
+/* Contenedor principal del formulario e imagen */
 .formContainer {
-  position: relative;
+  display: flex;
+  width: 800px; /* Ancho fijo para el contenedor */
+  height: 450px; /* Alto fijo para el contenedor */
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  overflow: hidden;
+}
+
+/* Contenedor de imagen */
+.imageContainer {
+  flex: 1; /* Ocupa la mitad del contenedor */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Asegura que la imagen ocupe todo el espacio disponible */
+}
+
+/* Sección del formulario dentro del contenedor principal */
+.formSection {
+  flex: 1; /* Ocupa la otra mitad del contenedor */
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 30px 20px;
-  background: rgba(255, 255, 255, 0.1); /* Fondo semitransparente para efecto de glassmorphism */
-  border-radius: 16px;
-  width: 400px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37); /* Sombras para dar profundidad */
-  backdrop-filter: blur(10px); /* Efecto de difuminado */
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  justify-content: center;
+  padding: 20px;
 }
 
 /* Título del formulario */
 .formTitle {
   font-family: 'Poppins-Bold', sans-serif;
-  font-size: 24px;
-  color: #ffffff; /* Color blanco para resaltar */
+  font-size: 28px;
+  color: #ffffff;
   margin-bottom: 20px;
   text-align: center;
 }
@@ -40,14 +61,13 @@
   display: flex;
   flex-direction: column;
   width: 100%;
-  gap: 10px; /* Añade espacio entre los elementos */
+  gap: 15px;
 }
 
 /* Ajuste de simetría en los campos de entrada */
 .label {
   font-family: 'Poppins-Regular', sans-serif;
   color: #ffffff;
-  margin-bottom: 5px;
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -55,45 +75,150 @@
 
 .input {
   font-family: 'Poppins-Regular', sans-serif;
-  padding: 10px;
+  padding: 12px;
   border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 8px;
-  margin-top: 5px;
-  margin-bottom: 15px;
-  background: rgba(255, 255, 255, 0.2); /* Fondo semitransparente */
+  background: rgba(255, 255, 255, 0.2);
   color: #ffffff;
-  width: 100%; /* Asegura que el ancho sea consistente */
-  box-sizing: border-box; /* Evita que padding afecte el ancho total */
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .input:focus {
   outline: none;
-  border-color: #46b8b8;
+  border-color: #046363;
   box-shadow: 0 4px 8px rgba(87, 184, 70, 0.3);
 }
 
 /* Botón de envío */
 .button {
-  font-family: 'Montserrat-Bold', sans-serif;
-  background-color: #466ab8;
-  color: #ffffff;
-  padding: 10px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  width: 100%;
+  display: inline-block;
+  padding: 12px 28px;
+  margin: 10px;
+  font-size: 24px;
+  font-weight: bold;
   text-transform: uppercase;
-  transition: background-color 0.3s ease, transform 0.3s ease;
+  color: #fff;
+  background-image: linear-gradient(to bottom right, #00c6ff, #0072ff);
+  border: none;
+  border-radius: 40px;
+  box-shadow: 0px 4px 0px #0072ff;
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
 }
 
 .button:hover {
-  background-color: #333333;
-  transform: scale(1.05);
+  transform: translateY(-2px);
+  box-shadow: 0px 6px 0px #0072ff;
 }
 
+.button:active {
+  transform: translateY(0px);
+  box-shadow: none;
+  background-image: linear-gradient(to bottom right, #0072ff, #00c6ff);
+}
+
+.button:before,
+.button:after {
+  content: "";
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+
+.button:before {
+  top: -3px;
+  left: -3px;
+  border-radius: 40px;
+  border-top: 3px solid #fff;
+  border-left: 3px solid #fff;
+}
+
+.button:after {
+  bottom: -3px;
+  right: -3px;
+  border-radius: 40px;
+  border-bottom: 3px solid #fff;
+  border-right: 3px solid #fff;
+}
+
+
+.hoverEffect {
+  position: absolute;
+  bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}
+
+.hoverEffect div {
+  background: rgb(222, 0, 75);
+  background: linear-gradient(
+    90deg,
+    rgba(222, 0, 75, 1) 0%,
+    rgba(191, 70, 255, 1) 49%,
+    rgba(0, 212, 255, 1) 100%
+  );
+  border-radius: 40rem;
+  width: 10rem;
+  height: 10rem;
+  transition: 0.4s;
+  filter: blur(20px);
+  animation: effect infinite 3s linear;
+  opacity: 0.5;
+}
+
+.button:hover .hoverEffect div {
+  width: 8rem;
+  height: 8rem;
+}
+
+@keyframes effect {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+
+@keyframes rotate {
+  0% {
+    transform: rotateY(180deg);
+  }
+
+  100% {
+    transform: rotateY(360deg);
+  }
+}
 /* Mensaje de error */
 .errorMessage {
   color: #ff4f4f;
   font-family: 'Poppins-Medium', sans-serif;
   margin-top: 10px;
+}
+
+/* --- Media Queries para Responsividad --- */
+@media (max-width: 768px) {
+  .formContainer {
+    width: 90vw;
+    height: auto;
+    flex-direction: column;
+  }
+
+  .imageContainer,
+  .formSection {
+    width: 100%;
+    height: 200px; /* Ajusta el alto de cada sección en pantallas pequeñas */
+  }
+
+  .formTitle {
+    font-size: 24px;
+  }
 }
