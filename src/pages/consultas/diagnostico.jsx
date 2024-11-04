@@ -6,7 +6,7 @@ import DatosAdicionales from "./datos-adicionales/datos-adicionales";
 
 const Diagnostico = () => {
   const [nombreMedico, setNombreMedico] = useState("Dr. Goku");
-  const [folio, setFolio] = useState(1);
+  const [claveConsulta, setClaveConsulta] = useState("");
   const [fecha, setFecha] = useState("");
   const [signosVitales, setSignosVitales] = useState({
     ta: "",
@@ -20,9 +20,12 @@ const Diagnostico = () => {
   const [alergias, setAlergias] = useState("");
   const [fotoEmpleado, setFotoEmpleado] = useState(null);
   const [subPantalla, setSubPantalla] = useState("Diagnóstico");
-
+  const [pacientes, setPacientes] = useState([]);
   const [pacienteSeleccionado, setPacienteSeleccionado] = useState(null);
   const [mostrarEmergente, setMostrarEmergente] = useState(false);
+  const [empleadoData, setEmpleadoData] = useState(null);
+  const [selectedBeneficiary, setSelectedBeneficiary] = useState(null);
+  const [consultaSeleccionada, setConsultaSeleccionada] = useState("empleado");
 
   const [datosEditados, setDatosEditados] = useState({
     signosVitales: {},
@@ -34,45 +37,89 @@ const Diagnostico = () => {
     const formattedDate = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
     setFecha(formattedDate);
 
-    const fetchData = async () => {
-      const fetchedSignosVitales = {
-        ta: "120/80 mmHg",
-        temperatura: "36.6 °C",
-        fc: "70 bpm",
-        oxigenacion: "98 %",
-        altura: "175 cm",
-        peso: "70 kg",
-        glucosa: "90 mg/dL",
-      };
-      const fetchedAlergias = "";
-
-      setSignosVitales(fetchedSignosVitales);
-      setAlergias(fetchedAlergias);
-      setDatosEditados({ signosVitales: fetchedSignosVitales, alergias: fetchedAlergias });
-    };
-
-    fetchData();
+    cargarPacientesDelDia();
   }, []);
 
-  const handleSubPantallaChange = (pantalla) => {
-    setSubPantalla(pantalla);
+  const cargarPacientesDelDia = async () => {
+    try {
+      const response = await fetch("/api/consultasHoy");
+      const data = await response.json();
+      if (response.ok) {
+        setPacientes(data.consultas);
+      } else {
+        console.error("Error al cargar consultas del día:", data.message);
+      }
+    } catch (error) {
+      console.error("Error al cargar consultas del día:", error);
+    }
   };
 
-  const handlePacienteClick = (paciente) => {
+  const handlePacienteClick = async (paciente) => {
     setPacienteSeleccionado(paciente);
     setMostrarEmergente(true);
+    setClaveConsulta(paciente.claveconsulta);
+
+    setSignosVitales({
+      ta: paciente.presionarterialpaciente,
+      temperatura: paciente.temperaturapaciente,
+      fc: paciente.pulsosxminutopaciente,
+      oxigenacion: paciente.respiracionpaciente,
+      altura: paciente.estaturapaciente,
+      peso: paciente.pesopaciente,
+      glucosa: paciente.glucosapaciente,
+    });
+
+    setAlergias(paciente.alergias || "");
+    setDatosEditados({ signosVitales: paciente.signosVitales || {}, alergias: paciente.alergias || "" });
+
+    // Actualiza selectedBeneficiary con los datos de parentesco si es un beneficiario
+    if (paciente.parentesco_desc) {
+      setConsultaSeleccionada("beneficiario");
+      setSelectedBeneficiary({
+        ...paciente,
+        PARENTESCO_DESC: paciente.parentesco_desc,
+      });
+    } else {
+      setConsultaSeleccionada("empleado");
+      setSelectedBeneficiary(null);
+    }
+
+    await obtenerDatosEmpleado(paciente.clavenomina);
   };
 
-  const closeEmergente = () => {
-    setMostrarEmergente(false);
+  const obtenerDatosEmpleado = async (num_nom) => {
+    try {
+      const response = await fetch("/api/empleado", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ num_nom }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setEmpleadoData({
+          nombreCompleto: `${data.nombre} ${data.a_paterno} ${data.a_materno}`,
+          departamento: data.departamento,
+        });
+      } else {
+        console.error("Error al obtener datos del empleado:", await response.json());
+      }
+    } catch (error) {
+      console.error("Error al conectar con el servicio de empleado:", error);
+    }
   };
 
   const handleChange = (e) => {
     setDatosEditados({ ...datosEditados, [e.target.name]: e.target.value });
   };
 
+  const isFormComplete = datosEditados.signosVitales &&
+    Object.values(datosEditados.signosVitales).every(value => value && value.trim() !== "") &&
+    datosEditados.alergias && datosEditados.alergias.trim() !== "";
+
   const handleGuardar = () => {
-    setAlergias(datosEditados.alergias);
     alert("Datos guardados");
     setPacienteSeleccionado(null);
   };
@@ -114,21 +161,18 @@ const Diagnostico = () => {
             </tr>
           </thead>
           <tbody>
-            <tr
-              className="hover:bg-gray-600 transition-colors duration-300 cursor-pointer"
-              onClick={() =>
-                handlePacienteClick({
-                  nombre: "Juan Pérez",
-                  edad: "30",
-                  parentesco: "Hermano",
-                })
-              }
-            >
-              <td className="py-2 md:py-3 px-2 md:px-4 text-left">001</td>
-              <td className="py-2 md:py-3 px-2 md:px-4 text-left">Juan Pérez</td>
-              <td className="py-2 md:py-3 px-2 md:px-4 text-left">30</td>
-              <td className="py-2 md:py-3 px-2 md:px-4 text-left">Salud</td>
-            </tr>
+            {pacientes.map((paciente) => (
+              <tr
+                key={paciente.id}
+                className="hover:bg-gray-600 transition-colors duration-300 cursor-pointer"
+                onClick={() => handlePacienteClick(paciente)}
+              >
+                <td className="py-2 md:py-3 px-2 md:px-4 text-left">{paciente.clavenomina}</td>
+                <td className="py-2 md:py-3 px-2 md:px-4 text-left">{paciente.nombrepaciente}</td>
+                <td className="py-2 md:py-3 px-2 md:px-4 text-left">{paciente.edad}</td>
+                <td className="py-2 md:py-3 px-2 md:px-4 text-left">{paciente.departamento}</td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
@@ -141,7 +185,7 @@ const Diagnostico = () => {
             <ul className="list-disc pl-5 text-sm md:text-base">
               <li className="flex items-center">
                 <span className="font-semibold">Folio:</span>
-                <span className="ml-1">{folio}</span>
+                <span className="ml-1">{claveConsulta}</span>
               </li>
               <li className="flex items-center">
                 <span className="font-semibold">Fecha:</span>
@@ -163,15 +207,18 @@ const Diagnostico = () => {
             </div>
             <div className="bg-gray-700 p-4 rounded flex-1 shadow-lg transition duration-300 hover:shadow-xl">
               <h2 className="text-md md:text-lg font-bold mb-2">Datos del Paciente</h2>
-              <p>Paciente: {pacienteSeleccionado?.nombre}</p>
-              <p>Edad: {pacienteSeleccionado?.edad}</p>
-              <p>Parentesco: {pacienteSeleccionado?.parentesco}</p>
+              <p>Paciente: {pacienteSeleccionado?.nombrepaciente || "No disponible"}</p>
+              <p>Edad: {pacienteSeleccionado?.edad || "Desconocida"}</p>
+              <p>Parentesco: {consultaSeleccionada === "beneficiario" && selectedBeneficiary
+                  ? selectedBeneficiary.PARENTESCO_DESC
+                  : "No disponible"}
+              </p>
             </div>
             <div className="bg-gray-700 p-4 rounded-lg flex-1 shadow-lg transition duration-300 hover:shadow-xl">
               <h2 className="text-md md:text-lg font-bold mb-2">Datos del Empleado</h2>
-              <p>Nómina:</p>
-              <p>Trabajador:</p>
-              <p>Departamento:</p>
+              <p>Nómina: {pacienteSeleccionado?.clavenomina || "No disponible"}</p>
+              <p>Trabajador: {empleadoData?.nombreCompleto || "No disponible"}</p>
+              <p>Departamento: {empleadoData?.departamento || "No asignado"}</p>
             </div>
           </div>
 
@@ -207,13 +254,14 @@ const Diagnostico = () => {
           {/* Botones emergentes y contenido */}
           <DatosAdicionales
             subPantalla={subPantalla}
-            handleSubPantallaChange={handleSubPantallaChange}
+            handleSubPantallaChange={setSubPantalla}
           />
 
           {/* Botones Guardar y Cancelar */}
           <div className="flex space-x-2 md:space-x-4 mt-4">
             <button
               onClick={handleGuardar}
+              disabled={!isFormComplete}
               className="px-3 py-2 md:px-4 md:py-2 bg-green-500 text-white rounded-md"
             >
               Guardar

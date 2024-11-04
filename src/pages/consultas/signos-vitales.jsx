@@ -90,7 +90,7 @@ const SignosVitales = () => {
       const response = await fetch("/api/consultasHoy");
       const data = await response.json();
       if (response.ok) {
-        setPacientes(data.consultas); // Asegúrate de que setPacientes esté disponible en el componente
+        setPacientes(data.consultas);
       } else {
         console.error("Error al cargar consultas del día:", data.message);
       }
@@ -104,7 +104,20 @@ const SignosVitales = () => {
   //! handleSave: Utiliza 'dbFormat' solo para el guardado en la base de datos
   const handleSave = async () => {
     if (!nomina) {
-      alert("Por favor, ingresa el número de nómina antes de guardar.");
+      MySwal.fire({
+        icon: "error",
+        title:
+          "<span style='color: #ff8080; font-weight: bold; font-size: 1.5em;'>⚠️ Número de nómina requerido</span>",
+        html: "<p style='color: #d1d5db; font-size: 1.1em;'>Por favor, ingresa el número de nómina antes de guardar.</p>",
+        background: "linear-gradient(145deg, #2d3748, #1c2230)",
+        confirmButtonColor: "#7fdbff",
+        confirmButtonText:
+          "<span style='color: #0f172a; font-weight: bold;'>Aceptar</span>",
+        customClass: {
+          popup:
+            "border border-blue-500 shadow-[0px_0px_15px_5px_rgba(0,255,255,0.3)] rounded-lg",
+        },
+      });
       return;
     }
 
@@ -116,11 +129,6 @@ const SignosVitales = () => {
     ).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}:${String(
       now.getSeconds()
     ).padStart(2, "0")}`;
-
-    let sindicato = null;
-    if (patientData.grupoNomina === "NS") {
-      sindicato = patientData.cuotaSindical === "S" ? "SUTSMSJR" : "SITAM";
-    }
 
     const edad =
       consultaSeleccionada === "beneficiario" && selectedBeneficiary
@@ -148,8 +156,8 @@ const SignosVitales = () => {
           ? selectedBeneficiary.ID_PARENTESCO
           : 0,
       departamento: patientData.department || "",
-      sindicato: sindicato,
-      clavestatus: 1, // Establece clavestatus a 1 para indicar "en espera"
+      sindicato: patientData.grupoNomina === "NS" ? "SUTSMSJR" : "SITAM",
+      clavestatus: 1,
     };
 
     try {
@@ -161,15 +169,41 @@ const SignosVitales = () => {
 
       const data = await response.json();
       if (response.ok) {
-        alert(data.message);
+        MySwal.fire({
+          icon: "success",
+          title:
+            "<span style='color: #7fff80; font-weight: bold; font-size: 1.5em;'>✔️ Consulta guardada correctamente</span>",
+          html: "<p style='color: #e5e7eb; font-size: 1.1em;'>La consulta ha sido registrada en el sistema exitosamente.</p>",
+          background: "linear-gradient(145deg, #2d3748, #1c2230)",
+          confirmButtonColor: "#7fdbff",
+          confirmButtonText:
+            "<span style='color: #0f172a; font-weight: bold;'>Aceptar</span>",
+          customClass: {
+            popup:
+              "border border-green-500 shadow-[0px_0px_15px_5px_rgba(0,255,127,0.3)] rounded-lg",
+          },
+        });
         handleCloseModal();
-        cargarPacientesDelDia(); // Actualiza la lista de pacientes después de guardar
+        cargarPacientesDelDia();
       } else {
         throw new Error(data.message);
       }
     } catch (error) {
       console.error("Error al guardar la consulta:", error);
-      alert("Error al guardar la consulta. Intenta nuevamente.");
+      MySwal.fire({
+        icon: "error",
+        title:
+          "<span style='color: #ff8080; font-weight: bold; font-size: 1.5em;'>❌ Error al guardar la consulta</span>",
+        html: "<p style='color: #d1d5db; font-size: 1.1em;'>Hubo un problema al intentar guardar la consulta. Por favor, intenta nuevamente.</p>",
+        background: "linear-gradient(145deg, #2d3748, #1c2230)",
+        confirmButtonColor: "#7fdbff",
+        confirmButtonText:
+          "<span style='color: #0f172a; font-weight: bold;'>Aceptar</span>",
+        customClass: {
+          popup:
+            "border border-red-500 shadow-[0px_0px_15px_5px_rgba(255,128,128,0.3)] rounded-lg",
+        },
+      });
     }
   };
 
@@ -377,56 +411,56 @@ const SignosVitales = () => {
           >
             <AiOutlineUserAdd className="mr-3 text-2xl md:text-3xl text-white glow-icon" />
             <span className="text-lg md:text-xl font-bold text-white tracking-wide z-10 glow-text">
-              Agregar
+              Agregar Paciente
             </span>
-
-            {/* Efecto de neón en el fondo del botón */}
             <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-600 opacity-30 rounded-full animate-pulse-neon" />
             <div className="absolute inset-0 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 opacity-0 transition-all duration-500 neon-hover" />
           </button>
         </div>
       </div>
 
-      {/* Tabla de registro futurista avanzada con efectos neón */}
-      <table className="min-w-full bg-gradient-to-bl from-[#0a0b1e] via-[#050515] to-[#0a0b1e] rounded-[20px] shadow-[0_0_80px_rgba(0,255,255,0.7),0_0_50px_rgba(0,0,255,0.3)] mb-12 border-separate border-spacing-y-5 border-spacing-x-5 text-white overflow-hidden neon-border">
-        <thead>
-          <tr className="bg-gradient-to-r from-[#0078ff] via-[#6a00ff] to-[#23006d] text-gray-200 rounded-xl shadow-[0px_0px_25px_rgba(0,255,255,0.7)]">
-            <th className="py-6 px-10 text-left text-md md:text-xl font-bold uppercase tracking-[0.2em] border-b-[3px] border-transparent transition-all duration-300 neon-hover-border glow-hover">
-              Número de Nómina
-            </th>
-            <th className="py-6 px-10 text-left text-md md:text-xl font-bold uppercase tracking-[0.2em] border-b-[3px] border-transparent transition-all duration-300 neon-hover-border glow-hover">
-              Paciente
-            </th>
-            <th className="py-6 px-10 text-left text-md md:text-xl font-bold uppercase tracking-[0.2em] border-b-[3px] border-transparent transition-all duration-300 neon-hover-border glow-hover">
-              Edad
-            </th>
-            <th className="py-6 px-10 text-left text-md md:text-xl font-bold uppercase tracking-[0.2em] border-b-[3px] border-transparent transition-all duration-300 neon-hover-border glow-hover">
-              Secretaría
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {pacientes.map((paciente, index) => (
-            <tr
-              key={index}
-              className="bg-gradient-to-br from-[#0b0c20] via-[#1d1f3a] to-[#0b0c20] rounded-lg shadow-[0_0_20px_rgba(0,255,255,0.3),0_0_10px_rgba(0,0,255,0.2)] border border-[#0077b6]/50 transition-all duration-500"
-            >
-              <td className="py-6 px-10 text-left text-lg md:text-xl font-medium text-[#00e4ff] border-b-[1px] border-[#0077b6]/60 rounded-l-xl tracking-wide glow-text transition-all duration-500 hover:text-[#00ffff]">
-                {paciente.clavenomina || "N/A"}
-              </td>
-              <td className="py-6 px-10 text-left text-lg md:text-xl font-medium text-[#00e4ff] border-b-[1px] border-[#0077b6]/60 tracking-wide glow-text transition-all duration-500 hover:text-[#00ffff]">
-                {paciente.nombrepaciente || "No disponible"}
-              </td>
-              <td className="py-6 px-10 text-left text-lg md:text-xl font-medium text-[#00e4ff] border-b-[1px] border-[#0077b6]/60 tracking-wide glow-text transition-all duration-500 hover:text-[#00ffff]">
-                {paciente.edad || "Desconocida"}
-              </td>
-              <td className="py-6 px-10 text-left text-lg md:text-xl font-medium text-[#00e4ff] border-b-[1px] border-[#0077b6]/60 rounded-r-xl tracking-wide glow-text transition-all duration-500 hover:text-[#00ffff]">
-                {paciente.departamento || "No asignado"}
-              </td>
+      {/* Tabla de registro */}
+      <div className="w-full overflow-x-auto">
+        <table className="min-w-full bg-[#222539] rounded-xl shadow-[0_0_100px_rgba(0,255,255,0.4),0_0_50px_rgba(0,255,255,0.3)] mb-10 text-white overflow-hidden border border-[#3b4268]">
+          <thead>
+            <tr className="bg-gradient-to-r from-[#3a3f58] to-[#50597a] text-[#00f5ff] shadow-[0px_0px_30px_rgba(0,245,255,0.5)]">
+              <th className="py-4 px-5 md:px-10 text-sm md:text-lg font-semibold uppercase tracking-wide border-b-[1px] border-[#00f5ff]/50 transition duration-300">
+                Número de Nómina
+              </th>
+              <th className="py-4 px-5 md:px-10 text-sm md:text-lg font-semibold uppercase tracking-wide border-b-[1px] border-[#00f5ff]/50 transition duration-300">
+                Paciente
+              </th>
+              <th className="py-4 px-5 md:px-10 text-sm md:text-lg font-semibold uppercase tracking-wide border-b-[1px] border-[#00f5ff]/50 transition duration-300">
+                Edad
+              </th>
+              <th className="py-4 px-5 md:px-10 text-sm md:text-lg font-semibold uppercase tracking-wide border-b-[1px] border-[#00f5ff]/50 transition duration-300">
+                Secretaría
+              </th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {pacientes.map((paciente, index) => (
+              <tr
+                key={index}
+                className="bg-gradient-to-r from-[#2c2f45] via-[#363a58] to-[#2c2f45] text-[#d4efff] hover:bg-[#2f3350] transition duration-500 shadow-[0px_0px_25px_rgba(0,180,255,0.3)]"
+              >
+                <td className="py-4 px-5 md:px-10 text-sm md:text-lg font-medium border-b border-[#00f5ff]/10 tracking-wide rounded-l-lg relative before:absolute before:content-[''] before:left-0 before:top-0 before:h-full before:w-[2px] before:bg-[#00f5ff] before:shadow-[0_0_10px_rgba(0,245,255,0.6)]">
+                  {paciente.clavenomina || "N/A"}
+                </td>
+                <td className="py-4 px-5 md:px-10 text-sm md:text-lg font-medium border-b border-[#00f5ff]/10 tracking-wide relative">
+                  {paciente.nombrepaciente || "No disponible"}
+                </td>
+                <td className="py-4 px-5 md:px-10 text-sm md:text-lg font-medium border-b border-[#00f5ff]/10 tracking-wide relative">
+                  {paciente.edad || "Desconocida"}
+                </td>
+                <td className="py-4 px-5 md:px-10 text-sm md:text-lg font-medium border-b border-[#00f5ff]/10 tracking-wide rounded-r-lg relative after:absolute after:content-[''] after:right-0 after:top-0 after:h-full after:w-[2px] after:bg-[#00f5ff] after:shadow-[0_0_10px_rgba(0,245,255,0.6)]">
+                  {paciente.departamento || "No asignado"}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       {/* Modal para agregar signos vitales */}
       {showConsulta && (
