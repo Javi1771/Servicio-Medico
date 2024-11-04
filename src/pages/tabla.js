@@ -1,6 +1,6 @@
 // pages/tabla.js
 import { useEffect, useState } from 'react';
-import styles from './api/Tabla.module.css'; 
+import styles from './css/usuarios.module.css'; 
 
 const Tabla = () => {
   const [data, setData] = useState([]);
