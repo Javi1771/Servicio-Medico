@@ -46,6 +46,7 @@ export default function UsuariosTable() {
         setUsuarios(usuariosData);
         setEspecialidades(especialidadesData);
         setTiposUsuarios(tiposUsuariosData);
+        setTiposUsuarios(Array.isArray(tiposUsuariosData) ? tiposUsuariosData : []); // Validar que sea un arreglo
       } catch (error) {
         setError('Error al cargar los datos');
       }
@@ -247,7 +248,7 @@ export default function UsuariosTable() {
   return (
     <div className={styles.body}>
     <div className={styles.container}>
-      <img src="/baner_sjr.png" alt="Banner" className={styles.banner} />
+      <imge src="/baner_sjr.png" alt="Banner" className={styles.banner} />
       <h2 className={styles.title}>Lista de Usuarios</h2>
       {error && <p className={styles.error}>{error}</p>}
       {showSuccessMessage && (
@@ -272,6 +273,7 @@ export default function UsuariosTable() {
         <thead>
           <tr>
             <th>Nombre Usuario</th>
+            <th>Usuario</th>
             <th>Especialidad</th>
             <th>Teléfono</th>
             <th>Celular</th>
@@ -280,10 +282,11 @@ export default function UsuariosTable() {
           </tr>
         </thead>
         <tbody>
-  {usuarios.map((item, index) => (
+        {filteredUsuarios.map((item, index) => (
     <tr key={index} className={styles.row}>
       <td>{item.nombreusuario}</td>
-      <td>{item.claveespecialidad}</td>
+      <td>{item.usuario}</td>
+      <td>{getEspecialidadNombre(item.claveespecialidad)}</td>
       <td>{item.telefonousuario}</td>
       <td>{item.celularusuario}</td>
       <td>
@@ -309,9 +312,6 @@ export default function UsuariosTable() {
     </tr>
   ))}
 </tbody>
-
-
-
       </table>
 
       {showModal && ReactDOM.createPortal(
@@ -365,8 +365,6 @@ export default function UsuariosTable() {
     )}
   </button>
 </div>
-
-
               <label htmlFor="clavetipousuario">Tipo de Usuario</label>
               <select name="clavetipousuario" onChange={handleInputChange} value={newUsuario.clavetipousuario} className={styles.dropdown}>
                 <option value="">Seleccionar Tipo de Usuario</option>
