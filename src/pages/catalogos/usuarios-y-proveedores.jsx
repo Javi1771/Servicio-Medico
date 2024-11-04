@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom'; // Asegúrate de importar ReactDOM
 import styles from '../css/usuarios.module.css';
 import Swal from 'sweetalert2';
+import Image from 'next/image'; // Asegúrate de importar Image desde next/image
+
 
 export default function UsuariosTable() {
   const [usuarios, setUsuarios] = useState([]);
@@ -248,7 +250,14 @@ export default function UsuariosTable() {
   return (
     <div className={styles.body}>
     <div className={styles.container}>
-      <imge src="/baner_sjr.png" alt="Banner" className={styles.banner} />
+    <Image
+        src="/baner_sjr.png" // Ruta de tu imagen
+        alt="Banner"
+        layout="responsive" // Cambiado de "fill" a "responsive" para evitar problemas de diseño
+        width={1920} // Ancho de la imagen
+        height={1080} // Alto de la imagen
+        className={styles.banner} // Clase CSS para la imagen
+      />
       <h2 className={styles.title}>Lista de Usuarios</h2>
       {error && <p className={styles.error}>{error}</p>}
       {showSuccessMessage && (
