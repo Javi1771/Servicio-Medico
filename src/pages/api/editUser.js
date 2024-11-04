@@ -1,32 +1,11 @@
 import sql from 'mssql';
-
-const dbConfig = {
-  user: process.env.DB_USER || 'teamSM',
-  password: process.env.DB_PASSWORD || 'sm2024',
-  server: process.env.DB_SERVER || '172.16.0.3',
-  database: process.env.DB_DATABASE || 'PRESIDENCIA',
-  options: {
-    encrypt: process.env.DB_ENCRYPT === 'true',
-    trustServerCertificate: process.env.DB_TRUST_SERVER_CERTIFICATE === 'true',
-  },
-};
-
-// Función para conectar a la base de datos
-export const connectToDatabase = async () => {
-  try {
-    const pool = await sql.connect(dbConfig);
-    console.log('Conexión a la base de datos exitosa');
-    return pool;
-  } catch (error) {
-    console.error('Error al conectar con la base de datos:', error);
-    throw error;
-  }
-};
+import bcrypt from 'bcrypt';
+import { connectToDatabase } from '../api/connectToDatabase';
 
 // Endpoint para editar un usuario
 export default async function handler(req, res) {
   if (req.method !== 'PUT') {
-    return res.status(405).json({ message: 'Método no permitido' }); // Solo permite el método PUT
+    return res.status(405).json({ message: 'Método no permitido' });
   }
 
   const {
@@ -48,9 +27,12 @@ export default async function handler(req, res) {
   }
 
   try {
-    const pool = await connectToDatabase(); // Conexión a la base de datos
+    const pool = await connectToDatabase();
 
-    // Actualizar el usuario
+    // Encriptar la contraseña antes de actualizarla
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Actualizar el usuario con la contraseña encriptada
     await pool.request()
       .input('nombreusuario', sql.VarChar, nombreusuario)
       .input('direcciousuario', sql.VarChar, direcciousuario)
@@ -59,8 +41,8 @@ export default async function handler(req, res) {
       .input('celularusuario', sql.VarChar, celularusuario)
       .input('cedulausuario', sql.VarChar, cedulausuario)
       .input('claveespecialidad', sql.Int, claveespecialidad)
-      .input('usuario', sql.VarChar, usuario) // Este es el campo que identificará al usuario
-      .input('password', sql.VarChar, password) // Considera manejar contraseñas con hashing
+      .input('usuario', sql.VarChar, usuario)
+      .input('password', sql.VarChar, hashedPassword) // Usa la contraseña encriptada
       .input('clavetipousuario', sql.Int, clavetipousuario)
       .query(`
         UPDATE usuarios

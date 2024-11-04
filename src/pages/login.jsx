@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
-import styles from './css/login.module.css'; 
-
+import styles from './css/login.module.css';
 
 const Login = () => {
   const router = useRouter();
@@ -22,16 +21,20 @@ const Login = () => {
     const data = await response.json();
 
     if (data.success) {
-      localStorage.setItem('auth', 'true'); // Guarda el estado de autenticación
-      router.push('/inicio-servicio-medico'); // Redirige a la página protegida
+      localStorage.setItem('auth', 'true'); 
+      router.push('/inicio-servicio-medico');
     } else {
       setError(data.message);
     }
   };
 
   return (
-      <div className={styles.body}>
-        <div className={styles.formContainer}>
+    <div className={styles.body}>
+      <div className={styles.formContainer}>
+        <div className={styles.imageContainer}>
+          <img src="/login_servicio_medico.png" alt="Imagen de bienvenida" className={styles.image} />
+        </div>
+        <div className={styles.formSection}>
           <h1 className={styles.formTitle}>Login</h1>
           <form onSubmit={handleLogin} className={styles.form}>
             <label className={styles.label}>
@@ -61,6 +64,8 @@ const Login = () => {
           {error && <p className={styles.errorMessage}>{error}</p>}
         </div>
       </div>
-    );
+    </div>
+  );
 };
+
 export default Login;
