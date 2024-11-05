@@ -1,5 +1,4 @@
 import sql from 'mssql';
-import bcrypt from 'bcrypt';
 import { connectToDatabase } from '../api/connectToDatabase';
 
 // Endpoint para editar un usuario
@@ -18,7 +17,7 @@ export default async function handler(req, res) {
     celularusuario,
     cedulausuario,
     usuario,
-    password,
+    password, // La nueva contraseña que puede ser proporcionada
   } = req.body;
 
   // Validación de datos
@@ -29,11 +28,8 @@ export default async function handler(req, res) {
   try {
     const pool = await connectToDatabase();
 
-    // Encriptar la contraseña antes de actualizarla
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Actualizar el usuario con la contraseña encriptada
-    await pool.request()
+    // Preparar la consulta de actualización
+    const request = pool.request()
       .input('nombreusuario', sql.VarChar, nombreusuario)
       .input('direcciousuario', sql.VarChar, direcciousuario)
       .input('coloniausuario', sql.VarChar, coloniausuario)
@@ -41,23 +37,44 @@ export default async function handler(req, res) {
       .input('celularusuario', sql.VarChar, celularusuario)
       .input('cedulausuario', sql.VarChar, cedulausuario)
       .input('claveespecialidad', sql.Int, claveespecialidad)
-      .input('usuario', sql.VarChar, usuario)
-      .input('password', sql.VarChar, hashedPassword) // Usa la contraseña encriptada
       .input('clavetipousuario', sql.Int, clavetipousuario)
-      .query(`
-        UPDATE usuarios
-        SET 
-          nombreusuario = @nombreusuario,
-          direcciousuario = @direcciousuario,
-          coloniausuario = @coloniausuario,
-          telefonousuario = @telefonousuario,
-          celularusuario = @celularusuario,
-          cedulausuario = @cedulausuario,
-          claveespecialidad = @claveespecialidad,
-          password = @password,
-          clavetipousuario = @clavetipousuario
-        WHERE usuario = @usuario
-      `);
+      .input('usuario', sql.VarChar, usuario);
+
+    let query; // Variable para almacenar la consulta
+
+    // Si se proporciona una nueva contraseña, actualízala directamente
+    if (password && password.trim() !== '') {
+      request.input('password', sql.VarChar, password); // Usar la nueva contraseña directamente
+
+      query = `UPDATE usuarios
+               SET 
+                 nombreusuario = @nombreusuario,
+                 direcciousuario = @direcciousuario,
+                 coloniausuario = @coloniausuario,
+                 telefonousuario = @telefonousuario,
+                 celularusuario = @celularusuario,
+                 cedulausuario = @cedulausuario,
+                 claveespecialidad = @claveespecialidad,
+                 clavetipousuario = @clavetipousuario,
+                 password = @password
+               WHERE usuario = @usuario`;
+    } else {
+      // Si no se proporciona una nueva contraseña, solo actualizar otros campos
+      query = `UPDATE usuarios
+               SET 
+                 nombreusuario = @nombreusuario,
+                 direcciousuario = @direcciousuario,
+                 coloniausuario = @coloniausuario,
+                 telefonousuario = @telefonousuario,
+                 celularusuario = @celularusuario,
+                 cedulausuario = @cedulausuario,
+                 claveespecialidad = @claveespecialidad,
+                 clavetipousuario = @clavetipousuario
+               WHERE usuario = @usuario`;
+    }
+
+    // Ejecutar la consulta
+    await request.query(query);
 
     res.status(200).json({ message: 'Usuario actualizado correctamente' });
   } catch (error) {

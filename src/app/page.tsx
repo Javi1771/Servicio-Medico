@@ -1,14 +1,15 @@
-"use client"; // Asegúrate de agregar esta línea al inicio del archivo
-
+"use client";
 import { useState } from 'react';
-import { useRouter } from 'next/navigation'; // Usa next/navigation en lugar de next/router
-import styles from '../pages/css/login.module.css'
+import { useRouter } from 'next/navigation';
+import styles from '../pages/css/login.module.css';
+import Image from "next/image";
 
 const Login = () => {
   const router = useRouter();
   const [usuario, setUsuario] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState<string | null>(null); // Especifica el tipo de error
+  const [showPassword, setShowPassword] = useState(false); // Estado para controlar la visibilidad de la contraseña
+  const [error, setError] = useState<string | null>(null);
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -23,7 +24,8 @@ const Login = () => {
     const data = await response.json();
 
     if (data.success) {
-      localStorage.setItem('auth', 'true'); 
+      // Establece la cookie de autenticación
+      document.cookie = 'auth=true; path=/;';
       router.push('/inicio-servicio-medico');
     } else {
       setError(data.message);
@@ -34,7 +36,13 @@ const Login = () => {
     <div className={styles.body}>
       <div className={styles.formContainer}>
         <div className={styles.imageContainer}>
-          <img src="/login_servicio_medico.png" alt="Imagen de bienvenida" className={styles.image} />
+          <Image 
+            src="/login_servicio_medico.png" 
+            alt="Descripción de la imagen"
+            width={500}
+            height={500}
+            className={styles.image}
+          />
         </div>
         <div className={styles.formSection}>
           <h1 className={styles.formTitle}>Login</h1>
@@ -51,13 +59,23 @@ const Login = () => {
             </label>
             <label className={styles.label}>
               Contraseña:
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className={styles.input}
-              />
+              <div className={styles.passwordContainer}>
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className={styles.input}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className={styles.visibilityToggle}
+                  aria-label="Toggle password visibility"
+                >
+                  {showPassword ? "🙈" : "👁️"}
+                </button>
+              </div>
             </label>
             <button type="submit" className={styles.button}>
               Ingresar

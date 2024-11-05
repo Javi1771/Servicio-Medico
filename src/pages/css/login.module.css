@@ -7,8 +7,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden; /* Evita el desbordamiento */
   height: 100vh;
   margin: 0;
+  min-height: 100vh;
 }
 
 /* Contenedor principal del formulario e imagen */
@@ -221,4 +223,19 @@
   .formTitle {
     font-size: 24px;
   }
+}
+
+/**OJO DE VISIBILIDAD LOGIN**/
+.passwordContainer {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.visibilityToggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.2rem;
+  margin-left: -2rem;
 }

@@ -90,7 +90,7 @@
 }
 
 .body {
-  background: linear-gradient(to right, #d7d0b7, #25c6fc, #00bd6b); /* Gradiente en el body */
+  background: linear-gradient(to right, #010529, #417aff, #0058bd); /* Gradiente en el body */
   margin: 0;
   padding: 0;
   font-family: Arial, sans-serif;
@@ -224,7 +224,7 @@
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: rgba(210, 210, 210, 0.283); /* Fondo oscuro sólido */
+  background-color: rgba(36, 36, 36, 0.644); /* Fondo oscuro sólido */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -233,16 +233,16 @@
 
 /* Mantener el estilo original del modalContent */
 .modalContent {
-  background: #1c1c1c; /* Fondo sólido en color negro grisáceo */
+  background: #002457; /* Fondo sólido en color negro grisáceo */
   padding: 30px;
   border-radius: 12px;
   width: 95%;
-  max-width: 600px;
+  max-width: 800px;
   box-shadow: 
-    0 0 15px rgba(0, 21, 255, 0.5),   /* Cian claro */
-    0 0 25px rgba(255, 149, 0, 0.4),   /* Azul más oscuro */
+    0 0 15px rgba(0, 0, 0, 0.5),   /* Cian claro */
+    0 0 25px rgba(8, 8, 8, 0.95),   /* Azul más oscuro */
     0 0 35px rgba(0, 72, 255, 0.3),   /* Magenta */
-    0 0 45px rgba(255, 0, 0, 0.2);    /* Naranja oscuro */
+    0 0 45px rgba(6, 6, 6, 0.2);    /* Naranja oscuro */
   text-align: center;
   color: #ffffff;
   z-index: 1001;
@@ -269,10 +269,10 @@
 .modalForm input {
   width: 100%;
   padding: 10px;
-  border: 1px solid #666; /* Borde gris */
+  border: 1px solid #365074; /* Borde gris */
   border-radius: 6px;
-  background: #2a2a2a; /* Fondo oscuro */
-  color: #ffffff;
+  background: #ffffff; /* Fondo oscuro */
+  color: #000000;
   caret-color: #b3b3b3; /* Color del cursor */
   outline: none;
   transition: background 0.3s ease, border-color 0.3s ease;
@@ -283,10 +283,10 @@
   width: 100%;
   padding: 10px;
   margin: 0;
-  border: 1px solid #666; /* Borde gris */
+  border: 1px solid #ffffff; /* Borde gris */
   border-radius: 6px;
-  background: #2a2a2a; /* Fondo oscuro */
-  color: #ffffff;
+  background: #aaaa; /* Fondo oscuro */
+  color: #f1f1f1;
   outline: none;
   transition: background 0.3s ease, border-color 0.3s ease;
 }
@@ -301,7 +301,7 @@
 .formSubmitBtn {
   grid-column: span 2; /* Botón a lo largo de dos columnas */
   padding: 12px;
-  background-color: #007BFF;
+  background-color: #006f1d;
   color: #fff;
   border: none;
   border-radius: 5px;
@@ -449,4 +449,21 @@
 .binButton:hover {
   transform: translateY(-2px); /* Mueve el botón hacia arriba al pasar el mouse */
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3); /* Aumenta la sombra */
+}
+
+
+/* Button.module.css */
+.backButton {
+  background-color: #af4c4c;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s ease;
+}
+
+.butbackButtonton:hover {
+  background-color: #45a049;
 }

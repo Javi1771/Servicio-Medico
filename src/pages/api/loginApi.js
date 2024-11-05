@@ -11,23 +11,37 @@ export default async function handler(req, res) {
 
   try {
     // Conectar a la base de datos
-    const pool = await connectToDatabase(); // Aquí se asume que connectToDatabase no necesita parámetros
-    console.log("Conectado a la base de datos para login");
+    const pool = await connectToDatabase();
 
     // Buscar al usuario en la base de datos
     const result = await pool.request()
-      .input('usuario', sql.VarChar, usuario) // Usar parámetros para evitar inyecciones SQL
+      .input('usuario', sql.VarChar, usuario)
       .query('SELECT password FROM USUARIOS WHERE usuario = @usuario');
-    
+
     const user = result.recordset[0];
 
     if (!user) {
       return res.status(401).json({ success: false, message: 'Usuario no encontrado' });
     }
 
-    // Verificar si la contraseña ingresada coincide con la almacenada en texto plano
-    const isMatch = await bcrypt.compare(password, user.password);
-    
+    const storedPassword = user.password;
+    let isMatch = false;
+
+    // Comparar directamente (para contraseñas no encriptadas)
+    if (storedPassword === password) {
+      isMatch = true;
+      
+      // Encriptar la contraseña y actualizar en la base de datos
+      const hashedPassword = await bcrypt.hash(password, 10);
+      await pool.request()
+        .input('usuario', sql.VarChar, usuario)
+        .input('hashedPassword', sql.VarChar, hashedPassword)
+        .query('UPDATE USUARIOS SET password = @hashedPassword WHERE usuario = @usuario');
+    } else {
+      // Intentar comparar con bcrypt (para contraseñas encriptadas)
+      isMatch = await bcrypt.compare(password, storedPassword);
+    }
+
     if (isMatch) {
       return res.status(200).json({ success: true, message: 'Login exitoso' });
     } else {
