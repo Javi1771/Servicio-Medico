@@ -1,0 +1,470 @@
+/* Estilos existentes */
+.container {
+    padding: 20px;
+    margin: auto;
+    margin-top: 30px;
+    max-width: 90%;
+    width: 90%;
+    overflow-x: auto;
+    background: rgba(0, 0, 0, 0.34); /* Fondo semi-transparente */
+    backdrop-filter: blur(15px); /* Desenfoque para el efecto de glassmorphism */
+    border-radius: 10px;
+    border: 1px solid rgba(18, 18, 18, 0.3); /* Borde semi-transparente */
+    color: rgb(255, 255, 255);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.413);
+  }
+  
+  .title {
+    font-size: 24px;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .error {
+    color: red;
+    text-align: center;
+    margin-top: 10px;
+  }
+  
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+    background: rgba(255, 255, 255, 0.1); /* Fondo blanco semi-transparente para la tabla */
+    border-radius: 5px;
+    overflow: hidden; /* Asegura que los bordes redondeados se mantengan */
+    backdrop-filter: blur(10px); /* Efecto de desenfoque */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .table th,
+  .table td {
+    padding: 12px; /* Espaciado interno */
+    text-align: left;
+    border: 1px solid rgba(0, 0, 0, 0.3); /* Borde semi-transparente */
+    color: #ffffff; /* Color del texto en la tabla a blanco */
+  }
+  
+  .table th {
+    background-color: #557492; /* Color del encabezado */
+    color: #ffffff; /* Color del texto en el encabezado */
+    font-weight: bold;
+  }
+  
+  .table tr:nth-child(even) {
+    background-color: rgba(115, 175, 233, 0.5); /* Color de fila par */
+  }
+  
+  .table tr:hover {
+    background-color: rgba(0, 137, 145, 0.5); /* Color de fondo al pasar el mouse */
+    transition: background-color 0.3s ease;
+  }
+  
+  .searchInput {
+    margin-bottom: 20px;
+    padding: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 4px;
+    width: 100%; /* Ocupa el 100% del contenedor */
+    background: rgba(255, 255, 255, 0.1); /* Fondo blanco semi-transparente */
+    color: white; /* Color del texto */
+    backdrop-filter: blur(10px); /* Efecto de desenfoque */
+  }
+  
+  .buttonContainer {
+    margin-bottom: 20px;
+    display: flex; /* Usar flexbox para alinear botones */
+    justify-content: flex-start; /* Alinear los botones al inicio */
+    flex-wrap: wrap; /* Permitir que los botones se ajusten en líneas múltiples */
+  }
+  
+  .banner {
+    display: block; /* Asegura que la imagen se comporte como un bloque */
+    margin: 0 auto; /* Centra la imagen horizontalmente */
+    width: 100%; /* Ajusta el ancho al 100% del contenedor */
+    max-width: 800px; /* Limita el ancho máximo (ajusta según sea necesario) */
+    height: auto; /* Mantiene la proporción de la imagen */
+    margin-bottom: 20px; /* Espacio debajo del banner */
+    border-radius: 10px; /* Bordes redondeados (opcional) */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Sombra para dar profundidad (opcional) */
+  }
+  
+  .body {
+    background: linear-gradient(to right, #010529, #417aff, #0058bd); /* Gradiente en el body */
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+  }
+  
+  /* Responsive Styles */
+  @media (max-width: 768px) {
+    .buttonContainer {
+        flex-direction: column; /* Botones en columna en pantallas pequeñas */
+        align-items: flex-start; /* Alinear los botones a la izquierda */
+    }
+  
+    .button {
+        margin-bottom: 10px; /* Espacio entre botones en columna */
+        width: 100%; /* Botones ocupan el 100% del ancho */
+    }
+  }
+  
+  
+  
+  
+  
+  
+  /* From Uiverse.io by TaniaDou */ 
+  .button {
+    padding: 1rem 2rem;
+    border-radius: 0.5rem;
+    border: none;
+    font-size: 1rem;
+    font-weight: 400;
+    color: #f4f0ff;
+    text-align: center;
+    position: relative;
+    cursor: pointer;
+    flex: 1; /* Permitir que los botones crezcan */
+    min-width: 100px; /* Ancho mínimo para cada botón */
+    margin: 0 0.5rem; /* Agregar un margen horizontal entre los botones */
+  
+  }
+  
+  .button::before {
+    content: "";
+    display: block;
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 100%;
+    border-radius: 0.5rem;
+    background: linear-gradient(
+        180deg,
+        rgba(8, 77, 126, 0) 0%,
+        rgba(8, 77, 126, 0.42) 100%
+      ),
+      rgba(47, 255, 255, 0.24);
+    box-shadow: inset 0 0 12px rgba(151, 200, 255, 0.44);
+    z-index: -1;
+  }
+  
+  .button::after {
+    content: "";
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        180deg,
+        rgba(8, 77, 126, 0) 0%,
+        rgba(8, 77, 126, 0.42) 100%
+      ),
+      rgba(47, 255, 255, 0.24);
+    box-shadow: inset 0 0 12px rgba(151, 200, 255, 0.44);
+    border-radius: 0.5rem;
+    opacity: 0;
+    z-index: -1;
+    transition: all 0.3s ease-in;
+  }
+  
+  .button:hover::after {
+    opacity: 1;
+  }
+  
+  .button-border {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    border-radius: 0.5rem;
+    z-index: -1;
+  }
+  
+  .button-border::before {
+    content: "";
+    position: absolute;
+    border-radius: 0.5rem;
+    padding: 1px;
+    inset: 0;
+    background: linear-gradient(
+        180deg,
+        rgba(184, 238, 255, 0.24) 0%,
+        rgba(184, 238, 255, 0) 100%
+      ),
+      linear-gradient(0deg, rgba(184, 238, 255, 0.32), rgba(184, 238, 255, 0.32));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    pointer-events: none;
+  }
+  .dropdown {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid rgb(255, 255, 255);
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.4);
+    color: rgb(255, 255, 255);
+  }
+  
+  
+  
+  
+  /* Fondo oscuro sólido para el overlay del modal */
+  .modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(36, 36, 36, 0.644); /* Fondo oscuro sólido */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+  
+  /* Mantener el estilo original del modalContent */
+  .modalContent {
+    background: #002457; /* Fondo sólido en color negro grisáceo */
+    padding: 30px;
+    border-radius: 12px;
+    width: 95%;
+    max-width: 800px;
+    box-shadow: 
+      0 0 15px rgba(0, 0, 0, 0.5),   /* Cian claro */
+      0 0 25px rgba(8, 8, 8, 0.95),   /* Azul más oscuro */
+      0 0 35px rgba(0, 72, 255, 0.3),   /* Magenta */
+      0 0 45px rgba(6, 6, 6, 0.2);    /* Naranja oscuro */
+    text-align: center;
+    color: #ffffff;
+    z-index: 1001;
+    max-height: 90vh; /* Para mantener el modal visible */
+    overflow-y: auto; /* Scroll si el contenido es demasiado largo */
+  }
+  
+  /* Encabezado del modal */
+  .modalHeader {
+    margin-bottom: 10px;
+    font-size: 1.6em;
+    font-weight: bold;
+    color: #ffffff;
+  }
+  
+  /* Estilo para el formulario del modal en grid */
+  .modalForm {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Dos columnas */
+    gap: 15px; /* Espacio entre inputs */
+  }
+  
+  /* Inputs en la estructura de grid */
+  .modalForm input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #365074; /* Borde gris */
+    border-radius: 6px;
+    background: #ffffff; /* Fondo oscuro */
+    color: #000000;
+    caret-color: #b3b3b3; /* Color del cursor */
+    outline: none;
+    transition: background 0.3s ease, border-color 0.3s ease;
+  }
+  
+  /* Selector de especialidad y tipo de usuario */
+  .modalForm select {
+    width: 100%;
+    padding: 10px;
+    margin: 0;
+    border: 1px solid #ffffff; /* Borde gris */
+    border-radius: 6px;
+    background: #aaaa; /* Fondo oscuro */
+    color: #f1f1f1;
+    outline: none;
+    transition: background 0.3s ease, border-color 0.3s ease;
+  }
+  
+  /* Efecto al enfocar los inputs */
+  .modalForm input:focus, .modalForm select:focus {
+    border-color: #00bcd4; /* Borde cian al enfocar */
+    background: #e3f1ff; /* Fondo ligeramente más oscuro */
+  }
+  
+  /* Hacer que el botón de envío ocupe toda la fila */
+  .formSubmitBtn {
+    grid-column: span 2; /* Botón a lo largo de dos columnas */
+    padding: 12px;
+    background-color: #006f1d;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .formSubmitBtn:hover {
+    background-color: #0056b3;
+  }
+  
+  /* Estilo para el botón de cerrar */
+  .closeButton {
+    grid-column: span 2; /* Cierra modal en fila completa */
+    background-color: #f44336;
+    color: white;
+    padding: 10px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    margin-top: 15px;
+    transition: background 0.3s ease;
+  }
+  
+  .closeButton:hover {
+    background-color: #d32f2f;
+  }
+  
+  
+  /** ESTILOS MODAL SUCCES USUARIO **/
+  .successModal {
+    position: absolute;
+    top: 50px; /* Ajusta la posición según sea necesario */
+    left: 50%; /* Centrado horizontal */
+    transform: translate(-50%, 0); /* Centrado correcto */
+    background-color: #000; /* Color de fondo negro */
+    color: white; /* Texto blanco */
+    padding: 20px 40px; /* Aumentar el tamaño del padding */
+    border-radius: 10px; /* Bordes redondeados */
+    border: 2px solid #39ff14; /* Borde verde neón */
+    z-index: 1000; /* Asegúrate de que esté en la parte superior */
+    box-shadow: 0 0 10px rgba(57, 255, 20, 0.5); /* Sombra para un efecto neón */
+    animation: fadeIn 0.5s, fadeOut 0.5s 2.5s; /* Animaciones de entrada y salida */
+    font-size: 18px; /* Aumentar el tamaño de la fuente */
+    text-align: center; /* Centrar el texto */
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  @keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+  }
+  
+  
+  /**ESTILOS ICONO INPPUT**/
+  .inputContainer {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  
+  .icon {
+    position: absolute;
+    left: 10px; /* Ajusta según necesites */
+    cursor: pointer;
+  }
+  
+  .inputWithIcon {
+    padding-left: 60px; /* Espacio para el icono */
+  }
+  
+  
+  
+  
+  /**estilos editar y eliminar**/
+  .editbutton {
+    display: inline;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 35px;
+    border-radius: 15px;
+    background-color: rgb(255, 242, 95);
+    cursor: pointer;
+    border: 3px solid rgb(255, 201, 201);
+    transition-duration: 0.3s;
+  }
+  .editbutton {
+    width: 15px;
+  }
+  .editbutton {
+    width: 17px;
+    transform-origin: right;
+    transition-duration: 0.3s;
+  }
+  .editbutton:hover .bin-top {
+    transform: rotate(45deg);
+  }
+  .binbutton:hover {
+    background-color: rgb(255, 0, 0);
+  }
+  .binbutton:active {
+    transform: scale(0.9);
+  }
+  
+  
+  
+  
+  
+  /* From Uiverse.io by vinodjangid07 */ 
+  .editButton {
+    background-color: yellow; /* Color amarillo */
+    border: none;
+    border-radius: 5px; /* Bordes redondeados */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Sombra para profundidad */
+    color: black; /* Color del icono */
+    cursor: pointer;
+    padding: 10px;
+    transition: all 0.3s ease; /* Transición suave */
+    margin-right: 10px; /* Añade espacio entre los botones */
+  }
+  
+  .editButton:hover {
+    transform: translateY(-2px); /* Mueve el botón hacia arriba al pasar el mouse */
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3); /* Aumenta la sombra */
+  }
+  
+  .binButton {
+    background-color: red; /* Color rojo */
+    border: none;
+    border-radius: 5px; /* Bordes redondeados */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Sombra para profundidad */
+    color: white; /* Color del icono */
+    cursor: pointer;
+    padding: 10px;
+    transition: all 0.3s ease; /* Transición suave */
+  }
+  
+  .binButton:hover {
+    transform: translateY(-2px); /* Mueve el botón hacia arriba al pasar el mouse */
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3); /* Aumenta la sombra */
+  }
+  
+  
+  /* Button.module.css */
+  .backButton {
+    background-color: #af4c4c;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+  }
+  
+  .butbackButtonton:hover {
+    background-color: #45a049;
+  }
+  

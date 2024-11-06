@@ -40,7 +40,7 @@ const Login = () => {
             src="/login_servicio_medico.png" 
             alt="Descripción de la imagen"
             width={500}
-            height={500}
+            height={520}
             className={styles.image}
           />
         </div>

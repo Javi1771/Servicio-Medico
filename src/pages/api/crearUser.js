@@ -27,6 +27,7 @@ export default async function handler(req, res) {
 
       // Realizar la inserción
       await pool.request()
+      
         .input('nombreusuario', sql.VarChar, nombreusuario)
         .input('direcciousuario', sql.VarChar, direcciousuario)
         .input('coloniausuario', sql.VarChar, coloniausuario)

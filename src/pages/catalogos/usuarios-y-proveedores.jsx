@@ -10,6 +10,8 @@ export default function UsuariosTable() {
   const [usuarios, setUsuarios] = useState([]);
   const [especialidades, setEspecialidades] = useState([]);
   const [tiposUsuarios, setTiposUsuarios] = useState([]);
+
+
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
@@ -48,8 +50,7 @@ export default function UsuariosTable() {
         const tiposUsuariosData = await tiposUsuariosResponse.json();
 
         setUsuarios(usuariosData);
-        setEspecialidades(especialidadesData);
-        setTiposUsuarios(tiposUsuariosData);
+        setEspecialidades(Array.isArray(especialidadesData) ? especialidadesData : []);
         setTiposUsuarios(Array.isArray(tiposUsuariosData) ? tiposUsuariosData : []); // Validar que sea un arreglo
       } catch {
         setError('Error al cargar los datos');
@@ -218,6 +219,7 @@ export default function UsuariosTable() {
         if (!response.ok) {
           throw new Error('Error al agregar el usuario');
         }
+        
 
         const result = await response.json();
         console.log('Usuario agregado:', result);
@@ -350,15 +352,15 @@ export default function UsuariosTable() {
               <input type="text" name="cedulausuario" placeholder="Cédula" onChange={handleInputChange} value={newUsuario.cedulausuario} />
 
               <label htmlFor="claveespecialidad">Especialidad</label>
-                <select name="claveespecialidad" onChange={handleInputChange} value={newUsuario.claveespecialidad} className={styles.dropdown}>
-                <option value="">Seleccionar Especialidad</option>
-                {especialidades.map((especialidad) => (
-                  <option key={especialidad.claveespecialidad} value={especialidad.claveespecialidad}>
+              <select name="claveespecialidad" onChange={handleInputChange} value={newUsuario.claveespecialidad} className={styles.dropdown}>
+              <option value="">Seleccionar Especialidad</option>
+              {Array.isArray(especialidades) &&
+              especialidades.map((especialidad) => (
+                <option key={especialidad.claveespecialidad} value={especialidad.claveespecialidad}>
                   {especialidad.especialidad}
                   </option>
-                    ))}
-                  </select>
-
+                   ))}
+                </select>
 
              {/* Campo de usuario */}
         <div className={styles.inputContainer}>
