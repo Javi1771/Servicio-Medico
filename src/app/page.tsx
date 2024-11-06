@@ -26,7 +26,11 @@ const Login = () => {
     if (data.success) {
       // Establece la cookie de autenticación
       document.cookie = 'auth=true; path=/;';
-      router.push('/inicio-servicio-medico');
+
+      // Introduce un pequeño retardo para permitir que la cookie sea detectada
+      setTimeout(() => {
+        router.push('/inicio-servicio-medico');
+      }, 500); // Retardo de 500 ms
     } else {
       setError(data.message);
     }
