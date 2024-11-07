@@ -63,7 +63,7 @@ const Home = () => {
             "Especialidades",
             "Medicamentos",
             "Enfermedades Crónicas",
-            "usuarios-y-Proveedores",
+            "Usuarios y Proveedores",
           ]}
           isOpen={openMenu === "Catálogos"}
           handleMouseEnter={() => handleMouseEnter("Catálogos")}

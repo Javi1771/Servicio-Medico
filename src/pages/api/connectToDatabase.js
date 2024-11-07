@@ -12,7 +12,7 @@ const dbConfig = {
   },
 };
 
-let pool; // eslint-disable-line @typescript-eslint/no-unused-vars
+let pool;
 
 export const connectToDatabase = async () => {
   try {
@@ -27,9 +27,6 @@ export const connectToDatabase = async () => {
     throw error;
   }
 };
-
-// Exporta `pool` para su uso potencial en otros archivos
-export { pool };
 
 export default async function handler(req, res) {
   try {

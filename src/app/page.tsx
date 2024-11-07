@@ -1,4 +1,5 @@
-"use client"; // Asegúrate de agregar esta línea al inicio del archivo
+/* eslint-disable @next/next/no-img-element */
+"use client";
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation'; // Usa next/navigation en lugar de next/router

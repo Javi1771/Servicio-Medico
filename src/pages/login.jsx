@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import styles from './css/login.module.css';

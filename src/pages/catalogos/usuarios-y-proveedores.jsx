@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom'; // Asegúrate de importar ReactDOM
 import styles from '../css/usuarios.module.css';

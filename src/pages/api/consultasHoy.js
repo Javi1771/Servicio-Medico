@@ -18,8 +18,13 @@ export default async function handler(req, res) {
       .input('startOfDay', sql.DateTime, startOfDay)
       .input('endOfDay', sql.DateTime, endOfDay)
       .query(`
-        SELECT * FROM consultas
-        WHERE clavestatus = 1 AND fechaconsulta BETWEEN @startOfDay AND @endOfDay
+        SELECT 
+          consultas.*, 
+          P.PARENTESCO AS parentesco_desc 
+        FROM consultas
+        LEFT JOIN PARENTESCO P ON consultas.parentesco = P.ID_PARENTESCO
+        WHERE consultas.clavestatus = 1 
+          AND consultas.fechaconsulta BETWEEN @startOfDay AND @endOfDay
       `);
 
     res.status(200).json({ consultas: result.recordset });
