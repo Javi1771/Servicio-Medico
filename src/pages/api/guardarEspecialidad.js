@@ -1,4 +1,3 @@
-// guardarEspecialidad.js
 import { connectToDatabase } from './connectToDatabase';
 import sql from 'mssql';
 
@@ -29,7 +28,17 @@ export default async function handler(req, res) {
         VALUES (@claveconsulta, @claveespecialidad, @observaciones, @estatus)
       `);
 
-    res.status(200).json({ message: 'Especialidad guardada correctamente.' });
+    // Actualizar la columna `especialidadinterconsulta` en la tabla `consultas`
+    await pool.request()
+      .input('claveconsulta', sql.Int, claveConsulta)
+      .input('claveEspecialidad', sql.Int, claveEspecialidad)
+      .query(`
+        UPDATE consultas
+        SET especialidadinterconsulta = @claveEspecialidad
+        WHERE claveconsulta = @claveconsulta
+      `);
+
+    res.status(200).json({ message: 'Especialidad guardada y asignación actualizada correctamente.' });
   } catch (error) {
     console.error('Error al guardar la especialidad:', error);
     res.status(500).json({ message: 'Error al guardar la especialidad.' });

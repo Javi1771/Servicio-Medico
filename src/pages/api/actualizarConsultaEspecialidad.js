@@ -6,40 +6,28 @@ export default async function handler(req, res) {
     return res.status(405).json({ message: 'Método no permitido' });
   }
 
-  const { claveConsulta, seasignoaespecialidad, claveEspecialidad, observaciones } = req.body;
+  const { claveConsulta, seasignoaespecialidad } = req.body;
 
-  if (!claveConsulta || !seasignoaespecialidad || !claveEspecialidad) {
+  if (!claveConsulta || !seasignoaespecialidad) {
     return res.status(400).json({ message: 'Datos incompletos.' });
   }
 
   try {
     const pool = await connectToDatabase();
 
-    // Actualizar la columna `seasignoaespecialidad` y `especialidadinterconsulta` en la tabla `consultas`
+    // Actualizar `seasignoaespecialidad` en la tabla `consultas`
     await pool.request()
       .input('claveconsulta', sql.Int, claveConsulta)
       .input('seasignoaespecialidad', sql.VarChar, seasignoaespecialidad)
-      .input('claveEspecialidad', sql.Int, claveEspecialidad)
       .query(`
         UPDATE consultas
-        SET seasignoaespecialidad = @seasignoaespecialidad,
-            especialidadinterconsulta = @claveEspecialidad
+        SET seasignoaespecialidad = @seasignoaespecialidad
         WHERE claveconsulta = @claveconsulta
       `);
 
-    // Insertar en la tabla `detalleespecialidad`
-    await pool.request()
-      .input('claveconsulta', sql.Int, claveConsulta)
-      .input('claveEspecialidad', sql.Int, claveEspecialidad)
-      .input('observaciones', sql.VarChar, observaciones)
-      .query(`
-        INSERT INTO detalleespecialidad (claveconsulta, claveespecialidad, observaciones)
-        VALUES (@claveconsulta, @claveEspecialidad, @observaciones)
-      `);
-
-    res.status(200).json({ message: 'Consulta y detalles de especialidad actualizados correctamente.' });
+    res.status(200).json({ message: 'Estado de asignación a especialidad actualizado correctamente.' });
   } catch (error) {
-    console.error('Error al actualizar la consulta:', error);
-    res.status(500).json({ message: 'Error al actualizar la consulta.' });
+    console.error('Error al actualizar el estado de asignación:', error);
+    res.status(500).json({ message: 'Error al actualizar el estado de asignación.' });
   }
 }

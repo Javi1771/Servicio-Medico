@@ -1,4 +1,4 @@
-// Diagnostico.jsx
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
@@ -41,20 +41,65 @@ const Diagnostico = () => {
     alergias: "",
   });
 
+  //* Recarga la lista de pacientes al cargar la página o al actualizar datos
   useEffect(() => {
     const today = new Date();
-    const formattedDate = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
+    const formattedDate = `${today.getFullYear()}-${
+      today.getMonth() + 1
+    }-${today.getDate()}`;
     setFecha(formattedDate);
-
     cargarPacientesDelDia();
   }, []);
 
+  //* Actualiza clavestatus a 3 si la ventana se cierra o se recarga
+  useEffect(() => {
+    const updateStatusOnUnload = () => {
+      if (claveConsulta) {
+        fetch("/api/actualizarClavestatus", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ claveConsulta, clavestatus: 3 }),
+        });
+      }
+    };
+
+    window.addEventListener("beforeunload", updateStatusOnUnload);
+    return () => {
+      window.removeEventListener("beforeunload", updateStatusOnUnload);
+    };
+  }, [claveConsulta]);
+
+  //* Actualiza clavestatus a 3 si el usuario regresa a una ventana anterior sin guardar
+  useEffect(() => {
+    const updateStatusIfNotSaved = async () => {
+      if (pacienteSeleccionado) {
+        await fetch("/api/actualizarClavestatus", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            claveConsulta,
+            clavestatus: 3,
+          }),
+        });
+      }
+    };
+
+    return () => {
+      updateStatusIfNotSaved();
+    };
+  }, [pacienteSeleccionado]);
+
+  //* Función para cargar pacientes del día
   const cargarPacientesDelDia = async () => {
     try {
       const response = await fetch("/api/consultasHoy");
       const data = await response.json();
       if (response.ok) {
-        setPacientes(data.consultas);
+        const pacientesOrdenados = data.consultas.sort(
+          (a, b) => new Date(a.fechaconsulta) - new Date(b.fechaconsulta)
+        );
+        setPacientes(pacientesOrdenados);
+        console.log("Pacientes cargados:", pacientesOrdenados);
       } else {
         console.error("Error al cargar consultas del día:", data.message);
       }
@@ -63,36 +108,17 @@ const Diagnostico = () => {
     }
   };
 
-  const handlePacienteClick = async (paciente) => {
-    setPacienteSeleccionado(paciente);
-    setMostrarEmergente(true);
-    setClaveConsulta(paciente.claveconsulta);
-
-    setSignosVitales({
-      ta: paciente.presionarterialpaciente,
-      temperatura: paciente.temperaturapaciente,
-      fc: paciente.pulsosxminutopaciente,
-      oxigenacion: paciente.respiracionpaciente,
-      altura: paciente.estaturapaciente,
-      peso: paciente.pesopaciente,
-      glucosa: paciente.glucosapaciente,
-    });
-
-    setAlergias(paciente.alergias || "");
-    setDatosEditados({ signosVitales: paciente.signosVitales || {}, alergias: paciente.alergias || "" });
-
-    if (paciente.parentesco_desc) {
-      setConsultaSeleccionada("beneficiario");
-      setSelectedBeneficiary({
-        ...paciente,
-        PARENTESCO_DESC: paciente.parentesco_desc,
-      });
-    } else {
-      setConsultaSeleccionada("empleado");
-      setSelectedBeneficiary(null);
-    }
-
-    await obtenerDatosEmpleado(paciente.clavenomina);
+  const recolectarDatos = () => {
+    return {
+      claveConsulta,
+      diagnostico,
+      motivoConsulta,
+      signosVitales,
+      alergias,
+      observaciones,
+      especialidadSeleccionada,
+      pasarEspecialidad,
+    };
   };
 
   const obtenerDatosEmpleado = async (num_nom) => {
@@ -112,40 +138,85 @@ const Diagnostico = () => {
           departamento: data.departamento,
         });
       } else {
-        console.error("Error al obtener datos del empleado:", await response.json());
+        console.error(
+          "Error al obtener datos del empleado:",
+          await response.json()
+        );
       }
     } catch (error) {
       console.error("Error al conectar con el servicio de empleado:", error);
     }
   };
 
-  const recolectarDatos = () => {
-    return {
-      claveConsulta,
-      diagnostico,
-      motivoConsulta,
-      signosVitales,
-      alergias,
-      observaciones,
-      especialidadSeleccionada,
-      pasarEspecialidad,
-    };
+  const handlePacienteClick = async (paciente) => {
+    setPacienteSeleccionado(paciente);
+    setMostrarEmergente(true);
+    setClaveConsulta(paciente.claveconsulta);
+
+    setSignosVitales({
+      ta: paciente.presionarterialpaciente,
+      temperatura: paciente.temperaturapaciente,
+      fc: paciente.pulsosxminutopaciente,
+      oxigenacion: paciente.respiracionpaciente,
+      altura: paciente.estaturapaciente,
+      peso: paciente.pesopaciente,
+      glucosa: paciente.glucosapaciente,
+    });
+
+    setAlergias(paciente.alergias || "");
+    setDatosEditados({
+      signosVitales: paciente.signosVitales || {},
+      alergias: paciente.alergias || "",
+    });
+
+    if (paciente.parentesco_desc) {
+      setConsultaSeleccionada("beneficiario");
+      setSelectedBeneficiary({
+        ...paciente,
+        PARENTESCO_DESC: paciente.parentesco_desc,
+      });
+    } else {
+      setConsultaSeleccionada("empleado");
+      setSelectedBeneficiary(null);
+    }
+
+    await obtenerDatosEmpleado(paciente.clavenomina);
+
+    //* Cambia `clavestatus` a 2 al seleccionar un paciente
+    try {
+      await fetch("/api/actualizarClavestatus", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          claveConsulta: paciente.claveconsulta,
+          clavestatus: 2,
+        }),
+      });
+      cargarPacientesDelDia(); //* Refresca la lista de pacientes
+    } catch (error) {
+      console.error(
+        "Error al actualizar clavestatus al seleccionar paciente:",
+        error
+      );
+    }
   };
 
   const handleGuardar = async () => {
     const datos = recolectarDatos();
-
     try {
-      const responseDiagnostico = await fetch("/api/diagnostico_observaciones", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          claveConsulta: datos.claveConsulta,
-          diagnostico: datos.diagnostico,
-          motivoconsulta: datos.motivoConsulta,
-          observaciones: datos.observaciones,
-        }),
-      });
+      const responseDiagnostico = await fetch(
+        "/api/diagnostico_observaciones",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            claveConsulta: datos.claveConsulta,
+            diagnostico: datos.diagnostico,
+            motivoconsulta: datos.motivoConsulta,
+            observaciones: datos.observaciones,
+          }),
+        }
+      );
 
       if (datos.pasarEspecialidad === "si" && datos.especialidadSeleccionada) {
         const responseEspecialidad = await fetch("/api/guardarEspecialidad", {
@@ -158,14 +229,27 @@ const Diagnostico = () => {
           }),
         });
 
-        if (!responseEspecialidad.ok) throw new Error("Error al guardar especialidad");
+        if (!responseEspecialidad.ok)
+          throw new Error("Error al guardar especialidad");
       }
 
       if (responseDiagnostico.ok) {
+        await fetch("/api/actualizarClavestatus", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            claveConsulta: datos.claveConsulta,
+            clavestatus: 4,
+          }),
+        });
+        cargarPacientesDelDia(); //* Refresca la lista de pacientes
         alert("Todos los datos fueron guardados correctamente.");
         setPacienteSeleccionado(null);
       } else {
-        console.error("Error al guardar datos del diagnóstico:", await responseDiagnostico.json());
+        console.error(
+          "Error al guardar datos del diagnóstico:",
+          await responseDiagnostico.json()
+        );
         alert("Error al guardar datos del diagnóstico.");
       }
     } catch (error) {
@@ -174,13 +258,26 @@ const Diagnostico = () => {
     }
   };
 
-  const handleCancelar = () => {
+  const handleCancelar = async () => {
+    try {
+      await fetch("/api/actualizarClavestatus", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          claveConsulta,
+          clavestatus: 3,
+        }),
+      });
+      cargarPacientesDelDia(); //* Refresca la lista de pacientes
+    } catch (error) {
+      console.error("Error al actualizar clavestatus al cancelar:", error);
+    }
     setDatosEditados({ signosVitales, alergias });
     setPacienteSeleccionado(null);
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white px-4 py-8 md:px-12">
+    <div className="min-h-screen bg-gradient-to-br from-blue-900 to-black text-white px-4 py-8 md:px-12">
       <div className="flex flex-col md:flex-row justify-between items-center mb-6">
         <div className="flex items-center space-x-4">
           <Image
@@ -190,7 +287,9 @@ const Diagnostico = () => {
             height={150}
             className="h-24 w-24 md:h-36 md:w-36"
           />
-          <h1 className="text-3xl md:text-5xl font-extrabold">Consulta General</h1>
+          <h1 className="text-3xl md:text-5xl font-extrabold">
+            Consulta General
+          </h1>
         </div>
         <div className="text-sm md:text-lg mt-4 md:mt-0">
           <span className="font-semibold">Médico: </span>
@@ -198,29 +297,48 @@ const Diagnostico = () => {
         </div>
       </div>
 
-      <div className="mb-8 overflow-x-auto">
-        <table className="min-w-full bg-gray-800 rounded-lg shadow-lg">
+      <div className="mb-8 w-full overflow-x-auto p-6 bg-gradient-to-b from-gray-900 to-gray-800 rounded-xl shadow-lg">
+        <h1 className="text-3xl font-bold mb-6 text-center text-yellow-300 tracking-wide">
+          Pacientes En Espera
+        </h1>
+        <table className="min-w-full text-gray-300 border-separate border-spacing-y-3">
           <thead>
-            <tr className="bg-gray-700 text-white">
-              <th className="py-2 md:py-3 px-2 md:px-4 text-left text-sm md:text-base">Número de Nómina</th>
-              <th className="py-2 md:py-3 px-2 md:px-4 text-left text-sm md:text-base">Paciente</th>
-              <th className="py-2 md:py-3 px-2 md:px-4 text-left text-sm md:text-base">Edad</th>
-              <th className="py-2 md:py-3 px-2 md:px-4 text-left text-sm md:text-base">Secretaría</th>
+            <tr className="bg-gray-800 bg-opacity-80 text-sm uppercase tracking-wider font-semibold">
+              <th className="py-4 px-6 rounded-l-lg">Número de Nómina</th>
+              <th className="py-4 px-6">Paciente</th>
+              <th className="py-4 px-6">Edad</th>
+              <th className="py-4 px-6 rounded-r-lg">Secretaría</th>
             </tr>
           </thead>
           <tbody>
-            {pacientes.map((paciente) => (
-              <tr
-                key={paciente.id}
-                className="hover:bg-gray-600 transition-colors duration-300 cursor-pointer"
-                onClick={() => handlePacienteClick(paciente)}
-              >
-                <td className="py-2 md:py-3 px-2 md:px-4 text-left">{paciente.clavenomina}</td>
-                <td className="py-2 md:py-3 px-2 md:px-4 text-left">{paciente.nombrepaciente}</td>
-                <td className="py-2 md:py-3 px-2 md:px-4 text-left">{paciente.edad}</td>
-                <td className="py-2 md:py-3 px-2 md:px-4 text-left">{paciente.departamento}</td>
+            {pacientes.length > 0 ? (
+              pacientes.map((paciente) => (
+                <tr
+                  key={paciente.claveconsulta}
+                  className="bg-gray-700 bg-opacity-50 hover:bg-gradient-to-r from-yellow-500 to-yellow-700 transition duration-300 ease-in-out rounded-lg shadow-md"
+                  onClick={() => handlePacienteClick(paciente)}
+                >
+                  <td className="py-4 px-6 font-medium text-center text-gray-200">
+                    {paciente.clavenomina || "N/A"}
+                  </td>
+                  <td className="py-4 px-6 text-center text-gray-200">
+                    {paciente.nombrepaciente || "No disponible"}
+                  </td>
+                  <td className="py-4 px-6 text-center text-gray-200">
+                    {paciente.edad || "Desconocida"}
+                  </td>
+                  <td className="py-4 px-6 text-center text-gray-200">
+                    {paciente.departamento || "No asignado"}
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="4" className="text-center py-4 text-gray-400">
+                  No hay consultas para el día de hoy.
+                </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </div>
@@ -251,24 +369,39 @@ const Diagnostico = () => {
               />
             </div>
             <div className="bg-gray-700 p-4 rounded flex-1 shadow-lg transition duration-300 hover:shadow-xl">
-              <h2 className="text-md md:text-lg font-bold mb-2">Datos del Paciente</h2>
-              <p>Paciente: {pacienteSeleccionado?.nombrepaciente || "No disponible"}</p>
+              <h2 className="text-md md:text-lg font-bold mb-2">
+                Datos del Paciente
+              </h2>
+              <p>
+                Paciente:{" "}
+                {pacienteSeleccionado?.nombrepaciente || "No disponible"}
+              </p>
               <p>Edad: {pacienteSeleccionado?.edad || "Desconocida"}</p>
-              <p>Parentesco: {consultaSeleccionada === "beneficiario" && selectedBeneficiary
+              <p>
+                Parentesco:{" "}
+                {consultaSeleccionada === "beneficiario" && selectedBeneficiary
                   ? selectedBeneficiary.PARENTESCO_DESC
                   : "Empleado(a)"}
               </p>
             </div>
             <div className="bg-gray-700 p-4 rounded-lg flex-1 shadow-lg transition duration-300 hover:shadow-xl">
-              <h2 className="text-md md:text-lg font-bold mb-2">Datos del Empleado</h2>
-              <p>Nómina: {pacienteSeleccionado?.clavenomina || "No disponible"}</p>
-              <p>Trabajador: {empleadoData?.nombreCompleto || "No disponible"}</p>
+              <h2 className="text-md md:text-lg font-bold mb-2">
+                Datos del Empleado
+              </h2>
+              <p>
+                Nómina: {pacienteSeleccionado?.clavenomina || "No disponible"}
+              </p>
+              <p>
+                Trabajador: {empleadoData?.nombreCompleto || "No disponible"}
+              </p>
               <p>Departamento: {empleadoData?.departamento || "No asignado"}</p>
             </div>
           </div>
 
           <div className="mt-4 md:mt-6 mb-6 md:mb-12">
-            <h3 className="text-lg md:text-2xl font-bold mb-4">Signos Vitales</h3>
+            <h3 className="text-lg md:text-2xl font-bold mb-4">
+              Signos Vitales
+            </h3>
             <form className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {Object.entries(signosVitales).map(([key, value]) => (
                 <label key={key} className="text-sm md:text-base">
@@ -288,8 +421,8 @@ const Diagnostico = () => {
           <DatosAdicionales
             subPantalla={subPantalla}
             handleSubPantallaChange={setSubPantalla}
-            setDiagnostico={setDiagnostico} 
-            setMotivoConsulta={setMotivoConsulta} 
+            setDiagnostico={setDiagnostico}
+            setMotivoConsulta={setMotivoConsulta}
             claveConsulta={claveConsulta}
             pasarEspecialidad={pasarEspecialidad}
             setPasarEspecialidad={setPasarEspecialidad}
@@ -297,6 +430,8 @@ const Diagnostico = () => {
             setEspecialidadSeleccionada={setEspecialidadSeleccionada}
             observaciones={observaciones}
             setObservaciones={setObservaciones}
+            numeroDeNomina={pacienteSeleccionado?.clavenomina}
+            nombrePaciente={pacienteSeleccionado?.nombrepaciente}
           />
 
           <div className="flex space-x-2 md:space-x-4 mt-4">

@@ -1,8 +1,12 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { AiOutlineUserAdd } from "react-icons/ai";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
+import AtendiendoActualmente from "./consultas-adicionales/atendiendo-actualmente";
+import ConsultasCanceladas from "./consultas-adicionales/consultas-canceladas";
+import ConsultasAtendidas from "./consultas-adicionales/consultas-atendidas";
 
 //* Inicializa SweetAlert2 con React
 const MySwal = withReactContent(Swal);
@@ -75,6 +79,9 @@ const SignosVitales = () => {
   const [empleadoEncontrado, setEmpleadoEncontrado] = useState(false);
 
   const [pacientes, setPacientes] = useState([]);
+  const [atendiendoActualmente, setAtendiendoActualmente] = useState([]);
+  const [consultasCanceladas, setConsultasCanceladas] = useState([]);
+  const [consultasAtendidas, setConsultasAtendidas] = useState([]);
   const [consultaSeleccionada, setConsultaSeleccionada] = useState("empleado");
 
   const isFormComplete = Object.values(signosVitales).every(
@@ -85,14 +92,16 @@ const SignosVitales = () => {
     setSelectedBeneficiary(beneficiaryData[index]);
   };
 
+  //* Función para cargar la lista de espera
   const cargarPacientesDelDia = async () => {
     try {
       const response = await fetch("/api/consultasHoy");
       const data = await response.json();
-      if (response.ok) {
-        setPacientes(data.consultas);
-      } else {
-        console.error("Error al cargar consultas del día:", data.message);
+      if (response.ok && data.consultas?.length > 0) {
+        const consultasOrdenadas = data.consultas.sort(
+          (a, b) => new Date(a.fechaconsulta) - new Date(b.fechaconsulta)
+        );
+        setPacientes(consultasOrdenadas);
       }
     } catch (error) {
       console.error("Error al cargar consultas del día:", error);
@@ -115,9 +124,10 @@ const SignosVitales = () => {
           "<span style='color: #0f172a; font-weight: bold;'>Aceptar</span>",
         customClass: {
           popup:
-            "border border-blue-500 shadow-[0px_0px_15px_5px_rgba(0,255,255,0.3)] rounded-lg",
+            "border border-red-500 shadow-[0px_0px_15px_5px_rgba(255,0,0,0.7)] rounded-lg",
         },
       });
+
       return;
     }
 
@@ -129,11 +139,6 @@ const SignosVitales = () => {
     ).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}:${String(
       now.getSeconds()
     ).padStart(2, "0")}`;
-
-    const edad =
-      consultaSeleccionada === "beneficiario" && selectedBeneficiary
-        ? selectedBeneficiary.EDAD
-        : patientData.age;
 
     const consultaData = {
       fechaconsulta: fechaConsulta,
@@ -149,14 +154,24 @@ const SignosVitales = () => {
         consultaSeleccionada === "beneficiario" && selectedBeneficiary
           ? `${selectedBeneficiary.NOMBRE} ${selectedBeneficiary.A_PATERNO} ${selectedBeneficiary.A_MATERNO}`
           : patientData.name,
-      edad,
+      edad:
+        consultaSeleccionada === "beneficiario" && selectedBeneficiary
+          ? selectedBeneficiary.EDAD
+          : patientData.age,
       elpacienteesempleado: consultaSeleccionada === "empleado" ? "S" : "N",
       parentesco:
         consultaSeleccionada === "beneficiario" && selectedBeneficiary
           ? selectedBeneficiary.ID_PARENTESCO
           : 0,
       departamento: patientData.department || "",
-      sindicato: patientData.grupoNomina === "NS" ? "SUTSMSJR" : "SITAM",
+      sindicato:
+        patientData.grupoNomina === "NS"
+          ? patientData.cuotaSindical === "S"
+            ? "SUTSMSJR"
+            : patientData.cuotaSindical === ""
+            ? "SITAM"
+            : null
+          : null,
       clavestatus: 1,
     };
 
@@ -167,26 +182,25 @@ const SignosVitales = () => {
         body: JSON.stringify(consultaData),
       });
 
-      const data = await response.json();
       if (response.ok) {
         MySwal.fire({
           icon: "success",
           title:
-            "<span style='color: #7fff80; font-weight: bold; font-size: 1.5em;'>✔️ Consulta guardada correctamente</span>",
+            "<span style='color: #00ff7f; font-weight: bold; font-size: 1.5em;'>✔️ Consulta guardada correctamente</span>",
           html: "<p style='color: #e5e7eb; font-size: 1.1em;'>La consulta ha sido registrada en el sistema exitosamente.</p>",
           background: "linear-gradient(145deg, #2d3748, #1c2230)",
-          confirmButtonColor: "#7fdbff",
+          confirmButtonColor: "#00ff7f",
           confirmButtonText:
             "<span style='color: #0f172a; font-weight: bold;'>Aceptar</span>",
           customClass: {
             popup:
-              "border border-green-500 shadow-[0px_0px_15px_5px_rgba(0,255,127,0.3)] rounded-lg",
+              "border border-green-500 shadow-[0px_0px_15px_5px_rgba(0,255,127,0.7)] rounded-lg",
           },
         });
         handleCloseModal();
-        cargarPacientesDelDia();
+        await cargarPacientesDelDia(); //* Actualiza la tabla después de guardar
       } else {
-        throw new Error(data.message);
+        throw new Error("Error al guardar consulta");
       }
     } catch (error) {
       console.error("Error al guardar la consulta:", error);
@@ -201,7 +215,7 @@ const SignosVitales = () => {
           "<span style='color: #0f172a; font-weight: bold;'>Aceptar</span>",
         customClass: {
           popup:
-            "border border-red-500 shadow-[0px_0px_15px_5px_rgba(255,128,128,0.3)] rounded-lg",
+            "border border-red-500 shadow-[0px_0px_15px_5px_rgba(255,128,128,0.7)] rounded-lg",
         },
       });
     }
@@ -265,17 +279,18 @@ const SignosVitales = () => {
         MySwal.fire({
           icon: "error",
           title:
-            "<span style='color: #ff8080; font-weight: bold; font-size: 1.5em;'>⚠️ Nómina no encontrada</span>",
+            "<span style='color: #d60005; font-weight: bold; font-size: 1.5em;'>⚠️ Nómina no encontrada</span>",
           html: "<p style='color: #d1d5db; font-size: 1.1em;'>El número de nómina ingresado no existe o no se encuentra en el sistema. Intenta nuevamente.</p>",
           background: "linear-gradient(145deg, #2d3748, #1c2230)",
-          confirmButtonColor: "#7fdbff",
+          confirmButtonColor: "#d60005", 
           confirmButtonText:
-            "<span style='color: #0f172a; font-weight: bold;'>Aceptar</span>",
+            "<span style='color: #ffffff; font-weight: bold;'>Aceptar</span>",
           customClass: {
             popup:
-              "border border-blue-500 shadow-[0px_0px_15px_5px_rgba(0,255,255,0.3)] rounded-lg",
+              "border border-red-400 shadow-[0px_0px_15px_5px_rgba(255,0,0,0.7)] rounded-lg", 
           },
         });
+
         setEmpleadoEncontrado(false);
         setShowConsulta(false); //! Cierra la ventana emergente si no se encuentra el empleado
         return;
@@ -343,7 +358,8 @@ const SignosVitales = () => {
             "<span style='color: #0f172a; font-weight: bold;'>OK</span>",
           customClass: {
             popup:
-              "border border-purple-500 shadow-[0px_0px_15px_5px_rgba(127,219,255,0.3)] rounded-lg",
+              "border border-blue shadow-[0px_0px_15px_5px_rgba(114,197,229,0.7)] rounded-lg",
+              
           },
         });
       }
@@ -369,23 +385,17 @@ const SignosVitales = () => {
     }));
   };
 
+  //* Hook para cargar datos automáticamente cada 5 segundos
   useEffect(() => {
-    const cargarPacientesDelDia = async () => {
-      try {
-        const response = await fetch("/api/consultasHoy");
-        const data = await response.json();
-        if (response.ok && data.consultas?.length > 0) {
-          console.log("Datos de consultas:", data.consultas); //* Muestra la estructura de los datos en la consola
-          setPacientes(data.consultas);
-        } else {
-          console.warn("No hay consultas disponibles o hubo un error.");
-        }
-      } catch (error) {
-        console.error("Error al cargar consultas:", error);
-      }
+    const cargarTodasLasConsultas = () => {
+      cargarPacientesDelDia();
     };
 
-    cargarPacientesDelDia();
+    cargarTodasLasConsultas(); //* Llama a todas las funciones inmediatamente
+
+    const interval = setInterval(cargarTodasLasConsultas, 5000);
+
+    return () => clearInterval(interval); //* Limpia el intervalo al desmontar el componente
   }, []);
 
   return (
@@ -419,47 +429,55 @@ const SignosVitales = () => {
         </div>
       </div>
 
-      {/* Tabla de registro */}
-      <div className="w-full overflow-x-auto">
-        <table className="min-w-full bg-[#222539] rounded-xl shadow-[0_0_100px_rgba(0,255,255,0.4),0_0_50px_rgba(0,255,255,0.3)] mb-10 text-white overflow-hidden border border-[#3b4268]">
-          <thead>
-            <tr className="bg-gradient-to-r from-[#3a3f58] to-[#50597a] text-[#00f5ff] shadow-[0px_0px_30px_rgba(0,245,255,0.5)]">
-              <th className="py-4 px-5 md:px-10 text-sm md:text-lg font-semibold uppercase tracking-wide border-b-[1px] border-[#00f5ff]/50 transition duration-300">
-                Número de Nómina
-              </th>
-              <th className="py-4 px-5 md:px-10 text-sm md:text-lg font-semibold uppercase tracking-wide border-b-[1px] border-[#00f5ff]/50 transition duration-300">
-                Paciente
-              </th>
-              <th className="py-4 px-5 md:px-10 text-sm md:text-lg font-semibold uppercase tracking-wide border-b-[1px] border-[#00f5ff]/50 transition duration-300">
-                Edad
-              </th>
-              <th className="py-4 px-5 md:px-10 text-sm md:text-lg font-semibold uppercase tracking-wide border-b-[1px] border-[#00f5ff]/50 transition duration-300">
-                Secretaría
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {pacientes.map((paciente, index) => (
-              <tr
-                key={index}
-                className="bg-gradient-to-r from-[#2c2f45] via-[#363a58] to-[#2c2f45] text-[#d4efff] hover:bg-[#2f3350] transition duration-500 shadow-[0px_0px_25px_rgba(0,180,255,0.3)]"
-              >
-                <td className="py-4 px-5 md:px-10 text-sm md:text-lg font-medium border-b border-[#00f5ff]/10 tracking-wide rounded-l-lg relative before:absolute before:content-[''] before:left-0 before:top-0 before:h-full before:w-[2px] before:bg-[#00f5ff] before:shadow-[0_0_10px_rgba(0,245,255,0.6)]">
-                  {paciente.clavenomina || "N/A"}
-                </td>
-                <td className="py-4 px-5 md:px-10 text-sm md:text-lg font-medium border-b border-[#00f5ff]/10 tracking-wide relative">
-                  {paciente.nombrepaciente || "No disponible"}
-                </td>
-                <td className="py-4 px-5 md:px-10 text-sm md:text-lg font-medium border-b border-[#00f5ff]/10 tracking-wide relative">
-                  {paciente.edad || "Desconocida"}
-                </td>
-                <td className="py-4 px-5 md:px-10 text-sm md:text-lg font-medium border-b border-[#00f5ff]/10 tracking-wide rounded-r-lg relative after:absolute after:content-[''] after:right-0 after:top-0 after:h-full after:w-[2px] after:bg-[#00f5ff] after:shadow-[0_0_10px_rgba(0,245,255,0.6)]">
-                  {paciente.departamento || "No asignado"}
-                </td>
+      <div className="w-full space-y-8">
+        {/* Tabla de registros */}
+        <div className="w-full overflow-x-auto p-6 bg-gradient-to-b from-gray-900 to-gray-800 rounded-xl shadow-lg mb-8">
+          <h1 className="text-3xl font-bold mb-6 text-center text-yellow-300 tracking-wide">
+            Pacientes en Lista de Espera
+          </h1>
+          <table className="min-w-full text-gray-300 border-separate border-spacing-y-3">
+            <thead>
+              <tr className="bg-gray-800 bg-opacity-80 text-sm uppercase tracking-wider font-semibold">
+                <th className="py-4 px-6 rounded-l-lg">Número de Nómina</th>
+                <th className="py-4 px-6">Paciente</th>
+                <th className="py-4 px-6">Edad</th>
+                <th className="py-4 px-6 rounded-r-lg">Secretaría</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {pacientes.map((paciente, index) => (
+                <tr
+                  key={index}
+                  className="bg-gray-700 bg-opacity-50 hover:bg-gradient-to-r from-yellow-500 to-yellow-700 transition duration-300 ease-in-out rounded-lg shadow-md"
+                >
+                  <td className="py-4 px-6 font-medium text-center">
+                    {paciente.clavenomina || "N/A"}
+                  </td>
+                  <td className="py-4 px-6 text-center">
+                    {paciente.nombrepaciente || "No disponible"}
+                  </td>
+                  <td className="py-4 px-6 text-center">
+                    {paciente.edad || "Desconocida"}
+                  </td>
+                  <td className="py-4 px-6 text-center">
+                    {paciente.departamento || "No asignado"}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Renderizar cada tabla de estado específico con el mismo ancho y espaciado */}
+        <div className="w-full overflow-x-auto p-6 bg-gradient-to-b from-gray-900 to-gray-800 rounded-xl shadow-lg mb-8">
+          <AtendiendoActualmente data={atendiendoActualmente} />
+        </div>
+        <div className="w-full overflow-x-auto p-6 bg-gradient-to-b from-gray-900 to-gray-800 rounded-xl shadow-lg mb-8">
+          <ConsultasCanceladas data={consultasCanceladas} />
+        </div>
+        <div className="w-full overflow-x-auto p-6 bg-gradient-to-b from-gray-900 to-gray-800 rounded-xl shadow-lg mb-8">
+          <ConsultasAtendidas data={consultasAtendidas} />
+        </div>
       </div>
 
       {/* Modal para agregar signos vitales */}
@@ -657,24 +675,23 @@ const SignosVitales = () => {
                   </div>
                 </div>
 
-                {consultaSeleccionada === "empleado" &&
-                  patientData.grupoNomina === "NS" && (
-                    <div className="md:ml-auto mt-4 md:mt-0 p-4 bg-gradient-to-br from-gray-800 to-gray-700 rounded-lg shadow-lg flex flex-col items-center md:items-end text-right text-white">
-                      <p className="text-md font-bold text-yellow-400">
-                        <span className="block">SINDICALIZADO</span>
-                      </p>
-                      <p className="text-sm md:text-md">
-                        Sindicato:{" "}
-                        <span className="font-semibold">
-                          {patientData.cuotaSindical === "S"
-                            ? "SUTSMSJR"
-                            : patientData.cuotaSindical === "N"
-                            ? "SITAM"
-                            : "No afiliado"}
-                        </span>
-                      </p>
-                    </div>
-                  )}
+                {patientData.grupoNomina === "NS" && (
+                  <div className="md:ml-auto mt-4 md:mt-0 p-4 bg-gradient-to-br from-gray-800 to-gray-700 rounded-lg shadow-lg flex flex-col items-center md:items-end text-right text-white">
+                    <p className="text-md font-bold text-yellow-400">
+                      <span className="block">SINDICALIZADO</span>
+                    </p>
+                    <p className="text-sm md:text-md">
+                      Sindicato:{" "}
+                      <span className="font-semibold">
+                        {patientData.cuotaSindical === "S"
+                          ? "SUTSMSJR"
+                          : patientData.cuotaSindical === ""
+                          ? "SITAM"
+                          : "No afiliado"}
+                      </span>
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div className="mt-6">

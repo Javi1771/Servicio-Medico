@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useState, useEffect } from "react";
 
 const PaseEspecialidad = ({
@@ -29,8 +30,18 @@ const PaseEspecialidad = ({
     fetchEspecialidades();
   }, [claveConsulta]);
 
+  //* Limpia el formulario cada vez que se cambia el `claveConsulta`
+  useEffect(() => {
+    setPasarEspecialidad(""); //* Resetea el estado del pase a especialidad
+    setEspecialidadSeleccionada(""); //* Limpia la especialidad seleccionada
+    setObservaciones(""); //* Limpia las observaciones
+  }, [claveConsulta]);
+
   const handlePaseEspecialidadChange = async (value) => {
     setPasarEspecialidad(value);
+
+    //* Registra en consola los valores para verificar
+    console.log("Clave Consulta:", claveConsulta, "Valor de Pase:", value);
 
     try {
       const response = await fetch("/api/actualizarConsultaEspecialidad", {

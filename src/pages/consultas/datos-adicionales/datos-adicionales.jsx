@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState } from "react";
 import Medicamentos from "./medicamentos";
 import PaseEspecialidad from "./pase-especialidad";
@@ -17,27 +18,43 @@ const DatosAdicionales = ({
   especialidadSeleccionada,
   setEspecialidadSeleccionada,
   observaciones,
-  setObservaciones
+  setObservaciones,
+  numeroDeNomina,
+  nombrePaciente,
 }) => {
   const [diagnosticoTexto, setDiagnosticoTexto] = useState("");
   const [motivoConsultaTexto, setMotivoConsultaTexto] = useState("");
+  const [nombrePacienteSeleccionado, setNombrePacienteSeleccionado] = useState("");
 
   const handleDiagnosticoChange = (e) => {
     const value = e.target.value;
     setDiagnosticoTexto(value);
-    setDiagnostico(value); // Actualiza en el componente principal
+    setDiagnostico(value); //* Actualiza en el componente principal
   };
 
   const handleMotivoConsultaChange = (e) => {
     const value = e.target.value;
     setMotivoConsultaTexto(value);
-    setMotivoConsulta(value); // Actualiza en el componente principal
+    setMotivoConsulta(value); //* Actualiza en el componente principal
+  };
+
+  const handlePacienteClick = (paciente) => {
+    setPacienteSeleccionado(paciente);
+    setNombrePacienteSeleccionado(paciente.nombrepaciente); //* Establece el nombre del paciente seleccionado
   };
 
   return (
     <div className="bg-gray-900 p-4 md:p-6 rounded-lg shadow-lg">
       <div className="flex flex-wrap md:flex-nowrap md:space-x-4 space-y-2 md:space-y-0 mb-4 md:mb-8">
-        {["Diagnóstico", "Medicamentos", "Pase a Especialidad", "Incapacidades", "Historial de Consultas", "Padecimientos Críticos", "Antecedentes"].map((pantalla, index) => (
+        {[
+          "Diagnóstico",
+          "Medicamentos",
+          "Pase a Especialidad",
+          "Incapacidades",
+          "Historial de Consultas",
+          "Padecimientos Críticos",
+          "Antecedentes",
+        ].map((pantalla, index) => (
           <button
             key={index}
             onClick={() => handleSubPantallaChange(pantalla)}
@@ -78,7 +95,7 @@ const DatosAdicionales = ({
 
       {subPantalla === "Medicamentos" && <Medicamentos />}
       {subPantalla === "Pase a Especialidad" && (
-        <PaseEspecialidad 
+        <PaseEspecialidad
           claveConsulta={claveConsulta}
           pasarEspecialidad={pasarEspecialidad}
           setPasarEspecialidad={setPasarEspecialidad}
@@ -89,7 +106,11 @@ const DatosAdicionales = ({
         />
       )}
       {subPantalla === "Incapacidades" && <Incapacidades />}
-      {subPantalla === "Historial de Consultas" && <HistorialConsultas />}
+      {subPantalla === "Historial de Consultas" && (
+        <HistorialConsultas 
+          numeroNomina={numeroDeNomina} 
+          nombrePaciente={nombrePaciente}        />
+      )}
       {subPantalla === "Padecimientos Críticos" && <EnfermedadesCronicas />}
       {subPantalla === "Antecedentes" && <Antecedentes />}
     </div>
