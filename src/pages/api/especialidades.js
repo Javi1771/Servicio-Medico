@@ -1,3 +1,5 @@
+// especialidades.js
+
 import { connectToDatabase } from '../api/connectToDatabase';
 
 const MAX_RETRIES = 3;
@@ -8,7 +10,12 @@ async function queryWithRetries(pool, query, retries = MAX_RETRIES) {
     const result = await pool.request().query(query);
     return result.recordset;
   } catch (error) {
-    if (retries > 1) {
+    if (error.code === 'ECONNCLOSED' && retries > 1) {
+      console.warn(`Conexión cerrada. Intentando reconectar y reintentar la consulta en ${RETRY_DELAY_MS / 1000} segundos...`);
+      await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
+      const newPool = await connectToDatabase(); // Intentar reconectar
+      return queryWithRetries(newPool, query, retries - 1);
+    } else if (retries > 1) {
       console.warn(`Consulta fallida. Reintentando en ${RETRY_DELAY_MS / 1000} segundos...`);
       await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
       return queryWithRetries(pool, query, retries - 1);
@@ -22,7 +29,7 @@ export default async function handler(req, res) {
   try {
     const pool = await connectToDatabase();
     const result = await queryWithRetries(pool, 'SELECT * FROM especialidades');
-    
+
     if (!result || result.length === 0) {
       return res.status(404).json({ message: 'No se encontraron resultados en la tabla especialidades' });
     }

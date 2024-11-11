@@ -258,6 +258,9 @@ export default function UsuariosTable() {
     router.back('/inicio-servicio-medico'); // Esto regresa a la página anterior en el historial de navegación
   };
 
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+  };
 
   return (
     <div className={styles.body}>
@@ -279,14 +282,15 @@ export default function UsuariosTable() {
         </div>
       )}
 
-      <input
-        type="text"
-        placeholder="Buscar usuario..."
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        className={styles.searchInput}
-      />
-
+      <div className={styles.searchContainer}>
+          <input
+            type="text"
+            placeholder="Buscar usuario..."
+            value={searchTerm}
+            onChange={handleSearchChange}
+            className={`${styles.input} input`}
+          />
+          </div>
       <div className={styles.buttonContainer}>
         <button className={styles.button} onClick={toggleModal}>Agregar Usuario</button>
       </div>

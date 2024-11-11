@@ -38,7 +38,7 @@ export default async function handler(req, res) {
         name: error.name,
         code: error.code,
       });
-      res.status(500).json({ message: 'Error al agregar la especialidad', error: error.message });
+      res.status(500).json({ message: 'Error al agregar la especialidad api', error: error.message });
     }
   } else {
     console.warn(`Método ${req.method} no permitido en esta ruta.`);

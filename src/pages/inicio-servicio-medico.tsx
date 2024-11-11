@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import AuthGuard from '../components/AuthGuard';
 
 const Home = () => {
   const router = useRouter();
@@ -24,6 +25,7 @@ const Home = () => {
   };
 
   return (
+    <AuthGuard>
     <div className="min-h-screen bg-gradient-to-b from-blue-900 to-black text-white flex flex-col items-center pt-10">
       <div className="relative w-full h-48 sm:h-60 md:h-80 lg:h-96 overflow-hidden">
         <Image
@@ -108,6 +110,7 @@ const Home = () => {
         </button>
       </div>
     </div>
+    </AuthGuard>
   );
 };
 

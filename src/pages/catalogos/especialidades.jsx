@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
 import Swal from 'sweetalert2';
-import styles from '../css/especialidades.module.css';
+import styles from '../css/usuarios.module.css';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
 
@@ -129,8 +129,9 @@ export default function EspecialidadesTable() {
     }
   };
 
-  
-
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+  };
 
   const router = useRouter();
   const handleBack = () => {
@@ -146,8 +147,15 @@ export default function EspecialidadesTable() {
         {error && <p className={styles.error}>{error}</p>}
         {showSuccessMessage && <div className={styles.successModal}><p>Especialidad agregada o actualizada correctamente</p></div>}
 
-        <input type="text" placeholder="Buscar especialidad..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className={styles.searchInput} />
-
+        <div className={styles.searchContainer}>
+          <input
+            type="text"
+            placeholder="Buscar usuario..."
+            value={searchTerm}
+            onChange={handleSearchChange}
+            className={`${styles.input} input`}
+          />
+          </div>
         <div className={styles.buttonContainer}>
           <button className={styles.button} onClick={toggleModal}>Agregar Especialidad</button>
         </div>

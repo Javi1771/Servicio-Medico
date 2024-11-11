@@ -2,16 +2,16 @@
 .container {
   padding: 20px;
   margin: auto;
-  margin-top: 30px;
-  max-width: 90%;
+  margin-top: 40px;
+  max-width: 100%;
   width: 90%;
   overflow-x: auto;
-  background: rgba(0, 0, 0, 0.34); /* Fondo semi-transparente */
+  background: rgba(32, 32, 32, 0.162); /* Fondo semi-transparente */
   backdrop-filter: blur(15px); /* Desenfoque para el efecto de glassmorphism */
   border-radius: 10px;
   border: 1px solid rgba(18, 18, 18, 0.3); /* Borde semi-transparente */
   color: rgb(255, 255, 255);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.413);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.349);
 }
 
 .title {
@@ -27,55 +27,185 @@
   margin-top: 10px;
 }
 
+
+/** Estilos de tabla */
+.table-wrapper {
+  background-color: #1a1a1d; /* Fondo oscuro debajo de la tabla */
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5); /* Sombra */
+  margin: 20px auto; /* Centrado y margen superior */
+  max-width: 1480px;
+  
+}
+
+/** Estilos de tabla */
 .table {
   width: 100%;
-  border-collapse: collapse;
-  background: rgba(255, 255, 255, 0.1); /* Fondo blanco semi-transparente para la tabla */
-  border-radius: 5px;
-  overflow: hidden; /* Asegura que los bordes redondeados se mantengan */
-  backdrop-filter: blur(10px); /* Efecto de desenfoque */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-spacing: 0px; /* Espacio vertical entre filas */
+  overflow: hidden;
+  border-radius: 10px;
 }
 
 .table th,
 .table td {
-  padding: 12px; /* Espaciado interno */
-  text-align: left;
-  border: 1px solid rgba(0, 0, 0, 0.3); /* Borde semi-transparente */
-  color: #ffffff; /* Color del texto en la tabla a blanco */
+  padding: 15px;
+  background-color: #0e11359a; /* Fondo sólido oscuro */
+  color: #ffffff;
+  border-radius: 2px; /* Borde redondeado pequeño en cada celda */
+  transition: color 0.3s ease, background-color 0.3s ease; /* Transición suave para el color */
 }
 
 .table th {
-  background-color: #557492; /* Color del encabezado */
-  color: #ffffff; /* Color del texto en el encabezado */
-  font-weight: bold;
+  text-align: left;
+  background-color: #0e11359a;
 }
 
-.table tr:nth-child(even) {
-  background-color: rgba(115, 175, 233, 0.5); /* Color de fila par */
+.table tbody tr:hover td {
+  background: linear-gradient(90deg, #2AF598, #009EFD); /* Degradado verde a azul */
+  -webkit-background-clip: text; /* Aplica el degradado solo al texto */
+  -webkit-text-fill-color: transparent; /* Relleno de texto transparente para mostrar el degradado */
+  background-clip: text; /* Para algunos navegadores adicionales */
 }
 
-.table tr:hover {
-  background-color: rgba(0, 137, 145, 0.5); /* Color de fondo al pasar el mouse */
-  transition: background-color 0.3s ease;
+
+.table tbody td {
+  position: relative;
 }
 
-.searchInput {
-  margin-bottom: 20px;
-  padding: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  border-radius: 4px;
-  width: 100%; /* Ocupa el 100% del contenedor */
-  background: rgba(255, 255, 255, 0.1); /* Fondo blanco semi-transparente */
-  color: white; /* Color del texto */
-  backdrop-filter: blur(10px); /* Efecto de desenfoque */
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .table thead {
+    display: none; /* Oculta el encabezado en pantallas pequeñas */
+  }
+
+  .table, .table tbody, .table tr, .table td {
+    display: block;
+    width: 100%;
+  }
+
+  .table tr {
+    margin-bottom: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 5px;
+  }
+
+  .table td {
+    padding: 10px;
+    text-align: right;
+    position: relative;
+    border: none;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+  }
+
+  .table td::before {
+    content: attr(data-label);
+    position: absolute;
+    left: 10px;
+    text-align: left;
+    font-weight: bold;
+    color: #ffffff;
+  }
+
+  .table tr:last-child td {
+    border-bottom: none;
+  }
 }
+
+/* Ajuste para pantallas extra pequeñas */
+@media (max-width: 480px) {
+  .table td {
+    padding: 8px;
+    font-size: 0.9rem;
+  }
+
+  .table tr {
+    margin-bottom: 8px;
+  }
+}
+
+
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .table thead {
+    display: none; /* Oculta el encabezado en pantallas pequeñas */
+  }
+
+  .table, .table tbody, .table tr, .table td {
+    display: block;
+    width: 100%;
+  }
+
+  .table tr {
+    margin-bottom: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 5px;
+  }
+
+  .table td {
+    padding: 10px;
+    text-align: left;
+    position: relative;
+    border: none;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+  }
+
+  .table td::before {
+    content: attr(data-label);
+    position: absolute;
+    left: 10px;
+    text-align: left;
+    font-weight: bold;
+    color: #ffffff;
+  }
+
+  .table tr:last-child td {
+    border-bottom: none;
+  }
+}
+
+/* Ajuste para pantallas extra pequeñas */
+@media (max-width: 480px) {
+  .table td {
+    padding: 8px;
+    font-size: 0.9rem;
+  }
+
+  .table tr {
+    margin-bottom: 8px;
+  }
+}
+
+
+
+
+
+
+/* Ajuste para pantallas extra pequeñas */
+@media (max-width: 480px) {
+  .table td {
+    padding: 8px;
+    font-size: 0.9rem;
+  }
+
+  .table tr {
+    margin-bottom: 8px;
+  }
+}
+
+/*FIN ESTILOS TABLE*/
+
+
+
+
 
 .buttonContainer {
   margin-bottom: 20px;
   display: flex; /* Usar flexbox para alinear botones */
   justify-content: flex-start; /* Alinear los botones al inicio */
   flex-wrap: wrap; /* Permitir que los botones se ajusten en líneas múltiples */
+  padding-top: 15px;
 }
 
 .banner {
@@ -90,7 +220,7 @@
 }
 
 .body {
-  background: linear-gradient(to right, #010529, #417aff, #0058bd); /* Gradiente en el body */
+  background: linear-gradient(to right, #010529, #3d5fae, #0058bd); /* Gradiente en el body */
   margin: 0;
   padding: 0;
   font-family: Arial, sans-serif;
@@ -146,8 +276,8 @@
   border-radius: 0.5rem;
   background: linear-gradient(
       180deg,
-      rgba(8, 77, 126, 0) 0%,
-      rgba(8, 77, 126, 0.42) 100%
+      rgba(8, 126, 71, 0) 0%,
+      rgba(8, 126, 67, 0.42) 100%
     ),
     rgba(47, 255, 255, 0.24);
   box-shadow: inset 0 0 12px rgba(151, 200, 255, 0.44);
@@ -164,8 +294,8 @@
   height: 100%;
   background: linear-gradient(
       180deg,
-      rgba(8, 77, 126, 0) 0%,
-      rgba(8, 77, 126, 0.42) 100%
+      rgba(8, 126, 16, 0) 0%,
+      rgba(26, 126, 8, 0.42) 100%
     ),
     rgba(47, 255, 255, 0.24);
   box-shadow: inset 0 0 12px rgba(151, 200, 255, 0.44);
@@ -419,7 +549,7 @@
 
 /* From Uiverse.io by vinodjangid07 */ 
 .editButton {
-  background-color: yellow; /* Color amarillo */
+  background-color: rgb(255, 208, 0); /* Color amarillo */
   border: none;
   border-radius: 5px; /* Bordes redondeados */
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Sombra para profundidad */
@@ -466,4 +596,303 @@
 
 .butbackButtonton:hover {
   background-color: #45a049;
+}
+
+
+
+
+
+
+/*SELECT BUTTONS OPTIOS*/
+.searchAndActionsContainer {
+  display: flex;
+  align-items: center;
+  margin-top: 10px;
+  gap: 20px;
+  padding-bottom: 30px;
+
+}
+
+.radioContainer {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.label {
+  display: flex;
+  align-items: center;
+  border-radius: 100px;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: .3s;
+}
+
+
+.radioInput {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  z-index: -1;
+}
+
+.radioDesign {
+  width: 20px;
+  height: 20px;
+  border-radius: 100px;
+  background: linear-gradient(to right bottom, hsl(154, 97%, 62%), hsl(225, 97%, 62%));
+  position: relative;
+}
+
+.radioDesign::before {
+  content: '';
+  display: inline-block;
+  width: inherit;
+  height: inherit;
+  border-radius: inherit;
+  background: hsl(0, 0%, 100%);
+  transform: scale(1.1);
+  transition: .3s;
+}
+
+.radioInput:checked + .radioDesign::before {
+  transform: scale(0);
+}
+
+
+.labelText {
+  color: hsl(192, 100%, 89%);
+  margin-left: 10px;
+  letter-spacing: 1px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: .3s;
+}
+
+.radioInput:checked ~ .labelText {
+  color: hsl(172, 100%, 50%);
+}
+
+
+
+
+
+
+/* Ajustes responsivos */
+@media (max-width: 768px) {
+  .searchInput {
+    width: 100%;
+    padding: 8px;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .searchInput {
+    width: 100%;
+    padding: 6px;
+    font-size: 0.8rem;
+  }
+}
+
+
+
+
+.button-border::before {
+  content: "";
+  position: absolute;
+  border-radius: 0.5rem;
+  padding: 1px;
+  inset: 0;
+  background: linear-gradient(
+      180deg,
+      rgba(184, 238, 255, 0.24) 0%,
+      rgba(184, 238, 255, 0) 100%
+    ),
+    linear-gradient(0deg, rgba(184, 238, 255, 0.32), rgba(184, 238, 255, 0.32));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  pointer-events: none;
+}
+
+.dropdown {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid rgb(255, 255, 255);
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.4);
+  color: rgb(255, 255, 255);
+  font-size: 1rem;
+}
+
+/* Ajustes responsivos para el dropdown */
+@media (max-width: 768px) {
+  .dropdown {
+    padding: 8px;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .dropdown {
+    padding: 6px;
+    font-size: 0.8rem;
+  }
+}
+
+
+
+
+
+
+/** SEARCH BOX STYLES **/
+.searchBox {
+  display: flex;
+  max-width: 230px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: #2f3640;
+  border-radius: 50px;
+  position: relative;
+}
+
+.searchInput {
+  border: none;
+  background: none;
+  outline: none;
+  color: white;
+  font-size: 15px;
+  padding: 24px 46px 24px 26px;
+  flex-grow: 1;
+}
+
+.searchButton {
+  color: white;
+  position: absolute;
+  right: 8px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: var(--gradient-2, linear-gradient(90deg, #2AF598 0%, #009EFD 100%));
+  border: 0;
+  display: inline-block;
+  transition: all 300ms cubic-bezier(.23, 1, 0.32, 1);
+}
+
+/* Button hover and active effects */
+.searchButton:hover {
+  color: #fff;
+  background-color: #1A1A1A;
+  box-shadow: rgba(0, 0, 0, 0.5) 0 10px 20px;
+  transform: translateY(-3px);
+}
+
+.searchButton:active {
+  box-shadow: none;
+  transform: translateY(0);
+}
+
+/** SEARCH BOX STYLES **/
+.searchBox {
+  display: flex;
+  max-width: 230px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: #2f3640;
+  border-radius: 50px;
+  position: relative;
+}
+
+.searchInput {
+  border: none;
+  background: none;
+  outline: none;
+  color: white;
+  font-size: 15px;
+  padding: 24px 46px 24px 26px;
+  flex-grow: 1;
+}
+
+.searchButton {
+  color: white;
+  position: absolute;
+  right: 8px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: var(--gradient-2, linear-gradient(90deg, #2AF598 0%, #009EFD 100%));
+  border: 0;
+  display: inline-block;
+  transition: all 300ms cubic-bezier(.23, 1, 0.32, 1);
+}
+
+/* Button hover and active effects */
+.searchButton:hover {
+  color: #3e3e3e;
+  background-color: #1A1A1A;
+  box-shadow: rgba(0, 0, 0, 0.5) 0 10px 20px;
+  transform: translateY(-3px);
+}
+
+.searchButton:active {
+  box-shadow: none;
+  transform: translateY(0);
+}
+
+/** SEARCH BAR RESPONSIVE STYLES **/
+.input[type="text"] {
+  font-family: "Montserrat", sans-serif;
+  width: 100%;
+  height: 45px;
+  padding-left: 2.5rem;
+  padding-top: 10px;
+  box-shadow: 0 0 0 1.5px #23b1be, 0 0 25px -17px #040b6f;
+  border: 0;
+  border-radius: 10px;
+  background-color: #1d1d1d6c;
+  outline: none;
+  color: #bdbecb;
+  transition: all 0.25s cubic-bezier(0.19, 1, 0.22, 1);
+  cursor: text;
+  z-index: 0;
+  padding-block-end: 10px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1100px) {
+  .input[type="text"] {
+    max-width: 1000px;
+  }
+
+  .input[type="text"]:hover,
+  .input[type="text"]:focus {
+    max-width: 1040px;
+  }
+}
+
+@media (max-width: 768px) {
+  .input[type="text"] {
+    max-width: 90%;
+    padding: 16px 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .input[type="text"] {
+    max-width: 95%;
+    padding: 14px 10px;
+    font-size: 0.9rem;
+    height: 45px;
+  }
+
+  /* Disabling width increase on hover and focus for small screens */
+  .input[type="text"]:hover,
+  .input[type="text"]:focus {
+    max-width: 80%;
+  }
 }
