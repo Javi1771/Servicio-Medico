@@ -45,25 +45,33 @@ const AtendiendoActualmente = () => {
           </tr>
         </thead>
         <tbody>
-          {pacientes.map((paciente, index) => (
-            <tr
-              key={index}
-              className="bg-gray-700 bg-opacity-50 hover:bg-gradient-to-r from-blue-600 to-purple-600 transition duration-300 ease-in-out rounded-lg shadow-md"
-            >
-              <td className="py-4 px-6 font-medium text-center">
-                {paciente.clavenomina || "N/A"}
-              </td>
-              <td className="py-4 px-6 text-center">
-                {paciente.nombrepaciente || "No disponible"}
-              </td>
-              <td className="py-4 px-6 text-center">
-                {paciente.edad || "Desconocida"}
-              </td>
-              <td className="py-4 px-6 text-center">
-                {paciente.departamento || "No asignado"}
+          {pacientes.length > 0 ? (
+            pacientes.map((paciente, index) => (
+              <tr
+                key={index}
+                className="bg-gray-700 bg-opacity-50 hover:bg-gradient-to-r from-blue-600 to-purple-600 transition duration-300 ease-in-out rounded-lg shadow-md"
+              >
+                <td className="py-4 px-6 font-medium text-center">
+                  {paciente.clavenomina || "N/A"}
+                </td>
+                <td className="py-4 px-6 text-center">
+                  {paciente.nombrepaciente || "No disponible"}
+                </td>
+                <td className="py-4 px-6 text-center">
+                  {paciente.edad || "Desconocida"}
+                </td>
+                <td className="py-4 px-6 text-center">
+                  {paciente.departamento || "No asignado"}
+                </td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan="4" className="text-center py-4 text-gray-400">
+                No hay pacientes siendo atendidos en este momento.
               </td>
             </tr>
-          ))}
+          )}
         </tbody>
       </table>
     </div>

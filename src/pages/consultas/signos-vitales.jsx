@@ -282,12 +282,12 @@ const SignosVitales = () => {
             "<span style='color: #d60005; font-weight: bold; font-size: 1.5em;'>⚠️ Nómina no encontrada</span>",
           html: "<p style='color: #d1d5db; font-size: 1.1em;'>El número de nómina ingresado no existe o no se encuentra en el sistema. Intenta nuevamente.</p>",
           background: "linear-gradient(145deg, #2d3748, #1c2230)",
-          confirmButtonColor: "#d60005", 
+          confirmButtonColor: "#d60005",
           confirmButtonText:
             "<span style='color: #ffffff; font-weight: bold;'>Aceptar</span>",
           customClass: {
             popup:
-              "border border-red-400 shadow-[0px_0px_15px_5px_rgba(255,0,0,0.7)] rounded-lg", 
+              "border border-red-400 shadow-[0px_0px_15px_5px_rgba(255,0,0,0.7)] rounded-lg",
           },
         });
 
@@ -359,7 +359,6 @@ const SignosVitales = () => {
           customClass: {
             popup:
               "border border-blue shadow-[0px_0px_15px_5px_rgba(114,197,229,0.7)] rounded-lg",
-              
           },
         });
       }
@@ -445,25 +444,33 @@ const SignosVitales = () => {
               </tr>
             </thead>
             <tbody>
-              {pacientes.map((paciente, index) => (
-                <tr
-                  key={index}
-                  className="bg-gray-700 bg-opacity-50 hover:bg-gradient-to-r from-yellow-500 to-yellow-700 transition duration-300 ease-in-out rounded-lg shadow-md"
-                >
-                  <td className="py-4 px-6 font-medium text-center">
-                    {paciente.clavenomina || "N/A"}
-                  </td>
-                  <td className="py-4 px-6 text-center">
-                    {paciente.nombrepaciente || "No disponible"}
-                  </td>
-                  <td className="py-4 px-6 text-center">
-                    {paciente.edad || "Desconocida"}
-                  </td>
-                  <td className="py-4 px-6 text-center">
-                    {paciente.departamento || "No asignado"}
+              {pacientes.length > 0 ? (
+                pacientes.map((paciente, index) => (
+                  <tr
+                    key={index}
+                    className="bg-gray-700 bg-opacity-50 hover:bg-gradient-to-r from-yellow-500 to-yellow-700 transition duration-300 ease-in-out rounded-lg shadow-md"
+                  >
+                    <td className="py-4 px-6 font-medium text-center">
+                      {paciente.clavenomina || "N/A"}
+                    </td>
+                    <td className="py-4 px-6 text-center">
+                      {paciente.nombrepaciente || "No disponible"}
+                    </td>
+                    <td className="py-4 px-6 text-center">
+                      {paciente.edad || "Desconocida"}
+                    </td>
+                    <td className="py-4 px-6 text-center">
+                      {paciente.departamento || "No asignado"}
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="4" className="text-center py-4 text-gray-400">
+                    No hay consultas para el día de hoy.
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>

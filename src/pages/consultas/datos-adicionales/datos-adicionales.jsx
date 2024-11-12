@@ -24,7 +24,8 @@ const DatosAdicionales = ({
 }) => {
   const [diagnosticoTexto, setDiagnosticoTexto] = useState("");
   const [motivoConsultaTexto, setMotivoConsultaTexto] = useState("");
-  const [nombrePacienteSeleccionado, setNombrePacienteSeleccionado] = useState("");
+  const [nombrePacienteSeleccionado, setNombrePacienteSeleccionado] =
+    useState("");
 
   const handleDiagnosticoChange = (e) => {
     const value = e.target.value;
@@ -93,6 +94,10 @@ const DatosAdicionales = ({
         </div>
       )}
 
+      {/*
+  Se pasan los datos clavenomina y nombre_paciente como props adicionales a EnfermedadesCronicas,
+  asegurando que estos valores estén disponibles en el componente.
+*/}
       {subPantalla === "Medicamentos" && <Medicamentos />}
       {subPantalla === "Pase a Especialidad" && (
         <PaseEspecialidad
@@ -107,11 +112,17 @@ const DatosAdicionales = ({
       )}
       {subPantalla === "Incapacidades" && <Incapacidades />}
       {subPantalla === "Historial de Consultas" && (
-        <HistorialConsultas 
-          numeroNomina={numeroDeNomina} 
-          nombrePaciente={nombrePaciente}        />
+        <HistorialConsultas
+          numeroNomina={numeroDeNomina}
+          nombrePaciente={nombrePaciente}
+        />
       )}
-      {subPantalla === "Padecimientos Críticos" && <EnfermedadesCronicas />}
+      {subPantalla === "Padecimientos Críticos" && (
+        <EnfermedadesCronicas
+          clavenomina={numeroDeNomina}
+          nombrePaciente={nombrePaciente}
+        />
+      )}
       {subPantalla === "Antecedentes" && <Antecedentes />}
     </div>
   );

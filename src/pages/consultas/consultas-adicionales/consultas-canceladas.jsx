@@ -42,25 +42,33 @@ const ConsultasCanceladas = () => {
           </tr>
         </thead>
         <tbody>
-          {pacientes.map((paciente, index) => (
-            <tr
-              key={index}
-              className="bg-gray-700 bg-opacity-50 hover:bg-gradient-to-r from-red-500 to-red-700 transition duration-300 ease-in-out rounded-lg shadow-md"
-            >
-              <td className="py-4 px-6 font-medium text-center">
-                {paciente.clavenomina || "N/A"}
-              </td>
-              <td className="py-4 px-6 text-center">
-                {paciente.nombrepaciente || "No disponible"}
-              </td>
-              <td className="py-4 px-6 text-center">
-                {paciente.edad || "Desconocida"}
-              </td>
-              <td className="py-4 px-6 text-center">
-                {paciente.departamento || "No asignado"}
+          {pacientes.length > 0 ? (
+            pacientes.map((paciente, index) => (
+              <tr
+                key={index}
+                className="bg-gray-700 bg-opacity-50 hover:bg-gradient-to-r from-red-500 to-red-700 transition duration-300 ease-in-out rounded-lg shadow-md"
+              >
+                <td className="py-4 px-6 font-medium text-center">
+                  {paciente.clavenomina || "N/A"}
+                </td>
+                <td className="py-4 px-6 text-center">
+                  {paciente.nombrepaciente || "No disponible"}
+                </td>
+                <td className="py-4 px-6 text-center">
+                  {paciente.edad || "Desconocida"}
+                </td>
+                <td className="py-4 px-6 text-center">
+                  {paciente.departamento || "No asignado"}
+                </td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan="4" className="text-center py-4 text-gray-400">
+                No hay consultas canceladas.
               </td>
             </tr>
-          ))}
+          )}
         </tbody>
       </table>
     </div>

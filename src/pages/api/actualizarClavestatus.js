@@ -16,17 +16,32 @@ export default async function handler(req, res) {
   try {
     const pool = await connectToDatabase();
 
-    // Actualiza el campo `clavestatus` en la tabla `consultas`
-    const result = await pool.request()
+    //* Obtiene el clavestatus actual para la claveConsulta
+    const currentStatusResult = await pool.request()
       .input('claveconsulta', sql.Int, claveConsulta)
-      .input('clavestatus', sql.Int, clavestatus)
       .query(`
-        UPDATE consultas
-        SET clavestatus = @clavestatus
-        WHERE claveconsulta = @claveconsulta
+        SELECT clavestatus FROM consultas WHERE claveconsulta = @claveconsulta
       `);
 
-    res.status(200).json({ message: 'Clave de estatus actualizada correctamente.' });
+    const currentStatus = currentStatusResult.recordset[0]?.clavestatus;
+
+    //* Solo permite actualizar si el clavestatus actual no es 4
+    if (currentStatus !== 4) {
+      await pool.request()
+        .input('claveconsulta', sql.Int, claveConsulta)
+        .input('clavestatus', sql.Int, clavestatus)
+        .query(`
+          UPDATE consultas
+          SET clavestatus = @clavestatus
+          WHERE claveconsulta = @claveconsulta
+        `);
+      res.status(200).json({ message: 'Clave de estatus actualizada correctamente.' });
+    } else {
+      //* Si el clavestatus ya es 4, no actualiza y envía un mensaje indicando que ya está guardado
+      res.status(200).json({ message: 'Clave de estatus ya en 4, no se requiere actualización.' });
+    }
+
+    console.log('Intento de cambio de clave status:', clavestatus);
   } catch (error) {
     console.error('Error al actualizar clave de estatus:', error);
     res.status(500).json({ message: 'Error al actualizar clave de estatus.' });

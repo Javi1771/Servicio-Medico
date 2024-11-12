@@ -36,8 +36,8 @@ export default async function handler(req, res) {
         const empleado = result.GetEmpleadoResult;
 
         //* Imprimir todos los detalles del empleado de forma organizada
-        // console.log('Detalles del empleado:');
-        // console.log(JSON.stringify(empleado, null, 2));
+        console.log('Detalles del empleado:');
+        console.log(JSON.stringify(empleado, null, 2));
 
         return res.status(200).json(empleado);
       } else {
