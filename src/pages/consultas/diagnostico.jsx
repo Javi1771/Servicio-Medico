@@ -3,10 +3,6 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import DatosAdicionales from "./datos-adicionales/datos-adicionales";
-import Swal from "sweetalert2";
-import withReactContent from "sweetalert2-react-content";
-
-const MySwal = withReactContent(Swal);
 
 const Diagnostico = () => {
   const [nombreMedico, setNombreMedico] = useState("Dr. Goku");
@@ -45,38 +41,6 @@ const Diagnostico = () => {
     alergias: "",
   });
 
-  const [guardadoExitoso, setGuardadoExitoso] = useState(false);
-  const [formularioCompleto, setFormularioCompleto] = useState(false);
-
-  //* Verifica si todos los campos requeridos están completos
-  useEffect(() => {
-    const verificarFormularioCompleto = () => {
-      const camposRequeridosLlenos =
-        claveConsulta &&
-        diagnostico &&
-        motivoConsulta &&
-        signosVitales.ta &&
-        signosVitales.temperatura;
-      const paseEspecialidadCompleto =
-        pasarEspecialidad === "no" ||
-        (pasarEspecialidad === "si" &&
-          especialidadSeleccionada &&
-          observaciones);
-
-      setFormularioCompleto(camposRequeridosLlenos && paseEspecialidadCompleto);
-    };
-
-    verificarFormularioCompleto();
-  }, [
-    claveConsulta,
-    diagnostico,
-    motivoConsulta,
-    signosVitales,
-    pasarEspecialidad,
-    especialidadSeleccionada,
-    observaciones,
-  ]);
-
   //* Recarga la lista de pacientes al cargar la página o al actualizar datos
   useEffect(() => {
     const today = new Date();
@@ -87,13 +51,10 @@ const Diagnostico = () => {
     cargarPacientesDelDia();
   }, []);
 
-  //* Actualiza clavestatus a 3 solo si la consulta no ha sido guardada al recargar o cerrar
+  //* Actualiza clavestatus a 3 si la ventana se cierra o se recarga
   useEffect(() => {
     const updateStatusOnUnload = () => {
-      if (
-        claveConsulta &&
-        localStorage.getItem("consultaGuardada") !== claveConsulta
-      ) {
+      if (claveConsulta) {
         fetch("/api/actualizarClavestatus", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -108,10 +69,10 @@ const Diagnostico = () => {
     };
   }, [claveConsulta]);
 
-  //* Actualiza clavestatus a 3 si el usuario regresa a una ventana anterior sin guardar, solo si no se ha guardado exitosamente
+  //* Actualiza clavestatus a 3 si el usuario regresa a una ventana anterior sin guardar
   useEffect(() => {
     const updateStatusIfNotSaved = async () => {
-      if (pacienteSeleccionado && !guardadoExitoso) {
+      if (pacienteSeleccionado) {
         await fetch("/api/actualizarClavestatus", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -126,7 +87,7 @@ const Diagnostico = () => {
     return () => {
       updateStatusIfNotSaved();
     };
-  }, [pacienteSeleccionado, guardadoExitoso]);
+  }, [pacienteSeleccionado]);
 
   //* Función para cargar pacientes del día
   const cargarPacientesDelDia = async () => {
@@ -240,7 +201,6 @@ const Diagnostico = () => {
     }
   };
 
-  //* Función de guardado que actualiza clavestatus a 4 solo al guardar exitosamente
   const handleGuardar = async () => {
     const datos = recolectarDatos();
     try {
@@ -282,68 +242,25 @@ const Diagnostico = () => {
             clavestatus: 4,
           }),
         });
-        localStorage.setItem("consultaGuardada", datos.claveConsulta);
-        cargarPacientesDelDia();
-
-        MySwal.fire({
-          icon: "success",
-          title:
-            "<span style='color: #00FF00; font-weight: bold; font-size: 1.5em;'>✅ Guardado exitoso</span>",
-          html: "<p style='color: #d1d5db; font-size: 1.1em;'>Todos los datos fueron guardados correctamente.</p>",
-          background: "linear-gradient(145deg, #2d3748, #1c2230)",
-          confirmButtonColor: "#00FF00",
-          confirmButtonText:
-            "<span style='color: #ffffff; font-weight: bold;'>Aceptar</span>",
-          customClass: {
-            popup:
-              "border border-green-400 shadow-[0px_0px_15px_5px_rgba(0,255,0,0.7)] rounded-lg",
-          },
-        });
-
+        cargarPacientesDelDia(); //* Refresca la lista de pacientes
+        alert("Todos los datos fueron guardados correctamente.");
         setPacienteSeleccionado(null);
       } else {
         console.error(
           "Error al guardar datos del diagnóstico:",
           await responseDiagnostico.json()
         );
-        MySwal.fire({
-          icon: "error",
-          title:
-            "<span style='color: #d60005; font-weight: bold; font-size: 1.5em;'>⚠️ Error en el diagnóstico</span>",
-          html: "<p style='color: #d1d5db; font-size: 1.1em;'>Hubo un problema al guardar los datos del diagnóstico. Inténtalo nuevamente.</p>",
-          background: "linear-gradient(145deg, #2d3748, #1c2230)",
-          confirmButtonColor: "#d60005",
-          confirmButtonText:
-            "<span style='color: #ffffff; font-weight: bold;'>Aceptar</span>",
-          customClass: {
-            popup:
-              "border border-red-400 shadow-[0px_0px_15px_5px_rgba(255,0,0,0.7)] rounded-lg",
-          },
-        });
+        alert("Error al guardar datos del diagnóstico.");
       }
     } catch (error) {
       console.error("Error en la solicitud de guardado:", error);
-      MySwal.fire({
-        icon: "error",
-        title:
-          "<span style='color: #d60005; font-weight: bold; font-size: 1.5em;'>⚠️ Error de conexión</span>",
-        html: "<p style='color: #d1d5db; font-size: 1.1em;'>No se pudo conectar con el servicio de guardado. Verifica tu conexión o intenta más tarde.</p>",
-        background: "linear-gradient(145deg, #2d3748, #1c2230)",
-        confirmButtonColor: "#d60005",
-        confirmButtonText:
-          "<span style='color: #ffffff; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-red-400 shadow-[0px_0px_15px_5px_rgba(255,0,0,0.7)] rounded-lg",
-        },
-      });
+      alert("Error al conectar con el servicio de guardado.");
     }
   };
 
-  //* Función de cancelación con alertas personalizadas
   const handleCancelar = async () => {
     try {
-      await fetch("/api/cancelarConsulta", {
+      await fetch("/api/actualizarClavestatus", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -351,63 +268,12 @@ const Diagnostico = () => {
           clavestatus: 3,
         }),
       });
-
-      setDiagnostico("");
-      setMotivoConsulta("");
-      setSignosVitales({
-        ta: "",
-        temperatura: "",
-        fc: "",
-        oxigenacion: "",
-        altura: "",
-        peso: "",
-        glucosa: "",
-      });
-      setAlergias("");
-      setObservaciones("");
-      setEspecialidadSeleccionada("");
-      setPasarEspecialidad(null);
-      setEmpleadoData(null);
-      setDatosEditados({
-        signosVitales: {},
-        alergias: "",
-      });
-
-      setPacienteSeleccionado(null);
-      setMostrarEmergente(false);
-      await cargarPacientesDelDia();
-
-      MySwal.fire({
-        icon: "warning",
-        title:
-          "<span style='color: #ff0000; font-weight: bold; font-size: 1.5em;'>⚠️ Consulta cancelada</span>",
-        html: "<p style='color: #d1d5db; font-size: 1.1em;'>La consulta fue cancelada y los datos se eliminaron correctamente.</p>",
-        background: "linear-gradient(145deg, #2d3748, #1c2230)",
-        confirmButtonColor: "#ff0000",
-        confirmButtonText:
-          "<span style='color: #ffffff; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-red-500 shadow-[0px_0px_15px_5px_rgba(255,0,0,0.8)] rounded-lg",
-        },
-      });
+      cargarPacientesDelDia(); //* Refresca la lista de pacientes
     } catch (error) {
-      console.error("Error al cancelar y borrar datos de la consulta:", error);
-      MySwal.fire({
-        icon: "error",
-        title:
-          "<span style='color: #d60005; font-weight: bold; font-size: 1.5em;'>⚠️ Error al cancelar</span>",
-        html: "<p style='color: #d1d5db; font-size: 1.1em;'>Hubo un error al intentar cancelar la consulta. Intenta nuevamente.</p>",
-        background: "linear-gradient(145deg, #2d3748, #1c2230)",
-        confirmButtonColor: "#d60005",
-        confirmButtonText:
-          "<span style='color: #ffffff; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-red-400 shadow-[0px_0px_15px_5px_rgba(255,0,0,0.7)] rounded-lg",
-        },
-      });
+      console.error("Error al actualizar clavestatus al cancelar:", error);
     }
+    setDatosEditados({ signosVitales, alergias });
+    setPacienteSeleccionado(null);
   };
 
   return (
@@ -571,18 +437,13 @@ const Diagnostico = () => {
           <div className="flex space-x-2 md:space-x-4 mt-4">
             <button
               onClick={handleGuardar}
-              disabled={!formularioCompleto}
-              className={`px-4 py-2 md:px-6 md:py-3 rounded-lg font-semibold tracking-wide transition duration-300 ease-in-out transform ${
-                formularioCompleto
-                  ? "bg-green-500 hover:bg-green-600 hover:scale-105 text-white shadow-lg"
-                  : "bg-gray-400 text-gray-300 cursor-not-allowed"
-              }`}
+              className="px-3 py-2 md:px-4 md:py-2 bg-green-500 text-white rounded-md"
             >
               Guardar
             </button>
             <button
               onClick={handleCancelar}
-              className="px-4 py-2 md:px-6 md:py-3 bg-red-500 text-white rounded-lg font-semibold tracking-wide hover:bg-red-600 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg"
+              className="px-3 py-2 md:px-4 md:py-2 bg-red-500 text-white rounded-md"
             >
               Cancelar
             </button>
