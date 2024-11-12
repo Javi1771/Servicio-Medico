@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import Swal from "sweetalert2";
 import Modal from "react-modal";
@@ -78,24 +78,32 @@ export default function RegistroBeneficiario() {
     fetchSexoOptions();
   }, []);
 
-  // Función para obtener la lista de beneficiarios
-  const fetchBeneficiarios = async () => {
+
+  
+
+  // Memoriza fetchBeneficiarios para evitar su redefinición en cada renderizado
+  const fetchBeneficiarios = useCallback(async () => {
+    if (!numNomina) return;
+
     try {
-      const response = await fetch(
-        `/api/mostBeneficiarios?num_nom=${numNomina}`
-      );
+      const response = await fetch(`/api/mostBeneficiarios?num_nom=${numNomina}`);
       const data = await response.json();
       setBeneficiarios(data);
     } catch (err) {
       console.error("Error fetching beneficiaries:", err);
     }
-  };
+  }, [numNomina]);
+
+  // Ejecuta fetchBeneficiarios solo cuando el empleado cambia
   useEffect(() => {
     if (empleado) {
       fetchBeneficiarios();
     }
   }, [empleado]);
 
+
+
+  
   // Obtener opciones de parentesco
   const fetchParentescoOptions = async () => {
     try {
@@ -224,13 +232,6 @@ export default function RegistroBeneficiario() {
     }
   };
 
-  /** STATUS DEL ACTIVO/INACTIVO*/
-  const handleStatusToggle = () => {
-    setFormData((prevData) => ({
-      ...prevData,
-      activo: prevData.activo === "A" ? "I" : "A",
-    }));
-  };
 
   // Función para editar beneficiario existente
   const handleEditBeneficiary = (beneficiario) => {
@@ -690,11 +691,7 @@ export default function RegistroBeneficiario() {
                     (option) => option.ID_PARENTESCO === beneficiario.PARENTESCO
                   );
 
-                  const sexo = Array.isArray(sexoOptions)
-                    ? sexoOptions.find(
-                        (option) => option.idSexo === beneficiario.SEXO
-                      )
-                    : null;
+            
 
                   return (
                     <tr key={beneficiario.ID_BENEFICIARIO}>
