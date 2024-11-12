@@ -36,6 +36,15 @@ export default function RegistroBeneficiario() {
   const router = useRouter(); // Define el router usando useRouter
 
 
+/*Obtener el sindicato del empledado*/
+const getSindicato = (grupoNomina, cuotaSindical) => {
+  if (grupoNomina === "NS") {
+    return cuotaSindical === "S" ? "SUTSMSJR" : cuotaSindical === "" ? "SITAM" : null;
+  }
+  return null;
+};
+
+
   function showEmployeeNotFoundAlert() {
     Swal.fire({
       title: "Empleado No Encontrado",
@@ -140,36 +149,37 @@ export default function RegistroBeneficiario() {
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleSearch = async () => {
-    if (!numNomina) {
-      Swal.fire("Error", "Por favor, ingresa el número de nómina.", "warning");
-      return;
+ // Línea 128 (dentro de handleSearch)
+const handleSearch = async () => {
+  if (!numNomina) {
+    Swal.fire("Error", "Por favor, ingresa el número de nómina.", "warning");
+    return;
+  }
+
+  try {
+    const response = await fetch("/api/empleado", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ num_nom: numNomina }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Empleado no encontrado");
     }
 
+    const data = await response.json();
+    data.sindicato = getSindicato(data.grupoNomina, data.cuotaSindical); // Agrega el sindicato
+    setEmpleado(data); // Guarda el empleado con sindicato en el estado
+    setError(null);
+  } catch (err) {
+    setEmpleado(null);
+    setError(err.message);
+    showEmployeeNotFoundAlert();
+  }
+};
 
-    /**Obtencion de datos del empleado desde el web service */
-    try {
-      const response = await fetch("/api/empleado", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ num_nom: numNomina }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Empleado no encontrado");
-      }
-
-      const data = await response.json();
-      setEmpleado(data);
-      setError(null);
-    } catch (err) {
-      setEmpleado(null);
-      setError(err.message);
-      showEmployeeNotFoundAlert();
-    }
-  };
   /******************************************************* */
 
   const handleAddBeneficiary = () => {
@@ -367,20 +377,30 @@ export default function RegistroBeneficiario() {
             </div>
           )}
 
-          {empleado && (
-            <div className={styles.employeeInfo}>
-              <h2>Detalles del Empleado:</h2>
-              <p>
-                <strong>Nombre:</strong> {empleado.nombre}
-              </p>
-              <p>
-                <strong>Departamento:</strong> {empleado.departamento}
-              </p>
-              <p>
-                <strong>Puesto:</strong> {empleado.puesto}
-              </p>
-            </div>
-          )}
+{empleado && (
+  <div className={styles.employeeInfoContainer}>
+    <div className={styles.employeeDetails}>
+      <h2>Detalles del Empleado:</h2>
+      <p>
+        <strong>Nombre:</strong> {`${empleado.nombre} ${empleado.a_paterno} ${empleado.a_materno}`}
+      </p>
+      <p>
+        <strong>Departamento:</strong> {empleado.departamento}
+      </p>
+      <p>
+        <strong>Puesto:</strong> {empleado.puesto}
+      </p>
+    </div>
+    
+    {/* Card de sindicato al lado de la información del empleado */}
+    {empleado.sindicato && (
+      <div className={styles.sindicatoBadge}>
+        <p className={styles.sindicatoText}>Sindicalizado</p>
+        <p className={styles.sindicatoName}>Sindicato: {empleado.sindicato}</p>
+      </div>
+    )}
+  </div>
+)}
         </div>
 
         {empleado && (
