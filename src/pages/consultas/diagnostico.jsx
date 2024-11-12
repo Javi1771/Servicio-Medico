@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
@@ -41,6 +40,38 @@ const Diagnostico = () => {
     alergias: "",
   });
 
+  const [guardadoExitoso, setGuardadoExitoso] = useState(false);
+  const [formularioCompleto, setFormularioCompleto] = useState(false);
+
+  //* Verifica si todos los campos requeridos están completos
+  useEffect(() => {
+    const verificarFormularioCompleto = () => {
+      const camposRequeridosLlenos =
+        claveConsulta &&
+        diagnostico &&
+        motivoConsulta &&
+        signosVitales.ta &&
+        signosVitales.temperatura;
+      const paseEspecialidadCompleto =
+        pasarEspecialidad === "no" ||
+        (pasarEspecialidad === "si" &&
+          especialidadSeleccionada &&
+          observaciones);
+
+      setFormularioCompleto(camposRequeridosLlenos && paseEspecialidadCompleto);
+    };
+
+    verificarFormularioCompleto();
+  }, [
+    claveConsulta,
+    diagnostico,
+    motivoConsulta,
+    signosVitales,
+    pasarEspecialidad,
+    especialidadSeleccionada,
+    observaciones,
+  ]);
+
   //* Recarga la lista de pacientes al cargar la página o al actualizar datos
   useEffect(() => {
     const today = new Date();
@@ -51,10 +82,13 @@ const Diagnostico = () => {
     cargarPacientesDelDia();
   }, []);
 
-  //* Actualiza clavestatus a 3 si la ventana se cierra o se recarga
+  //* Actualiza clavestatus a 3 solo si la consulta no ha sido guardada al recargar o cerrar
   useEffect(() => {
     const updateStatusOnUnload = () => {
-      if (claveConsulta) {
+      if (
+        claveConsulta &&
+        localStorage.getItem("consultaGuardada") !== claveConsulta
+      ) {
         fetch("/api/actualizarClavestatus", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -69,10 +103,10 @@ const Diagnostico = () => {
     };
   }, [claveConsulta]);
 
-  //* Actualiza clavestatus a 3 si el usuario regresa a una ventana anterior sin guardar
+  //* Actualiza clavestatus a 3 si el usuario regresa a una ventana anterior sin guardar, solo si no se ha guardado exitosamente
   useEffect(() => {
     const updateStatusIfNotSaved = async () => {
-      if (pacienteSeleccionado) {
+      if (pacienteSeleccionado && !guardadoExitoso) {
         await fetch("/api/actualizarClavestatus", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -87,7 +121,7 @@ const Diagnostico = () => {
     return () => {
       updateStatusIfNotSaved();
     };
-  }, [pacienteSeleccionado]);
+  }, [pacienteSeleccionado, guardadoExitoso, claveConsulta]);
 
   //* Función para cargar pacientes del día
   const cargarPacientesDelDia = async () => {
@@ -182,7 +216,7 @@ const Diagnostico = () => {
 
     await obtenerDatosEmpleado(paciente.clavenomina);
 
-    //* Cambia `clavestatus` a 2 al seleccionar un paciente
+    //* Cambia clavestatus a 2 al seleccionar un paciente
     try {
       await fetch("/api/actualizarClavestatus", {
         method: "POST",
@@ -201,6 +235,7 @@ const Diagnostico = () => {
     }
   };
 
+  //* Función de guardado que actualiza clavestatus a 4 solo al guardar exitosamente
   const handleGuardar = async () => {
     const datos = recolectarDatos();
     try {
@@ -242,6 +277,7 @@ const Diagnostico = () => {
             clavestatus: 4,
           }),
         });
+        localStorage.setItem("consultaGuardada", datos.claveConsulta); //* Guarda la clave de la consulta
         cargarPacientesDelDia(); //* Refresca la lista de pacientes
         alert("Todos los datos fueron guardados correctamente.");
         setPacienteSeleccionado(null);
@@ -260,7 +296,8 @@ const Diagnostico = () => {
 
   const handleCancelar = async () => {
     try {
-      await fetch("/api/actualizarClavestatus", {
+      //* Actualiza en la base de datos clavestatus a 3 y limpia otros campos
+      await fetch("/api/cancelarConsulta", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -268,12 +305,40 @@ const Diagnostico = () => {
           clavestatus: 3,
         }),
       });
-      cargarPacientesDelDia(); //* Refresca la lista de pacientes
+
+      //* Limpiar los datos de la consulta en el frontend
+      setDiagnostico("");
+      setMotivoConsulta("");
+      setSignosVitales({
+        ta: "",
+        temperatura: "",
+        fc: "",
+        oxigenacion: "",
+        altura: "",
+        peso: "",
+        glucosa: "",
+      });
+      setAlergias("");
+      setObservaciones("");
+      setEspecialidadSeleccionada("");
+      setPasarEspecialidad(null);
+      setEmpleadoData(null);
+      setDatosEditados({
+        signosVitales: {},
+        alergias: "",
+      });
+
+      //* Cierra el formulario emergente y muestra solo la tabla
+      setPacienteSeleccionado(null);
+      setMostrarEmergente(false);
+
+      //* Refresca la lista de pacientes después de cerrar el formulario
+      await cargarPacientesDelDia();
+      alert("Consulta cancelada. Datos borrados correctamente.");
     } catch (error) {
-      console.error("Error al actualizar clavestatus al cancelar:", error);
+      console.error("Error al cancelar y borrar datos de la consulta:", error);
+      alert("Hubo un error al cancelar la consulta.");
     }
-    setDatosEditados({ signosVitales, alergias });
-    setPacienteSeleccionado(null);
   };
 
   return (
@@ -437,13 +502,19 @@ const Diagnostico = () => {
           <div className="flex space-x-2 md:space-x-4 mt-4">
             <button
               onClick={handleGuardar}
-              className="px-3 py-2 md:px-4 md:py-2 bg-green-500 text-white rounded-md"
+              disabled={!formularioCompleto}
+              className={`px-4 py-2 md:px-6 md:py-3 rounded-lg font-semibold tracking-wide transition duration-300 ease-in-out transform ${
+                formularioCompleto
+                  ? "bg-green-500 hover:bg-green-600 hover:scale-105 text-white shadow-lg"
+                  : "bg-gray-400 text-gray-300 cursor-not-allowed"
+              }`}
             >
               Guardar
             </button>
+
             <button
               onClick={handleCancelar}
-              className="px-3 py-2 md:px-4 md:py-2 bg-red-500 text-white rounded-md"
+              className="px-4 py-2 md:px-6 md:py-3 bg-red-500 text-white rounded-lg font-semibold tracking-wide hover:bg-red-600 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg"
             >
               Cancelar
             </button>
