@@ -4,7 +4,9 @@ import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import AuthGuard from '../components/AuthGuard';
+import Authguard from '../components/AuthGuard';
+import Cookies from 'js-cookie';
+
 
 const Home = () => {
   const router = useRouter();
@@ -20,12 +22,14 @@ const Home = () => {
 
   // Función para manejar el logout
   const handleLogout = () => {
-    localStorage.removeItem('auth'); // Elimina el estado de autenticación
-    router.push('/'); // Redirige al usuario a la página de login
+    Cookies.remove('token'); // Elimina la cookie de autenticación
+    Cookies.remove('rol');   // Opcional: elimina la cookie de rol si la usas
+    router.push('/');   // Redirige al usuario a la página de login
   };
 
+
   return (
-    <AuthGuard>
+    <Authguard >
     <div className="min-h-screen bg-gradient-to-b from-blue-900 to-black text-white flex flex-col items-center pt-10">
       <div className="relative w-full h-48 sm:h-60 md:h-80 lg:h-96 overflow-hidden">
         <Image
@@ -103,14 +107,14 @@ const Home = () => {
           handleMouseLeave={handleMouseLeave}
         />
         <button
-          onClick={handleLogout} // Asigna la función de logout al botón
-          className="bg-red-600 p-4 rounded-lg shadow-md hover:bg-red-500 transition text-center mt-4 md:mt-0 w-full md:w-auto transform transition-transform duration-300 hover:scale-105 border-2 border-red-700"
-        >
-          Salir
-        </button>
+            onClick={handleLogout} // Botón para cerrar sesión
+            className="bg-red-600 p-4 rounded-lg shadow-md hover:bg-red-500 transition text-center mt-4 md:mt-0 w-full md:w-auto transform transition-transform duration-300 hover:scale-105 border-2 border-red-700"
+          >
+            Cerrar sesión
+          </button>
       </div>
     </div>
-    </AuthGuard>
+    </Authguard >
   );
 };
 

@@ -1,9 +1,9 @@
-import { connectToDatabase } from '..//api/connectToDatabase'
+import { connectToDatabase } from '../api/connectToDatabase';
 
 export default async function handler(req, res) {
   if (req.method === 'PUT') {
     const {
-      idBeneficiario,  // ID del beneficiario a editar
+      idBeneficiario,
       parentesco,
       nombre,
       aPaterno,
@@ -14,10 +14,19 @@ export default async function handler(req, res) {
       sangre,
       telEmergencia,
       nombreEmergencia,
+      activo, // Estado de actividad (A o I)
     } = req.body;
 
     if (!idBeneficiario) {
       return res.status(400).json({ message: "ID del beneficiario es requerido" });
+    }
+
+    // Debug: Verificar el valor de 'activo' recibido
+    console.log("Valor de 'activo' recibido en la API:", activo);
+
+    // Validación adicional: verificar que 'activo' sea "A" o "I"
+    if (activo !== 'A' && activo !== 'I') {
+      return res.status(400).json({ message: "Valor de 'activo' no válido. Debe ser 'A' o 'I'." });
     }
 
     try {
@@ -34,6 +43,7 @@ export default async function handler(req, res) {
         .input('sangre', sangre)
         .input('telEmergencia', telEmergencia)
         .input('nombreEmergencia', nombreEmergencia)
+        .input('activo', activo) // Asegurarse de que es "A" o "I"
         .query(`
           UPDATE BENEFICIARIO
           SET PARENTESCO = @parentesco,
@@ -45,7 +55,8 @@ export default async function handler(req, res) {
               ALERGIAS = @alergias,
               SANGRE = @sangre,
               TEL_EMERGENCIA = @telEmergencia,
-              NOMBRE_EMERGENCIA = @nombreEmergencia
+              NOMBRE_EMERGENCIA = @nombreEmergencia,
+              [ACTIVO] = @activo -- Campo activo
           WHERE ID_BENEFICIARIO = @idBeneficiario
         `);
 

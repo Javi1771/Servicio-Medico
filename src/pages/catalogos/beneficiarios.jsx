@@ -3,6 +3,7 @@ import Image from "next/image";
 import Swal from "sweetalert2";
 import Modal from "react-modal";
 import styles from "../css/beneficiarios.module.css";
+import { useRouter } from 'next/router'; // Importar useRouter para la navegación
 
 Modal.setAppElement("#__next"); // Configuración del modal en Next.js
 
@@ -13,7 +14,6 @@ export default function RegistroBeneficiario() {
   const [parentescoOptions, setParentescoOptions] = useState([]);
   const [sexoOptions, setSexoOptions] = useState([]);
   const [sexoNombre, setSexoNombre] = useState(""); // Define sexoNombre como un estado
-  const [statusActivo, setStatusActivo] = useState(true);
   const [formData, setFormData] = useState({
     parentesco: "",
     nombre: "",
@@ -26,7 +26,6 @@ export default function RegistroBeneficiario() {
     telEmergencia: "",
     nombreEmergencia: "",
     activo: "A", // Campo de estado del beneficiario (A=Activo, I=Inactivo)
-
   });
   const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -48,12 +47,20 @@ export default function RegistroBeneficiario() {
     });
   }
 
+  const router = useRouter(); // Define el router usando useRouter
+  const handleBack = () => {
+    router.back(); // Navegar a la página anterior en el historial
+  };
 
-// Cambiar el estatus cuando se presiona el botón
-const toggleStatus = () => {
-  setStatusActivo(!statusActivo);
-};
-
+  // Cambiar el estado activo/inactivo
+  const toggleStatus = () => {
+    // Alternar entre "A" y "I" para el estado de activo/inactivo usando formData.activo
+    setFormData((prevData) => ({
+      ...prevData,
+      activo: prevData.activo === "A" ? "I" : "A",
+    }));
+  };
+  
   // Función para obtener las opciones de sexo desde la API
   const fetchSexoOptions = async () => {
     try {
@@ -164,7 +171,9 @@ const toggleStatus = () => {
     e.preventDefault();
 
     // Cambia el endpoint y método según el modo (registro o edición)
-    const endpoint = isEditMode ? "/api/editarBeneficiario" : "/api/crearBeneficiario";
+    const endpoint = isEditMode
+      ? "/api/editarBeneficiario"
+      : "/api/crearBeneficiario";
     const method = isEditMode ? "PUT" : "POST";
 
     try {
@@ -177,7 +186,6 @@ const toggleStatus = () => {
           idBeneficiario: currentBeneficiaryId, // Solo se usa en modo edición
           ...formData,
           noNomina: numNomina,
-          activo: statusActivo ? "A" : "I", // Guardar el estatus como 'A' (activo) o 'I' (inactivo)
         }),
       });
 
@@ -185,7 +193,13 @@ const toggleStatus = () => {
         throw new Error("No se pudo procesar la solicitud.");
       }
 
-      Swal.fire("Éxito", isEditMode ? "Beneficiario editado correctamente." : "Beneficiario registrado correctamente.", "success");
+      Swal.fire(
+        "Éxito",
+        isEditMode
+          ? "Beneficiario editado correctamente."
+          : "Beneficiario registrado correctamente.",
+        "success"
+      );
 
       // Reinicia el modal y el estado
       setIsModalOpen(false);
@@ -210,7 +224,7 @@ const toggleStatus = () => {
     }
   };
 
-/** STATUS DEL ACTIVO/INACTIVO*/
+  /** STATUS DEL ACTIVO/INACTIVO*/
   const handleStatusToggle = () => {
     setFormData((prevData) => ({
       ...prevData,
@@ -231,6 +245,7 @@ const toggleStatus = () => {
       sangre: beneficiario.SANGRE,
       telEmergencia: beneficiario.TEL_EMERGENCIA,
       nombreEmergencia: beneficiario.NOMBRE_EMERGENCIA,
+      activo: beneficiario.ACTIVO, // Cargar estado actual del beneficiario
     });
     setCurrentBeneficiaryId(beneficiario.ID_BENEFICIARIO);
     setIsEditMode(true); // Establecer en modo edición
@@ -245,44 +260,46 @@ const toggleStatus = () => {
     setSelectedBeneficiary(beneficiario);
     fetchSexoNombre(beneficiario.SEXO);
     setIsViewModalOpen(true);
-    
   };
 
- // Función para confirmar y eliminar beneficiario
-const handleDeleteBeneficiary = (idBeneficiario) => {
-  Swal.fire({
-    title: "¿Estás seguro?",
-    text: "Esta acción no se puede deshacer",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonColor: "#d33",
-    cancelButtonColor: "#3085d6",
-    confirmButtonText: "Sí, eliminar",
-    cancelButtonText: "Cancelar",
-  }).then(async (result) => {
-    if (result.isConfirmed) {
-      try {
-        const response = await fetch(`/api/eliminarBeneficiario`, {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ idBeneficiario }),
-        });
+  // Función para confirmar y eliminar beneficiario
+  const handleDeleteBeneficiary = (idBeneficiario) => {
+    Swal.fire({
+      title: "¿Estás seguro?",
+      text: "Esta acción no se puede deshacer",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          const response = await fetch(`/api/eliminarBeneficiario`, {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ idBeneficiario }),
+          });
 
-        if (!response.ok) {
-          throw new Error("No se pudo eliminar el beneficiario.");
+          if (!response.ok) {
+            throw new Error("No se pudo eliminar el beneficiario.");
+          }
+
+          Swal.fire(
+            "Eliminado",
+            "El beneficiario ha sido eliminado correctamente.",
+            "success"
+          );
+          fetchBeneficiarios(); // Refresca la lista de beneficiarios después de eliminar
+        } catch (error) {
+          Swal.fire("Error", error.message, "error");
         }
-
-        Swal.fire("Eliminado", "El beneficiario ha sido eliminado correctamente.", "success");
-        fetchBeneficiarios(); // Refresca la lista de beneficiarios después de eliminar
-      } catch (error) {
-        Swal.fire("Error", error.message, "error");
       }
-    }
-  });
-};
-
+    });
+  };
 
   /** */
   /**TERMINO DE LA FUNCION */
@@ -302,6 +319,15 @@ const handleDeleteBeneficiary = (idBeneficiario) => {
 
       <div className={styles.container}>
         <h1 className={styles.title}>Registro de Beneficiarios</h1>
+        <p>
+        <button onClick={handleBack} className={styles.backButton}>
+            {/* Icono de flecha para el botón de retroceso */}
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+              <path fillRule="evenodd" d="M15 8a.5.5 0 0 1-.5.5H3.707l3.147 3.146a.5.5 0 0 1-.708.708l-4-4a.5.5 0 0 1 0-.708l4-4a.5.5 0 1 1 .708.708L3.707 7.5H14.5A.5.5 0 0 1 15 8z"/>
+            </svg>
+            Volver
+          </button>
+        </p>
         <div className={styles.searchSection}>
           <input
             type="text"
@@ -385,18 +411,27 @@ const handleDeleteBeneficiary = (idBeneficiario) => {
               sangre: "",
               telEmergencia: "",
               nombreEmergencia: "",
+              activo: "A",
             });
           }}
           overlayClassName={styles.modalOverlay}
           className={styles.modal}
         >
-        
           <form onSubmit={handleModalSubmit} className={styles.beneficiaryForm}>
             {/* Cambia el título según el modo */}
             <h2>
               {isEditMode ? "Editar Beneficiario" : "Registrar Beneficiario"}
             </h2>
-            
+            <button
+  type="button"
+  onClick={toggleStatus}
+  className={`${styles.statusButton} ${
+    formData.activo === "A" ? styles.active : styles.inactive
+  }`}
+>
+  {formData.activo === "A" ? "Activo" : "Inactivo"}
+</button>
+
 
             <div className={styles.inputRow}>
               <div className={styles.inputGroup}>
@@ -477,12 +512,12 @@ const handleDeleteBeneficiary = (idBeneficiario) => {
                     required
                     className={styles.inputField}
                   >
-                  <option value="">Selecciona</option>
-              {sexoOptions.length > 0 &&
-                sexoOptions.map((option) => (
-                  <option key={option.idSexo} value={option.idSexo}>
-                    {option.sexo}
-                  </option>
+                    <option value="">Selecciona</option>
+                    {sexoOptions.length > 0 &&
+                      sexoOptions.map((option) => (
+                        <option key={option.idSexo} value={option.idSexo}>
+                          {option.sexo}
+                        </option>
                       ))}
                   </select>
                 </label>
@@ -570,65 +605,63 @@ const handleDeleteBeneficiary = (idBeneficiario) => {
           </form>
         </Modal>
 
-        {/**modal para ver los data del beneficiario */}
-        <Modal
-          isOpen={isViewModalOpen}
-          onRequestClose={() => setIsViewModalOpen(false)}
-          overlayClassName={styles.modalOverlay}
-          className={styles.modal}
-        >
-          {selectedBeneficiary && (
-            <div className={styles.card}>
-              <h2>Información del Beneficiario</h2>
-              <p>
-                <strong>ID:</strong> {selectedBeneficiary.ID_BENEFICIARIO}
-              </p>
-              <p>
-                <strong>Número de Nómina:</strong>{" "}
-                {selectedBeneficiary.NO_NOMINA}
-              </p>
-              <p>
-                <strong>Parentesco:</strong> {selectedBeneficiary.PARENTESCO}
-              </p>
-              <p>
-                <strong>Nombre:</strong> {selectedBeneficiary.NOMBRE}{" "}
-                {selectedBeneficiary.A_PATERNO} {selectedBeneficiary.A_MATERNO}
-              </p>
-              <p>
-                <strong>Sexo:</strong> {sexoNombre}
-              </p>{""}
-              {/* Muestra el nombre del sexo */}
-              <p>
-                <strong>Fecha de Nacimiento:</strong>{" "}
-                {selectedBeneficiary.F_NACIMIENTO}
-              </p>
-              <p>
-                <strong>Activo:</strong>{" "}
-                {selectedBeneficiary.ACTIVO === "A" ? "Sí" : "No"}
-              </p>
-              <p>
-                <strong>Alergias:</strong> {selectedBeneficiary.ALERGIAS}
-              </p>
-              <p>
-                <strong>Tipo de Sangre:</strong> {selectedBeneficiary.SANGRE}
-              </p>
-              <p>
-                <strong>Teléfono de Emergencia:</strong>{" "}
-                {selectedBeneficiary.TEL_EMERGENCIA}
-              </p>
-              <p>
-                <strong>Nombre de Contacto de Emergencia:</strong>{" "}
-                {selectedBeneficiary.NOMBRE_EMERGENCIA}
-              </p>
-              <button
-                onClick={() => setIsViewModalOpen(false)}
-                className={styles.closeButton}
-              >
-                Cerrar
-              </button>
-            </div>
-          )}
-        </Modal>
+      {/**modal para ver los datos del beneficiario */}
+<Modal
+  isOpen={isViewModalOpen}
+  onRequestClose={() => setIsViewModalOpen(false)}
+  overlayClassName={styles.modalOverlay}
+  className={styles.modal}
+>
+  {selectedBeneficiary && (
+    <div className={styles.card}>
+      <h2>Información del Beneficiario</h2>
+      <p>
+        <strong>ID:</strong> {selectedBeneficiary.ID_BENEFICIARIO}
+      </p>
+      <p>
+        <strong>Número de Nómina:</strong> {selectedBeneficiary.NO_NOMINA}
+      </p>
+      <p>
+        <strong>Parentesco:</strong> {selectedBeneficiary.PARENTESCO}
+      </p>
+      <p>
+        <strong>Nombre:</strong> {selectedBeneficiary.NOMBRE}{" "}
+        {selectedBeneficiary.A_PATERNO} {selectedBeneficiary.A_MATERNO}
+      </p>
+      <p>
+        <strong>Sexo:</strong> {sexoNombre}
+      </p>
+      <p>
+        <strong>Fecha de Nacimiento:</strong> {selectedBeneficiary.F_NACIMIENTO}
+      </p>
+      <p>
+        <strong>Activo:</strong>{" "}
+        {selectedBeneficiary.ACTIVO === "A" ? "Sí" : "No"}
+      </p>
+      <p>
+        <strong>Alergias:</strong> {selectedBeneficiary.ALERGIAS}
+      </p>
+      <p>
+        <strong>Tipo de Sangre:</strong> {selectedBeneficiary.SANGRE}
+      </p>
+      <p>
+        <strong>Teléfono de Emergencia:</strong>{" "}
+        {selectedBeneficiary.TEL_EMERGENCIA}
+      </p>
+      <p>
+        <strong>Nombre de Contacto de Emergencia:</strong>{" "}
+        {selectedBeneficiary.NOMBRE_EMERGENCIA}
+      </p>
+      <button
+        onClick={() => setIsViewModalOpen(false)}
+        className={styles.closeButton}
+      >
+        Cerrar
+      </button>
+    </div>
+  )}
+</Modal>
+
 
         {/* Tabla de beneficiarios, solo se muestra si el empleado es encontrado */}
         {empleado && beneficiarios.length > 0 && (
@@ -687,12 +720,16 @@ const handleDeleteBeneficiary = (idBeneficiario) => {
                         </button>
 
                         <button
-                        onClick={() => handleDeleteBeneficiary(beneficiario.ID_BENEFICIARIO)}
-                        className={styles.deleteButton}
-                      >
-                        Eliminar
-                      </button>
-                      
+                          onClick={() =>
+                            handleDeleteBeneficiary(
+                              beneficiario.ID_BENEFICIARIO
+                            )
+                          }
+                          className={styles.deleteButton}
+                        >
+                          Eliminar
+                        </button>
+
                         <button
                           onClick={() => handleViewBeneficiary(beneficiario)}
                           className={styles.viewButton}

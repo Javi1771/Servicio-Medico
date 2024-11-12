@@ -1,6 +1,7 @@
 import sql from 'mssql';
 import bcrypt from 'bcrypt';
-import { connectToDatabase } from '../api/connectToDatabase'; // Asegúrate de que la ruta sea correcta
+import jwt from 'jsonwebtoken';
+import { connectToDatabase } from '../api/connectToDatabase';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -10,16 +11,15 @@ export default async function handler(req, res) {
   const { usuario, password } = req.body;
 
   try {
-    // Conectar a la base de datos
     const pool = await connectToDatabase();
-
-    // Buscar al usuario en la base de datos
+    
+    // Actualiza la consulta con los nombres de columnas correctos
     const result = await pool.request()
       .input('usuario', sql.VarChar, usuario)
-      .query('SELECT password FROM USUARIOS WHERE usuario = @usuario');
+      .query('SELECT clavetipousuario, password FROM USUARIOS WHERE usuario = @usuario');
 
     const user = result.recordset[0];
-
+    
     if (!user) {
       return res.status(401).json({ success: false, message: 'Usuario no encontrado' });
     }
@@ -27,23 +27,27 @@ export default async function handler(req, res) {
     const storedPassword = user.password;
     let isMatch = false;
 
-    // Comparar directamente (para contraseñas no encriptadas)
     if (storedPassword === password) {
       isMatch = true;
-      
-      // Encriptar la contraseña y actualizar en la base de datos
       const hashedPassword = await bcrypt.hash(password, 10);
       await pool.request()
         .input('usuario', sql.VarChar, usuario)
         .input('hashedPassword', sql.VarChar, hashedPassword)
         .query('UPDATE USUARIOS SET password = @hashedPassword WHERE usuario = @usuario');
     } else {
-      // Intentar comparar con bcrypt (para contraseñas encriptadas)
       isMatch = await bcrypt.compare(password, storedPassword);
     }
 
     if (isMatch) {
-      return res.status(200).json({ success: true, message: 'Login exitoso' });
+      // Usar clavetipousuario en el token
+      const token = jwt.sign({ rol: user.clavetipousuario }, 'clave_secreta', { expiresIn: '1h' });
+
+      res.setHeader('Set-Cookie', [
+        `token=${token}; Path=/; SameSite=Lax`,
+        `rol=${user.clavetipousuario}; Path=/; SameSite=Lax`
+      ]);
+
+      return res.status(200).json({ success: true, message: 'Login exitoso', rol: user.clavetipousuario });
     } else {
       return res.status(401).json({ success: false, message: 'Contraseña incorrecta' });
     }

@@ -895,6 +895,8 @@
   margin-right: 5px;
 }
 
+
+
 /* BOTON STATUS BENEFICIARIO */
 .statusButton {
   padding: 10px 20px;
@@ -918,4 +920,27 @@
 .inactive {
   background-color: #dc3545; /* Rojo sólido */
   box-shadow: 0px 0px 15px 5px rgba(255, 0, 0, 0.7); /* Sombra roja neón */
+}
+
+
+/*ESTILOS DE BACK BUTTON*/
+.backButton {
+  display: flex;
+  align-items: center;
+  margin-right: 10px;
+  padding: 5px 10px;
+  background-color: #930404;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.backButton:hover {
+  background-color: #470000;
+}
+
+.backButton svg {
+  margin-right: 5px;
 }
