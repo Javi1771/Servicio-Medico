@@ -1,23 +1,4 @@
-import { connectToDatabase } from '../api/connectToDatabase'; // Asegúrate de que la ruta sea correcta
-
-const MAX_RETRIES = 3;
-const RETRY_DELAY_MS = 500; // Tiempo de espera entre reintentos en ms
-
-async function queryWithRetries(pool, query, retries = MAX_RETRIES) {
-  try {
-    const result = await pool.request().query(query);
-    return result.recordset;
-  } catch (error) {
-    if (retries > 1) {
-      console.warn(`Consulta fallida. Reintentando en ${RETRY_DELAY_MS / 1000} segundos...`);
-      await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
-      return queryWithRetries(pool, query, retries - 1);
-    } else {
-      throw error;
-    }
-  }
-}
-
+import { connectToDatabase } from '../api/connectToDatabase';
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ message: 'Método no permitido' });

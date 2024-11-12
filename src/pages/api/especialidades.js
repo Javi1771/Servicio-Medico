@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 // especialidades.js
 
 import { connectToDatabase } from '../api/connectToDatabase';
@@ -28,13 +29,12 @@ async function queryWithRetries(pool, query, retries = MAX_RETRIES) {
 export default async function handler(req, res) {
   try {
     const pool = await connectToDatabase();
-    const result = await queryWithRetries(pool, 'SELECT * FROM especialidades');
 
-    if (!result || result.length === 0) {
-      return res.status(404).json({ message: 'No se encontraron resultados en la tabla especialidades' });
-    }
+    const result = await pool.request().query('SELECT * FROM especialidades'); 
 
-    res.status(200).json(result);
+    console.log('Resultados de la consulta:', result.recordset);
+
+    res.status(200).json(result.recordset);
   } catch (error) {
     console.error('Error al realizar la consulta de especialidades:', error);
     res.status(500).json({ message: 'Error al realizar la consulta', error });

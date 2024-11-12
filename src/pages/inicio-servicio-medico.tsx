@@ -73,7 +73,7 @@ const Home = () => {
             "Especialidades",
             "Medicamentos",
             "Enfermedades Crónicas",
-            "usuarios-y-Proveedores",
+            "Usuarios y Proveedores",
           ]}
           isOpen={openMenu === "Catálogos"}
           handleMouseEnter={() => handleMouseEnter("Catálogos")}
@@ -107,10 +107,10 @@ const Home = () => {
           handleMouseLeave={handleMouseLeave}
         />
         <button
-            onClick={handleLogout} // Botón para cerrar sesión
+            onClick={handleLogout}
             className="bg-red-600 p-4 rounded-lg shadow-md hover:bg-red-500 transition text-center mt-4 md:mt-0 w-full md:w-auto transform transition-transform duration-300 hover:scale-105 border-2 border-red-700"
           >
-            Cerrar sesión
+            Salir
           </button>
       </div>
     </div>

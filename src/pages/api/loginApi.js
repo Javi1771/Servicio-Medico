@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-require-imports */
 import sql from 'mssql';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';

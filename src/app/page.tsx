@@ -1,15 +1,15 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
+
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import styles from '../pages/css/login.module.css';
-import Image from "next/image";
+import { useRouter } from 'next/navigation'; // Usa next/navigation en lugar de next/router
+import styles from '../pages/css/login.module.css'
 
 const Login = () => {
   const router = useRouter();
   const [usuario, setUsuario] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false); // Estado para controlar la visibilidad de la contraseña
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null); // Especifica el tipo de error
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -24,13 +24,8 @@ const Login = () => {
     const data = await response.json();
 
     if (data.success) {
-      // Establece la cookie de autenticación
-      document.cookie = 'auth=true; path=/;';
-
-      // Introduce un pequeño retardo para permitir que la cookie sea detectada
-      setTimeout(() => {
-        router.push('/inicio-servicio-medico');
-      }, 500); // Retardo de 500 ms
+      localStorage.setItem('auth', 'true'); 
+      router.push('/inicio-servicio-medico');
     } else {
       setError(data.message);
     }
@@ -40,13 +35,7 @@ const Login = () => {
     <div className={styles.body}>
       <div className={styles.formContainer}>
         <div className={styles.imageContainer}>
-          <Image 
-            src="/login_servicio_medico.png" 
-            alt="Descripción de la imagen"
-            width={500}
-            height={520}
-            className={styles.image}
-          />
+          <img src="/login_servicio_medico.png" alt="Imagen de bienvenida" className={styles.image} />
         </div>
         <div className={styles.formSection}>
           <h1 className={styles.formTitle}>Login</h1>
@@ -63,23 +52,13 @@ const Login = () => {
             </label>
             <label className={styles.label}>
               Contraseña:
-              <div className={styles.passwordContainer}>
-                <input
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className={styles.input}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className={styles.visibilityToggle}
-                  aria-label="Toggle password visibility"
-                >
-                  {showPassword ? "🙈" : "👁️"}
-                </button>
-              </div>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className={styles.input}
+              />
             </label>
             <button type="submit" className={styles.button}>
               Ingresar

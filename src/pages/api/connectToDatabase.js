@@ -1,21 +1,26 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import sql from 'mssql';
 
 const dbConfig = {
-  user: process.env.DB_USER || 'teamSM',
-  password: process.env.DB_PASSWORD || 'sm2024',
-  server: process.env.DB_SERVER || '172.16.0.3',
-  database: process.env.DB_DATABASE || 'PRESIDENCIA',
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  server: process.env.DB_SERVER,
+  database: process.env.DB_DATABASE,
   options: {
     encrypt: process.env.DB_ENCRYPT === 'true',
     trustServerCertificate: process.env.DB_TRUST_SERVER_CERTIFICATE === 'true',
   },
 };
 
-// Función para conectar a la base de datos
+let pool;
+
 export const connectToDatabase = async () => {
   try {
-    const pool = await sql.connect(dbConfig);
-    console.log('Conexión a la base de datos exitosa');
+    if (!pool) {
+      pool = await sql.connect(dbConfig);
+      console.log('Conexión a la base de datos exitosa');
+      console.log("Server:", process.env.DB_SERVER);
+    }
     return pool;
   } catch (error) {
     console.error('Error al conectar con la base de datos:', error);
@@ -23,63 +28,11 @@ export const connectToDatabase = async () => {
   }
 };
 
-// Endpoint para editar un usuario
 export default async function handler(req, res) {
-  if (req.method !== 'PUT') {
-    return res.status(405).json({ message: 'Método no permitido' }); // Solo permite el método PUT
-  }
-
-  const {
-    claveespecialidad,
-    clavetipousuario,
-    nombreusuario,
-    direcciousuario,
-    coloniausuario,
-    telefonousuario,
-    celularusuario,
-    cedulausuario,
-    usuario,
-    password,
-  } = req.body;
-
-  // Validación de datos
-  if (!claveespecialidad || !clavetipousuario || !usuario) {
-    return res.status(400).json({ message: 'Faltan datos requeridos' });
-  }
-
   try {
-    const pool = await connectToDatabase(); // Conexión a la base de datos
-
-    // Actualizar el usuario
-    await pool.request()
-      .input('nombreusuario', sql.VarChar, nombreusuario)
-      .input('direcciousuario', sql.VarChar, direcciousuario)
-      .input('coloniausuario', sql.VarChar, coloniausuario)
-      .input('telefonousuario', sql.VarChar, telefonousuario)
-      .input('celularusuario', sql.VarChar, celularusuario)
-      .input('cedulausuario', sql.VarChar, cedulausuario)
-      .input('claveespecialidad', sql.Int, claveespecialidad)
-      .input('usuario', sql.VarChar, usuario) // Este es el campo que identificará al usuario
-      .input('password', sql.VarChar, password) // Considera manejar contraseñas con hashing
-      .input('clavetipousuario', sql.Int, clavetipousuario)
-      .query(`
-        UPDATE usuarios
-        SET 
-          nombreusuario = @nombreusuario,
-          direcciousuario = @direcciousuario,
-          coloniausuario = @coloniausuario,
-          telefonousuario = @telefonousuario,
-          celularusuario = @celularusuario,
-          cedulausuario = @cedulausuario,
-          claveespecialidad = @claveespecialidad,
-          password = @password,
-          clavetipousuario = @clavetipousuario
-        WHERE usuario = @usuario
-      `);
-
-    res.status(200).json({ message: 'Usuario actualizado correctamente' });
+    const dbPool = await connectToDatabase();
+    res.status(200).json({ message: 'Conexión exitosa' });
   } catch (error) {
-    console.error('Error al actualizar el usuario:', error);
-    res.status(500).json({ message: 'Error en el servidor', error: error.message });
+    res.status(500).json({ message: 'Error de conexión', error });
   }
 }

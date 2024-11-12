@@ -1,4 +1,3 @@
-// src/components/AuthGuard.js
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Cookies from 'js-cookie';
