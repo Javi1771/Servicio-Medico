@@ -276,7 +276,7 @@ const EnfermedadesCronicas = ({ clavenomina, nombrePaciente }) => {
           <div className="bg-gray-800 p-6 md:p-8 rounded-lg shadow-lg w-full max-w-md">
             <h3 className="text-2xl md:text-3xl font-bold mb-4">Detalle KPI</h3>
             <label className="block mb-4">
-              <span className="text-lg font-semibold">Valor Actual:</span>
+              <span className="text-lg font-semibold">Valor Actual: </span>
               <input
                 type="text"
                 value={nuevoKPI.valorActual}

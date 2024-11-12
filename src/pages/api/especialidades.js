@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 // especialidades.js
 
 import { connectToDatabase } from '../api/connectToDatabase';
