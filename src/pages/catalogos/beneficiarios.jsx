@@ -27,10 +27,14 @@ export default function RegistroBeneficiario() {
     nombreEmergencia: "",
     activo: "A", // Campo de estado del beneficiario (A=Activo, I=Inactivo)
   });
+  
   const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [currentBeneficiaryId, setCurrentBeneficiaryId] = useState(null);
+
+  const router = useRouter(); // Define el router usando useRouter
+
 
   function showEmployeeNotFoundAlert() {
     Swal.fire({
@@ -47,7 +51,6 @@ export default function RegistroBeneficiario() {
     });
   }
 
-  const router = useRouter(); // Define el router usando useRouter
   const handleBack = () => {
     router.back(); // Navegar a la página anterior en el historial
   };
@@ -99,7 +102,7 @@ export default function RegistroBeneficiario() {
     if (empleado) {
       fetchBeneficiarios();
     }
-  }, [empleado]);
+  }, [empleado, fetchBeneficiarios]); // <--- Modificado, se agrega fetchBeneficiarios como dependencia
 
 
 
@@ -143,6 +146,8 @@ export default function RegistroBeneficiario() {
       return;
     }
 
+
+    /**Obtencion de datos del empleado desde el web service */
     try {
       const response = await fetch("/api/empleado", {
         method: "POST",
@@ -165,6 +170,7 @@ export default function RegistroBeneficiario() {
       showEmployeeNotFoundAlert();
     }
   };
+  /******************************************************* */
 
   const handleAddBeneficiary = () => {
     if (!empleado) {
