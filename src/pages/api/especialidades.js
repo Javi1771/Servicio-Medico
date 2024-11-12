@@ -1,4 +1,29 @@
-import { connectToDatabase } from '../api/connectToDatabase'; // Asegúrate de que la ruta sea correcta
+// especialidades.js
+
+import { connectToDatabase } from '../api/connectToDatabase';
+
+const MAX_RETRIES = 3;
+const RETRY_DELAY_MS = 500;
+
+async function queryWithRetries(pool, query, retries = MAX_RETRIES) {
+  try {
+    const result = await pool.request().query(query);
+    return result.recordset;
+  } catch (error) {
+    if (error.code === 'ECONNCLOSED' && retries > 1) {
+      console.warn(`Conexión cerrada. Intentando reconectar y reintentar la consulta en ${RETRY_DELAY_MS / 1000} segundos...`);
+      await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
+      const newPool = await connectToDatabase(); // Intentar reconectar
+      return queryWithRetries(newPool, query, retries - 1);
+    } else if (retries > 1) {
+      console.warn(`Consulta fallida. Reintentando en ${RETRY_DELAY_MS / 1000} segundos...`);
+      await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
+      return queryWithRetries(pool, query, retries - 1);
+    } else {
+      throw error;
+    }
+  }
+}
 
 export default async function handler(req, res) {
   try {
@@ -10,7 +35,7 @@ export default async function handler(req, res) {
 
     res.status(200).json(result.recordset);
   } catch (error) {
-    console.error('Error al realizar la consulta:', error);
+    console.error('Error al realizar la consulta de especialidades:', error);
     res.status(500).json({ message: 'Error al realizar la consulta', error });
   }
 }

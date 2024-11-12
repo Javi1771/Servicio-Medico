@@ -2,7 +2,8 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
 import sql from 'mssql';
 import bcrypt from 'bcrypt';
-import { connectToDatabase } from '../api/connectToDatabase'; // Asegúrate de que la ruta sea correcta
+import jwt from 'jsonwebtoken';
+import { connectToDatabase } from '../api/connectToDatabase';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -12,26 +13,43 @@ export default async function handler(req, res) {
   const { usuario, password } = req.body;
 
   try {
-    // Conectar a la base de datos
-    const pool = await connectToDatabase(); // Aquí se asume que connectToDatabase no necesita parámetros
-    console.log("Conectado a la base de datos para login");
-
-    // Buscar al usuario en la base de datos
-    const result = await pool.request()
-      .input('usuario', sql.VarChar, usuario) // Usar parámetros para evitar inyecciones SQL
-      .query('SELECT password FROM USUARIOS WHERE usuario = @usuario');
+    const pool = await connectToDatabase();
     
-    const user = result.recordset[0];
+    // Actualiza la consulta con los nombres de columnas correctos
+    const result = await pool.request()
+      .input('usuario', sql.VarChar, usuario)
+      .query('SELECT clavetipousuario, password FROM USUARIOS WHERE usuario = @usuario');
 
+    const user = result.recordset[0];
+    
     if (!user) {
       return res.status(401).json({ success: false, message: 'Usuario no encontrado' });
     }
 
-    // Verificar si la contraseña ingresada coincide con la almacenada en texto plano
-    const isMatch = await bcrypt.compare(password, user.password);
-    
+    const storedPassword = user.password;
+    let isMatch = false;
+
+    if (storedPassword === password) {
+      isMatch = true;
+      const hashedPassword = await bcrypt.hash(password, 10);
+      await pool.request()
+        .input('usuario', sql.VarChar, usuario)
+        .input('hashedPassword', sql.VarChar, hashedPassword)
+        .query('UPDATE USUARIOS SET password = @hashedPassword WHERE usuario = @usuario');
+    } else {
+      isMatch = await bcrypt.compare(password, storedPassword);
+    }
+
     if (isMatch) {
-      return res.status(200).json({ success: true, message: 'Login exitoso' });
+      // Usar clavetipousuario en el token
+      const token = jwt.sign({ rol: user.clavetipousuario }, 'clave_secreta', { expiresIn: '1h' });
+
+      res.setHeader('Set-Cookie', [
+        `token=${token}; Path=/; SameSite=Lax`,
+        `rol=${user.clavetipousuario}; Path=/; SameSite=Lax`
+      ]);
+
+      return res.status(200).json({ success: true, message: 'Login exitoso', rol: user.clavetipousuario });
     } else {
       return res.status(401).json({ success: false, message: 'Contraseña incorrecta' });
     }

@@ -4,15 +4,19 @@ import ReactDOM from 'react-dom'; // Asegúrate de importar ReactDOM
 import styles from '../css/usuarios.module.css';
 import Swal from 'sweetalert2';
 import Image from 'next/image'; // Asegúrate de importar Image desde next/image
+import { useRouter } from 'next/router';
 
 
 export default function UsuariosTable() {
   const [usuarios, setUsuarios] = useState([]);
   const [especialidades, setEspecialidades] = useState([]);
   const [tiposUsuarios, setTiposUsuarios] = useState([]);
+
+
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
+  
   const [showPassword, setShowPassword] = useState(false); // Estado para el ojo de visibilidad
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -47,10 +51,9 @@ export default function UsuariosTable() {
         const tiposUsuariosData = await tiposUsuariosResponse.json();
 
         setUsuarios(usuariosData);
-        setEspecialidades(especialidadesData);
-        setTiposUsuarios(tiposUsuariosData);
+        setEspecialidades(Array.isArray(especialidadesData) ? especialidadesData : []);
         setTiposUsuarios(Array.isArray(tiposUsuariosData) ? tiposUsuariosData : []); // Validar que sea un arreglo
-      } catch (error) {
+      } catch {
         setError('Error al cargar los datos');
       }
     };
@@ -88,19 +91,21 @@ export default function UsuariosTable() {
     }
   };
 
-
-
-  const filteredUsuarios = usuarios.filter(usuario =>
+  const filteredUsuarios = Array.isArray(usuarios) ? usuarios.filter(usuario =>
     usuario.nombreusuario && usuario.nombreusuario.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  ) : [];
+  
 
+
+  
   const getEspecialidadNombre = (clave) => {
-    if (!especialidades || especialidades.length === 0) {
+    if (!Array.isArray(especialidades) || especialidades.length === 0) {
       return 'Desconocida';
     }
     const especialidad = especialidades.find(especialidad => especialidad.claveespecialidad === clave);
     return especialidad ? especialidad.especialidad : 'Desconocida';
   };
+  
 
   const toggleModal = () => {
     setShowModal(!showModal);
@@ -215,6 +220,7 @@ export default function UsuariosTable() {
         if (!response.ok) {
           throw new Error('Error al agregar el usuario');
         }
+        
 
         const result = await response.json();
         console.log('Usuario agregado:', result);
@@ -242,23 +248,33 @@ export default function UsuariosTable() {
           setShowSuccessMessage(false);
         }, 3000);
       }
-    } catch (error) {
+    } catch {
       console.error(error);
       setError(selectedUsuario ? 'Error al actualizar el usuario' : 'Error al agregar el usuario');
     }
+  };
+
+  const router = useRouter(); // declaro la variable router
+  const handleBack = () => {
+    router.back('/inicio-servicio-medico'); // Esto regresa a la página anterior en el historial de navegación
+  };
+
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
   };
 
   return (
     <div className={styles.body}>
     <div className={styles.container}>
     <Image
-        src="/baner_sjr.png" // Ruta de tu imagen
-        alt="Banner"
-        layout="responsive" // Cambiado de "fill" a "responsive" para evitar problemas de diseño
-        width={1920} // Ancho de la imagen
-        height={1080} // Alto de la imagen
-        className={styles.banner} // Clase CSS para la imagen
-      />
+          src="/baner_sjr.png" // Asegúrate de que esta imagen esté en la carpeta public
+          alt="Banner"
+          layout="responsive" // Mantiene la relación de aspecto
+          width={1920} // Ancho de la imagen
+          height={1080} // Alto de la imagen
+          className={styles.banner} // Clase CSS para la imagena la imagen
+        />
+      <button onClick={handleBack} className={styles.backButton}>Atrás</button>
       <h2 className={styles.title}>Lista de Usuarios</h2>
       {error && <p className={styles.error}>{error}</p>}
       {showSuccessMessage && (
@@ -267,14 +283,15 @@ export default function UsuariosTable() {
         </div>
       )}
 
-      <input
-        type="text"
-        placeholder="Buscar usuario..."
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        className={styles.searchInput}
-      />
-
+      <div className={styles.searchContainer}>
+          <input
+            type="text"
+            placeholder="Buscar usuario..."
+            value={searchTerm}
+            onChange={handleSearchChange}
+            className={`${styles.input} input`}
+          />
+          </div>
       <div className={styles.buttonContainer}>
         <button className={styles.button} onClick={toggleModal}>Agregar Usuario</button>
       </div>
@@ -282,20 +299,20 @@ export default function UsuariosTable() {
       <table className={styles.table}>
         <thead>
           <tr>
+          <th>Usuario</th>
             <th>Nombre Usuario</th>
-            <th>Usuario</th>
             <th>Especialidad</th>
             <th>Teléfono</th>
             <th>Celular</th>
-            <th>Eliminar</th>
+            <th>Editar / Eliminar</th>
 
           </tr>
         </thead>
         <tbody>
         {filteredUsuarios.map((item, index) => (
     <tr key={index} className={styles.row}>
-      <td>{item.nombreusuario}</td>
       <td>{item.usuario}</td>
+      <td>{item.nombreusuario}</td>
       <td>{getEspecialidadNombre(item.claveespecialidad)}</td>
       <td>{item.telefonousuario}</td>
       <td>{item.celularusuario}</td>
@@ -324,6 +341,7 @@ export default function UsuariosTable() {
 </tbody>
       </table>
 
+
       {showModal && ReactDOM.createPortal(
         <div className={styles.modalOverlay}>
           <div className={styles.modalContent}>
@@ -340,29 +358,40 @@ export default function UsuariosTable() {
 
               <label htmlFor="claveespecialidad">Especialidad</label>
               <select name="claveespecialidad" onChange={handleInputChange} value={newUsuario.claveespecialidad} className={styles.dropdown}>
-                <option value="">Seleccionar Especialidad</option>
-                {especialidades.map((especialidad) => (
-                  <option key={especialidad.claveespecialidad} value={especialidad.claveespecialidad}>
-                    {especialidad.especialidad}
+              <option value="">Seleccionar Especialidad</option>
+              {Array.isArray(especialidades) &&
+              especialidades.map((especialidad) => (
+                <option key={especialidad.claveespecialidad} value={especialidad.claveespecialidad}>
+                  {especialidad.especialidad}
                   </option>
-                ))}
-              </select>
+                   ))}
+                </select>
 
-              <input type="text" name="usuario" placeholder="Usuario" onChange={handleInputChange} value={newUsuario.usuario} disabled={!!selectedUsuario} />
+             {/* Campo de usuario */}
+        <div className={styles.inputContainer}>
+          <input
+            type="text"
+            name="usuario"
+            placeholder="Usuario"
+            onChange={handleInputChange}
+            value={newUsuario.usuario || ''} // Asegúrate de inicializar el valor correctamente
+          />
+        </div>
 
-              <div className={styles.inputContainer}>
-  <input 
-    type={showPassword ? 'text' : 'password'} 
-    name="password" 
-    placeholder="Contraseña" 
-    onChange={handleInputChange} 
-    value={newUsuario.password} 
-  />
-  <button 
-    onClick={togglePasswordVisibility} 
-    className={styles.eyeIcon} 
-    type="button" // Evitar que el botón envíe el formulario
-  >
+        {/* Campo de contraseña */}
+        <div className={styles.inputContainer}>
+          <input
+            type={showPassword ? 'text' : 'password'}
+            name="password"
+            placeholder="Contraseña"
+            onChange={handleInputChange}
+            value={newUsuario.password || ''} // Muestra la contraseña desencriptada en el formulario
+          />
+                <button 
+                 onClick={togglePasswordVisibility} 
+                  className={styles.eyeIcon} 
+                  type="button" // Evitar que el botón envíe el formulario
+                  >
     {/* SVG para mostrar/ocultar contraseña */}
     {showPassword ? (
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">

@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import styles from './css/login.module.css';
+import Image from "next/image";
 
 const Login = () => {
   const router = useRouter();
@@ -33,7 +34,13 @@ const Login = () => {
     <div className={styles.body}>
       <div className={styles.formContainer}>
         <div className={styles.imageContainer}>
-          <img src="/login_servicio_medico.png" alt="Imagen de bienvenida" className={styles.image} />
+        <Image 
+         src="/login_servicio_medico.png" 
+         alt="Descripción de la imagen"
+         width={500} // Ajusta este valor según el tamaño real de tu imagen
+         height={300} // Ajusta este valor según el tamaño real de tu imagen
+          />
+
         </div>
         <div className={styles.formSection}>
           <h1 className={styles.formTitle}>Login</h1>
@@ -44,7 +51,8 @@ const Login = () => {
                 type="text"
                 value={usuario}
                 onChange={(e) => setUsuario(e.target.value)}
-                required
+                requi
+                red
                 className={styles.input}
               />
             </label>
