@@ -997,3 +997,18 @@
   font-size: 14px;
   color: #ffffff;
 }
+
+
+/*ESTILOS IMAGEN DEL BENEFICIARIO*/
+.imageContainer {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.beneficiaryImage {
+  max-width: 100%;
+  max-height: 200px;
+  border-radius: 8px;
+  object-fit: cover;
+}

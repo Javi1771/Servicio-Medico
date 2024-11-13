@@ -14,6 +14,7 @@ export default async function handler(req, res) {
       sangre,
       telEmergencia,
       nombreEmergencia,
+      imageUrl, // Nueva URL de la imagen
     } = req.body;
 
     try {
@@ -30,10 +31,11 @@ export default async function handler(req, res) {
         .input('sangre', sangre)
         .input('telEmergencia', telEmergencia)
         .input('nombreEmergencia', nombreEmergencia)
+        .input('imageUrl', imageUrl) // Guardar la URL de la imagen
         .input('estatus', 'A') // Guardar como activo por defecto
         .query(`
-          INSERT INTO BENEFICIARIO (NO_NOMINA, PARENTESCO, NOMBRE, A_PATERNO, A_MATERNO, SEXO, F_NACIMIENTO, ALERGIAS, SANGRE, TEL_EMERGENCIA, NOMBRE_EMERGENCIA, ACTIVO)
-          VALUES (@noNomina, @parentesco, @nombre, @aPaterno, @aMaterno, @sexo, @fNacimiento, @alergias, @sangre,   @telEmergencia, @nombreEmergencia, @estatus)
+          INSERT INTO BENEFICIARIO (NO_NOMINA, PARENTESCO, NOMBRE, A_PATERNO, A_MATERNO, SEXO, F_NACIMIENTO, ALERGIAS, SANGRE, TEL_EMERGENCIA, NOMBRE_EMERGENCIA, FOTO_URL, ACTIVO)
+          VALUES (@noNomina, @parentesco, @nombre, @aPaterno, @aMaterno, @sexo, @fNacimiento, @alergias, @sangre, @telEmergencia, @nombreEmergencia, @imageUrl, @estatus)
         `);
 
       res.status(200).json({ message: 'Beneficiario agregado correctamente' });
