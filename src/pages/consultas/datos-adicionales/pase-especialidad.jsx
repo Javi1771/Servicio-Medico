@@ -1,41 +1,68 @@
-import React, { useState } from "react";
+/* eslint-disable react-hooks/exhaustive-deps */
+import React, { useState, useEffect } from "react";
 
-const PaseEspecialidad = () => {
-  const [pasarEspecialidad, setPasarEspecialidad] = useState(null);
-  const [especialidadSeleccionada, setEspecialidadSeleccionada] = useState("");
-  const [observaciones, setObservaciones] = useState("");
-  const [historialEspecialidades, setHistorialEspecialidades] = useState([]);
+const PaseEspecialidad = ({
+  claveConsulta,
+  pasarEspecialidad,
+  setPasarEspecialidad,
+  especialidadSeleccionada,
+  setEspecialidadSeleccionada,
+  observaciones,
+  setObservaciones
+}) => {
+  const [especialidades, setEspecialidades] = useState([]);
 
-  const especialidades = [
-    "Cardiología",
-    "Neurología",
-    "Dermatología",
-    "Oftalmología",
-    "Ortopedia",
-    "Pediatría",
-  ];
+  useEffect(() => {
+    const fetchEspecialidades = async () => {
+      try {
+        const response = await fetch("/api/especialidades");
+        const data = await response.json();
+        if (Array.isArray(data)) {
+          setEspecialidades(data);
+        } else {
+          console.error("Los datos de especialidades no son un array:", data);
+          setEspecialidades([]);
+        }
+      } catch (error) {
+        console.error("Error al cargar especialidades:", error);
+      }
+    };
+    fetchEspecialidades();
+  }, [claveConsulta]);
 
-  const handlePaseEspecialidadChange = (value) => {
+  //* Limpia el formulario cada vez que se cambia el `claveConsulta`
+  useEffect(() => {
+    setPasarEspecialidad(""); //* Resetea el estado del pase a especialidad
+    setEspecialidadSeleccionada(""); //* Limpia la especialidad seleccionada
+    setObservaciones(""); //* Limpia las observaciones
+  }, [claveConsulta]);
+
+  const handlePaseEspecialidadChange = async (value) => {
     setPasarEspecialidad(value);
+
+    //* Registra en consola los valores para verificar
+    console.log("Clave Consulta:", claveConsulta, "Valor de Pase:", value);
+
+    try {
+      const response = await fetch("/api/actualizarConsultaEspecialidad", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          claveConsulta,
+          seasignoaespecialidad: value === "si" ? "S" : "N",
+        }),
+      });
+
+      if (!response.ok) {
+        console.error("Error al actualizar consulta:", await response.json());
+      }
+    } catch (error) {
+      console.error("Error en la solicitud de actualización de consulta:", error);
+    }
+
     if (value === "no") {
       setEspecialidadSeleccionada("");
       setObservaciones("");
-    }
-  };
-
-  const guardarEspecialidad = () => {
-    if (especialidadSeleccionada && observaciones) {
-      const nuevaEspecialidad = {
-        fecha: new Date().toLocaleDateString(),
-        especialidad: especialidadSeleccionada,
-        observaciones: observaciones,
-      };
-
-      setHistorialEspecialidades([...historialEspecialidades, nuevaEspecialidad]);
-      setEspecialidadSeleccionada("");
-      setObservaciones("");
-    } else {
-      alert("Por favor, completa todos los campos.");
     }
   };
 
@@ -45,22 +72,19 @@ const PaseEspecialidad = () => {
         Pase a Especialidad
       </h3>
 
-      {/* Botón para seleccionar si pasa a especialidad */}
       <div className="mb-6">
         <p className="text-white font-semibold mb-2">
           ¿Debe pasar a alguna especialidad?
         </p>
         <div className="grid grid-cols-2 gap-4">
           <button
-            className={`px-4 py-2 rounded-md ${pasarEspecialidad === "si" ? "bg-green-600" : "bg-gray-600"
-              } text-white`}
+            className={`px-4 py-2 rounded-md ${pasarEspecialidad === "si" ? "bg-green-600" : "bg-gray-600"} text-white`}
             onClick={() => handlePaseEspecialidadChange("si")}
           >
             Sí
           </button>
           <button
-            className={`px-4 py-2 rounded-md ${pasarEspecialidad === "no" ? "bg-red-600 md:bg-gradient-to-r md:from-red-500 md:to-red-700 md:shadow-lg" : "bg-gray-600"
-              } text-white`}
+            className={`px-4 py-2 rounded-md ${pasarEspecialidad === "no" ? "bg-red-600" : "bg-gray-600"} text-white`}
             onClick={() => handlePaseEspecialidadChange("no")}
           >
             No
@@ -68,7 +92,6 @@ const PaseEspecialidad = () => {
         </div>
       </div>
 
-      {/* Mostrar opciones si se selecciona "Sí" */}
       {pasarEspecialidad === "si" && (
         <>
           <div className="mb-6">
@@ -81,14 +104,14 @@ const PaseEspecialidad = () => {
               className="block w-full rounded-lg bg-gray-600 border-gray-500 text-white p-2 md:p-3"
             >
               <option value="">Seleccionar Especialidad</option>
-              {especialidades.map((especialidad, index) => (
-                <option key={index} value={especialidad}>
-                  {especialidad}
+              {especialidades.map((especialidad) => (
+                <option key={especialidad.claveespecialidad} value={especialidad.claveespecialidad}>
+                  {especialidad.especialidad}
                 </option>
               ))}
             </select>
           </div>
-
+              
           <div className="mb-6">
             <label className="text-white font-semibold mb-2 block">
               Observaciones:
@@ -100,43 +123,7 @@ const PaseEspecialidad = () => {
               placeholder="Escribe aquí las observaciones..."
             />
           </div>
-
-          <button
-            onClick={guardarEspecialidad}
-            className="bg-blue-600 text-white px-4 py-2 rounded-md mt-4 hover:bg-blue-500"
-          >
-            Guardar Pase a Especialidad
-          </button>
         </>
-      )}
-
-      {/* Tabla de historial de especialidades */}
-      {historialEspecialidades.length > 0 && (
-        <div className="mt-8">
-          <h3 className="text-xl md:text-2xl font-bold mb-4 text-white">
-            Historial de Especialidades
-          </h3>
-          <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-gray-700">
-            <table className="min-w-full bg-gray-700 rounded-lg shadow-lg text-left table-auto">
-              <thead>
-                <tr className="bg-gray-600 text-white">
-                  <th className="p-2 md:p-3 text-left">Fecha</th>
-                  <th className="p-2 md:p-3 text-left">Especialidad</th>
-                  <th className="p-2 md:p-3 text-left">Observaciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {historialEspecialidades.map((item, index) => (
-                  <tr key={index} className="border-b border-gray-600 hover:bg-gray-600">
-                    <td className="p-2 md:p-3 whitespace-normal">{item.fecha}</td>
-                    <td className="p-2 md:p-3 whitespace-normal">{item.especialidad}</td>
-                    <td className="p-2 md:p-3 whitespace-normal">{item.observaciones}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
       )}
     </div>
   );

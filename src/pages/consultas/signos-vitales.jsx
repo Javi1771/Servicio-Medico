@@ -1,39 +1,57 @@
-import React, { useState } from "react";
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import { AiOutlineUserAdd, AiOutlineReload } from "react-icons/ai";
+import { AiOutlineUserAdd } from "react-icons/ai";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
+import AtendiendoActualmente from "./consultas-adicionales/atendiendo-actualmente";
+import ConsultasCanceladas from "./consultas-adicionales/consultas-canceladas";
+import ConsultasAtendidas from "./consultas-adicionales/consultas-atendidas";
 
 //* Inicializa SweetAlert2 con React
 const MySwal = withReactContent(Swal);
 
 //* Función para calcular la edad en años, meses y días
 const calcularEdad = (fechaNacimiento) => {
-  const [dia, mes, año] = fechaNacimiento.split(" ")[0].split("/");
-  const fechaFormateada = `${año}-${mes}-${dia}`;
+  if (!fechaNacimiento)
+    return { display: "0 años, 0 meses, 0 días", dbFormat: "0 años y 0 meses" };
 
-  const hoy = new Date();
-  const nacimiento = new Date(fechaFormateada);
+  try {
+    //* Verifica si la fecha de nacimiento está en el formato `DD/MM/YYYY` o `YYYY-MM-DD`
+    let dia, mes, año;
+    if (fechaNacimiento.includes("/")) {
+      [dia, mes, año] = fechaNacimiento.split(" ")[0].split("/");
+    } else if (fechaNacimiento.includes("-")) {
+      [año, mes, dia] = fechaNacimiento.split("T")[0].split("-");
+    } else {
+      throw new Error("Formato de fecha desconocido");
+    }
 
-  let años = hoy.getFullYear() - nacimiento.getFullYear();
-  let meses = hoy.getMonth() - nacimiento.getMonth();
-  let dias = hoy.getDate() - nacimiento.getDate();
+    const fechaFormateada = `${año}-${mes}-${dia}`;
+    const hoy = new Date();
+    const nacimiento = new Date(fechaFormateada);
 
-  if (meses < 0 || (meses === 0 && dias < 0)) {
-    años--;
-    meses += 12;
+    let años = hoy.getFullYear() - nacimiento.getFullYear();
+    let meses = hoy.getMonth() - nacimiento.getMonth();
+    let dias = hoy.getDate() - nacimiento.getDate();
+
+    if (meses < 0 || (meses === 0 && dias < 0)) {
+      años--;
+      meses += 12;
+    }
+    if (dias < 0) {
+      meses--;
+      dias += new Date(hoy.getFullYear(), hoy.getMonth(), 0).getDate();
+    }
+
+    const displayFormat = `${años} años, ${meses} meses, ${dias} días`;
+    const dbFormat = `${años} años y ${meses} meses`;
+
+    return { display: displayFormat, dbFormat };
+  } catch (error) {
+    console.error("Error al calcular la edad:", error);
+    return { display: "0 años, 0 meses, 0 días", dbFormat: "0 años y 0 meses" };
   }
-  if (dias < 0) {
-    meses--;
-    const mesAnterior = new Date(
-      hoy.getFullYear(),
-      hoy.getMonth(),
-      0
-    ).getDate();
-    dias += mesAnterior;
-  }
-
-  return { años, meses, dias };
 };
 
 const SignosVitales = () => {
@@ -43,9 +61,12 @@ const SignosVitales = () => {
     age: "",
     department: "",
     workstation: "",
+    grupoNomina: "",
+    cuotaSindical: "",
   });
   const [nomina, setNomina] = useState("");
   const [showConsulta, setShowConsulta] = useState(false);
+  const [selectedBeneficiary, setSelectedBeneficiary] = useState(null);
   const [signosVitales, setSignosVitales] = useState({
     ta: "",
     temperatura: "",
@@ -55,11 +76,150 @@ const SignosVitales = () => {
     peso: "",
     glucosa: "",
   });
-  const [empleadoEncontrado, setEmpleadoEncontrado] = useState(false); //* Estado para habilitar contenido
+  const [empleadoEncontrado, setEmpleadoEncontrado] = useState(false);
 
-  const [pacientes, setPacientes] = useState([]); //* Estado para almacenar pacientes
+  const [pacientes, setPacientes] = useState([]);
+  const [atendiendoActualmente, setAtendiendoActualmente] = useState([]);
+  const [consultasCanceladas, setConsultasCanceladas] = useState([]);
+  const [consultasAtendidas, setConsultasAtendidas] = useState([]);
+  const [consultaSeleccionada, setConsultaSeleccionada] = useState("empleado");
 
-  const [consultaSeleccionada, setConsultaSeleccionada] = useState(""); //* Estado para el radio button
+  const isFormComplete = Object.values(signosVitales).every(
+    (value) => value.trim() !== ""
+  );
+
+  const handleBeneficiarySelect = (index) => {
+    setSelectedBeneficiary(beneficiaryData[index]);
+  };
+
+  //* Función para cargar la lista de espera
+  const cargarPacientesDelDia = async () => {
+    try {
+      const response = await fetch("/api/consultasHoy");
+      const data = await response.json();
+      if (response.ok && data.consultas?.length > 0) {
+        const consultasOrdenadas = data.consultas.sort(
+          (a, b) => new Date(a.fechaconsulta) - new Date(b.fechaconsulta)
+        );
+        setPacientes(consultasOrdenadas);
+      }
+    } catch (error) {
+      console.error("Error al cargar consultas del día:", error);
+    }
+  };
+
+  const [beneficiaryData, setBeneficiaryData] = useState([]);
+
+  //! handleSave: Utiliza 'dbFormat' solo para el guardado en la base de datos
+  const handleSave = async () => {
+    if (!nomina) {
+      MySwal.fire({
+        icon: "error",
+        title:
+          "<span style='color: #ff8080; font-weight: bold; font-size: 1.5em;'>⚠️ Número de nómina requerido</span>",
+        html: "<p style='color: #d1d5db; font-size: 1.1em;'>Por favor, ingresa el número de nómina antes de guardar.</p>",
+        background: "linear-gradient(145deg, #2d3748, #1c2230)",
+        confirmButtonColor: "#7fdbff",
+        confirmButtonText:
+          "<span style='color: #0f172a; font-weight: bold;'>Aceptar</span>",
+        customClass: {
+          popup:
+            "border border-red-500 shadow-[0px_0px_15px_5px_rgba(255,0,0,0.7)] rounded-lg",
+        },
+      });
+
+      return;
+    }
+
+    const now = new Date();
+    const fechaConsulta = `${now.getFullYear()}-${String(
+      now.getMonth() + 1
+    ).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")} ${String(
+      now.getHours()
+    ).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}:${String(
+      now.getSeconds()
+    ).padStart(2, "0")}`;
+
+    const consultaData = {
+      fechaconsulta: fechaConsulta,
+      clavenomina: nomina,
+      presionarterialpaciente: signosVitales.ta,
+      temperaturapaciente: signosVitales.temperatura,
+      pulsosxminutopaciente: signosVitales.fc,
+      respiracionpaciente: signosVitales.oxigenacion,
+      estaturapaciente: signosVitales.altura,
+      pesopaciente: signosVitales.peso,
+      glucosapaciente: signosVitales.glucosa,
+      nombrepaciente:
+        consultaSeleccionada === "beneficiario" && selectedBeneficiary
+          ? `${selectedBeneficiary.NOMBRE} ${selectedBeneficiary.A_PATERNO} ${selectedBeneficiary.A_MATERNO}`
+          : patientData.name,
+      edad:
+        consultaSeleccionada === "beneficiario" && selectedBeneficiary
+          ? selectedBeneficiary.EDAD
+          : patientData.age,
+      elpacienteesempleado: consultaSeleccionada === "empleado" ? "S" : "N",
+      parentesco:
+        consultaSeleccionada === "beneficiario" && selectedBeneficiary
+          ? selectedBeneficiary.ID_PARENTESCO
+          : 0,
+      departamento: patientData.department || "",
+      sindicato:
+        patientData.grupoNomina === "NS"
+          ? patientData.cuotaSindical === "S"
+            ? "SUTSMSJR"
+            : patientData.cuotaSindical === ""
+            ? "SITAM"
+            : null
+          : null,
+      clavestatus: 1,
+    };
+
+    try {
+      const response = await fetch("/api/saveConsulta", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(consultaData),
+      });
+
+      if (response.ok) {
+        MySwal.fire({
+          icon: "success",
+          title:
+            "<span style='color: #00ff7f; font-weight: bold; font-size: 1.5em;'>✔️ Consulta guardada correctamente</span>",
+          html: "<p style='color: #e5e7eb; font-size: 1.1em;'>La consulta ha sido registrada en el sistema exitosamente.</p>",
+          background: "linear-gradient(145deg, #2d3748, #1c2230)",
+          confirmButtonColor: "#00ff7f",
+          confirmButtonText:
+            "<span style='color: #0f172a; font-weight: bold;'>Aceptar</span>",
+          customClass: {
+            popup:
+              "border border-green-500 shadow-[0px_0px_15px_5px_rgba(0,255,127,0.7)] rounded-lg",
+          },
+        });
+        handleCloseModal();
+        await cargarPacientesDelDia(); //* Actualiza la tabla después de guardar
+      } else {
+        throw new Error("Error al guardar consulta");
+      }
+    } catch (error) {
+      console.error("Error al guardar la consulta:", error);
+      MySwal.fire({
+        icon: "error",
+        title:
+          "<span style='color: #ff8080; font-weight: bold; font-size: 1.5em;'>❌ Error al guardar la consulta</span>",
+        html: "<p style='color: #d1d5db; font-size: 1.1em;'>Hubo un problema al intentar guardar la consulta. Por favor, intenta nuevamente.</p>",
+        background: "linear-gradient(145deg, #2d3748, #1c2230)",
+        confirmButtonColor: "#7fdbff",
+        confirmButtonText:
+          "<span style='color: #0f172a; font-weight: bold;'>Aceptar</span>",
+        customClass: {
+          popup:
+            "border border-red-500 shadow-[0px_0px_15px_5px_rgba(255,128,128,0.7)] rounded-lg",
+        },
+      });
+    }
+  };
 
   const handleAdd = () => {
     setShowConsulta(true);
@@ -69,6 +229,8 @@ const SignosVitales = () => {
       age: "",
       department: "",
       workstation: "",
+      grupoNomina: "",
+      cuotaSindical: "",
     });
     setSignosVitales({
       ta: "",
@@ -80,13 +242,22 @@ const SignosVitales = () => {
       glucosa: "",
     });
     setNomina("");
-    setEmpleadoEncontrado(false); //* Reiniciar estado de empleado encontrado
+    setEmpleadoEncontrado(false);
+  };
+
+  const handleRadioChange = (value) => {
+    setConsultaSeleccionada(value);
+    if (value === "beneficiario") {
+      handleSearchBeneficiary();
+    }
   };
 
   const handleCloseModal = () => {
     setShowConsulta(false);
   };
 
+  //* Calcula y asigna la edad cuando obtienes los datos del empleado o beneficiario
+  //* handleSearch: Utiliza solo 'display' para mostrar en la interfaz
   const handleSearch = async () => {
     try {
       const response = await fetch("/api/empleado", {
@@ -97,72 +268,112 @@ const SignosVitales = () => {
         body: JSON.stringify({ num_nom: nomina }),
       });
 
-      if (!response.ok) {
-        throw new Error("Error al obtener datos del empleado.");
-      }
-
       const data = await response.json();
 
-      if (!data || Object.keys(data).length === 0) {
-        //! Mostrar alerta si no se encuentra el empleado
+      if (
+        !data ||
+        Object.keys(data).length === 0 ||
+        !data.nombre ||
+        !data.departamento
+      ) {
         MySwal.fire({
           icon: "error",
-          title: "<strong style='color: red;'>Nómina no encontrada</strong>",
-          html: "<p style='color: white;'>El número de nómina ingresado no existe o no se encuentra.</p>",
-          background: "#111827",
-          confirmButtonText: "Aceptar",
-          confirmButtonColor: "#FF6347",
+          title:
+            "<span style='color: #d60005; font-weight: bold; font-size: 1.5em;'>⚠️ Nómina no encontrada</span>",
+          html: "<p style='color: #d1d5db; font-size: 1.1em;'>El número de nómina ingresado no existe o no se encuentra en el sistema. Intenta nuevamente.</p>",
+          background: "linear-gradient(145deg, #2d3748, #1c2230)",
+          confirmButtonColor: "#d60005", 
+          confirmButtonText:
+            "<span style='color: #ffffff; font-weight: bold;'>Aceptar</span>",
           customClass: {
-            popup: "animated bounceIn",
+            popup:
+              "border border-red-400 shadow-[0px_0px_15px_5px_rgba(255,0,0,0.7)] rounded-lg", 
           },
-          timer: 5000,
         });
-        setEmpleadoEncontrado(false); //! Deshabilitar contenido
+
+        setEmpleadoEncontrado(false);
+        setShowConsulta(false); //! Cierra la ventana emergente si no se encuentra el empleado
         return;
       }
 
-      const edad = data.fecha_nacimiento
+      const { display } = data.fecha_nacimiento
         ? calcularEdad(data.fecha_nacimiento)
-        : "";
-      const edadString = edad
-        ? `${edad.años} años, ${edad.meses} meses y ${edad.dias} días`
-        : "";
+        : { display: "0 años, 0 meses, 0 días" };
 
       setPatientData({
         photo: "/user_icon_.png",
-        name: `${data.nombre} ${data.a_paterno} ${data.a_materno}` || "",
-        age: edadString || "",
-        department: data.departamento || "",
-        workstation: data.puesto || "",
+        name: `${data.nombre ?? ""} ${data.a_paterno ?? ""} ${
+          data.a_materno ?? ""
+        }`,
+        age: display,
+        department: data.departamento ?? "",
+        workstation: data.puesto ?? "",
+        grupoNomina: data.grupoNomina ?? "",
+        cuotaSindical: data.cuotaSindical ?? "",
+        fecha_nacimiento: data.fecha_nacimiento,
       });
-      setEmpleadoEncontrado(true); //* Habilitar contenido al encontrar empleado
+
+      setEmpleadoEncontrado(true);
     } catch (error) {
       console.error("Error al obtener datos del empleado:", error);
       MySwal.fire({
         icon: "error",
-        title: "<span style='color: white;'>Error</span>",
-        html: "<span style='color: white;'>Hubo un problema al buscar la nómina. Intenta nuevamente.</span>",
+        title: "<span style='color: #ff6347;'>Error al buscar la nómina</span>",
+        html: "<span style='color: #b0b0b0;'>Hubo un problema al buscar la nómina. Intenta nuevamente.</span>",
         background: "#1F2937",
         confirmButtonColor: "#FF6347",
-        cancelButtonColor: "#f44336",
-        confirmButtonText: "<span style='color: white;'>OK</span>",
-        showClass: {
-          popup: "animate__animated animate__fadeInDown",
-        },
-        hideClass: {
-          popup: "animate__animated animate__fadeOutUp",
-        },
-        customClass: {
-          popup: "border border-gray-500 shadow-lg rounded-lg",
-        },
-        backdrop: `
-          rgba(0,0,0,0.8)
-          url("/images/nyan-cat.gif")
-          left top
-          no-repeat
-        `,
+        confirmButtonText: "<span style='color: white;'>Aceptar</span>",
       });
-      setEmpleadoEncontrado(false); //! Deshabilitar contenido en caso de error
+      setEmpleadoEncontrado(false);
+      setShowConsulta(false); //! Cierra la ventana emergente en caso de error de red
+    }
+  };
+
+  const handleSearchBeneficiary = async () => {
+    try {
+      const response = await fetch("/api/beneficiario", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ nomina }),
+      });
+
+      const data = await response.json();
+
+      if (data.beneficiarios && data.beneficiarios.length > 0) {
+        setBeneficiaryData(data.beneficiarios);
+        setSelectedBeneficiary(data.beneficiarios[0]);
+      } else {
+        setBeneficiaryData([]);
+        setConsultaSeleccionada("empleado"); //* Cambia a "empleado" si no hay beneficiarios
+        MySwal.fire({
+          icon: "info",
+          title:
+            "<span style='color: #7fdbff; font-weight: bold; font-size: 1.5em;'>ℹ️ Sin beneficiarios</span>",
+          html: "<p style='color: #e5e7eb; font-size: 1.1em;'>Este empleado no tiene beneficiarios registrados en el sistema.</p>",
+          background: "linear-gradient(145deg, #2d3748, #1c2230)",
+          confirmButtonColor: "#7fdbff",
+          confirmButtonText:
+            "<span style='color: #0f172a; font-weight: bold;'>OK</span>",
+          customClass: {
+            popup:
+              "border border-blue shadow-[0px_0px_15px_5px_rgba(114,197,229,0.7)] rounded-lg",
+              
+          },
+        });
+      }
+    } catch (error) {
+      console.error("Error al buscar beneficiario:", error);
+      MySwal.fire({
+        icon: "error",
+        title:
+          "<span style='color: white;'>Error al buscar los beneficiarios</span>",
+        html: "<span style='color: white;'>Hubo un problema al buscar los beneficiarios.</span>",
+        background: "#1F2937",
+        confirmButtonColor: "#FF6347",
+        confirmButtonText: "<span style='color: white;'>OK</span>",
+      });
     }
   };
 
@@ -174,26 +385,21 @@ const SignosVitales = () => {
     }));
   };
 
-  const handleSave = () => {
-    const nuevoPaciente = {
-      nomina,
-      name: patientData.name,
-      age: patientData.age,
-      department: patientData.department,
-      ...signosVitales,
+  //* Hook para cargar datos automáticamente cada 5 segundos
+  useEffect(() => {
+    const cargarTodasLasConsultas = () => {
+      cargarPacientesDelDia();
     };
 
-    //* Añadir nuevo paciente
-    setPacientes((prevState) => [...prevState, nuevoPaciente]);
-    handleCloseModal();
-  };
+    cargarTodasLasConsultas(); //* Llama a todas las funciones inmediatamente
 
-  const handleReload = () => {
-    setPacientes([...pacientes]);
-  };
+    const interval = setInterval(cargarTodasLasConsultas, 5000);
+
+    return () => clearInterval(interval); //* Limpia el intervalo al desmontar el componente
+  }, []);
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white px-4 py-8 md:px-12">
+    <div className="min-h-screen bg-gradient-to-b from-blue-900 to-black text-white px-4 py-8 md:px-12 flex flex-col items-center pt-10">
       <div className="flex flex-col md:flex-row items-center justify-between w-full mb-6">
         <div className="flex items-center space-x-4">
           <Image
@@ -211,65 +417,68 @@ const SignosVitales = () => {
         <div className="flex space-x-4 md:space-x-6 mt-4 md:mt-0">
           <button
             onClick={handleAdd}
-            className="flex items-center bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 px-6 py-3 md:px-10 md:py-4 rounded-lg shadow-lg transform transition-all duration-300 hover:scale-105 hover:shadow-xl"
+            className="flex items-center bg-gradient-to-r from-indigo-600 to-purple-800 hover:from-blue-500 hover:to-purple-600 px-8 py-4 md:px-12 md:py-5 rounded-full shadow-[0_0_20px_rgba(138,43,226,0.5),0_0_15px_rgba(75,0,130,0.5)] transform transition-all duration-300 hover:scale-110 hover:shadow-[0_0_30px_rgba(138,43,226,0.7),0_0_20px_rgba(75,0,130,0.7)] relative overflow-hidden neon-effect"
           >
-            <AiOutlineUserAdd className="mr-2 md:mr-3 text-xl md:text-2xl" />
-            <span className="text-lg md:text-xl font-bold text-white">
-              Agregar
+            <AiOutlineUserAdd className="mr-3 text-2xl md:text-3xl text-white glow-icon" />
+            <span className="text-lg md:text-xl font-bold text-white tracking-wide z-10 glow-text">
+              Agregar Paciente
             </span>
-          </button>
-          <button
-            onClick={handleReload}
-            className="flex items-center bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-400 hover:to-teal-500 px-6 py-3 md:px-10 md:py-4 rounded-lg shadow-lg transform transition-all duration-300 hover:scale-105 hover:shadow-xl"
-          >
-            <AiOutlineReload className="mr-2 md:mr-3 text-xl md:text-2xl" />
-            <span className="text-lg md:text-xl font-bold text-white">
-              Actualizar
-            </span>
+            <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-600 opacity-30 rounded-full animate-pulse-neon" />
+            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 opacity-0 transition-all duration-500 neon-hover" />
           </button>
         </div>
       </div>
 
-      {/* Tabla de registro */}
-      <table className="min-w-full bg-gray-800 rounded-lg shadow-lg mb-8">
-        <thead>
-          <tr className="bg-gray-700 text-white">
-            <th className="py-2 md:py-3 px-2 md:px-4 text-left text-sm md:text-base">
-              Número de Nómina
-            </th>
-            <th className="py-2 md:py-3 px-2 md:px-4 text-left text-sm md:text-base">
-              Paciente
-            </th>
-            <th className="py-2 md:py-3 px-2 md:px-4 text-left text-sm md:text-base">
-              Edad
-            </th>
-            <th className="py-2 md:py-3 px-2 md:px-4 text-left text-sm md:text-base">
-              Secretaría
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {pacientes.map((paciente, index) => (
-            <tr
-              key={index}
-              className="hover:bg-gray-600 transition-colors duration-300 cursor-pointer"
-            >
-              <td className="py-2 md:py-3 px-2 md:px-4 text-left text-sm md:text-base">
-                {paciente.nomina}
-              </td>
-              <td className="py-2 md:py-3 px-2 md:px-4 text-left text-sm md:text-base">
-                {paciente.name}
-              </td>
-              <td className="py-2 md:py-3 px-2 md:px-4 text-left text-sm md:text-base">
-                {paciente.age}
-              </td>
-              <td className="py-2 md:py-3 px-2 md:px-4 text-left text-sm md:text-base">
-                {paciente.department}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <div className="w-full space-y-8">
+        {/* Tabla de registros */}
+        <div className="w-full overflow-x-auto p-6 bg-gradient-to-b from-gray-900 to-gray-800 rounded-xl shadow-lg mb-8">
+          <h1 className="text-3xl font-bold mb-6 text-center text-yellow-300 tracking-wide">
+            Pacientes en Lista de Espera
+          </h1>
+          <table className="min-w-full text-gray-300 border-separate border-spacing-y-3">
+            <thead>
+              <tr className="bg-gray-800 bg-opacity-80 text-sm uppercase tracking-wider font-semibold">
+                <th className="py-4 px-6 rounded-l-lg">Número de Nómina</th>
+                <th className="py-4 px-6">Paciente</th>
+                <th className="py-4 px-6">Edad</th>
+                <th className="py-4 px-6 rounded-r-lg">Secretaría</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pacientes.map((paciente, index) => (
+                <tr
+                  key={index}
+                  className="bg-gray-700 bg-opacity-50 hover:bg-gradient-to-r from-yellow-500 to-yellow-700 transition duration-300 ease-in-out rounded-lg shadow-md"
+                >
+                  <td className="py-4 px-6 font-medium text-center">
+                    {paciente.clavenomina || "N/A"}
+                  </td>
+                  <td className="py-4 px-6 text-center">
+                    {paciente.nombrepaciente || "No disponible"}
+                  </td>
+                  <td className="py-4 px-6 text-center">
+                    {paciente.edad || "Desconocida"}
+                  </td>
+                  <td className="py-4 px-6 text-center">
+                    {paciente.departamento || "No asignado"}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Renderizar cada tabla de estado específico con el mismo ancho y espaciado */}
+        <div className="w-full overflow-x-auto p-6 bg-gradient-to-b from-gray-900 to-gray-800 rounded-xl shadow-lg mb-8">
+          <AtendiendoActualmente data={atendiendoActualmente} />
+        </div>
+        <div className="w-full overflow-x-auto p-6 bg-gradient-to-b from-gray-900 to-gray-800 rounded-xl shadow-lg mb-8">
+          <ConsultasCanceladas data={consultasCanceladas} />
+        </div>
+        <div className="w-full overflow-x-auto p-6 bg-gradient-to-b from-gray-900 to-gray-800 rounded-xl shadow-lg mb-8">
+          <ConsultasAtendidas data={consultasAtendidas} />
+        </div>
+      </div>
 
       {/* Modal para agregar signos vitales */}
       {showConsulta && (
@@ -335,7 +544,7 @@ const SignosVitales = () => {
                         value="empleado"
                         className="form-radio h-6 w-6 text-blue-500 focus:ring-blue-400 focus:ring-2 cursor-pointer absolute top-4 right-4 opacity-0"
                         checked={consultaSeleccionada === "empleado"}
-                        onChange={() => setConsultaSeleccionada("empleado")}
+                        onChange={() => handleRadioChange("empleado")}
                         disabled={!empleadoEncontrado}
                       />
                       <span className="text-white text-lg font-semibold flex items-center space-x-2 neon-text">
@@ -347,6 +556,7 @@ const SignosVitales = () => {
                         </span>
                       </span>
                     </label>
+
                     <label
                       className={`relative flex flex-col items-center p-6 rounded-xl bg-gradient-to-r from-gray-800 to-gray-900 border border-gray-700 shadow-lg ${
                         empleadoEncontrado
@@ -362,7 +572,10 @@ const SignosVitales = () => {
                         value="beneficiario"
                         className="form-radio h-6 w-6 text-yellow-500 focus:ring-yellow-400 focus:ring-2 cursor-pointer absolute top-4 right-4 opacity-0"
                         checked={consultaSeleccionada === "beneficiario"}
-                        onChange={() => setConsultaSeleccionada("beneficiario")}
+                        onChange={() => {
+                          handleRadioChange("beneficiario");
+                          handleSearchBeneficiary();
+                        }}
                         disabled={!empleadoEncontrado}
                       />
                       <span className="text-white text-lg font-semibold flex items-center space-x-2 neon-text">
@@ -378,32 +591,109 @@ const SignosVitales = () => {
                 </div>
               </fieldset>
 
-              {/* Datos del paciente */}
-              <div className="flex flex-row mt-6 items-center bg-gray-900 p-4 rounded-lg shadow-md space-x-4">
+              {consultaSeleccionada === "beneficiario" &&
+                beneficiaryData?.length > 0 && (
+                  <div className="flex flex-col items-start mt-4 bg-gray-800 p-4 rounded-lg shadow-lg space-y-4">
+                    <label className="text-yellow-400 font-semibold">
+                      Seleccionar Beneficiario:
+                    </label>
+                    <select
+                      onChange={(e) => handleBeneficiarySelect(e.target.value)}
+                      className="bg-gray-700 p-2 rounded-md text-white w-full"
+                    >
+                      {beneficiaryData.map((beneficiary, index) => (
+                        <option key={index} value={index}>
+                          {`${beneficiary.NOMBRE} ${beneficiary.A_PATERNO} ${beneficiary.A_MATERNO} - ${beneficiary.PARENTESCO_DESC}`}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+              <div className="flex flex-col md:flex-row md:items-start mt-6 bg-gray-900 p-4 rounded-lg shadow-md space-y-4 md:space-y-0 md:space-x-6">
                 <Image
-                  src={patientData.photo}
+                  src={
+                    consultaSeleccionada === "beneficiario" &&
+                    selectedBeneficiary
+                      ? "/user_icon_.png"
+                      : patientData.photo || "/user_icon_.png"
+                  }
                   alt="Foto del Paciente"
                   width={96}
                   height={96}
-                  className="w-24 h-24 rounded-full border-4 border-blue-400 shadow-lg"
+                  className="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-blue-400 shadow-lg"
                 />
                 <div className="flex-1">
-                  <p className="text-lg md:text-xl font-semibold">
-                    Paciente: {patientData.name || ""}
-                  </p>
-                  <p className="text-sm md:text-md">
-                    Edad: {patientData.age || ""}
-                  </p>
-                  <p className="text-sm md:text-md">
-                    Departamento: {patientData.department || ""}
-                  </p>
-                  <p className="text-sm md:text-md">
-                    Puesto: {patientData.workstation || ""}
-                  </p>
+                  <div className="mb-2">
+                    <p className="text-lg md:text-xl font-semibold text-gray-200">
+                      Paciente:{" "}
+                      <span className="font-normal">
+                        {consultaSeleccionada === "beneficiario" &&
+                        selectedBeneficiary
+                          ? `${selectedBeneficiary.NOMBRE} ${selectedBeneficiary.A_PATERNO} ${selectedBeneficiary.A_MATERNO}`
+                          : patientData.name || ""}
+                      </span>
+                    </p>
+
+                    <p className="text-sm md:text-md text-gray-300">
+                      Edad:{" "}
+                      <span className="font-normal">
+                        {consultaSeleccionada === "beneficiario" &&
+                        selectedBeneficiary
+                          ? selectedBeneficiary.EDAD
+                          : patientData.age || ""}
+                      </span>
+                    </p>
+
+                    {consultaSeleccionada === "empleado" && (
+                      <p className="text-sm md:text-md text-gray-300">
+                        Puesto:{" "}
+                        <span className="font-normal">
+                          {patientData.workstation || ""}
+                        </span>
+                      </p>
+                    )}
+
+                    {consultaSeleccionada === "empleado" && (
+                      <p className="text-sm md:text-md text-gray-300">
+                        Departamento:{" "}
+                        <span className="font-normal">
+                          {patientData.department || ""}
+                        </span>
+                      </p>
+                    )}
+
+                    {consultaSeleccionada === "beneficiario" &&
+                      selectedBeneficiary && (
+                        <p className="text-sm md:text-md text-gray-300">
+                          Parentesco:{" "}
+                          <span className="font-normal">
+                            {selectedBeneficiary.PARENTESCO_DESC || ""}
+                          </span>
+                        </p>
+                      )}
+                  </div>
                 </div>
+
+                {patientData.grupoNomina === "NS" && (
+                  <div className="md:ml-auto mt-4 md:mt-0 p-4 bg-gradient-to-br from-gray-800 to-gray-700 rounded-lg shadow-lg flex flex-col items-center md:items-end text-right text-white">
+                    <p className="text-md font-bold text-yellow-400">
+                      <span className="block">SINDICALIZADO</span>
+                    </p>
+                    <p className="text-sm md:text-md">
+                      Sindicato:{" "}
+                      <span className="font-semibold">
+                        {patientData.cuotaSindical === "S"
+                          ? "SUTSMSJR"
+                          : patientData.cuotaSindical === ""
+                          ? "SITAM"
+                          : "No afiliado"}
+                      </span>
+                    </p>
+                  </div>
+                )}
               </div>
 
-              {/* Formulario de Signos Vitales */}
               <div className="mt-6">
                 <h3 className="text-xl md:text-2xl font-bold mb-4">
                   Signos Vitales
@@ -412,7 +702,7 @@ const SignosVitales = () => {
                   <label>
                     T/A:
                     <input
-                      type="text"
+                      type="number"
                       name="ta"
                       value={signosVitales.ta}
                       onChange={handleVitalChange}
@@ -480,10 +770,17 @@ const SignosVitales = () => {
                     />
                   </label>
                 </form>
+
                 <div className="mt-6">
                   <button
                     onClick={handleSave}
-                    className="bg-yellow-600 px-4 md:px-5 py-2 rounded-lg hover:bg-yellow-500 transition duration-200 font-semibold w-full">
+                    disabled={!isFormComplete}
+                    className={`px-4 md:px-5 py-2 rounded-lg font-semibold w-full transition duration-200 ${
+                      isFormComplete
+                        ? "bg-yellow-600 hover:bg-yellow-500"
+                        : "bg-gray-400 cursor-not-allowed"
+                    }`}
+                  >
                     Guardar Signos Vitales
                   </button>
                 </div>
