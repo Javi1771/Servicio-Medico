@@ -36,6 +36,27 @@ export default function RegistroBeneficiario() {
 
   const router = useRouter(); // Define el router usando useRouter
 
+
+  const handleViewBeneficiary = async (beneficiario) => {
+    try {
+      const response = await fetch(`/api/getBeneficiary?idBeneficiario=${beneficiario.ID_BENEFICIARIO}`);
+      const data = await response.json();
+
+      if (response.ok) {
+        setSelectedBeneficiary(data);
+        setIsViewModalOpen(true);
+      } else {
+        console.error("Error fetching beneficiary:", data.error);
+        Swal.fire("Error", data.error, "error");
+      }
+    } catch (error) {
+      console.error("Error fetching beneficiary:", error);
+      Swal.fire("Error", "No se pudo obtener la información del beneficiario.", "error");
+    }
+  };
+
+
+
   const handleImageUpload = async (event) => {
     const file = event.target.files[0];
     if (file) {
@@ -296,12 +317,6 @@ export default function RegistroBeneficiario() {
   const [selectedBeneficiary, setSelectedBeneficiary] = useState(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
 
-  const handleViewBeneficiary = (beneficiario) => {
-    console.log("Beneficiary data:", beneficiario); // Verificar los datos, incluida la URL de la imagen
-    setSelectedBeneficiary(beneficiario);
-    fetchSexoNombre(beneficiario.SEXO);
-    setIsViewModalOpen(true);
-  };
 
   // Función para confirmar y eliminar beneficiario
   const handleDeleteBeneficiary = (idBeneficiario) => {
@@ -678,47 +693,63 @@ export default function RegistroBeneficiario() {
           </form>
         </Modal>
 
-        {/**modal para ver los datos del beneficiario */}
         <Modal
-  isOpen={isViewModalOpen}
-  onRequestClose={() => setIsViewModalOpen(false)}
-  overlayClassName={styles.modalOverlay}
-  className={styles.modal}
->
-  {selectedBeneficiary && (
-    <div className={styles.card}>
-      <h2>Información del Beneficiario</h2>
-      <p><strong>ID:</strong> {selectedBeneficiary.ID_BENEFICIARIO}</p>
-      <p><strong>Número de Nómina:</strong> {selectedBeneficiary.NO_NOMINA}</p>
-      <p><strong>Parentesco:</strong> {selectedBeneficiary.PARENTESCO}</p>
-      <p><strong>Nombre:</strong> {`${empleado.nombre} ${empleado.a_paterno} ${empleado.a_materno}`}</p>
-      <p><strong>Sexo:</strong> {sexoNombre}</p>
-      <p><strong>Fecha de Nacimiento:</strong> {selectedBeneficiary.F_NACIMIENTO}</p>
-      <p><strong>Activo:</strong> {selectedBeneficiary.ACTIVO === "A" ? "Sí" : "No"}</p>
-      <p><strong>Alergias:</strong> {selectedBeneficiary.ALERGIAS}</p>
-      <p><strong>Tipo de Sangre:</strong> {selectedBeneficiary.SANGRE}</p>
-      <p><strong>Teléfono de Emergencia:</strong> {selectedBeneficiary.TEL_EMERGENCIA}</p>
-      <p><strong>Nombre de Contacto de Emergencia:</strong> {selectedBeneficiary.NOMBRE_EMERGENCIA}</p>
+        isOpen={isViewModalOpen}
+        onRequestClose={() => setIsViewModalOpen(false)}
+        overlayClassName={styles.modalOverlay}
+        className={styles.modal}
+      >
+        {selectedBeneficiary && (
+          <div className={styles.card}>
+            <h2>Información del Beneficiario</h2>
+            <p><strong>ID:</strong> {selectedBeneficiary.ID_BENEFICIARIO}</p>
+            <p><strong>Número de Nómina:</strong> {selectedBeneficiary.NO_NOMINA}</p>
 
-      {/* Mostrar la imagen solo si FOTO_URL existe y no está vacío */}
-      {selectedBeneficiary.FOTO_URL ? (
-        <div className={styles.imageContainer}>
-          <img
-            src={selectedBeneficiary.FOTO_URL}
-            alt={`${selectedBeneficiary.NOMBRE} ${selectedBeneficiary.A_PATERNO}`}
-            className={styles.beneficiaryImage}
-          />
-        </div>
-      ) : (
-        <p>Imagen no disponible</p>
-      )}
-      <button onClick={() => setIsViewModalOpen(false)} className={styles.closeButton}>
-        Cerrar
-      </button>
-    </div>
-  )}
-</Modal>
+            {/* Buscar y mostrar descripción de parentesco */}
+            <p>
+              <strong>Parentesco:</strong> {
+                parentescoOptions.find(p => p.ID_PARENTESCO === selectedBeneficiary.PARENTESCO)?.PARENTESCO || "Desconocido"
+              }
+            </p>
 
+            <p><strong>Nombre:</strong> {`${selectedBeneficiary.NOMBRE} ${selectedBeneficiary.A_PATERNO} ${selectedBeneficiary.A_MATERNO}`}</p>
+
+            {/* Buscar y mostrar descripción de sexo, asegurando coincidencia de tipo de dato */}
+            <p>
+              <strong>Sexo:</strong> {
+                sexoOptions.find(s => String(s.idSexo) === String(selectedBeneficiary.SEXO))?.sexo || "Desconocido"
+              }
+            </p>
+
+            <p><strong>Escolaridad:</strong> {selectedBeneficiary.ESCOLARIDAD || "N/A"}</p>
+            <p><strong>Fecha de Nacimiento:</strong> {selectedBeneficiary.F_NACIMIENTO}</p>
+            <p><strong>Activo:</strong> {selectedBeneficiary.ACTIVO === "A" ? "Sí" : "No"}</p>
+            <p><strong>Alergias:</strong> {selectedBeneficiary.ALERGIAS || "Ninguna"}</p>
+            <p><strong>Tipo de Sangre:</strong> {selectedBeneficiary.SANGRE || "N/A"}</p>
+            <p><strong>Teléfono de Emergencia:</strong> {selectedBeneficiary.TEL_EMERGENCIA || "N/A"}</p>
+            <p><strong>Nombre de Contacto de Emergencia:</strong> {selectedBeneficiary.NOMBRE_EMERGENCIA || "N/A"}</p>
+            <p><strong>Discapacitado:</strong> {selectedBeneficiary.ESDISCAPACITADO === 1 ? "Sí" : "No"}</p>
+            <p><strong>Estudiante:</strong> {selectedBeneficiary.ESESTUDIANTE === 1 ? "Sí" : "No"}</p>
+            <p><strong>Vigencia de Estudios:</strong> {selectedBeneficiary.VIGENCIA_ESTUDIOS || "N/A"}</p>
+
+            {/* Mostrar la imagen solo si FOTO_URL está disponible */}
+            {selectedBeneficiary.FOTO_URL ? (
+              <div className={styles.imageContainer}>
+                <img
+                  src={selectedBeneficiary.FOTO_URL}
+                  alt={`${selectedBeneficiary.NOMBRE} ${selectedBeneficiary.A_PATERNO}`}
+                  className={styles.beneficiaryImage}
+                />
+              </div>
+            ) : (
+              <p>Imagen no disponible</p>
+            )}
+            <button onClick={() => setIsViewModalOpen(false)} className={styles.closeButton}>
+              Cerrar
+            </button>
+          </div>
+        )}
+      </Modal>
 
         {/* Tabla de beneficiarios, solo se muestra si el empleado es encontrado */}
         {empleado && beneficiarios.length > 0 && (
