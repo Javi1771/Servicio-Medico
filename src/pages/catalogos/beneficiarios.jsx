@@ -3,7 +3,9 @@ import Image from "next/image";
 import Swal from "sweetalert2";
 import Modal from "react-modal";
 import styles from "../css/beneficiarios.module.css";
-import { useRouter } from "next/router"; // Importar useRouter para la navegación
+import { useRouter } from "next/router";
+import { PDFDocument, rgb } from "pdf-lib";
+import { saveAs } from "file-saver";
 
 Modal.setAppElement("#__next"); // Configuración del modal en Next.js
 
@@ -28,6 +30,52 @@ export default function RegistroBeneficiario() {
     activo: "A", // Campo de estado del beneficiario (A=Activo, I=Inactivo)
     imageUrl: "", // URL de la imagen en Cloudinary
   });
+
+  const generatePDF = async (beneficiario) => {
+    try {
+      // Cargar la plantilla del PDF desde la carpeta `public`
+      const existingPdfBytes = await fetch("/CREDENCIAL.pdf").then((res) =>
+        res.arrayBuffer()
+      );
+
+      // Crear una instancia del documento PDF
+      const pdfDoc = await PDFDocument.load(existingPdfBytes);
+      const page = pdfDoc.getPage(0);
+
+      // Agregar datos al PDF
+      page.drawText(beneficiario.NOMBRE, {
+        x: 100,
+        y: 400,
+        size: 12,
+        color: rgb(0, 0, 0),
+      });
+      page.drawText(beneficiario.A_PATERNO, {
+        x: 100,
+        y: 380,
+        size: 12,
+        color: rgb(0, 0, 0),
+      });
+      page.drawText(beneficiario.NO_NOMINA, {
+        x: 100,
+        y: 360,
+        size: 12,
+        color: rgb(0, 0, 0),
+      });
+      page.drawText(beneficiario.ALERGIAS, {
+        x: 100,
+        y: 340,
+        size: 12,
+        color: rgb(0, 0, 0),
+      });
+
+      // Guardar el PDF modificado y descargarlo
+      const pdfBytes = await pdfDoc.save();
+      const blob = new Blob([pdfBytes], { type: "application/pdf" });
+      saveAs(blob, "credencial_completada.pdf");
+    } catch (error) {
+      console.error("Error generando el PDF:", error);
+    }
+  };
 
   const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -64,7 +112,6 @@ export default function RegistroBeneficiario() {
     }
   };
 
-  /Obtener el sindicato del empleado/
   const getSindicato = (grupoNomina, cuotaSindical) => {
     if (grupoNomina === "NS") {
       return cuotaSindical === "S"
@@ -126,9 +173,11 @@ export default function RegistroBeneficiario() {
     if (!numNomina) return;
 
     try {
-        const response = await fetch(`/api/mostBeneficiarios?num_nom=${numNomina}`);
-        const data = await response.json();
-      setBeneficiarios(data); // Aquí verifica que data incluye FOTO_URL
+      const response = await fetch(
+        `/api/mostBeneficiarios?num_nom=${numNomina}`
+      );
+      const data = await response.json();
+      setBeneficiarios(data); // Aquí verifica que `data` incluye FOTO_URL
     } catch (err) {
       console.error("Error fetching beneficiaries:", err);
     }
@@ -297,10 +346,12 @@ export default function RegistroBeneficiario() {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
 
   const handleViewBeneficiary = (beneficiario) => {
-    console.log("Beneficiary data:", beneficiario); // Verificar los datos, incluida la URL de la imagen
     setSelectedBeneficiary(beneficiario);
     fetchSexoNombre(beneficiario.SEXO);
     setIsViewModalOpen(true);
+
+    // Generar PDF con los datos del beneficiario seleccionado
+    generatePDF(beneficiario);
   };
 
   // Función para confirmar y eliminar beneficiario
@@ -411,35 +462,34 @@ export default function RegistroBeneficiario() {
             </div>
           )}
 
-{empleado && (
-  <div className={styles.employeeInfoContainer}>
-    <div className={styles.employeeDetails}>
-      <h2>Detalles del Empleado:</h2>
-      <p>
-  <strong>Nombre:</strong> {`${empleado.nombre} ${empleado.a_paterno} ${empleado.a_materno}`}
-</p>
+          {empleado && (
+            <div className={styles.employeeInfoContainer}>
+              <div className={styles.employeeDetails}>
+                <h2>Detalles del Empleado:</h2>
+                <p>
+                  <strong>Nombre:</strong>{" "}
+                  {`${empleado.nombre} ${empleado.a_paterno} ${empleado.a_materno}`}
+                </p>
+                <p>
+                  <strong>Departamento:</strong> {empleado.departamento}
+                </p>
+                <p>
+                  <strong>Puesto:</strong> {empleado.puesto}
+                </p>
+              </div>
 
-      <p>
-        <strong>Departamento:</strong> {empleado.departamento}
-      </p>
-      <p>
-        <strong>Puesto:</strong> {empleado.puesto}
-      </p>
-    </div>
-    
-    {/* Card de sindicato al lado de la información del empleado */}
-    {empleado.sindicato && (
-      <div className={styles.sindicatoBadge}>
-        <p className={styles.sindicatoText}>Sindicalizado</p>
-        <p className={styles.sindicatoName}>Sindicato: {empleado.sindicato}</p>
-      </div>
-    )}
-  </div>
-)}
-
+              {/* Card de sindicato al lado de la información del empleado */}
+              {empleado.sindicato && (
+                <div className={styles.sindicatoBadge}>
+                  <p className={styles.sindicatoText}>Sindicalizado</p>
+                  <p className={styles.sindicatoName}>
+                    Sindicato: {empleado.sindicato}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
-
-
 
         {empleado && (
           <button
@@ -495,16 +545,15 @@ export default function RegistroBeneficiario() {
               {formData.activo === "A" ? "Activo" : "Inactivo"}
             </button>
 
-
             <label className={styles.inputLabel}>
-    Foto:
-    <input
-      type="file"
-      accept="image/*"
-      onChange={handleImageUpload}
-      className={styles.inputField}
-    />
-  </label>
+              Foto:
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                className={styles.inputField}
+              />
+            </label>
 
             <div className={styles.inputRow}>
               <div className={styles.inputGroup}>
@@ -680,45 +729,75 @@ export default function RegistroBeneficiario() {
 
         {/**modal para ver los datos del beneficiario */}
         <Modal
-  isOpen={isViewModalOpen}
-  onRequestClose={() => setIsViewModalOpen(false)}
-  overlayClassName={styles.modalOverlay}
-  className={styles.modal}
->
-  {selectedBeneficiary && (
-    <div className={styles.card}>
-      <h2>Información del Beneficiario</h2>
-      <p><strong>ID:</strong> {selectedBeneficiary.ID_BENEFICIARIO}</p>
-      <p><strong>Número de Nómina:</strong> {selectedBeneficiary.NO_NOMINA}</p>
-      <p><strong>Parentesco:</strong> {selectedBeneficiary.PARENTESCO}</p>
-      <p><strong>Nombre:</strong> {`${empleado.nombre} ${empleado.a_paterno} ${empleado.a_materno}`}</p>
-      <p><strong>Sexo:</strong> {sexoNombre}</p>
-      <p><strong>Fecha de Nacimiento:</strong> {selectedBeneficiary.F_NACIMIENTO}</p>
-      <p><strong>Activo:</strong> {selectedBeneficiary.ACTIVO === "A" ? "Sí" : "No"}</p>
-      <p><strong>Alergias:</strong> {selectedBeneficiary.ALERGIAS}</p>
-      <p><strong>Tipo de Sangre:</strong> {selectedBeneficiary.SANGRE}</p>
-      <p><strong>Teléfono de Emergencia:</strong> {selectedBeneficiary.TEL_EMERGENCIA}</p>
-      <p><strong>Nombre de Contacto de Emergencia:</strong> {selectedBeneficiary.NOMBRE_EMERGENCIA}</p>
+          isOpen={isViewModalOpen}
+          onRequestClose={() => setIsViewModalOpen(false)}
+          overlayClassName={styles.modalOverlay}
+          className={styles.modal}
+        >
+          {selectedBeneficiary && (
+            <div className={styles.card}>
+              <h2>Información del Beneficiario</h2>
+              <p>
+                <strong>ID:</strong> {selectedBeneficiary.ID_BENEFICIARIO}
+              </p>
+              <p>
+                <strong>Número de Nómina:</strong>{" "}
+                {selectedBeneficiary.NO_NOMINA}
+              </p>
+              <p>
+                <strong>Parentesco:</strong> {selectedBeneficiary.PARENTESCO}
+              </p>
+              <p>
+                <strong>Nombre:</strong>{" "}
+                {`${selectedBeneficiary.NOMBRE} ${selectedBeneficiary.A_PATERNO} ${selectedBeneficiary.A_MATERNO}`}
+              </p>
+              <p>
+                <strong>Sexo:</strong> {sexoNombre}
+              </p>
+              <p>
+                <strong>Fecha de Nacimiento:</strong>{" "}
+                {selectedBeneficiary.F_NACIMIENTO}
+              </p>
+              <p>
+                <strong>Activo:</strong>{" "}
+                {selectedBeneficiary.ACTIVO === "A" ? "Sí" : "No"}
+              </p>
+              <p>
+                <strong>Alergias:</strong> {selectedBeneficiary.ALERGIAS}
+              </p>
+              <p>
+                <strong>Tipo de Sangre:</strong> {selectedBeneficiary.SANGRE}
+              </p>
+              <p>
+                <strong>Teléfono de Emergencia:</strong>{" "}
+                {selectedBeneficiary.TEL_EMERGENCIA}
+              </p>
+              <p>
+                <strong>Nombre de Contacto de Emergencia:</strong>{" "}
+                {selectedBeneficiary.NOMBRE_EMERGENCIA}
+              </p>
 
-      {/* Mostrar la imagen solo si FOTO_URL existe y no está vacío */}
-      {selectedBeneficiary.FOTO_URL ? (
-        <div className={styles.imageContainer}>
-          <img
-            src={selectedBeneficiary.FOTO_URL}
-            alt={`${selectedBeneficiary.NOMBRE} ${selectedBeneficiary.A_PATERNO}`}
-            className={styles.beneficiaryImage}
-          />
-        </div>
-      ) : (
-        <p>Imagen no disponible</p>
-      )}
-      <button onClick={() => setIsViewModalOpen(false)} className={styles.closeButton}>
-        Cerrar
-      </button>
-    </div>
-  )}
-</Modal>
-
+              {/* Mostrar la imagen solo si FOTO_URL existe y no está vacío */}
+              {selectedBeneficiary.FOTO_URL ? (
+                <div className={styles.imageContainer}>
+                  <Image
+                    src={selectedBeneficiary.FOTO_URL}
+                    alt={`${selectedBeneficiary.NOMBRE} ${selectedBeneficiary.A_PATERNO}`}
+                    className={styles.beneficiaryImage}
+                  />
+                </div>
+              ) : (
+                <p>Imagen no disponible</p>
+              )}
+              <button
+                onClick={() => setIsViewModalOpen(false)}
+                className={styles.closeButton}
+              >
+                Cerrar
+              </button>
+            </div>
+          )}
+        </Modal>
 
         {/* Tabla de beneficiarios, solo se muestra si el empleado es encontrado */}
         {empleado && beneficiarios.length > 0 && (
