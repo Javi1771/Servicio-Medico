@@ -410,31 +410,34 @@ export default function RegistroBeneficiario() {
             </div>
           )}
 
-          {empleado && (
-            <div className={styles.employeeInfo}>
-              <h2>Detalles del Empleado:</h2>
-              <p>
-                <strong>Nombre:</strong>{" "}
-                {`${empleado.nombre} ${empleado.a_paterno} ${empleado.a_materno}`}
-              </p>
-              <p>
-                <strong>Departamento:</strong> {empleado.departamento}
-              </p>
-              <p>
-                <strong>Puesto:</strong> {empleado.puesto}
-              </p>
-              {/* Mostrar sindicato en un estilo adicional */}
-              {empleado.sindicato && (
-                <div className={styles.sindicatoBadge}>
-                  <p className={styles.sindicatoText}>Sindicalizado</p>
-                  <p className={styles.sindicatoName}>
-                    Sindicato: {empleado.sindicato}
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
+{empleado && (
+  <div className={styles.employeeInfoContainer}>
+    <div className={styles.employeeDetails}>
+      <h2>Detalles del Empleado:</h2>
+      <p>
+        <strong>Nombre:</strong> {`${empleado.nombre} ${empleado.a_paterno} ${empleado.a_materno}`}
+      </p>
+      <p>
+        <strong>Departamento:</strong> {empleado.departamento}
+      </p>
+      <p>
+        <strong>Puesto:</strong> {empleado.puesto}
+      </p>
+    </div>
+    
+    {/* Card de sindicato al lado de la información del empleado */}
+    {empleado.sindicato && (
+      <div className={styles.sindicatoBadge}>
+        <p className={styles.sindicatoText}>Sindicalizado</p>
+        <p className={styles.sindicatoName}>Sindicato: {empleado.sindicato}</p>
+      </div>
+    )}
+  </div>
+)}
+
         </div>
+
+
 
         {empleado && (
           <button

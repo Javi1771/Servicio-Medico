@@ -978,6 +978,23 @@
   flex: 1; /* Ocupa el espacio restante a la izquierda */
 }
 
+/* Beneficiarios.module.css */
+
+/* Contenedor principal para alinear detalles y sindicato en una fila */
+.employeeInfoContainer {
+  display: flex;
+  align-items: center; /* Centra verticalmente el card de sindicato */
+  background-color: #2a2f3a;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+}
+
+/* Sección de los detalles del empleado */
+.employeeDetails {
+  flex: 1; /* Ocupa el espacio restante a la izquierda */
+}
+
 /* Card de sindicato al lado de los detalles del empleado */
 .sindicatoBadge {
   margin-left: 20px; /* Separación a la izquierda de los detalles */
