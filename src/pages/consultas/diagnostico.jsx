@@ -1,7 +1,11 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState, useEffect } from "react";
+import Swal from "sweetalert2";
 import Image from "next/image";
+import withReactContent from "sweetalert2-react-content";
 import DatosAdicionales from "./datos-adicionales/datos-adicionales";
+
+const MySwal = withReactContent(Swal);
 
 const Diagnostico = () => {
   const [nombreMedico, setNombreMedico] = useState("Dr. Goku");
@@ -133,12 +137,23 @@ const Diagnostico = () => {
           (a, b) => new Date(a.fechaconsulta) - new Date(b.fechaconsulta)
         );
         setPacientes(pacientesOrdenados);
-        console.log("Pacientes cargados:", pacientesOrdenados);
       } else {
         console.error("Error al cargar consultas del día:", data.message);
       }
     } catch (error) {
       console.error("Error al cargar consultas del día:", error);
+      MySwal.fire({
+        icon: "error",
+        title:
+          "<span style='color: #ff8080; font-weight: bold;'>❌ Error al cargar pacientes</span>",
+        html: "<p style='color: #d1d5db;'>No se pudo cargar la información. Inténtalo nuevamente.</p>",
+        background: "linear-gradient(145deg, #2d3748, #1c2230)",
+        confirmButtonColor: "#ff8080",
+        customClass: {
+          popup:
+            "border border-red-500 shadow-[0px_0px_15px_5px_rgba(255,128,128,0.7)] rounded-lg",
+        },
+      });
     }
   };
 
@@ -159,9 +174,7 @@ const Diagnostico = () => {
     try {
       const response = await fetch("/api/empleado", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ num_nom }),
       });
 
@@ -179,6 +192,18 @@ const Diagnostico = () => {
       }
     } catch (error) {
       console.error("Error al conectar con el servicio de empleado:", error);
+      MySwal.fire({
+        icon: "error",
+        title:
+          "<span style='color: #ff8080; font-weight: bold;'>❌ Error en el servicio de empleado</span>",
+        html: "<p style='color: #d1d5db;'>Hubo un problema al obtener datos del empleado. Inténtalo más tarde.</p>",
+        background: "linear-gradient(145deg, #2d3748, #1c2230)",
+        confirmButtonColor: "#ff8080",
+        customClass: {
+          popup:
+            "border border-red-500 shadow-[0px_0px_15px_5px_rgba(255,128,128,0.7)] rounded-lg",
+        },
+      });
     }
   };
 
@@ -226,12 +251,24 @@ const Diagnostico = () => {
           clavestatus: 2,
         }),
       });
-      cargarPacientesDelDia(); //* Refresca la lista de pacientes
+      cargarPacientesDelDia();
     } catch (error) {
       console.error(
         "Error al actualizar clavestatus al seleccionar paciente:",
         error
       );
+      MySwal.fire({
+        icon: "error",
+        title:
+          "<span style='color: #ff8080; font-weight: bold;'>❌ Error al seleccionar paciente</span>",
+        html: "<p style='color: #d1d5db;'>Ocurrió un problema al seleccionar el paciente. Inténtalo nuevamente.</p>",
+        background: "linear-gradient(145deg, #2d3748, #1c2230)",
+        confirmButtonColor: "#ff8080",
+        customClass: {
+          popup:
+            "border border-red-500 shadow-[0px_0px_15px_5px_rgba(255,128,128,0.7)] rounded-lg",
+        },
+      });
     }
   };
 
@@ -253,21 +290,6 @@ const Diagnostico = () => {
         }
       );
 
-      if (datos.pasarEspecialidad === "si" && datos.especialidadSeleccionada) {
-        const responseEspecialidad = await fetch("/api/guardarEspecialidad", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            claveConsulta: datos.claveConsulta,
-            claveEspecialidad: datos.especialidadSeleccionada,
-            observaciones: datos.observaciones,
-          }),
-        });
-
-        if (!responseEspecialidad.ok)
-          throw new Error("Error al guardar especialidad");
-      }
-
       if (responseDiagnostico.ok) {
         await fetch("/api/actualizarClavestatus", {
           method: "POST",
@@ -277,20 +299,41 @@ const Diagnostico = () => {
             clavestatus: 4,
           }),
         });
-        localStorage.setItem("consultaGuardada", datos.claveConsulta); //* Guarda la clave de la consulta
-        cargarPacientesDelDia(); //* Refresca la lista de pacientes
-        alert("Todos los datos fueron guardados correctamente.");
+        localStorage.setItem("consultaGuardada", datos.claveConsulta);
+        cargarPacientesDelDia();
+        MySwal.fire({
+          icon: "success",
+          title:
+            "<span style='color: #00ff7f; font-weight: bold;'>✔️ Guardado exitoso</span>",
+          html: "<p style='color: #e5e7eb;'>La consulta se ha guardado exitosamente.</p>",
+          background: "linear-gradient(145deg, #2d3748, #1c2230)",
+          confirmButtonColor: "#00ff7f",
+          customClass: {
+            popup:
+              "border border-green-500 shadow-[0px_0px_15px_5px_rgba(0,255,127,0.7)] rounded-lg",
+          },
+        });
         setPacienteSeleccionado(null);
       } else {
         console.error(
           "Error al guardar datos del diagnóstico:",
           await responseDiagnostico.json()
         );
-        alert("Error al guardar datos del diagnóstico.");
       }
     } catch (error) {
       console.error("Error en la solicitud de guardado:", error);
-      alert("Error al conectar con el servicio de guardado.");
+      MySwal.fire({
+        icon: "error",
+        title:
+          "<span style='color: #ff8080; font-weight: bold;'>❌ Error al guardar</span>",
+        html: "<p style='color: #d1d5db;'>Hubo un problema al guardar la consulta. Inténtalo nuevamente.</p>",
+        background: "linear-gradient(145deg, #2d3748, #1c2230)",
+        confirmButtonColor: "#ff8080",
+        customClass: {
+          popup:
+            "border border-red-500 shadow-[0px_0px_15px_5px_rgba(255,128,128,0.7)] rounded-lg",
+        },
+      });
     }
   };
 
@@ -334,10 +377,40 @@ const Diagnostico = () => {
 
       //* Refresca la lista de pacientes después de cerrar el formulario
       await cargarPacientesDelDia();
-      alert("Consulta cancelada. Datos borrados correctamente.");
+
+      //* Alerta de éxito
+      MySwal.fire({
+        icon: "info",
+        title:
+          "<span style='color: #00c9ff; font-weight: bold; font-size: 1.5em;'>ℹ️ Consulta cancelada</span>",
+        html: "<p style='color: #e5e7eb; font-size: 1.1em;'>Consulta cancelada y datos borrados correctamente.</p>",
+        background: "linear-gradient(145deg, #2d3748, #1c2230)",
+        confirmButtonColor: "#00c9ff",
+        confirmButtonText:
+          "<span style='color: #0f172a; font-weight: bold;'>Aceptar</span>",
+        customClass: {
+          popup:
+            "border border-cyan-400 shadow-[0px_0px_15px_5px_rgba(0,201,255,0.7)] rounded-lg",
+        },
+      });
     } catch (error) {
       console.error("Error al cancelar y borrar datos de la consulta:", error);
-      alert("Hubo un error al cancelar la consulta.");
+
+      //* Alerta de error
+      MySwal.fire({
+        icon: "error",
+        title:
+          "<span style='color: #ff8080; font-weight: bold; font-size: 1.5em;'>❌ Error al cancelar</span>",
+        html: "<p style='color: #d1d5db; font-size: 1.1em;'>Hubo un error al cancelar la consulta. Inténtalo nuevamente.</p>",
+        background: "linear-gradient(145deg, #2d3748, #1c2230)",
+        confirmButtonColor: "#ff8080",
+        confirmButtonText:
+          "<span style='color: #0f172a; font-weight: bold;'>Aceptar</span>",
+        customClass: {
+          popup:
+            "border border-red-500 shadow-[0px_0px_15px_5px_rgba(255,128,128,0.7)] rounded-lg",
+        },
+      });
     }
   };
 
