@@ -935,6 +935,7 @@
   cursor: pointer;
   font-size: 14px;
   transition: background-color 0.2s;
+  
 }
 
 .backButton:hover {
@@ -943,4 +944,88 @@
 
 .backButton svg {
   margin-right: 5px;
+}
+
+
+/*ESTILOS ESTATUS SINDICATO*/
+/* Beneficiarios.module.css */
+/* Beneficiarios.module.css */
+
+/* Estilo general para el contenedor de la información del empleado */
+.employeeInfo {
+  background-color: #2a2f3a;
+  padding: 20px;
+  border-radius: 10px;
+  position: relative;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.5); /* Sombra para el contenedor principal */
+}
+
+/* Card del sindicato dentro del contenedor de empleado */
+/* Beneficiarios.module.css */
+
+/* Contenedor principal para alinear detalles y sindicato en una fila */
+.employeeInfoContainer {
+  display: flex;
+  align-items: center; /* Centra verticalmente el card de sindicato */
+  background-color: #2a2f3a;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+}
+
+/* Sección de los detalles del empleado */
+.employeeDetails {
+  flex: 1; /* Ocupa el espacio restante a la izquierda */
+}
+
+/* Beneficiarios.module.css */
+
+/* Contenedor principal para alinear detalles y sindicato en una fila */
+.employeeInfoContainer {
+  display: flex;
+  align-items: center; /* Centra verticalmente el card de sindicato */
+  background-color: #2a2f3a;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+}
+
+/* Sección de los detalles del empleado */
+.employeeDetails {
+  flex: 1; /* Ocupa el espacio restante a la izquierda */
+}
+
+/* Card de sindicato al lado de los detalles del empleado */
+.sindicatoBadge {
+  margin-left: 20px; /* Separación a la izquierda de los detalles */
+  background-color: #22283b;
+  border-radius: 8px;
+  padding: 10px 15px;
+  text-align: center;
+  color: #ffd700;
+  box-shadow: 0 0 10px #ffd700, 0 0 20px #ffd700, 0 0 30px #ffd700; /* Efecto neón */
+}
+.sindicatoText {
+  font-weight: bold;
+  font-size: 16px;
+  color: #ffd700;
+}
+.sindicatoName {
+  font-size: 14px;
+  color: #ffffff;
+}
+
+
+/*ESTILOS IMAGEN DEL BENEFICIARIO*/
+.imageContainer {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.beneficiaryImage {
+  max-width: 100%;
+  max-height: 200px;
+  border-radius: 8px;
+  object-fit: cover;
 }
