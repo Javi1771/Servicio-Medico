@@ -1,5 +1,13 @@
+// /api/crearBeneficiario.js
 import { connectToDatabase } from '../api/connectToDatabase';
 import fetch from 'node-fetch';
+
+const getSindicato = (grupoNomina, cuotaSindical) => {
+  if (grupoNomina === "NS") {
+    return cuotaSindical === "S" ? "SUTSMSJR" : cuotaSindical === "" ? "SITAM" : null;
+  }
+  return null;
+};
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -21,16 +29,16 @@ export default async function handler(req, res) {
     nombreEmergencia,
     imageUrl,
     vigencia,
-    curp,  // Nuevo campo CURP
+    curp,
+    situacion_lab,  // Nuevo campo situación laboral
   } = req.body;
 
-  // Validar datos recibidos
-  if (!noNomina || !nombre || !aPaterno || !fNacimiento || !telEmergencia || !sexo || !vigencia || !curp) {
+  if (!noNomina || !nombre || !aPaterno || !fNacimiento || !telEmergencia || !sexo || !vigencia || !curp || !situacion_lab) {
     return res.status(400).json({ error: 'Datos incompletos o inválidos' });
   }
 
-  // Obtener el departamento desde la API `empleado`
   let departamento = '';
+  let sindicato = '';
   try {
     const response = await fetch('http://localhost:3000/api/empleado', {
       method: 'POST',
@@ -39,11 +47,11 @@ export default async function handler(req, res) {
     });
     const data = await response.json();
     departamento = data.departamento || '';
+    sindicato = getSindicato(data.grupoNomina, data.cuotaSindical);
   } catch (error) {
-    console.error('Error al obtener departamento:', error);
+    console.error('Error al obtener departamento y sindicato:', error);
   }
 
-  // Calcular la edad
   const birthDate = new Date(fNacimiento);
   const today = new Date();
   let age = today.getFullYear() - birthDate.getFullYear();
@@ -54,7 +62,7 @@ export default async function handler(req, res) {
 
   try {
     const pool = await connectToDatabase();
-    
+
     await pool.request()
       .input('noNomina', noNomina)
       .input('parentesco', parentesco)
@@ -65,22 +73,26 @@ export default async function handler(req, res) {
       .input('fNacimiento', fNacimiento)
       .input('edad', age)
       .input('departamento', departamento)
+      .input('sindicato', sindicato)
       .input('alergias', alergias)
       .input('sangre', sangre)
       .input('telEmergencia', telEmergencia)
       .input('nombreEmergencia', nombreEmergencia)
       .input('imageUrl', imageUrl)
       .input('vigencia', vigencia)
-      .input('curp', curp)  // Guardar CURP
+      .input('curp', curp)
+      .input('situacion_lab', situacion_lab) // Guardar situacion_lab
       .input('estatus', 'A')
       .query(`
         INSERT INTO BENEFICIARIO (
           NO_NOMINA, PARENTESCO, NOMBRE, A_PATERNO, A_MATERNO, SEXO, 
-          F_NACIMIENTO, EDAD, DEPARTAMENTO, ALERGIAS, SANGRE, TEL_EMERGENCIA, NOMBRE_EMERGENCIA, FOTO_URL, VIGENCIA, CURP, ACTIVO
+          F_NACIMIENTO, EDAD, DEPARTAMENTO, SINDICATO, ALERGIAS, SANGRE, TEL_EMERGENCIA, 
+          NOMBRE_EMERGENCIA, FOTO_URL, VIGENCIA, CURP, situacion_lab, ACTIVO
         )
         VALUES (
           @noNomina, @parentesco, @nombre, @aPaterno, @aMaterno, @sexo, 
-          @fNacimiento, @edad, @departamento, @alergias, @sangre, @telEmergencia, @nombreEmergencia, @imageUrl, @vigencia, @curp, @estatus
+          @fNacimiento, @edad, @departamento, @sindicato, @alergias, @sangre, 
+          @telEmergencia, @nombreEmergencia, @imageUrl, @vigencia, @curp, @situacion_lab, @estatus
         )
       `);
 

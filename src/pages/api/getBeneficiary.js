@@ -1,3 +1,4 @@
+// /pages/api/getBeneficiary.js
 import { connectToDatabase } from './connectToDatabase';
 
 export default async function handler(req, res) {
@@ -28,6 +29,7 @@ export default async function handler(req, res) {
           F_NACIMIENTO,
           EDAD,
           DEPARTAMENTO,
+          SINDICATO,
           ACTIVO,
           ALERGIAS,
           SANGRE,
@@ -38,7 +40,8 @@ export default async function handler(req, res) {
           VIGENCIA_ESTUDIOS,
           FOTO_URL,
           VIGENCIA,
-          CURP  -- Añadir el campo CURP aquí
+          CURP,
+          situacion_lab  -- Añadir campo situacion_lab
         FROM BENEFICIARIO
         WHERE ID_BENEFICIARIO = @idBeneficiario
       `);
