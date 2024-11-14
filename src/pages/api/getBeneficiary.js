@@ -44,7 +44,8 @@ export default async function handler(req, res) {
           situacion_lab,
           enfermedades_cronicas,
           tratamientos,
-          domicilio -- Nuevo campo domicilio
+          domicilio,
+          observaciones -- Nuevo campo observaciones
         FROM BENEFICIARIO
         WHERE ID_BENEFICIARIO = @idBeneficiario
       `);

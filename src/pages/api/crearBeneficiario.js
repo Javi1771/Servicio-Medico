@@ -33,7 +33,8 @@ export default async function handler(req, res) {
     situacion_lab,
     enfermedades_cronicas,
     tratamientos,
-    domicilio, // Nuevo campo domicilio
+    domicilio,
+    observaciones, // Nuevo campo observaciones
   } = req.body;
 
   if (!noNomina || !nombre || !aPaterno || !fNacimiento || !telEmergencia || !sexo || !vigencia || !curp || !situacion_lab) {
@@ -87,20 +88,21 @@ export default async function handler(req, res) {
       .input('situacion_lab', situacion_lab)
       .input('enfermedades_cronicas', enfermedades_cronicas)
       .input('tratamientos', tratamientos)
-      .input('domicilio', domicilio) // Guardar domicilio
+      .input('domicilio', domicilio)
+      .input('observaciones', observaciones) // Guardar observaciones
       .input('estatus', 'A')
       .query(`
         INSERT INTO BENEFICIARIO (
           NO_NOMINA, PARENTESCO, NOMBRE, A_PATERNO, A_MATERNO, SEXO, 
           F_NACIMIENTO, EDAD, DEPARTAMENTO, SINDICATO, ALERGIAS, SANGRE, 
           TEL_EMERGENCIA, NOMBRE_EMERGENCIA, FOTO_URL, VIGENCIA, CURP, 
-          situacion_lab, enfermedades_cronicas, tratamientos, domicilio, ACTIVO
+          situacion_lab, enfermedades_cronicas, tratamientos, domicilio, observaciones, ACTIVO
         )
         VALUES (
           @noNomina, @parentesco, @nombre, @aPaterno, @aMaterno, @sexo, 
           @fNacimiento, @edad, @departamento, @sindicato, @alergias, @sangre, 
           @telEmergencia, @nombreEmergencia, @imageUrl, @vigencia, @curp, 
-          @situacion_lab, @enfermedades_cronicas, @tratamientos, @domicilio, @estatus
+          @situacion_lab, @enfermedades_cronicas, @tratamientos, @domicilio, @observaciones, @estatus
         )
       `);
 

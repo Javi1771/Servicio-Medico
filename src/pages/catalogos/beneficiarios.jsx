@@ -34,6 +34,7 @@ export default function RegistroBeneficiario() {
     enfermedades_cronicas: "", // Inicialización del campo enfermedades_cronicas
     tratamientos: "", // Nuevo campo tratamientos
     domicilio: "", // Nuevo campo domicilio
+    observaciones: "", // Nuevo campo observaciones
   });
 
   const [error, setError] = useState(null);
@@ -327,12 +328,21 @@ export default function RegistroBeneficiario() {
         aPaterno: "",
         aMaterno: "",
         sexo: "",
+        edad: "",
         fNacimiento: "",
         alergias: "",
         sangre: "",
         telEmergencia: "",
         nombreEmergencia: "",
         activo: "A",
+        imageUrl: "",
+        vigencia: "",
+        curp: "",
+        situacion_lab: "",
+        enfermedades_cronicas: "",
+        tratamientos: "",
+        domicilio: "",
+        observaciones: "",
       });
       fetchBeneficiarios();
     } catch (error) {
@@ -349,11 +359,20 @@ export default function RegistroBeneficiario() {
       aMaterno: beneficiario.A_MATERNO,
       sexo: beneficiario.SEXO,
       fNacimiento: beneficiario.F_NACIMIENTO,
+      edad: beneficiario.EDAD,
       alergias: beneficiario.ALERGIAS,
       sangre: beneficiario.SANGRE,
       telEmergencia: beneficiario.TEL_EMERGENCIA,
       nombreEmergencia: beneficiario.NOMBRE_EMERGENCIA,
-      activo: beneficiario.ACTIVO, // Cargar estado actual del beneficiario
+      activo: beneficiario.ACTIVO,
+      imageUrl: beneficiario.FOTO_URL,
+      vigencia: beneficiario.VIGENCIA,
+      curp: beneficiario.CURP,
+      situacion_lab: beneficiario.situacion_lab,
+      enfermedades_cronicas: beneficiario.enfermedades_cronicas,
+      tratamientos: beneficiario.tratamientos,
+      domicilio: beneficiario.domicilio,
+      observaciones: beneficiario.observaciones,
     });
     setCurrentBeneficiaryId(beneficiario.ID_BENEFICIARIO);
     setIsEditMode(true); // Establecer en modo edición
@@ -520,420 +539,432 @@ export default function RegistroBeneficiario() {
         )}
 
         {/* Modal para agregar beneficiario */}
-        <Modal
-          isOpen={isModalOpen}
-          onRequestClose={() => {
-            setIsModalOpen(false);
-            setIsEditMode(false);
-            setFormData({
-              parentesco: "",
-              nombre: "",
-              aPaterno: "",
-              aMaterno: "",
-              sexo: "",
-              fNacimiento: "",
-              alergias: "",
-              sangre: "",
-              telEmergencia: "",
-              nombreEmergencia: "",
-              activo: "A",
-            });
-          }}
-          overlayClassName={styles.modalOverlay}
-          className={styles.modal}
-        >
-          <form onSubmit={handleModalSubmit} className={styles.beneficiaryForm}>
-            <h2>
-              {isEditMode ? "Editar Beneficiario" : "Registrar Beneficiario"}
-            </h2>
-            <button
-              type="button"
-              onClick={toggleStatus}
-              className={`${styles.statusButton} ${
-                formData.activo === "A" ? styles.active : styles.inactive
-              }`}
-            >
-              {formData.activo === "A" ? "Activo" : "Inactivo"}
-            </button>
+<Modal
+  isOpen={isModalOpen}
+  onRequestClose={() => {
+    setIsModalOpen(false);
+    setIsEditMode(false);
+    setFormData({
+      parentesco: "",
+      nombre: "",
+      aPaterno: "",
+      aMaterno: "",
+      sexo: "",
+      fNacimiento: "",
+      alergias: "",
+      sangre: "",
+      telEmergencia: "",
+      nombreEmergencia: "",
+      activo: "A",
+    });
+  }}
+  overlayClassName={styles.modalOverlay}
+  className={styles.modal}
+>
+  <form onSubmit={handleModalSubmit} className={styles.beneficiaryForm}>
+    <h2>{isEditMode ? "Editar Beneficiario" : "Registrar Beneficiario"}</h2>
+    <button
+      type="button"
+      onClick={toggleStatus}
+      className={`${styles.statusButton} ${formData.activo === "A" ? styles.active : styles.inactive}`}
+    >
+      {formData.activo === "A" ? "Activo" : "Inactivo"}
+    </button>
 
-            {/* Fila 1: Foto */}
-            <div className={styles.inputRow}>
-              <div className={styles.inputGroup}>
-                <label className={styles.inputLabel}>
-                  Foto:
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className={styles.inputField}
-                  />
-                </label>
-              </div>
-            </div>
+    {/* Fila 1: Foto */}
+    <div className={styles.inputRow}>
+      <div className={styles.inputGroup}>
+        <label className={styles.inputLabel}>
+          Foto:
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleImageUpload}
+            className={styles.inputField}
+          />
+        </label>
+      </div>
+    </div>
 
-            {/* Fila 2: Parentesco y Nombre */}
-            <div className={styles.inputRow}>
-              <div className={styles.inputGroup}>
-                <label className={styles.inputLabel}>
-                  Parentesco:
-                  <select
-                    name="parentesco"
-                    value={formData.parentesco}
-                    onChange={handleInputChange}
-                    required
-                    className={styles.inputField}
-                  >
-                    <option value="">Selecciona</option>
-                    {parentescoOptions.map((option) => (
-                      <option
-                        key={option.ID_PARENTESCO}
-                        value={option.ID_PARENTESCO}
-                      >
-                        {option.PARENTESCO}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              </div>
+    {/* Fila 2: Parentesco y Nombre */}
+    <div className={styles.inputRow}>
+      <div className={styles.inputGroup}>
+        <label className={styles.inputLabel}>
+          Parentesco:
+          <select
+            name="parentesco"
+            value={formData.parentesco}
+            onChange={handleInputChange}
+            required
+            className={styles.inputField}
+          >
+            <option value="">Selecciona</option>
+            {parentescoOptions.map((option) => (
+              <option key={option.ID_PARENTESCO} value={option.ID_PARENTESCO}>
+                {option.PARENTESCO}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
 
-              <div className={styles.inputGroup}>
-                <label className={styles.inputLabel}>
-                  Nombre:
-                  <input
-                    type="text"
-                    name="nombre"
-                    value={formData.nombre}
-                    onChange={handleInputChange}
-                    required
-                    className={styles.inputField}
-                  />
-                </label>
-              </div>
-            </div>
+      <div className={styles.inputGroup}>
+        <label className={styles.inputLabel}>
+          Nombre:
+          <input
+            type="text"
+            name="nombre"
+            value={formData.nombre}
+            onChange={handleInputChange}
+            required
+            className={styles.inputField}
+          />
+        </label>
+      </div>
+    </div>
 
-            {/* Fila 3: Apellido Paterno y Apellido Materno */}
-            <div className={styles.inputRow}>
-              <div className={styles.inputGroup}>
-                <label className={styles.inputLabel}>
-                  Apellido Paterno:
-                  <input
-                    type="text"
-                    name="aPaterno"
-                    value={formData.aPaterno}
-                    onChange={handleInputChange}
-                    required
-                    className={styles.inputField}
-                  />
-                </label>
-              </div>
+    {/* Fila 3: Apellido Paterno y Apellido Materno */}
+    <div className={styles.inputRow}>
+      <div className={styles.inputGroup}>
+        <label className={styles.inputLabel}>
+          Apellido Paterno:
+          <input
+            type="text"
+            name="aPaterno"
+            value={formData.aPaterno}
+            onChange={handleInputChange}
+            required
+            className={styles.inputField}
+          />
+        </label>
+      </div>
 
-              <div className={styles.inputGroup}>
-                <label className={styles.inputLabel}>
-                  Apellido Materno:
-                  <input
-                    type="text"
-                    name="aMaterno"
-                    value={formData.aMaterno}
-                    onChange={handleInputChange}
-                    className={styles.inputField}
-                  />
-                </label>
-              </div>
-            </div>
+      <div className={styles.inputGroup}>
+        <label className={styles.inputLabel}>
+          Apellido Materno:
+          <input
+            type="text"
+            name="aMaterno"
+            value={formData.aMaterno}
+            onChange={handleInputChange}
+            className={styles.inputField}
+          />
+        </label>
+      </div>
+    </div>
 
-            {/* Fila 4: Fecha de Nacimiento y Edad */}
-            <div className={styles.inputRow}>
-              <div className={styles.inputGroup}>
-                <label className={styles.inputLabel}>
-                  Fecha de Nacimiento:
-                  <input
-                    type="date"
-                    name="fNacimiento"
-                    value={formData.fNacimiento}
-                    onChange={handleInputChange}
-                    required
-                    className={styles.inputField}
-                  />
-                </label>
-              </div>
+    {/* Fila 4: Fecha de Nacimiento y Edad */}
+    <div className={styles.inputRow}>
+      <div className={styles.inputGroup}>
+        <label className={styles.inputLabel}>
+          Fecha de Nacimiento:
+          <input
+            type="date"
+            name="fNacimiento"
+            value={formData.fNacimiento}
+            onChange={handleInputChange}
+            required
+            className={styles.inputField}
+          />
+        </label>
+      </div>
 
-              <div className={styles.inputGroup}>
-                <label className={styles.inputLabel}>
-                  Edad:
-                  <input
-                    type="number"
-                    name="edad"
-                    value={formData.edad}
-                    readOnly
-                    className={styles.inputField}
-                  />
-                </label>
-              </div>
-            </div>
+      <div className={styles.inputGroup}>
+        <label className={styles.inputLabel}>
+          Edad:
+          <input
+            type="number"
+            name="edad"
+            value={formData.edad}
+            readOnly
+            className={styles.inputField}
+          />
+        </label>
+      </div>
+    </div>
 
-            {/* Fila 5: Sexo y Alergias */}
-            <div className={styles.inputRow}>
-              <div className={styles.inputGroup}>
-                <label className={styles.inputLabel}>
-                  Sexo:
-                  <select
-                    name="sexo"
-                    value={formData.sexo}
-                    onChange={handleInputChange}
-                    required
-                    className={styles.inputField}
-                  >
-                    <option value="">Selecciona</option>
-                    {sexoOptions.length > 0 &&
-                      sexoOptions.map((option) => (
-                        <option key={option.idSexo} value={option.idSexo}>
-                          {option.sexo}
-                        </option>
-                      ))}
-                  </select>
-                </label>
-              </div>
+    {/* Fila 5: Sexo y Alergias */}
+    <div className={styles.inputRow}>
+      <div className={styles.inputGroup}>
+        <label className={styles.inputLabel}>
+          Sexo:
+          <select
+            name="sexo"
+            value={formData.sexo}
+            onChange={handleInputChange}
+            required
+            className={styles.inputField}
+          >
+            <option value="">Selecciona</option>
+            {sexoOptions.map((option) => (
+              <option key={option.idSexo} value={option.idSexo}>
+                {option.sexo}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
 
-              <div className={styles.inputGroup}>
-                <label className={styles.inputLabel}>
-                  Alergias:
-                  <input
-                    type="text"
-                    name="alergias"
-                    value={formData.alergias}
-                    onChange={handleInputChange}
-                    className={styles.inputField}
-                  />
-                </label>
-              </div>
-            </div>
+      <div className={styles.inputGroup}>
+        <label className={styles.inputLabel}>
+          Alergias:
+          <input
+            type="text"
+            name="alergias"
+            value={formData.alergias}
+            onChange={handleInputChange}
+            className={styles.inputField}
+          />
+        </label>
+      </div>
+    </div>
 
-            {/* Fila 6: Vigencia y Tipo de Sangre */}
-            <div className={styles.inputRow}>
-              <div className={styles.inputGroup}>
-                <label className={styles.inputLabel}>
-                  Vigencia:
-                  <input
-                    type="date"
-                    name="vigencia"
-                    value={formData.vigencia}
-                    onChange={handleInputChange}
-                    required
-                    className={styles.inputField}
-                  />
-                </label>
-              </div>
+    {/* Fila 6: Vigencia y Tipo de Sangre */}
+    <div className={styles.inputRow}>
+      <div className={styles.inputGroup}>
+        <label className={styles.inputLabel}>
+          Vigencia:
+          <input
+            type="date"
+            name="vigencia"
+            value={formData.vigencia}
+            onChange={handleInputChange}
+            required
+            className={styles.inputField}
+          />
+        </label>
+      </div>
 
-              <div className={styles.inputGroup}>
-                <label className={styles.inputLabel}>
-                  Tipo de Sangre:
-                  <input
-                    type="text"
-                    name="sangre"
-                    value={formData.sangre}
-                    onChange={handleInputChange}
-                    required
-                    className={styles.inputField}
-                  />
-                </label>
-              </div>
-            </div>
+      <div className={styles.inputGroup}>
+        <label className={styles.inputLabel}>
+          Tipo de Sangre:
+          <input
+            type="text"
+            name="sangre"
+            value={formData.sangre}
+            onChange={handleInputChange}
+            required
+            className={styles.inputField}
+          />
+        </label>
+      </div>
+    </div>
 
-            {/* Fila 7: CURP */}
-            <div className={styles.inputRow}>
-              <div className={styles.inputGroup}>
-                <label className={styles.inputLabel}>
-                  CURP:
-                  <input
-                    type="text"
-                    name="curp"
-                    value={formData.curp}
-                    onChange={handleInputChange}
-                    required
-                    maxLength="18"
-                    className={styles.inputField}
-                  />
-                </label>
-              </div>
+    {/* Fila 7: CURP */}
+    <div className={styles.inputRow}>
+      <div className={styles.inputGroup}>
+        <label className={styles.inputLabel}>
+          CURP:
+          <input
+            type="text"
+            name="curp"
+            value={formData.curp}
+            onChange={handleInputChange}
+            required
+            maxLength="18"
+            className={styles.inputField}
+          />
+        </label>
+      </div>
+    </div>
 
-              <div className={styles.inputRow}>
-                <div className={styles.inputGroup}>
-                  <label className={styles.inputLabel}>
-                    Situación Laboral:
-                  </label>
-                  <div className={styles.checkboxGroup}>
-                    <label>
-                      <input
-                        type="radio"
-                        name="situacion_lab"
-                        value="Pensionado"
-                        checked={formData.situacion_lab === "Pensionado"}
-                        onChange={handleInputChange}
-                      />{" "}
-                      Pensionado
-                    </label>
-                    <label>
-                      <input
-                        type="radio"
-                        name="situacion_lab"
-                        value="Jubilado"
-                        checked={formData.situacion_lab === "Jubilado"}
-                        onChange={handleInputChange}
-                      />{" "}
-                      Jubilado
-                    </label>
-                    <label>
-                      <input
-                        type="radio"
-                        name="situacion_lab"
-                        value="N/A"
-                        checked={formData.situacion_lab === "N/A"}
-                        onChange={handleInputChange}
-                      />{" "}
-                      N/A
-                    </label>
-                  </div>
-                </div>
-              </div>
-            </div>
+    {/* Fila 8: Situación Laboral */}
+    <div className={styles.inputRow}>
+      <div className={styles.inputGroup}>
+        <label className={styles.inputLabel}>Situación Laboral:</label>
+        <div className={styles.checkboxGroup}>
+          <label>
+            <input
+              type="radio"
+              name="situacion_lab"
+              value="Pensionado"
+              checked={formData.situacion_lab === "Pensionado"}
+              onChange={handleInputChange}
+            />
+            Pensionado
+          </label>
+          <label>
+            <input
+              type="radio"
+              name="situacion_lab"
+              value="Jubilado"
+              checked={formData.situacion_lab === "Jubilado"}
+              onChange={handleInputChange}
+            />
+            Jubilado
+          </label>
+          <label>
+            <input
+              type="radio"
+              name="situacion_lab"
+              value="N/A"
+              checked={formData.situacion_lab === "N/A"}
+              onChange={handleInputChange}
+            />
+            N/A
+          </label>
+        </div>
+      </div>
+    </div>
 
-            <div className={styles.inputRow}>
-              <div className={styles.inputGroup}>
-                <label className={styles.inputLabel}>
-                  Enfermedades Crónicas:
-                </label>
-                <div className={styles.checkboxGroup}>
-                  <label>
-                    <input
-                      type="radio"
-                      name="enfermedades_cronicas"
-                      value="Diabetico"
-                      checked={formData.enfermedades_cronicas === "Diabetico"}
-                      onChange={handleInputChange}
-                    />{" "}
-                    Diabetico
-                  </label>
-                  <label>
-                    <input
-                      type="radio"
-                      name="enfermedades_cronicas"
-                      value="Hipertenso"
-                      checked={formData.enfermedades_cronicas === "Hipertenso"}
-                      onChange={handleInputChange}
-                    />{" "}
-                    Hipertenso
-                  </label>
-                  <label>
-                    <input
-                      type="radio"
-                      name="enfermedades_cronicas"
-                      value="Cancer"
-                      checked={formData.enfermedades_cronicas === "Cancer"}
-                      onChange={handleInputChange}
-                    />{" "}
-                    Cancer
-                  </label>
-                  <label>
-                    <input
-                      type="radio"
-                      name="enfermedades_cronicas"
-                      value="Otro"
-                      checked={formData.enfermedades_cronicas === "Otro"}
-                      onChange={(e) => {
-                        handleInputChange(e);
-                        setIsOtherEnabled(e.target.value === "Otro");
-                      }}
-                    />{" "}
-                    Otro
-                  </label>
-                  {isOtherEnabled && (
-                    <input
-                      type="text"
-                      name="enfermedades_cronicas"
-                      value={
-                        formData.enfermedades_cronicas !== "Diabetico" &&
-                        formData.enfermedades_cronicas !== "Hipertenso" &&
-                        formData.enfermedades_cronicas !== "Cancer"
-                          ? formData.enfermedades_cronicas
-                          : ""
-                      }
-                      onChange={handleInputChange}
-                      placeholder="Especifique otra enfermedad"
-                      className={styles.inputField}
-                    />
-                  )}
-                </div>
-              </div>
+    {/* Fila 9: Enfermedades Crónicas */}
+    <div className={styles.inputRow}>
+      <div className={styles.inputGroup}>
+        <label className={styles.inputLabel}>Enfermedades Crónicas:</label>
+        <div className={styles.checkboxGroup}>
+          <label>
+            <input
+              type="radio"
+              name="enfermedades_cronicas"
+              value="Diabetico"
+              checked={formData.enfermedades_cronicas === "Diabetico"}
+              onChange={handleInputChange}
+            />
+            Diabetico
+          </label>
+          <label>
+            <input
+              type="radio"
+              name="enfermedades_cronicas"
+              value="Hipertenso"
+              checked={formData.enfermedades_cronicas === "Hipertenso"}
+              onChange={handleInputChange}
+            />
+            Hipertenso
+          </label>
+          <label>
+            <input
+              type="radio"
+              name="enfermedades_cronicas"
+              value="Cancer"
+              checked={formData.enfermedades_cronicas === "Cancer"}
+              onChange={handleInputChange}
+            />
+            Cancer
+          </label>
+          <label>
+            <input
+              type="radio"
+              name="enfermedades_cronicas"
+              value="Otro"
+              checked={formData.enfermedades_cronicas === "Otro"}
+              onChange={(e) => {
+                handleInputChange(e);
+                setIsOtherEnabled(e.target.value === "Otro");
+              }}
+            />
+            Otro
+          </label>
+          {isOtherEnabled && (
+            <input
+              type="text"
+              name="enfermedades_cronicas"
+              value={
+                formData.enfermedades_cronicas !== "Diabetico" &&
+                formData.enfermedades_cronicas !== "Hipertenso" &&
+                formData.enfermedades_cronicas !== "Cancer"
+                  ? formData.enfermedades_cronicas
+                  : ""
+              }
+              onChange={handleInputChange}
+              placeholder="Especifique otra enfermedad"
+              className={styles.inputField}
+            />
+          )}
+        </div>
+      </div>
+    </div>
 
-              <div className={styles.inputGroup}>
-                <label className={styles.inputLabel}>
-                  Tratamientos:
-                  <textarea
-                    name="tratamientos"
-                    value={formData.tratamientos}
-                    onChange={(e) =>
-                      setFormData({ ...formData, tratamientos: e.target.value })
-                    }
-                    placeholder="Especifica tratamientos"
-                    className={styles.inputField}
-                  />
-                </label>
-              </div>
-            </div>
+    {/* Fila 10: Tratamientos y Observaciones */}
+    <div className={styles.inputRow}>
+      <div className={styles.inputGroup}>
+        <label className={styles.inputLabel}>
+          Tratamientos:
+          <textarea
+            name="tratamientos"
+            value={formData.tratamientos}
+            onChange={(e) =>
+              setFormData({ ...formData, tratamientos: e.target.value })
+            }
+            placeholder="Especifica tratamientos"
+            className={styles.inputField}
+          />
+        </label>
+      </div>
 
-            <div className={styles.inputGroup}>
-                <label className={styles.inputLabel}>
-                  Domicilio:
-                  <input
-                    type="text"
-                    name="domicilio"
-                    value={formData.domicilio}
-                    onChange={(e) =>
-                      setFormData({ ...formData, domicilio: e.target.value })
-                    }
-                    placeholder="Ingrese el domicilio"
-                    className={styles.inputField}
-                  />
-                </label>
-              </div>
+      <div className={styles.inputGroup}>
+        <label className={styles.inputLabel}>
+          Observaciones:
+          <textarea
+            name="observaciones"
+            value={formData.observaciones}
+            onChange={(e) =>
+              setFormData({ ...formData, observaciones: e.target.value })
+            }
+            placeholder="Añadir observaciones"
+            className={styles.inputField}
+          />
+        </label>
+      </div>
+    </div>
 
-            {/* Fila 8: En caso de emergencia */}
-            <h3>En caso de emergencia, avisar a:</h3>
-            <div className={styles.inputRow}>
-              <div className={styles.inputGroup}>
-                <label className={styles.inputLabel}>
-                  Nombre de Emergencia:
-                  <input
-                    type="text"
-                    name="nombreEmergencia"
-                    value={formData.nombreEmergencia}
-                    onChange={handleInputChange}
-                    required
-                    className={styles.inputField}
-                  />
-                </label>
-              </div>
+    {/* Fila 11: Domicilio */}
+    <div className={styles.inputRow}>
+      <div className={styles.inputGroup}>
+        <label className={styles.inputLabel}>
+          Domicilio:
+          <input
+            type="text"
+            name="domicilio"
+            value={formData.domicilio}
+            onChange={(e) =>
+              setFormData({ ...formData, domicilio: e.target.value })
+            }
+            placeholder="Ingrese el domicilio"
+            className={styles.inputField}
+          />
+        </label>
+      </div>
+    </div>
 
-              <div className={styles.inputGroup}>
-                <label className={styles.inputLabel}>
-                  Teléfono de Emergencia:
-                  <input
-                    type="text"
-                    name="telEmergencia"
-                    value={formData.telEmergencia}
-                    onChange={handleInputChange}
-                    required
-                    className={styles.inputField}
-                  />
-                </label>
-              </div>
-            </div>
 
-            <button type="submit" className={styles.submitButton}>
-              {isEditMode ? "Guardar Cambios" : "Guardar Beneficiario"}
-            </button>
-          </form>
-        </Modal>
+    {/* Fila 12: Nombre y Teléfono de Emergencia */}
+    <div className={styles.inputRow}>
+      <div className={styles.inputGroup}>
+        <label className={styles.inputLabel}>
+          Nombre de Emergencia:
+          <input
+            type="text"
+            name="nombreEmergencia"
+            value={formData.nombreEmergencia}
+            onChange={handleInputChange}
+            required
+            className={styles.inputField}
+          />
+        </label>
+      </div>
+
+      <div className={styles.inputGroup}>
+        <label className={styles.inputLabel}>
+          Teléfono de Emergencia:
+          <input
+            type="text"
+            name="telEmergencia"
+            value={formData.telEmergencia}
+            onChange={handleInputChange}
+            required
+            className={styles.inputField}
+          />
+        </label>
+      </div>
+    </div>
+
+    <button type="submit" className={styles.submitButton}>
+      {isEditMode ? "Guardar Cambios" : "Guardar Beneficiario"}
+    </button>
+  </form>
+</Modal>
+
 
         {/*INFORMACION DEL BENEFICIARIO */}
         <Modal
@@ -1038,7 +1069,11 @@ export default function RegistroBeneficiario() {
                 <strong>Tratamientos:</strong>{" "}
                 {selectedBeneficiary.tratamientos || "N/A"}
               </p>
-              <p><strong>Domicilio:</strong> {selectedBeneficiary.domicilio || "N/A"}</p>
+              <p>
+                <strong>Domicilio:</strong>{" "}
+                {selectedBeneficiary.domicilio || "N/A"}
+              </p>
+              <p><strong>Observaciones:</strong> {selectedBeneficiary.observaciones || "N/A"}</p>
 
               {/* Mostrar situación laboral */}
               <p>
