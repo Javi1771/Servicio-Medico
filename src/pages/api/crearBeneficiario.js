@@ -1,4 +1,4 @@
-// api/crearBeneficiarios.js
+// api/crearBeneficiario.js
 import { connectToDatabase } from '../api/connectToDatabase';
 
 export default async function handler(req, res) {
@@ -27,6 +27,15 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Datos incompletos o inválidos' });
   }
 
+  // Calcular la edad a partir de la fecha de nacimiento
+  const birthDate = new Date(fNacimiento);
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const monthDiff = today.getMonth() - birthDate.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+
   try {
     const pool = await connectToDatabase();
     
@@ -38,6 +47,7 @@ export default async function handler(req, res) {
       .input('aMaterno', aMaterno)
       .input('sexo', sexo)
       .input('fNacimiento', fNacimiento)
+      .input('edad', age)  // Añadir la edad calculada
       .input('alergias', alergias)
       .input('sangre', sangre)
       .input('telEmergencia', telEmergencia)
@@ -47,11 +57,11 @@ export default async function handler(req, res) {
       .query(`
         INSERT INTO BENEFICIARIO (
           NO_NOMINA, PARENTESCO, NOMBRE, A_PATERNO, A_MATERNO, SEXO, 
-          F_NACIMIENTO, ALERGIAS, SANGRE, TEL_EMERGENCIA, NOMBRE_EMERGENCIA, FOTO_URL, ACTIVO
+          F_NACIMIENTO, EDAD, ALERGIAS, SANGRE, TEL_EMERGENCIA, NOMBRE_EMERGENCIA, FOTO_URL, ACTIVO
         )
         VALUES (
           @noNomina, @parentesco, @nombre, @aPaterno, @aMaterno, @sexo, 
-          @fNacimiento, @alergias, @sangre, @telEmergencia, @nombreEmergencia, @imageUrl, @estatus
+          @fNacimiento, @edad, @alergias, @sangre, @telEmergencia, @nombreEmergencia, @imageUrl, @estatus
         )
       `);
 

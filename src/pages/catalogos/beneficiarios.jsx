@@ -20,6 +20,7 @@ export default function RegistroBeneficiario() {
     aPaterno: "",
     aMaterno: "",
     sexo: "",
+    edad: "", // Añadimos el campo edad
     fNacimiento: "",
     alergias: "",
     sangre: "",
@@ -36,10 +37,36 @@ export default function RegistroBeneficiario() {
 
   const router = useRouter(); // Define el router usando useRouter
 
+  // Dentro de handleInputChange para actualizar el estado cuando cambie la fecha de nacimiento
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prevData) => {
+      const updatedData = { ...prevData, [name]: value };
+
+      // Calcular edad automáticamente al actualizar la fecha de nacimiento
+      if (name === "fNacimiento") {
+        const birthDate = new Date(value);
+        const today = new Date();
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const monthDiff = today.getMonth() - birthDate.getMonth();
+        if (
+          monthDiff < 0 ||
+          (monthDiff === 0 && today.getDate() < birthDate.getDate())
+        ) {
+          age--;
+        }
+        updatedData.edad = age;
+      }
+
+      return updatedData;
+    });
+  };
 
   const handleViewBeneficiary = async (beneficiario) => {
     try {
-      const response = await fetch(`/api/getBeneficiary?idBeneficiario=${beneficiario.ID_BENEFICIARIO}`);
+      const response = await fetch(
+        `/api/getBeneficiary?idBeneficiario=${beneficiario.ID_BENEFICIARIO}`
+      );
       const data = await response.json();
 
       if (response.ok) {
@@ -51,11 +78,13 @@ export default function RegistroBeneficiario() {
       }
     } catch (error) {
       console.error("Error fetching beneficiary:", error);
-      Swal.fire("Error", "No se pudo obtener la información del beneficiario.", "error");
+      Swal.fire(
+        "Error",
+        "No se pudo obtener la información del beneficiario.",
+        "error"
+      );
     }
   };
-
-
 
   const handleImageUpload = async (event) => {
     const file = event.target.files[0];
@@ -85,7 +114,7 @@ export default function RegistroBeneficiario() {
     }
   };
 
-  /Obtener el sindicato del empleado/
+  /Obtener el sindicato del empleado/;
   const getSindicato = (grupoNomina, cuotaSindical) => {
     if (grupoNomina === "NS") {
       return cuotaSindical === "S"
@@ -147,8 +176,10 @@ export default function RegistroBeneficiario() {
     if (!numNomina) return;
 
     try {
-        const response = await fetch(`/api/mostBeneficiarios?num_nom=${numNomina}`);
-        const data = await response.json();
+      const response = await fetch(
+        `/api/mostBeneficiarios?num_nom=${numNomina}`
+      );
+      const data = await response.json();
       setBeneficiarios(data); // Aquí verifica que data incluye FOTO_URL
     } catch (err) {
       console.error("Error fetching beneficiaries:", err);
@@ -176,8 +207,8 @@ export default function RegistroBeneficiario() {
   // Obtener el nombre del sexo
   const fetchSexoNombre = async (idSexo) => {
     try {
-        const response = await fetch(`/api/sexo?idSexo=${idSexo}`);
-        const data = await response.json();
+      const response = await fetch(`/api/sexo?idSexo=${idSexo}`);
+      const data = await response.json();
       if (response.ok) {
         setSexoNombre(data.sexo);
       } else {
@@ -190,10 +221,10 @@ export default function RegistroBeneficiario() {
     }
   };
 
-  const handleInputChange = (e) => {
+  /*const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
-  };
+  };*/
 
   const handleSearch = async () => {
     if (!numNomina) {
@@ -317,7 +348,6 @@ export default function RegistroBeneficiario() {
   const [selectedBeneficiary, setSelectedBeneficiary] = useState(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
 
-
   // Función para confirmar y eliminar beneficiario
   const handleDeleteBeneficiary = (idBeneficiario) => {
     Swal.fire({
@@ -332,13 +362,13 @@ export default function RegistroBeneficiario() {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-            const response = await fetch(`/api/eliminarBeneficiario`, {
-                method: "DELETE",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ idBeneficiario }),
-              });
+          const response = await fetch(`/api/eliminarBeneficiario`, {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ idBeneficiario }),
+          });
 
           if (!response.ok) {
             throw new Error("No se pudo eliminar el beneficiario.");
@@ -416,51 +446,50 @@ export default function RegistroBeneficiario() {
         <div className={styles.statusContainer}>
           {error && (
             <div className={`${styles.statusCard} ${styles.notFound}`}>
-            <p>Empleado no encontrado</p>
+              <p>Empleado no encontrado</p>
             </div>
           )}
           {empleado && (
             <div className={`${styles.statusCard} ${styles.found}`}>
-
               <p>Empleado Encontrado</p>
             </div>
           )}
 
-{empleado && (
-  <div className={styles.employeeInfoContainer}>
-    <div className={styles.employeeDetails}>
-      <h2>Detalles del Empleado:</h2>
-      <p>
-  <strong>Nombre:</strong> {`${empleado.nombre} ${empleado.a_paterno} ${empleado.a_materno}`}
-</p>
+          {empleado && (
+            <div className={styles.employeeInfoContainer}>
+              <div className={styles.employeeDetails}>
+                <h2>Detalles del Empleado:</h2>
+                <p>
+                  <strong>Nombre:</strong>{" "}
+                  {`${empleado.nombre} ${empleado.a_paterno} ${empleado.a_materno}`}
+                </p>
 
-      <p>
-        <strong>Departamento:</strong> {empleado.departamento}
-      </p>
-      <p>
-        <strong>Puesto:</strong> {empleado.puesto}
-      </p>
-    </div>
-    
-    {/* Card de sindicato al lado de la información del empleado */}
-    {empleado.sindicato && (
-      <div className={styles.sindicatoBadge}>
-        <p className={styles.sindicatoText}>Sindicalizado</p>
-        <p className={styles.sindicatoName}>Sindicato: {empleado.sindicato}</p>
-      </div>
-    )}
-  </div>
-)}
+                <p>
+                  <strong>Departamento:</strong> {empleado.departamento}
+                </p>
+                <p>
+                  <strong>Puesto:</strong> {empleado.puesto}
+                </p>
+              </div>
 
+              {/* Card de sindicato al lado de la información del empleado */}
+              {empleado.sindicato && (
+                <div className={styles.sindicatoBadge}>
+                  <p className={styles.sindicatoText}>Sindicalizado</p>
+                  <p className={styles.sindicatoName}>
+                    Sindicato: {empleado.sindicato}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
-
-
 
         {empleado && (
           <button
             onClick={handleAddBeneficiary}
             className={styles.addBeneficiaryButton}
-            >
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="16"
@@ -505,21 +534,22 @@ export default function RegistroBeneficiario() {
             <button
               type="button"
               onClick={toggleStatus}
-              className={`${styles.statusButton} ${formData.activo === "A" ? styles.active : styles.inactive}`}
+              className={`${styles.statusButton} ${
+                formData.activo === "A" ? styles.active : styles.inactive
+              }`}
             >
               {formData.activo === "A" ? "Activo" : "Inactivo"}
             </button>
 
-
             <label className={styles.inputLabel}>
-    Foto:
-    <input
-      type="file"
-      accept="image/*"
-      onChange={handleImageUpload}
-      className={styles.inputField}
-    />
-  </label>
+              Foto:
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                className={styles.inputField}
+              />
+            </label>
 
             <div className={styles.inputRow}>
               <div className={styles.inputGroup}>
@@ -624,6 +654,16 @@ export default function RegistroBeneficiario() {
                   />
                 </label>
               </div>
+              <label className={styles.inputLabel}>
+                Edad:
+                <input
+                  type="number"
+                  name="edad"
+                  value={formData.edad}
+                  readOnly
+                  className={styles.inputField}
+                />
+              </label>
             </div>
 
             <div className={styles.inputRow}>
@@ -693,63 +733,115 @@ export default function RegistroBeneficiario() {
           </form>
         </Modal>
 
-        <Modal
-        isOpen={isViewModalOpen}
-        onRequestClose={() => setIsViewModalOpen(false)}
-        overlayClassName={styles.modalOverlay}
-        className={styles.modal}
+
+{/*INFORMACION DEL BENEFICIARIO */}
+<Modal
+  isOpen={isViewModalOpen}
+  onRequestClose={() => setIsViewModalOpen(false)}
+  overlayClassName={styles.modalOverlay}
+  className={styles.modal}
+>
+  {selectedBeneficiary && (
+    <div className={styles.card}>
+      <h2>Información del Beneficiario</h2>
+      <p>
+        <strong>ID:</strong> {selectedBeneficiary.ID_BENEFICIARIO}
+      </p>
+      <p>
+        <strong>Número de Nómina:</strong> {selectedBeneficiary.NO_NOMINA}
+      </p>
+
+      {/* Mostrar la descripción de parentesco */}
+      <p>
+        <strong>Parentesco:</strong>{" "}
+        {parentescoOptions.find(
+          (p) => p.ID_PARENTESCO === selectedBeneficiary.PARENTESCO
+        )?.PARENTESCO || "Desconocido"}
+      </p>
+
+      <p>
+        <strong>Nombre:</strong>{" "}
+        {`${selectedBeneficiary.NOMBRE} ${selectedBeneficiary.A_PATERNO} ${selectedBeneficiary.A_MATERNO}`}
+      </p>
+
+      {/* Mostrar la descripción de sexo */}
+      <p>
+        <strong>Sexo:</strong>{" "}
+        {sexoOptions.find(
+          (s) => String(s.idSexo) === String(selectedBeneficiary.SEXO)
+        )?.sexo || "Desconocido"}
+      </p>
+
+      <p>
+        <strong>Escolaridad:</strong> {selectedBeneficiary.ESCOLARIDAD || "N/A"}
+      </p>
+      <p>
+        <strong>Fecha de Nacimiento:</strong>{" "}
+        {selectedBeneficiary.F_NACIMIENTO}
+      </p>
+
+      {/* Mostrar la Edad */}
+      <p>
+        <strong>Edad:</strong> {selectedBeneficiary.EDAD || "N/A"}
+      </p>
+
+      <p>
+        <strong>Activo:</strong>{" "}
+        {selectedBeneficiary.ACTIVO === "A" ? "Sí" : "No"}
+      </p>
+      <p>
+        <strong>Alergias:</strong> {selectedBeneficiary.ALERGIAS || "Ninguna"}
+      </p>
+      <p>
+        <strong>Tipo de Sangre:</strong> {selectedBeneficiary.SANGRE || "N/A"}
+      </p>
+      <p>
+        <strong>Teléfono de Emergencia:</strong>{" "}
+        {selectedBeneficiary.TEL_EMERGENCIA || "N/A"}
+      </p>
+      <p>
+        <strong>Nombre de Contacto de Emergencia:</strong>{" "}
+        {selectedBeneficiary.NOMBRE_EMERGENCIA || "N/A"}
+      </p>
+      <p>
+        <strong>Discapacitado:</strong>{" "}
+        {selectedBeneficiary.ESDISCAPACITADO === 1 ? "Sí" : "No"}
+      </p>
+      <p>
+        <strong>Estudiante:</strong>{" "}
+        {selectedBeneficiary.ESESTUDIANTE === 1 ? "Sí" : "No"}
+      </p>
+      <p>
+        <strong>Vigencia de Estudios:</strong>{" "}
+        {selectedBeneficiary.VIGENCIA_ESTUDIOS || "N/A"}
+      </p>
+
+      {/* Mostrar la imagen solo si FOTO_URL está disponible */}
+      {selectedBeneficiary.FOTO_URL ? (
+        <div className={styles.imageContainer}>
+          <img
+            src={selectedBeneficiary.FOTO_URL}
+            alt={`${selectedBeneficiary.NOMBRE} ${selectedBeneficiary.A_PATERNO}`}
+            className={styles.beneficiaryImage}
+          />
+        </div>
+      ) : (
+        <p>Imagen no disponible</p>
+      )}
+      <button
+        onClick={() => setIsViewModalOpen(false)}
+        className={styles.closeButton}
       >
-        {selectedBeneficiary && (
-          <div className={styles.card}>
-            <h2>Información del Beneficiario</h2>
-            <p><strong>ID:</strong> {selectedBeneficiary.ID_BENEFICIARIO}</p>
-            <p><strong>Número de Nómina:</strong> {selectedBeneficiary.NO_NOMINA}</p>
+        Cerrar
+      </button>
+    </div>
+  )}
+</Modal>
 
-            {/* Buscar y mostrar descripción de parentesco */}
-            <p>
-              <strong>Parentesco:</strong> {
-                parentescoOptions.find(p => p.ID_PARENTESCO === selectedBeneficiary.PARENTESCO)?.PARENTESCO || "Desconocido"
-              }
-            </p>
 
-            <p><strong>Nombre:</strong> {`${selectedBeneficiary.NOMBRE} ${selectedBeneficiary.A_PATERNO} ${selectedBeneficiary.A_MATERNO}`}</p>
 
-            {/* Buscar y mostrar descripción de sexo, asegurando coincidencia de tipo de dato */}
-            <p>
-              <strong>Sexo:</strong> {
-                sexoOptions.find(s => String(s.idSexo) === String(selectedBeneficiary.SEXO))?.sexo || "Desconocido"
-              }
-            </p>
 
-            <p><strong>Escolaridad:</strong> {selectedBeneficiary.ESCOLARIDAD || "N/A"}</p>
-            <p><strong>Fecha de Nacimiento:</strong> {selectedBeneficiary.F_NACIMIENTO}</p>
-            <p><strong>Activo:</strong> {selectedBeneficiary.ACTIVO === "A" ? "Sí" : "No"}</p>
-            <p><strong>Alergias:</strong> {selectedBeneficiary.ALERGIAS || "Ninguna"}</p>
-            <p><strong>Tipo de Sangre:</strong> {selectedBeneficiary.SANGRE || "N/A"}</p>
-            <p><strong>Teléfono de Emergencia:</strong> {selectedBeneficiary.TEL_EMERGENCIA || "N/A"}</p>
-            <p><strong>Nombre de Contacto de Emergencia:</strong> {selectedBeneficiary.NOMBRE_EMERGENCIA || "N/A"}</p>
-            <p><strong>Discapacitado:</strong> {selectedBeneficiary.ESDISCAPACITADO === 1 ? "Sí" : "No"}</p>
-            <p><strong>Estudiante:</strong> {selectedBeneficiary.ESESTUDIANTE === 1 ? "Sí" : "No"}</p>
-            <p><strong>Vigencia de Estudios:</strong> {selectedBeneficiary.VIGENCIA_ESTUDIOS || "N/A"}</p>
 
-            {/* Mostrar la imagen solo si FOTO_URL está disponible */}
-            {selectedBeneficiary.FOTO_URL ? (
-              <div className={styles.imageContainer}>
-                <img
-                  src={selectedBeneficiary.FOTO_URL}
-                  alt={`${selectedBeneficiary.NOMBRE} ${selectedBeneficiary.A_PATERNO}`}
-                  className={styles.beneficiaryImage}
-                />
-              </div>
-            ) : (
-              <p>Imagen no disponible</p>
-            )}
-            <button onClick={() => setIsViewModalOpen(false)} className={styles.closeButton}>
-              Cerrar
-            </button>
-          </div>
-        )}
-      </Modal>
 
         {/* Tabla de beneficiarios, solo se muestra si el empleado es encontrado */}
         {empleado && beneficiarios.length > 0 && (

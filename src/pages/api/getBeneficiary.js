@@ -1,4 +1,4 @@
-// /pages/api/getBeneficiary.js
+// api/getBeneficiary.js
 import { connectToDatabase } from './connectToDatabase';
 
 export default async function handler(req, res) {
@@ -27,6 +27,7 @@ export default async function handler(req, res) {
           SEXO,
           ESCOLARIDAD,
           F_NACIMIENTO,
+          EDAD,  -- Añadir el campo edad aquí
           ACTIVO,
           ALERGIAS,
           SANGRE,
