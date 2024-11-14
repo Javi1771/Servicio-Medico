@@ -29,6 +29,7 @@ export default function RegistroBeneficiario() {
     activo: "A", // Campo de estado del beneficiario (A=Activo, I=Inactivo)
     imageUrl: "", // URL de la imagen en Cloudinary
     vigencia: "", // Añadir el campo de vigencia
+    curp: "", // Nuevo campo CURP
   });
 
   const [error, setError] = useState(null);
@@ -536,223 +537,251 @@ export default function RegistroBeneficiario() {
           overlayClassName={styles.modalOverlay}
           className={styles.modal}
         >
-          <form onSubmit={handleModalSubmit} className={styles.beneficiaryForm}>
-            {/* Cambia el título según el modo */}
-            <h2>
-              {isEditMode ? "Editar Beneficiario" : "Registrar Beneficiario"}
-            </h2>
-            <button
-              type="button"
-              onClick={toggleStatus}
-              className={`${styles.statusButton} ${
-                formData.activo === "A" ? styles.active : styles.inactive
-              }`}
-            >
-              {formData.activo === "A" ? "Activo" : "Inactivo"}
-            </button>
+         <form onSubmit={handleModalSubmit} className={styles.beneficiaryForm}>
+  <h2>{isEditMode ? "Editar Beneficiario" : "Registrar Beneficiario"}</h2>
+  <button
+    type="button"
+    onClick={toggleStatus}
+    className={`${styles.statusButton} ${formData.activo === "A" ? styles.active : styles.inactive}`}
+  >
+    {formData.activo === "A" ? "Activo" : "Inactivo"}
+  </button>
 
-            <label className={styles.inputLabel}>
-              Foto:
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageUpload}
-                className={styles.inputField}
-              />
-            </label>
+  {/* Fila 1: Foto */}
+  <div className={styles.inputRow}>
+    <div className={styles.inputGroup}>
+      <label className={styles.inputLabel}>
+        Foto:
+        <input
+          type="file"
+          accept="image/*"
+          onChange={handleImageUpload}
+          className={styles.inputField}
+        />
+      </label>
+    </div>
+  </div>
 
-            <div className={styles.inputRow}>
-              <div className={styles.inputGroup}>
-                <label className={styles.inputLabel}>
-                  Parentesco:
-                  <select
-                    name="parentesco"
-                    value={formData.parentesco}
-                    onChange={handleInputChange}
-                    required
-                    className={styles.inputField}
-                  >
-                    <option value="">Selecciona</option>
-                    {parentescoOptions.map((option) => (
-                      <option
-                        key={option.ID_PARENTESCO}
-                        value={option.ID_PARENTESCO}
-                      >
-                        {option.PARENTESCO}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              </div>
+  {/* Fila 2: Parentesco y Nombre */}
+  <div className={styles.inputRow}>
+    <div className={styles.inputGroup}>
+      <label className={styles.inputLabel}>
+        Parentesco:
+        <select
+          name="parentesco"
+          value={formData.parentesco}
+          onChange={handleInputChange}
+          required
+          className={styles.inputField}
+        >
+          <option value="">Selecciona</option>
+          {parentescoOptions.map((option) => (
+            <option key={option.ID_PARENTESCO} value={option.ID_PARENTESCO}>
+              {option.PARENTESCO}
+            </option>
+          ))}
+        </select>
+      </label>
+    </div>
 
-              <div className={styles.inputGroup}>
-                <label className={styles.inputLabel}>
-                  Nombre:
-                  <input
-                    type="text"
-                    name="nombre"
-                    value={formData.nombre}
-                    onChange={handleInputChange}
-                    required
-                    className={styles.inputField}
-                  />
-                </label>
-              </div>
-            </div>
+    <div className={styles.inputGroup}>
+      <label className={styles.inputLabel}>
+        Nombre:
+        <input
+          type="text"
+          name="nombre"
+          value={formData.nombre}
+          onChange={handleInputChange}
+          required
+          className={styles.inputField}
+        />
+      </label>
+    </div>
+  </div>
 
-            <div className={styles.inputRow}>
-              <div className={styles.inputGroup}>
-                <label className={styles.inputLabel}>
-                  Apellido Paterno:
-                  <input
-                    type="text"
-                    name="aPaterno"
-                    value={formData.aPaterno}
-                    onChange={handleInputChange}
-                    required
-                    className={styles.inputField}
-                  />
-                </label>
-              </div>
+  {/* Fila 3: Apellido Paterno y Apellido Materno */}
+  <div className={styles.inputRow}>
+    <div className={styles.inputGroup}>
+      <label className={styles.inputLabel}>
+        Apellido Paterno:
+        <input
+          type="text"
+          name="aPaterno"
+          value={formData.aPaterno}
+          onChange={handleInputChange}
+          required
+          className={styles.inputField}
+        />
+      </label>
+    </div>
 
-              <div className={styles.inputGroup}>
-                <label className={styles.inputLabel}>
-                  Apellido Materno:
-                  <input
-                    type="text"
-                    name="aMaterno"
-                    value={formData.aMaterno}
-                    onChange={handleInputChange}
-                    className={styles.inputField}
-                  />
-                </label>
-              </div>
-            </div>
+    <div className={styles.inputGroup}>
+      <label className={styles.inputLabel}>
+        Apellido Materno:
+        <input
+          type="text"
+          name="aMaterno"
+          value={formData.aMaterno}
+          onChange={handleInputChange}
+          className={styles.inputField}
+        />
+      </label>
+    </div>
+  </div>
 
-            <div className={styles.inputRow}>
-              <div className={styles.inputGroup}>
-                <label className={styles.inputLabel}>
-                  Sexo:
-                  <select
-                    name="sexo"
-                    value={formData.sexo}
-                    onChange={handleInputChange}
-                    required
-                    className={styles.inputField}
-                  >
-                    <option value="">Selecciona</option>
-                    {sexoOptions.length > 0 &&
-                      sexoOptions.map((option) => (
-                        <option key={option.idSexo} value={option.idSexo}>
-                          {option.sexo}
-                        </option>
-                      ))}
-                  </select>
-                </label>
-              </div>
+  {/* Fila 4: Fecha de Nacimiento y Edad */}
+  <div className={styles.inputRow}>
+    <div className={styles.inputGroup}>
+      <label className={styles.inputLabel}>
+        Fecha de Nacimiento:
+        <input
+          type="date"
+          name="fNacimiento"
+          value={formData.fNacimiento}
+          onChange={handleInputChange}
+          required
+          className={styles.inputField}
+        />
+      </label>
+    </div>
 
-              <div className={styles.inputGroup}>
-                <label className={styles.inputLabel}>
-                  Fecha de Nacimiento:
-                  <input
-                    type="date"
-                    name="fNacimiento"
-                    value={formData.fNacimiento}
-                    onChange={handleInputChange}
-                    required
-                    className={styles.inputField}
-                  />
-                </label>
-              </div>
-              <label className={styles.inputLabel}>
-                Edad:
-                <input
-                  type="number"
-                  name="edad"
-                  value={formData.edad}
-                  readOnly
-                  className={styles.inputField}
-                />
-              </label>
-            </div>
+    <div className={styles.inputGroup}>
+      <label className={styles.inputLabel}>
+        Edad:
+        <input
+          type="number"
+          name="edad"
+          value={formData.edad}
+          readOnly
+          className={styles.inputField}
+        />
+      </label>
+    </div>
+  </div>
 
-            <div className={styles.inputRow}>
-              <div className={styles.inputGroup}>
-                <label className={styles.inputLabel}>
-                  Alergias:
-                  <input
-                    type="text"
-                    name="alergias"
-                    value={formData.alergias}
-                    onChange={handleInputChange}
-                    className={styles.inputField}
-                  />
-                </label>
-              </div>
+  {/* Fila 5: Sexo y Alergias */}
+  <div className={styles.inputRow}>
+    <div className={styles.inputGroup}>
+      <label className={styles.inputLabel}>
+        Sexo:
+        <select
+          name="sexo"
+          value={formData.sexo}
+          onChange={handleInputChange}
+          required
+          className={styles.inputField}
+        >
+          <option value="">Selecciona</option>
+          {sexoOptions.length > 0 &&
+            sexoOptions.map((option) => (
+              <option key={option.idSexo} value={option.idSexo}>
+                {option.sexo}
+              </option>
+            ))}
+        </select>
+      </label>
+    </div>
 
-              <div className={styles.inputGroup}>
-                <label className={styles.inputLabel}>
-                  Tipo de Sangre:
-                  <input
-                    type="text"
-                    name="sangre"
-                    value={formData.sangre}
-                    onChange={handleInputChange}
-                    required
-                    className={styles.inputField}
-                  />
-                </label>
-              </div>
+    <div className={styles.inputGroup}>
+      <label className={styles.inputLabel}>
+        Alergias:
+        <input
+          type="text"
+          name="alergias"
+          value={formData.alergias}
+          onChange={handleInputChange}
+          className={styles.inputField}
+        />
+      </label>
+    </div>
+  </div>
 
-              <label className={styles.inputLabel}>
-                Vigencia:
-                <input
-                  type="date"
-                  name="vigencia"
-                  value={formData.vigencia}
-                  onChange={handleInputChange}
-                  required
-                  className={styles.inputField}
-                />
-              </label>
-            </div>
+  {/* Fila 6: Vigencia y Tipo de Sangre */}
+  <div className={styles.inputRow}>
+    <div className={styles.inputGroup}>
+      <label className={styles.inputLabel}>
+        Vigencia:
+        <input
+          type="date"
+          name="vigencia"
+          value={formData.vigencia}
+          onChange={handleInputChange}
+          required
+          className={styles.inputField}
+        />
+      </label>
+    </div>
 
-            <h3>En caso de emergencia, avisar a:</h3>
+    <div className={styles.inputGroup}>
+      <label className={styles.inputLabel}>
+        Tipo de Sangre:
+        <input
+          type="text"
+          name="sangre"
+          value={formData.sangre}
+          onChange={handleInputChange}
+          required
+          className={styles.inputField}
+        />
+      </label>
+    </div>
+  </div>
 
-            <div className={styles.inputRow}>
-              <div className={styles.inputGroup}>
-                <label className={styles.inputLabel}>
-                  Nombre de Emergencia:
-                  <input
-                    type="text"
-                    name="nombreEmergencia"
-                    value={formData.nombreEmergencia}
-                    onChange={handleInputChange}
-                    required
-                    className={styles.inputField}
-                  />
-                </label>
-              </div>
+  {/* Fila 7: CURP */}
+  <div className={styles.inputRow}>
+    <div className={styles.inputGroup}>
+      <label className={styles.inputLabel}>
+        CURP:
+        <input
+          type="text"
+          name="curp"
+          value={formData.curp}
+          onChange={handleInputChange}
+          required
+          maxLength="18"
+          className={styles.inputField}
+        />
+      </label>
+    </div>
+  </div>
 
-              <div className={styles.inputGroup}>
-                <label className={styles.inputLabel}>
-                  Teléfono de Emergencia:
-                  <input
-                    type="text"
-                    name="telEmergencia"
-                    value={formData.telEmergencia}
-                    onChange={handleInputChange}
-                    required
-                    className={styles.inputField}
-                  />
-                </label>
-              </div>
-            </div>
-            {/* Cambia el texto del botón según el modo */}
-            <button type="submit" className={styles.submitButton}>
-              {isEditMode ? "Guardar Cambios" : "Guardar Beneficiario"}
-            </button>
-          </form>
+  {/* Fila 8: En caso de emergencia */}
+  <h3>En caso de emergencia, avisar a:</h3>
+  <div className={styles.inputRow}>
+    <div className={styles.inputGroup}>
+      <label className={styles.inputLabel}>
+        Nombre de Emergencia:
+        <input
+          type="text"
+          name="nombreEmergencia"
+          value={formData.nombreEmergencia}
+          onChange={handleInputChange}
+          required
+          className={styles.inputField}
+        />
+      </label>
+    </div>
+
+    <div className={styles.inputGroup}>
+      <label className={styles.inputLabel}>
+        Teléfono de Emergencia:
+        <input
+          type="text"
+          name="telEmergencia"
+          value={formData.telEmergencia}
+          onChange={handleInputChange}
+          required
+          className={styles.inputField}
+        />
+      </label>
+    </div>
+  </div>
+
+  <button type="submit" className={styles.submitButton}>
+    {isEditMode ? "Guardar Cambios" : "Guardar Beneficiario"}
+  </button>
+</form>
+
         </Modal>
 
         {/*INFORMACION DEL BENEFICIARIO */}
@@ -845,6 +874,10 @@ export default function RegistroBeneficiario() {
               <p>
                 <strong>Vigencia de Estudios:</strong>{" "}
                 {selectedBeneficiary.VIGENCIA_ESTUDIOS || "N/A"}
+              </p>
+
+              <p>
+                <strong>CURP:</strong> {selectedBeneficiary.CURP || "N/A"}
               </p>
 
               <p>

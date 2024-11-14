@@ -20,11 +20,12 @@ export default async function handler(req, res) {
     telEmergencia,
     nombreEmergencia,
     imageUrl,
-    vigencia,  // Nueva fecha de vigencia
+    vigencia,
+    curp,  // Nuevo campo CURP
   } = req.body;
 
   // Validar datos recibidos
-  if (!noNomina || !nombre || !aPaterno || !fNacimiento || !telEmergencia || !sexo || !vigencia) {
+  if (!noNomina || !nombre || !aPaterno || !fNacimiento || !telEmergencia || !sexo || !vigencia || !curp) {
     return res.status(400).json({ error: 'Datos incompletos o inválidos' });
   }
 
@@ -69,16 +70,17 @@ export default async function handler(req, res) {
       .input('telEmergencia', telEmergencia)
       .input('nombreEmergencia', nombreEmergencia)
       .input('imageUrl', imageUrl)
-      .input('vigencia', vigencia)  // Guardar vigencia
+      .input('vigencia', vigencia)
+      .input('curp', curp)  // Guardar CURP
       .input('estatus', 'A')
       .query(`
         INSERT INTO BENEFICIARIO (
           NO_NOMINA, PARENTESCO, NOMBRE, A_PATERNO, A_MATERNO, SEXO, 
-          F_NACIMIENTO, EDAD, DEPARTAMENTO, ALERGIAS, SANGRE, TEL_EMERGENCIA, NOMBRE_EMERGENCIA, FOTO_URL, VIGENCIA, ACTIVO
+          F_NACIMIENTO, EDAD, DEPARTAMENTO, ALERGIAS, SANGRE, TEL_EMERGENCIA, NOMBRE_EMERGENCIA, FOTO_URL, VIGENCIA, CURP, ACTIVO
         )
         VALUES (
           @noNomina, @parentesco, @nombre, @aPaterno, @aMaterno, @sexo, 
-          @fNacimiento, @edad, @departamento, @alergias, @sangre, @telEmergencia, @nombreEmergencia, @imageUrl, @vigencia, @estatus
+          @fNacimiento, @edad, @departamento, @alergias, @sangre, @telEmergencia, @nombreEmergencia, @imageUrl, @vigencia, @curp, @estatus
         )
       `);
 

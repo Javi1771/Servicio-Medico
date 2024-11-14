@@ -37,10 +37,12 @@ export default async function handler(req, res) {
           ESESTUDIANTE,
           VIGENCIA_ESTUDIOS,
           FOTO_URL,
-          VIGENCIA  -- Añadir el campo vigencia aquí
+          VIGENCIA,
+          CURP  -- Añadir el campo CURP aquí
         FROM BENEFICIARIO
         WHERE ID_BENEFICIARIO = @idBeneficiario
       `);
+
     if (result.recordset.length === 0) {
       return res.status(404).json({ error: 'Beneficiario no encontrado' });
     }
@@ -51,4 +53,3 @@ export default async function handler(req, res) {
     res.status(500).json({ error: 'Error al obtener el beneficiario' });
   }
 }
-
