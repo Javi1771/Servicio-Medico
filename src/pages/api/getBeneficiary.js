@@ -41,7 +41,10 @@ export default async function handler(req, res) {
           FOTO_URL,
           VIGENCIA,
           CURP,
-          situacion_lab  -- Añadir campo situacion_lab
+          situacion_lab,
+          enfermedades_cronicas,
+          tratamientos,
+          domicilio -- Nuevo campo domicilio
         FROM BENEFICIARIO
         WHERE ID_BENEFICIARIO = @idBeneficiario
       `);

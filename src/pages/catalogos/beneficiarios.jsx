@@ -30,12 +30,17 @@ export default function RegistroBeneficiario() {
     imageUrl: "", // URL de la imagen en Cloudinary
     vigencia: "", // Añadir el campo de vigencia
     curp: "", // Nuevo campo CURP
+    situacion_lab: "", // Nuevo campo de situación laboral
+    enfermedades_cronicas: "", // Inicialización del campo enfermedades_cronicas
+    tratamientos: "", // Nuevo campo tratamientos
+    domicilio: "", // Nuevo campo domicilio
   });
 
   const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [currentBeneficiaryId, setCurrentBeneficiaryId] = useState(null);
+  const [isOtherEnabled, setIsOtherEnabled] = useState(false); // Nueva variable de estado
 
   const router = useRouter(); // Define el router usando useRouter
 
@@ -792,6 +797,105 @@ export default function RegistroBeneficiario() {
               </div>
             </div>
 
+            <div className={styles.inputRow}>
+              <div className={styles.inputGroup}>
+                <label className={styles.inputLabel}>
+                  Enfermedades Crónicas:
+                </label>
+                <div className={styles.checkboxGroup}>
+                  <label>
+                    <input
+                      type="radio"
+                      name="enfermedades_cronicas"
+                      value="Diabetico"
+                      checked={formData.enfermedades_cronicas === "Diabetico"}
+                      onChange={handleInputChange}
+                    />{" "}
+                    Diabetico
+                  </label>
+                  <label>
+                    <input
+                      type="radio"
+                      name="enfermedades_cronicas"
+                      value="Hipertenso"
+                      checked={formData.enfermedades_cronicas === "Hipertenso"}
+                      onChange={handleInputChange}
+                    />{" "}
+                    Hipertenso
+                  </label>
+                  <label>
+                    <input
+                      type="radio"
+                      name="enfermedades_cronicas"
+                      value="Cancer"
+                      checked={formData.enfermedades_cronicas === "Cancer"}
+                      onChange={handleInputChange}
+                    />{" "}
+                    Cancer
+                  </label>
+                  <label>
+                    <input
+                      type="radio"
+                      name="enfermedades_cronicas"
+                      value="Otro"
+                      checked={formData.enfermedades_cronicas === "Otro"}
+                      onChange={(e) => {
+                        handleInputChange(e);
+                        setIsOtherEnabled(e.target.value === "Otro");
+                      }}
+                    />{" "}
+                    Otro
+                  </label>
+                  {isOtherEnabled && (
+                    <input
+                      type="text"
+                      name="enfermedades_cronicas"
+                      value={
+                        formData.enfermedades_cronicas !== "Diabetico" &&
+                        formData.enfermedades_cronicas !== "Hipertenso" &&
+                        formData.enfermedades_cronicas !== "Cancer"
+                          ? formData.enfermedades_cronicas
+                          : ""
+                      }
+                      onChange={handleInputChange}
+                      placeholder="Especifique otra enfermedad"
+                      className={styles.inputField}
+                    />
+                  )}
+                </div>
+              </div>
+
+              <div className={styles.inputGroup}>
+                <label className={styles.inputLabel}>
+                  Tratamientos:
+                  <textarea
+                    name="tratamientos"
+                    value={formData.tratamientos}
+                    onChange={(e) =>
+                      setFormData({ ...formData, tratamientos: e.target.value })
+                    }
+                    placeholder="Especifica tratamientos"
+                    className={styles.inputField}
+                  />
+                </label>
+              </div>
+            </div>
+
+            <div className={styles.inputGroup}>
+                <label className={styles.inputLabel}>
+                  Domicilio:
+                  <input
+                    type="text"
+                    name="domicilio"
+                    value={formData.domicilio}
+                    onChange={(e) =>
+                      setFormData({ ...formData, domicilio: e.target.value })
+                    }
+                    placeholder="Ingrese el domicilio"
+                    className={styles.inputField}
+                  />
+                </label>
+              </div>
 
             {/* Fila 8: En caso de emergencia */}
             <h3>En caso de emergencia, avisar a:</h3>
@@ -926,6 +1030,16 @@ export default function RegistroBeneficiario() {
                 <strong>Situación Laboral:</strong>{" "}
                 {selectedBeneficiary.situacion_lab || "N/A"}
               </p>{" "}
+              <p>
+                <strong>Enfermedades Crónicas:</strong>{" "}
+                {selectedBeneficiary.enfermedades_cronicas || "N/A"}
+              </p>
+              <p>
+                <strong>Tratamientos:</strong>{" "}
+                {selectedBeneficiary.tratamientos || "N/A"}
+              </p>
+              <p><strong>Domicilio:</strong> {selectedBeneficiary.domicilio || "N/A"}</p>
+
               {/* Mostrar situación laboral */}
               <p>
                 <strong>Vigencia:</strong>{" "}
