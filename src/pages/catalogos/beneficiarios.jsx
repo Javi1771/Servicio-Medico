@@ -28,6 +28,7 @@ export default function RegistroBeneficiario() {
     nombreEmergencia: "",
     activo: "A", // Campo de estado del beneficiario (A=Activo, I=Inactivo)
     imageUrl: "", // URL de la imagen en Cloudinary
+    vigencia: "", // Añadir el campo de vigencia
   });
 
   const [error, setError] = useState(null);
@@ -36,6 +37,15 @@ export default function RegistroBeneficiario() {
   const [currentBeneficiaryId, setCurrentBeneficiaryId] = useState(null);
 
   const router = useRouter(); // Define el router usando useRouter
+
+  /**DAR FORMATO A LA VIGENCIA */
+  const formatVigenciaDate = (vigencia) => {
+    const date = new Date(vigencia);
+    const day = date.getDate();
+    const month = date.toLocaleString("es-ES", { month: "long" });
+    const year = date.getFullYear();
+    return `${day} ${month} del ${year}`;
+  };
 
   // Dentro de handleInputChange para actualizar el estado cuando cambie la fecha de nacimiento
   const handleInputChange = (e) => {
@@ -693,6 +703,18 @@ export default function RegistroBeneficiario() {
                   />
                 </label>
               </div>
+
+              <label className={styles.inputLabel}>
+                Vigencia:
+                <input
+                  type="date"
+                  name="vigencia"
+                  value={formData.vigencia}
+                  onChange={handleInputChange}
+                  required
+                  className={styles.inputField}
+                />
+              </label>
             </div>
 
             <h3>En caso de emergencia, avisar a:</h3>
@@ -733,119 +755,126 @@ export default function RegistroBeneficiario() {
           </form>
         </Modal>
 
+        {/*INFORMACION DEL BENEFICIARIO */}
+        <Modal
+          isOpen={isViewModalOpen}
+          onRequestClose={() => setIsViewModalOpen(false)}
+          overlayClassName={styles.modalOverlay}
+          className={styles.modal}
+        >
+          {selectedBeneficiary && (
+            <div className={styles.card}>
+              <h2>Información del Beneficiario</h2>
+              <p>
+                <strong>ID:</strong> {selectedBeneficiary.ID_BENEFICIARIO}
+              </p>
+              <p>
+                <strong>Número de Nómina:</strong>{" "}
+                {selectedBeneficiary.NO_NOMINA}
+              </p>
 
-{/*INFORMACION DEL BENEFICIARIO */}
-<Modal
-  isOpen={isViewModalOpen}
-  onRequestClose={() => setIsViewModalOpen(false)}
-  overlayClassName={styles.modalOverlay}
-  className={styles.modal}
->
-  {selectedBeneficiary && (
-    <div className={styles.card}>
-      <h2>Información del Beneficiario</h2>
-      <p>
-        <strong>ID:</strong> {selectedBeneficiary.ID_BENEFICIARIO}
-      </p>
-      <p>
-        <strong>Número de Nómina:</strong> {selectedBeneficiary.NO_NOMINA}
-      </p>
+              {/* Mostrar la descripción de parentesco */}
+              <p>
+                <strong>Parentesco:</strong>{" "}
+                {parentescoOptions.find(
+                  (p) => p.ID_PARENTESCO === selectedBeneficiary.PARENTESCO
+                )?.PARENTESCO || "Desconocido"}
+              </p>
 
-      {/* Mostrar la descripción de parentesco */}
-      <p>
-        <strong>Parentesco:</strong>{" "}
-        {parentescoOptions.find(
-          (p) => p.ID_PARENTESCO === selectedBeneficiary.PARENTESCO
-        )?.PARENTESCO || "Desconocido"}
-      </p>
+              <p>
+                <strong>Nombre:</strong>{" "}
+                {`${selectedBeneficiary.NOMBRE} ${selectedBeneficiary.A_PATERNO} ${selectedBeneficiary.A_MATERNO}`}
+              </p>
 
-      <p>
-        <strong>Nombre:</strong>{" "}
-        {`${selectedBeneficiary.NOMBRE} ${selectedBeneficiary.A_PATERNO} ${selectedBeneficiary.A_MATERNO}`}
-      </p>
+              {/* Mostrar la descripción de sexo */}
+              <p>
+                <strong>Sexo:</strong>{" "}
+                {sexoOptions.find(
+                  (s) => String(s.idSexo) === String(selectedBeneficiary.SEXO)
+                )?.sexo || "Desconocido"}
+              </p>
 
-      {/* Mostrar la descripción de sexo */}
-      <p>
-        <strong>Sexo:</strong>{" "}
-        {sexoOptions.find(
-          (s) => String(s.idSexo) === String(selectedBeneficiary.SEXO)
-        )?.sexo || "Desconocido"}
-      </p>
+              {/* Mostrar el Departamento */}
+              <p>
+                <strong>Departamento:</strong>{" "}
+                {selectedBeneficiary.DEPARTAMENTO || "N/A"}
+              </p>
 
-      {/* Mostrar el Departamento */}
-      <p>
-        <strong>Departamento:</strong> {selectedBeneficiary.DEPARTAMENTO || "N/A"}
-      </p>
+              <p>
+                <strong>Escolaridad:</strong>{" "}
+                {selectedBeneficiary.ESCOLARIDAD || "N/A"}
+              </p>
+              <p>
+                <strong>Fecha de Nacimiento:</strong>{" "}
+                {selectedBeneficiary.F_NACIMIENTO}
+              </p>
 
-      <p>
-        <strong>Escolaridad:</strong> {selectedBeneficiary.ESCOLARIDAD || "N/A"}
-      </p>
-      <p>
-        <strong>Fecha de Nacimiento:</strong> {selectedBeneficiary.F_NACIMIENTO}
-      </p>
+              {/* Mostrar la Edad */}
+              <p>
+                <strong>Edad:</strong> {selectedBeneficiary.EDAD || "N/A"}
+              </p>
 
-      {/* Mostrar la Edad */}
-      <p>
-        <strong>Edad:</strong> {selectedBeneficiary.EDAD || "N/A"}
-      </p>
+              <p>
+                <strong>Activo:</strong>{" "}
+                {selectedBeneficiary.ACTIVO === "A" ? "Sí" : "No"}
+              </p>
+              <p>
+                <strong>Alergias:</strong>{" "}
+                {selectedBeneficiary.ALERGIAS || "Ninguna"}
+              </p>
+              <p>
+                <strong>Tipo de Sangre:</strong>{" "}
+                {selectedBeneficiary.SANGRE || "N/A"}
+              </p>
+              <p>
+                <strong>Teléfono de Emergencia:</strong>{" "}
+                {selectedBeneficiary.TEL_EMERGENCIA || "N/A"}
+              </p>
+              <p>
+                <strong>Nombre de Contacto de Emergencia:</strong>{" "}
+                {selectedBeneficiary.NOMBRE_EMERGENCIA || "N/A"}
+              </p>
+              <p>
+                <strong>Discapacitado:</strong>{" "}
+                {selectedBeneficiary.ESDISCAPACITADO === 1 ? "Sí" : "No"}
+              </p>
+              <p>
+                <strong>Estudiante:</strong>{" "}
+                {selectedBeneficiary.ESESTUDIANTE === 1 ? "Sí" : "No"}
+              </p>
+              <p>
+                <strong>Vigencia de Estudios:</strong>{" "}
+                {selectedBeneficiary.VIGENCIA_ESTUDIOS || "N/A"}
+              </p>
 
-      <p>
-        <strong>Activo:</strong> {selectedBeneficiary.ACTIVO === "A" ? "Sí" : "No"}
-      </p>
-      <p>
-        <strong>Alergias:</strong> {selectedBeneficiary.ALERGIAS || "Ninguna"}
-      </p>
-      <p>
-        <strong>Tipo de Sangre:</strong> {selectedBeneficiary.SANGRE || "N/A"}
-      </p>
-      <p>
-        <strong>Teléfono de Emergencia:</strong>{" "}
-        {selectedBeneficiary.TEL_EMERGENCIA || "N/A"}
-      </p>
-      <p>
-        <strong>Nombre de Contacto de Emergencia:</strong>{" "}
-        {selectedBeneficiary.NOMBRE_EMERGENCIA || "N/A"}
-      </p>
-      <p>
-        <strong>Discapacitado:</strong>{" "}
-        {selectedBeneficiary.ESDISCAPACITADO === 1 ? "Sí" : "No"}
-      </p>
-      <p>
-        <strong>Estudiante:</strong>{" "}
-        {selectedBeneficiary.ESESTUDIANTE === 1 ? "Sí" : "No"}
-      </p>
-      <p>
-        <strong>Vigencia de Estudios:</strong>{" "}
-        {selectedBeneficiary.VIGENCIA_ESTUDIOS || "N/A"}
-      </p>
+              <p>
+                <strong>Vigencia:</strong>{" "}
+                {selectedBeneficiary.VIGENCIA
+                  ? formatVigenciaDate(selectedBeneficiary.VIGENCIA)
+                  : "N/A"}
+              </p>
 
-      {/* Mostrar la imagen solo si FOTO_URL está disponible */}
-      {selectedBeneficiary.FOTO_URL ? (
-        <div className={styles.imageContainer}>
-          <img
-            src={selectedBeneficiary.FOTO_URL}
-            alt={`${selectedBeneficiary.NOMBRE} ${selectedBeneficiary.A_PATERNO}`}
-            className={styles.beneficiaryImage}
-          />
-        </div>
-      ) : (
-        <p>Imagen no disponible</p>
-      )}
-      <button
-        onClick={() => setIsViewModalOpen(false)}
-        className={styles.closeButton}
-      >
-        Cerrar
-      </button>
-    </div>
-  )}
-</Modal>
-
-
-
-
-
-
+              {/* Mostrar la imagen solo si FOTO_URL está disponible */}
+              {selectedBeneficiary.FOTO_URL ? (
+                <div className={styles.imageContainer}>
+                  <img
+                    src={selectedBeneficiary.FOTO_URL}
+                    alt={`${selectedBeneficiary.NOMBRE} ${selectedBeneficiary.A_PATERNO}`}
+                    className={styles.beneficiaryImage}
+                  />
+                </div>
+              ) : (
+                <p>Imagen no disponible</p>
+              )}
+              <button
+                onClick={() => setIsViewModalOpen(false)}
+                className={styles.closeButton}
+              >
+                Cerrar
+              </button>
+            </div>
+          )}
+        </Modal>
 
         {/* Tabla de beneficiarios, solo se muestra si el empleado es encontrado */}
         {empleado && beneficiarios.length > 0 && (

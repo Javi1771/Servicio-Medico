@@ -27,7 +27,7 @@ export default async function handler(req, res) {
           ESCOLARIDAD,
           F_NACIMIENTO,
           EDAD,
-          DEPARTAMENTO,  -- Añadir el campo departamento aquí
+          DEPARTAMENTO,
           ACTIVO,
           ALERGIAS,
           SANGRE,
@@ -36,11 +36,11 @@ export default async function handler(req, res) {
           ESDISCAPACITADO,
           ESESTUDIANTE,
           VIGENCIA_ESTUDIOS,
-          FOTO_URL
+          FOTO_URL,
+          VIGENCIA  -- Añadir el campo vigencia aquí
         FROM BENEFICIARIO
         WHERE ID_BENEFICIARIO = @idBeneficiario
       `);
-
     if (result.recordset.length === 0) {
       return res.status(404).json({ error: 'Beneficiario no encontrado' });
     }
@@ -51,3 +51,4 @@ export default async function handler(req, res) {
     res.status(500).json({ error: 'Error al obtener el beneficiario' });
   }
 }
+
