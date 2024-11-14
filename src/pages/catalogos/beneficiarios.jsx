@@ -772,12 +772,16 @@ export default function RegistroBeneficiario() {
         )?.sexo || "Desconocido"}
       </p>
 
+      {/* Mostrar el Departamento */}
+      <p>
+        <strong>Departamento:</strong> {selectedBeneficiary.DEPARTAMENTO || "N/A"}
+      </p>
+
       <p>
         <strong>Escolaridad:</strong> {selectedBeneficiary.ESCOLARIDAD || "N/A"}
       </p>
       <p>
-        <strong>Fecha de Nacimiento:</strong>{" "}
-        {selectedBeneficiary.F_NACIMIENTO}
+        <strong>Fecha de Nacimiento:</strong> {selectedBeneficiary.F_NACIMIENTO}
       </p>
 
       {/* Mostrar la Edad */}
@@ -786,8 +790,7 @@ export default function RegistroBeneficiario() {
       </p>
 
       <p>
-        <strong>Activo:</strong>{" "}
-        {selectedBeneficiary.ACTIVO === "A" ? "Sí" : "No"}
+        <strong>Activo:</strong> {selectedBeneficiary.ACTIVO === "A" ? "Sí" : "No"}
       </p>
       <p>
         <strong>Alergias:</strong> {selectedBeneficiary.ALERGIAS || "Ninguna"}
@@ -837,6 +840,7 @@ export default function RegistroBeneficiario() {
     </div>
   )}
 </Modal>
+
 
 
 
