@@ -36,7 +36,6 @@ export default async function handler(req, res) {
     domicilio,
     observaciones,
     esEstudiante,
-    vigenciaEstudios,
     esDiscapacitado,
     vigenciaEstudiosInicio, // Fecha de inicio de vigencia de estudios
     vigenciaEstudiosFin, // Fecha de fin de vigencia de estudios
@@ -46,10 +45,6 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Datos incompletos o inválidos' });
   }
 
-  // Convertir las fechas al formato ISO
-  const formattedFNacimiento = new Date(fNacimiento).toISOString().split('T')[0];
-  const formattedVigencia = new Date(vigencia).toISOString().split('T')[0];
-  const formattedVigenciaEstudios = vigenciaEstudios ? new Date(vigenciaEstudios).toISOString().split('T')[0] : null;
 
   let departamento = '';
   let sindicato = '';
@@ -68,10 +63,9 @@ export default async function handler(req, res) {
 
   const birthDate = new Date(fNacimiento);
   const today = new Date();
-  let age = today.getFullYear() - birthDate.getFullYear();
   const monthDiff = today.getMonth() - birthDate.getMonth();
   if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-    age--;
+  
   }
 
   try {

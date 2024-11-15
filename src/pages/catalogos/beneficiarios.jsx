@@ -13,8 +13,6 @@ export default function RegistroBeneficiario() {
   const [beneficiarios, setBeneficiarios] = useState([]);
   const [parentescoOptions, setParentescoOptions] = useState([]);
   const [sexoOptions, setSexoOptions] = useState([]);
-  const [sexoNombre, setSexoNombre] = useState(""); // Define sexoNombre como un estado
-  const [isEstudiante, setIsEstudiante] = useState(false); // Nueva variable de estado para el checkbox
   const [formData, setFormData] = useState({
     parentesco: "",
     nombre: "",
@@ -49,26 +47,6 @@ export default function RegistroBeneficiario() {
   const [isOtherEnabled, setIsOtherEnabled] = useState(false); // Nueva variable de estado
 
   const router = useRouter(); // Define el router usando useRouter
-
-  // Manejo del cambio del checkbox "Es Estudiante"
-  const handleEstudianteChange = (e) => {
-    const isChecked = e.target.checked;
-    setIsEstudiante(isChecked);
-    setFormData({
-      ...formData,
-      esEstudiante: isChecked,
-      vigenciaEstudios: isChecked ? formData.vigenciaEstudios : "N/A",
-    });
-  };
-
-  /**DAR FORMATO A LA VIGENCIA */
-  const formatVigenciaDate = (vigencia) => {
-    const date = new Date(vigencia);
-    const day = date.getDate();
-    const month = date.toLocaleString("es-ES", { month: "long" });
-    const year = date.getFullYear();
-    return `${day} ${month} del ${year}`;
-  };
 
   // Dentro de handleInputChange para actualizar el estado cuando cambie la fecha de nacimiento
   const handleInputChange = (e) => {
@@ -153,7 +131,6 @@ export default function RegistroBeneficiario() {
     }
   };
 
-  /Obtener el sindicato del empleado/;
   const getSindicato = (grupoNomina, cuotaSindical) => {
     if (grupoNomina === "NS") {
       return cuotaSindical === "S"
@@ -240,23 +217,6 @@ export default function RegistroBeneficiario() {
       setParentescoOptions(data);
     } catch (err) {
       console.error("Error fetching parentesco options:", err);
-    }
-  };
-
-  // Obtener el nombre del sexo
-  const fetchSexoNombre = async (idSexo) => {
-    try {
-      const response = await fetch(`/api/sexo?idSexo=${idSexo}`);
-      const data = await response.json();
-      if (response.ok) {
-        setSexoNombre(data.sexo);
-      } else {
-        console.error("Error fetching sexo:", data.error);
-        setSexoNombre("N/A");
-      }
-    } catch (error) {
-      console.error("Error fetching sexo:", error);
-      setSexoNombre("N/A");
     }
   };
 
@@ -1193,9 +1153,11 @@ export default function RegistroBeneficiario() {
               {/* Mostrar la imagen solo si FOTO_URL está disponible */}
               {selectedBeneficiary.FOTO_URL ? (
                 <div className={styles.imageContainer}>
-                  <img
+                  <Image
                     src={selectedBeneficiary.FOTO_URL}
                     alt={`${selectedBeneficiary.NOMBRE} ${selectedBeneficiary.A_PATERNO}`}
+                    width={200} // Ajusta el ancho según tus necesidades
+                    height={200} // Ajusta el alto según tus necesidades
                     className={styles.beneficiaryImage}
                   />
                 </div>

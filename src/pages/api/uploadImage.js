@@ -1,21 +1,17 @@
-import cloudinary from 'cloudinary';
+// src/pages/api/uploadImage.js
+import cloudinary from '../../lib/cloudinaryServer';
 
-// Ignorar verificación de certificado SSL (solo para desarrollo)
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-
-// Configurar Cloudinary
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
+// Desactivar la verificación SSL solo en desarrollo
+if (process.env.NODE_ENV === 'development') {
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+}
 
 export default async function handler(req, res) {
   if (req.method === 'POST') {
     const { image } = req.body;
 
     try {
-      const result = await cloudinary.v2.uploader.upload(image, {
+      const result = await cloudinary.uploader.upload(image, {
         folder: 'beneficiarios',
       });
 
