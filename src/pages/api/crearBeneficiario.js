@@ -34,12 +34,20 @@ export default async function handler(req, res) {
     enfermedades_cronicas,
     tratamientos,
     domicilio,
-    observaciones, // Nuevo campo observaciones
+    observaciones,
+    esEstudiante,
+    vigenciaEstudios,
+    esDiscapacitado
   } = req.body;
 
-  if (!noNomina || !nombre || !aPaterno || !fNacimiento || !telEmergencia || !sexo || !vigencia || !curp || !situacion_lab) {
+  if (!noNomina || !nombre || !aPaterno || !fNacimiento || !telEmergencia || !sexo || !vigencia || !curp) {
     return res.status(400).json({ error: 'Datos incompletos o inválidos' });
   }
+
+  // Convertir las fechas al formato ISO
+  const formattedFNacimiento = new Date(fNacimiento).toISOString().split('T')[0];
+  const formattedVigencia = new Date(vigencia).toISOString().split('T')[0];
+  const formattedVigenciaEstudios = vigenciaEstudios ? new Date(vigenciaEstudios).toISOString().split('T')[0] : null;
 
   let departamento = '';
   let sindicato = '';
@@ -74,7 +82,7 @@ export default async function handler(req, res) {
       .input('aPaterno', aPaterno)
       .input('aMaterno', aMaterno)
       .input('sexo', sexo)
-      .input('fNacimiento', fNacimiento)
+      .input('fNacimiento', formattedFNacimiento) // Fecha en formato ISO
       .input('edad', age)
       .input('departamento', departamento)
       .input('sindicato', sindicato)
@@ -83,26 +91,29 @@ export default async function handler(req, res) {
       .input('telEmergencia', telEmergencia)
       .input('nombreEmergencia', nombreEmergencia)
       .input('imageUrl', imageUrl)
-      .input('vigencia', vigencia)
+      .input('vigencia', formattedVigencia) // Fecha en formato ISO
       .input('curp', curp)
       .input('situacion_lab', situacion_lab)
       .input('enfermedades_cronicas', enfermedades_cronicas)
       .input('tratamientos', tratamientos)
       .input('domicilio', domicilio)
-      .input('observaciones', observaciones) // Guardar observaciones
+      .input('observaciones', observaciones)
+      .input('esEstudiante', esEstudiante)
+      .input('vigenciaEstudios', formattedVigenciaEstudios) // Fecha en formato ISO
+      .input('esDiscapacitado', esDiscapacitado) // Guardar el valor "Sí" o "No"
       .input('estatus', 'A')
       .query(`
         INSERT INTO BENEFICIARIO (
           NO_NOMINA, PARENTESCO, NOMBRE, A_PATERNO, A_MATERNO, SEXO, 
           F_NACIMIENTO, EDAD, DEPARTAMENTO, SINDICATO, ALERGIAS, SANGRE, 
           TEL_EMERGENCIA, NOMBRE_EMERGENCIA, FOTO_URL, VIGENCIA, CURP, 
-          situacion_lab, enfermedades_cronicas, tratamientos, domicilio, observaciones, ACTIVO
+          situacion_lab, enfermedades_cronicas, tratamientos, domicilio, observaciones, ESESTUDIANTE, VIGENCIA_ESTUDIOS, ESDISCAPACITADO, ACTIVO
         )
         VALUES (
           @noNomina, @parentesco, @nombre, @aPaterno, @aMaterno, @sexo, 
           @fNacimiento, @edad, @departamento, @sindicato, @alergias, @sangre, 
           @telEmergencia, @nombreEmergencia, @imageUrl, @vigencia, @curp, 
-          @situacion_lab, @enfermedades_cronicas, @tratamientos, @domicilio, @observaciones, @estatus
+          @situacion_lab, @enfermedades_cronicas, @tratamientos, @domicilio, @observaciones, @esEstudiante, @vigenciaEstudios, @esDiscapacitado, @estatus
         )
       `);
 
