@@ -37,9 +37,9 @@ export default function RegistroBeneficiario() {
     domicilio: "", // Nuevo campo domicilio
     observaciones: "", // Nuevo campo observaciones
     esEstudiante: "No", // Default value
-    vigenciaEstudios: "", // Nueva fecha de vigencia de estudios
-    esDiscapacitado: "No" // Añadido campo discapacitado, valor predeterminado "No"
-
+    vigenciaEstudiosInicio: "",
+    vigenciaEstudiosFin: "",
+    esDiscapacitado: "No", // Añadido campo discapacitado, valor predeterminado "No"
   });
 
   const [error, setError] = useState(null);
@@ -75,12 +75,13 @@ export default function RegistroBeneficiario() {
     const { name, value } = e.target;
     setFormData((prevData) => {
       const updatedData = { ...prevData, [name]: value };
-  
+
       // Limpiar vigenciaEstudios si esEstudiante es "No" y mantener el valor si es "Sí"
       if (name === "esEstudiante") {
-        updatedData.vigenciaEstudios = value === "Sí" ? prevData.vigenciaEstudios : "N/A";
+        updatedData.vigenciaEstudios =
+          value === "Sí" ? prevData.vigenciaEstudios : "N/A";
       }
-  
+
       // Calcular edad automáticamente al actualizar la fecha de nacimiento
       if (name === "fNacimiento") {
         const birthDate = new Date(value);
@@ -95,12 +96,10 @@ export default function RegistroBeneficiario() {
         }
         updatedData.edad = age;
       }
-  
+
       return updatedData;
     });
   };
-  
-
 
   const handleViewBeneficiary = async (beneficiario) => {
     try {
@@ -962,34 +961,43 @@ export default function RegistroBeneficiario() {
               </div>
 
               {/* Campo de Estudiante y Vigencia de Estudios */}
-              <div className={styles.inputRow}>
-                <label className={styles.inputLabel}>
-                  ¿Es estudiante?
-                  <select
-                    name="esEstudiante"
-                    value={formData.esEstudiante}
-                    onChange={handleInputChange}
-                    className={styles.inputField}
-                  >
-                    <option value="No">No</option>
-                    <option value="Sí">Sí</option>
-                  </select>
-                </label>
+              <label className={styles.inputLabel}>
+                ¿Es estudiante?
+                <select
+                  name="esEstudiante"
+                  value={formData.esEstudiante}
+                  onChange={handleInputChange}
+                  className={styles.inputField}
+                >
+                  <option value="No">No</option>
+                  <option value="Sí">Sí</option>
+                </select>
+              </label>
 
-                {/* Campo de calendario para vigencia de estudios, visible solo si es estudiante es "Sí" */}
-                {formData.esEstudiante === "Sí" && (
+              {formData.esEstudiante === "Sí" && (
+                <div className={styles.inputRow}>
                   <label className={styles.inputLabel}>
-                    Vigencia de Estudios:
+                    Vigencia de Estudios (Inicio):
                     <input
                       type="date"
-                      name="vigenciaEstudios"
-                      value={formData.vigenciaEstudios}
+                      name="vigenciaEstudiosInicio"
+                      value={formData.vigenciaEstudiosInicio}
                       onChange={handleInputChange}
                       className={styles.inputField}
                     />
                   </label>
-                )}
-              </div>
+                  <label className={styles.inputLabel}>
+                    Vigencia de Estudios (Fin):
+                    <input
+                      type="date"
+                      name="vigenciaEstudiosFin"
+                      value={formData.vigenciaEstudiosFin}
+                      onChange={handleInputChange}
+                      className={styles.inputField}
+                    />
+                  </label>
+                </div>
+              )}
             </div>
 
             {/* Fila: Es Discapacitado */}
@@ -1115,29 +1123,26 @@ export default function RegistroBeneficiario() {
                 <strong>Nombre de Contacto de Emergencia:</strong>{" "}
                 {selectedBeneficiary.NOMBRE_EMERGENCIA || "N/A"}
               </p>
-              <p>
-                <strong>Discapacitado:</strong>{" "}
-                {selectedBeneficiary.ESDISCAPACITADO === 1 ? "Sí" : "No"}
-              </p>
               {/* Mostrar si el beneficiario es estudiante */}
-              <p>
-                <strong>Estudiante:</strong>{" "}
-                {selectedBeneficiary.ESESTUDIANTE || "N/A"}
-              </p>
-              {/* Mostrar la vigencia de estudios solo si es estudiante */}
               {selectedBeneficiary.ESESTUDIANTE === "Sí" && (
-                <p>
-                  <strong>Vigencia de Estudios:</strong>{" "}
-                  {selectedBeneficiary.VIGENCIA_ESTUDIOS
-                    ? new Date(
-                        selectedBeneficiary.VIGENCIA_ESTUDIOS
-                      ).toLocaleDateString("es-ES", {
-                        day: "numeric",
-                        month: "long",
-                        year: "numeric",
-                      })
-                    : "N/A"}
-                </p>
+                <>
+                  <p>
+                    <strong>Vigencia de Estudios (Inicio):</strong>{" "}
+                    {selectedBeneficiary.VIGENCIA_ESTUDIOS_INICIO
+                      ? new Date(
+                          selectedBeneficiary.VIGENCIA_ESTUDIOS_INICIO
+                        ).toLocaleDateString("es-ES")
+                      : "N/A"}
+                  </p>
+                  <p>
+                    <strong>Vigencia de Estudios (Fin):</strong>{" "}
+                    {selectedBeneficiary.VIGENCIA_ESTUDIOS_FIN
+                      ? new Date(
+                          selectedBeneficiary.VIGENCIA_ESTUDIOS_FIN
+                        ).toLocaleDateString("es-ES")
+                      : "N/A"}
+                  </p>
+                </>
               )}
               <p>
                 <strong>CURP:</strong> {selectedBeneficiary.CURP || "N/A"}

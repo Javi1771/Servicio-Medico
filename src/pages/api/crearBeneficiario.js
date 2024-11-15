@@ -37,7 +37,9 @@ export default async function handler(req, res) {
     observaciones,
     esEstudiante,
     vigenciaEstudios,
-    esDiscapacitado
+    esDiscapacitado,
+    vigenciaEstudiosInicio, // Fecha de inicio de vigencia de estudios
+    vigenciaEstudiosFin, // Fecha de fin de vigencia de estudios
   } = req.body;
 
   if (!noNomina || !nombre || !aPaterno || !fNacimiento || !telEmergencia || !sexo || !vigencia || !curp) {
@@ -82,8 +84,8 @@ export default async function handler(req, res) {
       .input('aPaterno', aPaterno)
       .input('aMaterno', aMaterno)
       .input('sexo', sexo)
-      .input('fNacimiento', formattedFNacimiento) // Fecha en formato ISO
-      .input('edad', age)
+      .input('fNacimiento', new Date(fNacimiento).toISOString())
+      .input('edad', new Date().getFullYear() - new Date(fNacimiento).getFullYear())
       .input('departamento', departamento)
       .input('sindicato', sindicato)
       .input('alergias', alergias)
@@ -91,7 +93,7 @@ export default async function handler(req, res) {
       .input('telEmergencia', telEmergencia)
       .input('nombreEmergencia', nombreEmergencia)
       .input('imageUrl', imageUrl)
-      .input('vigencia', formattedVigencia) // Fecha en formato ISO
+      .input('vigencia', new Date(vigencia).toISOString())
       .input('curp', curp)
       .input('situacion_lab', situacion_lab)
       .input('enfermedades_cronicas', enfermedades_cronicas)
@@ -99,21 +101,26 @@ export default async function handler(req, res) {
       .input('domicilio', domicilio)
       .input('observaciones', observaciones)
       .input('esEstudiante', esEstudiante)
-      .input('vigenciaEstudios', formattedVigenciaEstudios) // Fecha en formato ISO
-      .input('esDiscapacitado', esDiscapacitado) // Guardar el valor "Sí" o "No"
+      .input('vigenciaEstudiosInicio', vigenciaEstudiosInicio ? new Date(vigenciaEstudiosInicio).toISOString() : null)
+      .input('vigenciaEstudiosFin', vigenciaEstudiosFin ? new Date(vigenciaEstudiosFin).toISOString() : null)
+      .input('esDiscapacitado', esDiscapacitado)
       .input('estatus', 'A')
       .query(`
         INSERT INTO BENEFICIARIO (
           NO_NOMINA, PARENTESCO, NOMBRE, A_PATERNO, A_MATERNO, SEXO, 
           F_NACIMIENTO, EDAD, DEPARTAMENTO, SINDICATO, ALERGIAS, SANGRE, 
           TEL_EMERGENCIA, NOMBRE_EMERGENCIA, FOTO_URL, VIGENCIA, CURP, 
-          situacion_lab, enfermedades_cronicas, tratamientos, domicilio, observaciones, ESESTUDIANTE, VIGENCIA_ESTUDIOS, ESDISCAPACITADO, ACTIVO
+          situacion_lab, enfermedades_cronicas, tratamientos, domicilio, observaciones, 
+          ESESTUDIANTE, VIGENCIA_ESTUDIOS_INICIO, VIGENCIA_ESTUDIOS_FIN, 
+          ESDISCAPACITADO, ACTIVO
         )
         VALUES (
           @noNomina, @parentesco, @nombre, @aPaterno, @aMaterno, @sexo, 
           @fNacimiento, @edad, @departamento, @sindicato, @alergias, @sangre, 
           @telEmergencia, @nombreEmergencia, @imageUrl, @vigencia, @curp, 
-          @situacion_lab, @enfermedades_cronicas, @tratamientos, @domicilio, @observaciones, @esEstudiante, @vigenciaEstudios, @esDiscapacitado, @estatus
+          @situacion_lab, @enfermedades_cronicas, @tratamientos, @domicilio, @observaciones, 
+          @esEstudiante, @vigenciaEstudiosInicio, @vigenciaEstudiosFin, 
+          @esDiscapacitado, @estatus
         )
       `);
 

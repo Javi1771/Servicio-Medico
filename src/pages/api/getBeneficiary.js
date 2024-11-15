@@ -18,33 +18,12 @@ export default async function handler(req, res) {
       .input('idBeneficiario', idBeneficiario)
       .query(`
         SELECT 
-          ID_BENEFICIARIO,
-          NO_NOMINA,
-          PARENTESCO,
-          NOMBRE,
-          A_PATERNO,
-          A_MATERNO,
-          SEXO,
-          F_NACIMIENTO,
-          EDAD,
-          DEPARTAMENTO,
-          SINDICATO,
-          ACTIVO,
-          ALERGIAS,
-          SANGRE,
-          TEL_EMERGENCIA,
-          NOMBRE_EMERGENCIA,
-          ESDISCAPACITADO,
-          ESESTUDIANTE,
-          VIGENCIA_ESTUDIOS,
-          FOTO_URL,
-          VIGENCIA,
-          CURP,
-          situacion_lab,
-          enfermedades_cronicas,
-          tratamientos,
-          domicilio,
-          observaciones
+          ID_BENEFICIARIO, NO_NOMINA, PARENTESCO, NOMBRE, A_PATERNO, A_MATERNO, 
+          SEXO, ESCOLARIDAD, F_NACIMIENTO, EDAD, DEPARTAMENTO, SINDICATO, 
+          ACTIVO, ALERGIAS, SANGRE, TEL_EMERGENCIA, NOMBRE_EMERGENCIA, 
+          ESDISCAPACITADO, ESESTUDIANTE, VIGENCIA_ESTUDIOS_INICIO, VIGENCIA_ESTUDIOS_FIN, 
+          FOTO_URL, VIGENCIA, CURP, situacion_lab, enfermedades_cronicas, tratamientos, 
+          domicilio, observaciones
         FROM BENEFICIARIO
         WHERE ID_BENEFICIARIO = @idBeneficiario
       `);
