@@ -4,6 +4,7 @@ import Swal from "sweetalert2";
 import Modal from "react-modal";
 import styles from "../css/beneficiarios.module.css";
 import { useRouter } from "next/router"; // Importar useRouter para la navegación
+import { jsPDF } from "jspdf";
 
 Modal.setAppElement("#__next"); // Configuración del modal en Next.js
 
@@ -47,6 +48,90 @@ export default function RegistroBeneficiario() {
   const [isOtherEnabled, setIsOtherEnabled] = useState(false); // Nueva variable de estado
 
   const router = useRouter(); // Define el router usando useRouter
+
+  // Función para convertir la imagen a base64
+  const loadImageBase64 = async (src) => {
+    const response = await fetch(src);
+    const blob = await response.blob();
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result);
+      reader.readAsDataURL(blob);
+    });
+  };
+
+  const handlePrintCredential = async (beneficiary) => {
+    const {
+      NO_NOMINA,
+      PARENTESCO,
+      NOMBRE,
+      A_PATERNO,
+      A_MATERNO,
+      EDAD,
+      DEPARTAMENTO,
+      SINDICATO,
+      VIGENCIA,
+      F_NACIMIENTO,
+      SANGRE,
+      ALERGIAS,
+      TEL_EMERGENCIA,
+      NOMBRE_EMERGENCIA,
+      FOTO_URL,
+    } = beneficiary;
+  
+    const doc = new jsPDF({
+      orientation: "portrait",
+      unit: "cm",
+      format: "a4",
+    });
+  
+    const frontTemplateUrl = "/CREDENCIAL_FRONTAL.png";
+    const backTemplateUrl = "/CREDENCIAL_TRASERA.png";
+    const frontTemplate = await loadImageBase64(frontTemplateUrl);
+    const backTemplate = await loadImageBase64(backTemplateUrl);
+  
+    // Añadir la cara frontal
+    doc.addImage(frontTemplate, "PNG", 3, 2, 9, 6);
+    doc.setFontSize(7);
+  
+    // Coordenadas ajustadas para alinear cada campo con los puntos de color
+  
+    // Cara frontal
+    doc.text(String(NO_NOMINA || ""), 7.3, 2.6);          // Nómina (punto naranja)
+    doc.text(String(PARENTESCO || ""), 7.3, 3.2);         // Parentesco (punto verde)
+    doc.text(`${String(NOMBRE || "")} ${String(A_PATERNO || "")} ${String(A_MATERNO || "")}`, 7.3, 3.8); // Nombre completo (punto rosa)
+    doc.text(String(EDAD || ""), 7.3, 4.4);               // Edad (punto rojo)
+    doc.text(String(DEPARTAMENTO || ""), 7.3, 5.0);       // Departamento (punto cyan)
+    doc.text(String(SINDICATO || ""), 7.3, 5.6);          // Secretaría (punto amarillo)
+    doc.text(String(VIGENCIA || ""), 7.3, 6.2);           // Vigencia (punto naranja claro)
+  
+    // Colocar la foto en la posición correcta
+    if (FOTO_URL) {
+      const photo = await loadImageBase64(FOTO_URL);
+      doc.addImage(photo, "JPEG", 3.5, 2.8, 2, 2.5); // Foto (ajustada en posición y tamaño)
+    }
+  
+    // Añadir la cara trasera
+    doc.addImage(backTemplate, "PNG", 3, 10, 9, 6);
+    doc.setFontSize(7);
+  
+    // Coordenadas ajustadas para alinear con los puntos en la cara trasera
+    doc.text(String(F_NACIMIENTO || ""), 4.8, 11.3);      // Fecha de nacimiento (punto verde)
+    doc.text(String(SANGRE || ""), 4.8, 11.9);            // Tipo de Sangre (punto morado)
+    doc.text(String(ALERGIAS || ""), 4.8, 12.5);          // Alergias (punto rojo)
+    doc.text(String(TEL_EMERGENCIA || ""), 4.8, 13.1);    // Teléfono de emergencia (punto cyan)
+    doc.text(String(NOMBRE_EMERGENCIA || ""), 4.8, 13.7); // Nombre del trabajador (punto azul)
+  
+    // Espacios para las firmas en la segunda cara
+    doc.text("__________________", 4.5, 14.8); // Firma del empleado
+    doc.text("__________________", 8.5, 14.8); // Jefe de servicio médico
+  
+    // Guardar el PDF
+    doc.save(`Credencial_${NOMBRE || ""}_${A_PATERNO || ""}.pdf`);
+  };
+  
+  
+  
 
   // Dentro de handleInputChange para actualizar el estado cuando cambie la fecha de nacimiento
   const handleInputChange = (e) => {
@@ -1164,6 +1249,12 @@ export default function RegistroBeneficiario() {
               ) : (
                 <p>Imagen no disponible</p>
               )}
+              <button
+                onClick={() => handlePrintCredential(selectedBeneficiary)}
+                className={styles.printButton}
+              >
+                Imprimir Credencial
+              </button>
               <button
                 onClick={() => setIsViewModalOpen(false)}
                 className={styles.closeButton}
