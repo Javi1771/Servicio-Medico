@@ -1,9 +1,11 @@
+/* eslint-disable @next/next/no-img-element */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import Swal from "sweetalert2";
 import Modal from "react-modal";
 import styles from "../css/beneficiarios.module.css";
-import { useRouter } from "next/router"; // Importar useRouter para la navegación
+import { useRouter } from "next/router";
 import { jsPDF } from "jspdf";
 
 Modal.setAppElement("#__next"); // Configuración del modal en Next.js
@@ -49,17 +51,131 @@ export default function RegistroBeneficiario() {
 
   const router = useRouter(); // Define el router usando useRouter
 
-  // Función para convertir la imagen a base64
-  const loadImageBase64 = async (src) => {
-    const response = await fetch(src);
-    const blob = await response.blob();
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result);
-      reader.readAsDataURL(blob);
-    });
+  const handleGenerateCard = async (beneficiary) => {
+    const {
+      NO_NOMINA,
+      PARENTESCO,
+      NOMBRE,
+      A_PATERNO,
+      A_MATERNO,
+      EDAD,
+      VIGENCIA,
+    } = beneficiary;
+
+    // Verificar si las opciones de parentesco están disponibles
+    if (!parentescoOptions || parentescoOptions.length === 0) {
+      console.error("Opciones de parentesco no disponibles.");
+      Swal.fire(
+        "Error",
+        "No se pudieron cargar las opciones de parentesco. Intenta nuevamente.",
+        "error"
+      );
+      return;
+    }
+
+    // Función para obtener la descripción del parentesco
+    const getParentescoDescripcion = (parentescoId) => {
+      const parentesco = parentescoOptions.find(
+        (option) => option.ID_PARENTESCO === parentescoId
+      );
+      return parentesco ? parentesco.PARENTESCO : "Desconocido";
+    };
+
+    // Formatear fechas al formato DD/MM/YYYY
+    const formatFecha = (fecha) => {
+      if (!fecha) return "";
+      const date = new Date(fecha);
+      return date.toLocaleDateString("es-ES", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      });
+    };
+
+    // Interpretación del parentesco
+    const parentescoDescripcion = getParentescoDescripcion(PARENTESCO);
+    const edadConAnios = `${EDAD || 0} años`;
+
+    try {
+      // Consumir la API del web service para obtener datos del empleado
+      const response = await fetch("/api/empleado", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          num_nom: NO_NOMINA,
+        }),
+      });
+
+      if (!response.ok) throw new Error("Empleado no encontrado");
+
+      const employeeData = await response.json();
+
+      // Datos del empleado
+      const EMPLEADO_NOMBRE = employeeData?.nombre
+        ? `${employeeData.nombre} ${employeeData.a_paterno || ""} ${
+            employeeData.a_materno || ""
+          }`.trim()
+        : "N/A";
+      const NUM_NOMINA = employeeData?.num_nom || "N/A";
+      const DEPARTAMENTO = employeeData?.departamento || "N/A";
+
+      // Configuración para jsPDF
+      const doc = new jsPDF({
+        orientation: "landscape",
+        unit: "cm",
+        format: "a4",
+      });
+
+      // Cargar las imágenes del carnet
+      const frontTemplateUrl = `/CARNET_FRONTAL.png`;
+      const backTemplateUrl = `/CARNET_FRONTAL2.png`;
+
+      const frontTemplate = await loadImageBase64(frontTemplateUrl);
+      const backTemplate = await loadImageBase64(backTemplateUrl);
+
+      // Página Frontal del Carnet
+      doc.addImage(frontTemplate, "PNG", 0, 0, 29.7, 21);
+
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor("#19456a"); // Azul oscuro
+
+      // Colocar texto en el carnet
+      doc.setFontSize(14);
+      doc.text(
+        `${NOMBRE || ""} ${A_PATERNO || ""} ${A_MATERNO || ""}`,
+        18.5,
+        6.0
+      ); // Nombre del Beneficiario
+      doc.text(parentescoDescripcion, 18.5, 7.5); // Parentesco
+      doc.text(edadConAnios, 24, 7.6); // Edad
+      doc.text(formatFecha(VIGENCIA), 18.5, 8.8); // Vigencia
+
+      doc.text(EMPLEADO_NOMBRE, 18.5, 10.5); // Nombre del Empleado
+      doc.text(NUM_NOMINA, 18.5, 11.6); // Número de Nómina
+      // Ajustar el texto del departamento en caso de que sea largo
+      const departamentoText = doc.splitTextToSize(DEPARTAMENTO, 10); // Ajusta el ancho máximo del texto
+      // Renderizar el texto en múltiples líneas
+      doc.text(departamentoText, 18.5, 12.8);
+
+      // Página Trasera del Carnet
+      doc.addPage();
+      doc.addImage(backTemplate, "PNG", 0, 0, 29.7, 21);
+
+      // Guardar el archivo PDF
+      doc.save(`Carnet_${NOMBRE}_${A_PATERNO}.pdf`);
+    } catch (error) {
+      console.error("Error al generar el carnet:", error.message);
+      Swal.fire(
+        "Error",
+        "No se pudo generar el carnet. Intenta nuevamente.",
+        "error"
+      );
+    }
   };
 
+  /**FUNCION PARA IMPRIMIR LA CREDENCIAL */
   const handlePrintCredential = async (beneficiary) => {
     const {
       NO_NOMINA,
@@ -69,69 +185,142 @@ export default function RegistroBeneficiario() {
       A_MATERNO,
       EDAD,
       DEPARTAMENTO,
-      SINDICATO,
       VIGENCIA,
       F_NACIMIENTO,
-      SANGRE,
-      ALERGIAS,
       TEL_EMERGENCIA,
       NOMBRE_EMERGENCIA,
       FOTO_URL,
+      SANGRE,
+      ALERGIAS,
     } = beneficiary;
-  
+
+    // Validar si las opciones de parentesco están disponibles
+    if (!parentescoOptions || parentescoOptions.length === 0) {
+      console.error("Parentesco options no disponibles.");
+      Swal.fire(
+        "Error",
+        "No se pudieron cargar las opciones de parentesco. Intenta nuevamente.",
+        "error"
+      );
+      return;
+    }
+
+    // Función para obtener la descripción del parentesco
+    const getParentescoDescripcion = (parentescoId) => {
+      const parentesco = parentescoOptions.find(
+        (option) => option.ID_PARENTESCO === parentescoId
+      );
+      return parentesco ? parentesco.PARENTESCO : "Desconocido";
+    };
+
+    // Formatear fechas al formato DD/MM/YYYY
+    const formatFecha = (fecha) => {
+      if (!fecha) return "";
+      const date = new Date(fecha);
+      return date.toLocaleDateString("es-ES", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      });
+    };
+
+    const parentescoDescripcion = getParentescoDescripcion(PARENTESCO);
+    const edadConAnios = `${EDAD || 0}  AÑOS`;
+
+    // Configuración para jsPDF
     const doc = new jsPDF({
-      orientation: "portrait",
+      orientation: "landscape",
       unit: "cm",
       format: "a4",
     });
-  
-    const frontTemplateUrl = "/CREDENCIAL_FRONTAL.png";
-    const backTemplateUrl = "/CREDENCIAL_TRASERA.png";
+
+    // Cargar las imágenes de la credencial
+    const frontTemplateUrl = `/CREDENCIAL_FRONTAL2.png`;
+    const backTemplateUrl = `/CREDENCIAL_TRASERA.png`;
+
     const frontTemplate = await loadImageBase64(frontTemplateUrl);
     const backTemplate = await loadImageBase64(backTemplateUrl);
-  
-    // Añadir la cara frontal
-    doc.addImage(frontTemplate, "PNG", 3, 2, 9, 6);
-    doc.setFontSize(7);
-  
-    // Coordenadas ajustadas para alinear cada campo con los puntos de color
-  
-    // Cara frontal
-    doc.text(String(NO_NOMINA || ""), 7.3, 2.6);          // Nómina (punto naranja)
-    doc.text(String(PARENTESCO || ""), 7.3, 3.2);         // Parentesco (punto verde)
-    doc.text(`${String(NOMBRE || "")} ${String(A_PATERNO || "")} ${String(A_MATERNO || "")}`, 7.3, 3.8); // Nombre completo (punto rosa)
-    doc.text(String(EDAD || ""), 7.3, 4.4);               // Edad (punto rojo)
-    doc.text(String(DEPARTAMENTO || ""), 7.3, 5.0);       // Departamento (punto cyan)
-    doc.text(String(SINDICATO || ""), 7.3, 5.6);          // Secretaría (punto amarillo)
-    doc.text(String(VIGENCIA || ""), 7.3, 6.2);           // Vigencia (punto naranja claro)
-  
-    // Colocar la foto en la posición correcta
+
+    // Página Frontal
+    doc.addImage(frontTemplate, "PNG", 0, 0, 29.7, 21);
+
+    // Añadir la foto y el marco redondeado
     if (FOTO_URL) {
-      const photo = await loadImageBase64(FOTO_URL);
-      doc.addImage(photo, "JPEG", 3.5, 2.8, 2, 2.5); // Foto (ajustada en posición y tamaño)
+      try {
+        const photo = await loadImageBase64(FOTO_URL);
+        const photoX = 4.5;
+        const photoY = 10.9;
+        const photoWidth = 7.0;
+        const photoHeight = 8.4;
+
+        // Añadir la foto
+        doc.addImage(photo, "JPEG", photoX, photoY, photoWidth, photoHeight);
+
+        // Añadir un marco redondeado alrededor de la foto
+        doc.setLineWidth(0.25);
+        doc.setDrawColor(255, 255, 255); // Color del marco (blanco)
+        doc.roundedRect(photoX, photoY, photoWidth, photoHeight, 0.3, 0.3, "S");
+      } catch (error) {
+        console.error("Error al cargar la foto del beneficiario:", error);
+      }
     }
-  
-    // Añadir la cara trasera
-    doc.addImage(backTemplate, "PNG", 3, 10, 9, 6);
-    doc.setFontSize(7);
-  
-    // Coordenadas ajustadas para alinear con los puntos en la cara trasera
-    doc.text(String(F_NACIMIENTO || ""), 4.8, 11.3);      // Fecha de nacimiento (punto verde)
-    doc.text(String(SANGRE || ""), 4.8, 11.9);            // Tipo de Sangre (punto morado)
-    doc.text(String(ALERGIAS || ""), 4.8, 12.5);          // Alergias (punto rojo)
-    doc.text(String(TEL_EMERGENCIA || ""), 4.8, 13.1);    // Teléfono de emergencia (punto cyan)
-    doc.text(String(NOMBRE_EMERGENCIA || ""), 4.8, 13.7); // Nombre del trabajador (punto azul)
-  
-    // Espacios para las firmas en la segunda cara
-    doc.text("__________________", 4.5, 14.8); // Firma del empleado
-    doc.text("__________________", 8.5, 14.8); // Jefe de servicio médico
-  
-    // Guardar el PDF
+
+    // Texto en la página frontal
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor("#19456a"); // Azul
+
+    doc.setFontSize(21);
+    doc.text(NO_NOMINA?.toString() || "", 18.3, 9.5);
+
+    doc.setFontSize(18);
+    doc.text(parentescoDescripcion, 19.8, 11.16);
+
+    doc.setFontSize(15);
+    doc.text(
+      `${NOMBRE || ""} ${A_PATERNO || ""} ${A_MATERNO || ""}`,
+      18.4,
+      12.6
+    );
+
+    doc.setFontSize(18);
+    doc.text(edadConAnios, 17.2, 14.3);
+
+    doc.setFontSize(14.5);
+    doc.text(doc.splitTextToSize(DEPARTAMENTO || "", 8.5), 21.3, 15.4);
+
+    doc.setFontSize(18);
+    doc.text(formatFecha(VIGENCIA), 18.8, 19.0);
+
+    // Página Trasera
+    doc.addPage();
+    doc.addImage(backTemplate, "PNG", 0, 0, 29.7, 21);
+
+    doc.setFontSize(18);
+    doc.text(formatFecha(F_NACIMIENTO), 12.5, 2.8);
+    doc.text(SANGRE || "", 9.8, 5.2);
+    doc.text(ALERGIAS || "", 7.0, 7.6);
+    doc.text(TEL_EMERGENCIA || "", 14, 9.8);
+    doc.text(NOMBRE_EMERGENCIA || "", 13.1, 12);
+
+    // Guardar como PDF
     doc.save(`Credencial_${NOMBRE || ""}_${A_PATERNO || ""}.pdf`);
   };
-  
-  
-  
+
+  // Función para cargar imágenes como base64
+  const loadImageBase64 = async (src) => {
+    try {
+      const response = await fetch(src);
+      const blob = await response.blob();
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.readAsDataURL(blob);
+      });
+    } catch (error) {
+      console.error("Error al cargar la imagen base64:", error);
+      throw error;
+    }
+  };
 
   // Dentro de handleInputChange para actualizar el estado cuando cambie la fecha de nacimiento
   const handleInputChange = (e) => {
@@ -281,7 +470,8 @@ export default function RegistroBeneficiario() {
         `/api/mostBeneficiarios?num_nom=${numNomina}`
       );
       const data = await response.json();
-      setBeneficiarios(data); // Aquí verifica que data incluye FOTO_URL
+      console.log("Datos de beneficiarios recibidos:", data); // Debug
+      setBeneficiarios(data);
     } catch (err) {
       console.error("Error fetching beneficiaries:", err);
     }
@@ -419,30 +609,58 @@ export default function RegistroBeneficiario() {
 
   // Función para editar beneficiario existente
   const handleEditBeneficiary = (beneficiario) => {
+    console.log("Beneficiario a editar:", beneficiario); // Validar si los datos se reciben correctamente
+
+    const formatFecha = (fecha) => {
+      if (!fecha) return ""; // Asegúrate de que no sea null
+      const date = new Date(fecha);
+      return date.toISOString().split("T")[0]; // Formato YYYY-MM-DD
+    };
+
+    const calcularEdad = (fechaNacimiento) => {
+      if (!fechaNacimiento) return "";
+      const hoy = new Date();
+      const nacimiento = new Date(fechaNacimiento);
+      let edad = hoy.getFullYear() - nacimiento.getFullYear();
+      const mes = hoy.getMonth() - nacimiento.getMonth();
+      if (mes < 0 || (mes === 0 && hoy.getDate() < nacimiento.getDate())) {
+        edad--;
+      }
+      return edad;
+    };
+
+    // Establece los valores iniciales para el formulario
     setFormData({
-      parentesco: beneficiario.PARENTESCO,
-      nombre: beneficiario.NOMBRE,
-      aPaterno: beneficiario.A_PATERNO,
-      aMaterno: beneficiario.A_MATERNO,
-      sexo: beneficiario.SEXO,
-      fNacimiento: beneficiario.F_NACIMIENTO,
-      edad: beneficiario.EDAD,
-      alergias: beneficiario.ALERGIAS,
-      sangre: beneficiario.SANGRE,
-      telEmergencia: beneficiario.TEL_EMERGENCIA,
-      nombreEmergencia: beneficiario.NOMBRE_EMERGENCIA,
-      activo: beneficiario.ACTIVO,
-      imageUrl: beneficiario.FOTO_URL,
-      vigencia: beneficiario.VIGENCIA,
-      curp: beneficiario.CURP,
-      situacion_lab: beneficiario.situacion_lab,
-      enfermedades_cronicas: beneficiario.enfermedades_cronicas,
-      tratamientos: beneficiario.tratamientos,
-      domicilio: beneficiario.domicilio,
-      observaciones: beneficiario.observaciones,
+      parentesco: beneficiario.PARENTESCO || "",
+      nombre: beneficiario.NOMBRE || "",
+      aPaterno: beneficiario.A_PATERNO || "",
+      aMaterno: beneficiario.A_MATERNO || "",
+      sexo: beneficiario.SEXO || "",
+      fNacimiento: formatFecha(beneficiario.F_NACIMIENTO) || "",
+      edad: calcularEdad(beneficiario.F_NACIMIENTO) || "",
+      alergias: beneficiario.ALERGIAS || "",
+      sangre: beneficiario.SANGRE || "",
+      telEmergencia: beneficiario.TEL_EMERGENCIA || "",
+      nombreEmergencia: beneficiario.NOMBRE_EMERGENCIA || "",
+      activo: beneficiario.ACTIVO || "A",
+      imageUrl: beneficiario.FOTO_URL || "",
+      vigencia: formatFecha(beneficiario.VIGENCIA) || "",
+      curp: beneficiario.CURP || "No especificado",
+      situacion_lab: beneficiario.SITUACION_LAB || "N/A",
+      enfermedades_cronicas: beneficiario.ENFERMEDADES_CRONICAS || "",
+      tratamientos: beneficiario.TRATAMIENTOS || "",
+      domicilio: beneficiario.DOMICILIO || "",
+      observaciones: beneficiario.OBSERVACIONES || "",
+      esEstudiante: beneficiario.ESESTUDIANTE || "No",
+      vigenciaEstudiosInicio:
+        formatFecha(beneficiario.VIGENCIA_ESTUDIOS_INICIO) || "",
+      vigenciaEstudiosFin:
+        formatFecha(beneficiario.VIGENCIA_ESTUDIOS_FIN) || "",
+      esDiscapacitado: beneficiario.ESDISCAPACITADO || "No",
     });
+
     setCurrentBeneficiaryId(beneficiario.ID_BENEFICIARIO);
-    setIsEditMode(true); // Establecer en modo edición
+    setIsEditMode(true);
     setIsModalOpen(true);
   };
 
@@ -611,6 +829,8 @@ export default function RegistroBeneficiario() {
           onRequestClose={() => {
             setIsModalOpen(false);
             setIsEditMode(false);
+
+            // Restablece solo si no estás editando
             setFormData({
               parentesco: "",
               nombre: "",
@@ -623,6 +843,17 @@ export default function RegistroBeneficiario() {
               telEmergencia: "",
               nombreEmergencia: "",
               activo: "A",
+              vigencia: "",
+              curp: "",
+              situacion_lab: "",
+              enfermedades_cronicas: "",
+              tratamientos: "",
+              domicilio: "",
+              observaciones: "",
+              esEstudiante: "No",
+              vigenciaEstudiosInicio: "",
+              vigenciaEstudiosFin: "",
+              esDiscapacitado: "No",
             });
           }}
           overlayClassName={styles.modalOverlay}
@@ -884,70 +1115,65 @@ export default function RegistroBeneficiario() {
             {/* Fila 9: Enfermedades Crónicas */}
             <div className={styles.inputRow}>
               <div className={styles.inputGroup}>
-                <label className={styles.inputLabel}>
-                  Enfermedades Crónicas:
+                <label>
+                  <input
+                    type="radio"
+                    name="enfermedades_cronicas"
+                    value="Diabetico"
+                    checked={formData.enfermedades_cronicas === "Diabetico"}
+                    onChange={handleInputChange}
+                  />
+                  Diabetico
                 </label>
-                <div className={styles.checkboxGroup}>
-                  <label>
-                    <input
-                      type="radio"
-                      name="enfermedades_cronicas"
-                      value="Diabetico"
-                      checked={formData.enfermedades_cronicas === "Diabetico"}
-                      onChange={handleInputChange}
-                    />
-                    Diabetico
-                  </label>
-                  <label>
-                    <input
-                      type="radio"
-                      name="enfermedades_cronicas"
-                      value="Hipertenso"
-                      checked={formData.enfermedades_cronicas === "Hipertenso"}
-                      onChange={handleInputChange}
-                    />
-                    Hipertenso
-                  </label>
-                  <label>
-                    <input
-                      type="radio"
-                      name="enfermedades_cronicas"
-                      value="Cancer"
-                      checked={formData.enfermedades_cronicas === "Cancer"}
-                      onChange={handleInputChange}
-                    />
-                    Cancer
-                  </label>
-                  <label>
-                    <input
-                      type="radio"
-                      name="enfermedades_cronicas"
-                      value="Otro"
-                      checked={formData.enfermedades_cronicas === "Otro"}
-                      onChange={(e) => {
-                        handleInputChange(e);
-                        setIsOtherEnabled(e.target.value === "Otro");
-                      }}
-                    />
-                    Otro
-                  </label>
-                  {isOtherEnabled && (
-                    <input
-                      type="text"
-                      name="enfermedades_cronicas"
-                      value={
-                        formData.enfermedades_cronicas !== "Diabetico" &&
-                        formData.enfermedades_cronicas !== "Hipertenso" &&
-                        formData.enfermedades_cronicas !== "Cancer"
-                          ? formData.enfermedades_cronicas
-                          : ""
-                      }
-                      onChange={handleInputChange}
-                      placeholder="Especifique otra enfermedad"
-                      className={styles.inputField}
-                    />
-                  )}
-                </div>
+                <label>
+                  <input
+                    type="radio"
+                    name="enfermedades_cronicas"
+                    value="Hipertenso"
+                    checked={formData.enfermedades_cronicas === "Hipertenso"}
+                    onChange={handleInputChange}
+                  />
+                  Hipertenso
+                </label>
+                <label>
+                  <input
+                    type="radio"
+                    name="enfermedades_cronicas"
+                    value="Cancer"
+                    checked={formData.enfermedades_cronicas === "Cancer"}
+                    onChange={handleInputChange}
+                  />
+                  Cancer
+                </label>
+                <label>
+                  <input
+                    type="radio"
+                    name="enfermedades_cronicas"
+                    value="Otro"
+                    checked={formData.enfermedades_cronicas === "Otro"}
+                    onChange={(e) => {
+                      handleInputChange(e);
+                      setIsOtherEnabled(e.target.value === "Otro");
+                    }}
+                  />
+                  Otro
+                </label>
+                {isOtherEnabled && (
+                  <input
+                    type="text"
+                    name="enfermedades_cronicas"
+                    value={
+                      formData.enfermedades_cronicas !== "Diabetico" &&
+                      formData.enfermedades_cronicas !== "Hipertenso" &&
+                      formData.enfermedades_cronicas !== "Cancer"
+                        ? formData.enfermedades_cronicas
+                        : ""
+                    }
+                    onChange={handleInputChange}
+                    placeholder="Especifique otra enfermedad"
+                    className={styles.inputField}
+                  />
+                )}
               </div>
             </div>
 
@@ -1253,7 +1479,33 @@ export default function RegistroBeneficiario() {
                 onClick={() => handlePrintCredential(selectedBeneficiary)}
                 className={styles.printButton}
               >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  width="20"
+                  height="20"
+                >
+                  <path d="M19 4H5c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H5V6h14v12zm-7-9h5v2h-5zm0 4h5v2h-5zM7 8h5v2H7zm0 4h5v2H7zm0 4h5v2H7z" />
+                </svg>
                 Imprimir Credencial
+              </button>
+              <button
+                onClick={async () => {
+                  try {
+                    // Llamar directamente a la función handleGenerateCard
+                    await handleGenerateCard(selectedBeneficiary);
+                  } catch (error) {
+                    console.error("Error al generar el carnet:", error);
+                    Swal.fire(
+                      "Error",
+                      "No se pudo generar el carnet. Intenta nuevamente.",
+                      "error"
+                    );
+                  }
+                }}
+                className={styles.printButton}
+              >
+                Imprimir Carnet
               </button>
               <button
                 onClick={() => setIsViewModalOpen(false)}

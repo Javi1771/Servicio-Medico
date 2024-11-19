@@ -1026,3 +1026,72 @@
   border-radius: 8px;
   object-fit: cover;
 }
+
+/*estilos boton imprimir credencial*/
+.printButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #e0e0e0; /* Gris claro */
+  color: #333; /* Gris oscuro para texto */
+  border: 1px solid #bdbdbd; /* Borde gris intermedio */
+  border-radius: 8px; /* Bordes redondeados */
+  padding: 10px 15px; /* Espaciado interno */
+  font-size: 16px; /* Tamaño del texto */
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1); /* Sombra suave */
+}
+
+.printButton:hover {
+  background-color: #d6d6d6; /* Gris más oscuro al pasar el mouse */
+  box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.2); /* Aumentar sombra */
+}
+
+.printButton:active {
+  background-color: #c2c2c2; /* Gris más oscuro al hacer clic */
+  box-shadow: none; /* Quitar sombra */
+}
+
+.printButton svg {
+  margin-right: 8px; /* Espaciado entre ícono y texto */
+  fill: #333; /* Color del ícono */
+  width: 20px; /* Ancho del ícono */
+  height: 20px; /* Altura del ícono */
+}
+
+
+/*BOTON IMPRIMIR CARNET*/
+.printButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #e0e0e0; /* Gris claro */
+  color: #333; /* Gris oscuro para texto */
+  border: 1px solid #bdbdbd; /* Borde gris intermedio */
+  border-radius: 8px; /* Bordes redondeados */
+  padding: 10px 15px; /* Espaciado interno */
+  font-size: 16px; /* Tamaño del texto */
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1); /* Sombra suave */
+}
+
+.printButton:hover {
+  background-color: #d6d6d6; /* Gris más oscuro al pasar el mouse */
+  box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.2); /* Aumentar sombra */
+}
+
+.printButton:active {
+  background-color: #c2c2c2; /* Gris más oscuro al hacer clic */
+  box-shadow: none; /* Quitar sombra */
+}
+
+.printButton svg {
+  margin-right: 8px; /* Espaciado entre ícono y texto */
+  fill: #333; /* Color del ícono */
+  width: 20px; /* Ancho del ícono */
+  height: 20px; /* Altura del ícono */
+}
