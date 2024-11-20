@@ -1,836 +1,960 @@
 /* Fondo de pantalla completa */
 .body {
-    background-color: #1e1e2d;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 20px;
-    font-family: Arial, sans-serif;
-  }
-  
-  /* Contenedor del banner */
-  .bannerContainer {
-    width: 100%;
-    max-width: 1100px;
-    margin-bottom: 20px;
-  }
-  
-  .banner {
-    width: 100%;
-    height: auto;
-    border-radius: 10px;
-    overflow: hidden;
-  }
-  
-  /* Contenedor principal */
-  .container {
-    width: 100%;
-    max-width: 1550px;
-    padding: 20px;
-    background-color: #2b2f3a;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    color: #e1e4eb;
-  }
-  
-  /* Título principal */
-  .title {
-    font-size: 24px;
-    font-weight: bold;
-    margin-bottom: 20px;
-    color: #ffffff;
-  }
-  
-  /* Sección de búsqueda */
-  .searchSection {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
-  }
-  
-  .searchInput {
-    flex: 1;
-    padding: 10px;
-    font-size: 16px;
-    border-radius: 4px;
-    border: 1px solid #4c5362;
-    background-color: #1f222a;
-    color: #ffffff;
-    min-width: 250px;
-  }
-  
-  .searchButton {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 10px 20px;
-    font-size: 16px;
-    font-weight: bold;
-    color: #ffffff;
-    background: linear-gradient(90deg, #00c6ff, #0072ff); /* Degradado azul-verde */
-    border: none;
-    border-radius: 50px; /* Botón ovalado */
-    cursor: pointer;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Sombra sutil */
-    transition: all 0.3s ease; /* Transición suave */
-  }
-  
-  .searchButton:hover {
-    background: linear-gradient(90deg, #00a3cc, #005bb5); /* Cambia el degradado en hover */
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3); /* Intensifica la sombra en hover */
-  }
-  
-  .searchButton:active {
-    transform: scale(0.95); /* Efecto de "presionar" */
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
-  }
-  
-  .searchButtonIcon {
-    margin-right: 8px;
-    width: 20px;
-    height: 20px;
-    fill: #ffffff; /* Color de la lupa */
-  }
-  
-  
-  /* Formulario de beneficiario */
-  .beneficiaryForm {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    background-color: #2b2f3a;
-    padding: 20px;
-    border-radius: 8px;
-    max-width: 100%;
-    box-sizing: border-box;
-  }
-  
-  .inputGroup {
-    flex: 1 1 48%;
-    min-width: 280px;
-  }
-  
-  .inputLabel {
-    display: block;
-    margin-bottom: 5px;
-    color: #c7ccd8;
-  }
-  
-  .inputField {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #4c5362;
-    border-radius: 4px;
-    background-color: #1f222a;
-    color: #ffffff;
-  }
-  
-  /* Botón de enviar en el formulario */
-  .submitButton {
-    width: 100%;
-    padding: 12px;
-    background-color: #0070f3;
-    border: none;
-    border-radius: 4px;
-    color: #ffffff;
-    font-size: 16px;
-    cursor: pointer;
-    margin-top: 10px;
-  }
-  
-  .submitButton:hover {
-    background-color: #005bb5;
-  }
-  
-  /* Tabla de beneficiarios */
-  .tableContainer {
-    margin-top: 20px;
-    background-color: #2b2f3a;
-    padding: 15px;
-    border-radius: 8px;
-    width: 100%;
-    box-sizing: border-box;
-  }
-  
-  .table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-  
-  .tableHeader,
-  .tableCell {
-    padding: 8px;
-    border: 1px solid #444;
-    text-align: left;
-    color: #e1e4eb;
-  }
-  
-  .tableHeader {
-    background-color: #3a3f4b;
-    font-weight: bold;
-  }
-  
-  .tableRow:nth-child(even) {
-    background-color: #323748;
-  }
-  
-  /* Estilos responsivos */
-  @media (max-width: 768px) {
-    .banner {
-      height: auto;
-    }
-  
-    .title {
-      font-size: 20px;
-    }
-  
-    .searchSection {
-      flex-direction: column;
-    }
-  
-    .inputGroup {
-      flex: 1 1 100%;
-    }
-  
-    .submitButton {
-      font-size: 14px;
-    }
-  }
-  
-  
-  .submitButton:hover {
-    background-color: #005bb5;
-  }
-  
-
-
-
-
-
-
-
-
-
-  /* Tabla de beneficiarios */
-  .tableContainer {
-    margin-top: 20px;
-    background-color: #2b2f3a;
-    padding: 15px;
-    border-radius: 8px;
-    width: 100%;
-    box-sizing: border-box;
-  }
-  
-  .table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-  
-  .tableHeader,
-  .tableCell {
-    padding: 8px;
-    border: 1px solid #444;
-    text-align: left;
-    color: #e1e4eb;
-  }
-  
-  .tableHeader {
-    background-color: #3a3f4b;
-    font-weight: bold;
-  }
-  
-  .tableRow:nth-child(even) {
-    background-color: #323748;
-  }
-  
-  /* Estilos responsivos */
-  @media (max-width: 768px) {
-    .banner {
-      height: 100px;
-      width: 370px;
-    }
-    
-    .title {
-      font-size: 20px;
-    }
-  
-    .searchSection {
-      flex-direction: column;
-    }
-  
-    .inputGroup {
-      flex: 1 1 100%;
-    }
-  
-    .submitButton {
-      font-size: 14px;
-    }
-  }
-  
-  
-  /* Formulario de beneficiario */
-  .beneficiaryForm {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    background-color: #2b2f3a;
-    padding: 20px;
-    border-radius: 8px;
-  }
-  
-  .inputGroup {
-    flex: 1 1 48%;
-  }
-  
-  .inputLabel {
-    display: block;
-    margin-bottom: 5px;
-    color: #c7ccd8;
-  }
-  
-  .inputField {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #4c5362;
-    border-radius: 4px;
-    background-color: #1f222a;
-    color: #ffffff;
-  }
-  
-  .submitButton {
-    width: 100%;
-    padding: 10px;
-    background-color: #0070f3;
-    border: none;
-    border-radius: 4px;
-    color: #ffffff;
-    font-size: 16px;
-    cursor: pointer;
-    margin-top: 10px;
-  }
-  
-  .submitButton:hover {
-    background-color: #005bb5;
-  }
-  
-  /* Tabla de beneficiarios */
-  .tableContainer {
-    margin-top: 20px;
-    background-color: #2b2f3a;
-    padding: 15px;
-    border-radius: 8px;
-  }
-  
-  .table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-  
-  .tableHeader,
-  .tableCell {
-    padding: 8px;
-    border: 1px solid #444;
-    text-align: left;
-    color: #e1e4eb;
-  }
-  
-  .tableHeader {
-    background-color: #3a3f4b;
-    font-weight: bold;
-  }
-  
-  .tableRow:nth-child(even) {
-    background-color: #323748;
-  }
-  
-  
-  /* Título principal */
-  .title {
-    font-size: 24px;
-    font-weight: bold;
-    margin-bottom: 20px;
-    color: #ffffff;
-  }
-  
-  /* Sección de búsqueda */
-  .searchSection {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-    padding-top: 10px;
-  }
-  
-  .searchInput {
-    flex: 1;
-    padding: 10px;
-    font-size: 16px;
-    border-radius: 4px;
-    border: 1px solid #4c5362;
-    background-color: #1f222a;
-    color: #ffffff;
-  }
-  
-  
-  /* Mensajes de estado */
-  .statusSection {
-    margin-bottom: 20px;
-    text-align: center;
-  }
-  
-  .status {
-    padding: 10px;
-    border-radius: 4px;
-    font-weight: bold;
-  }
-  
-  .notFound {
-    color: #ff6b6b;
-    background-color: #3a2b2f;
-  }
-  
-  .found {
-    color: #4caf50;
-    background-color: #2b3a2b;
-  }
-  
-  /* Información del empleado */
-  .employeeInfo {
-    background-color: #1e242d;
-    padding: 15px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-    color: #c7ccd8;
-  }
-  
-  .employeeInfoTitle {
-    font-size: 18px;
-    font-weight: bold;
-    color: #ffffff;
-    margin-bottom: 10px;
-  }
-  
-  .employeeInfoText {
-    margin: 5px 0;
-  }
-  
-  /* Formulario de beneficiario */
-  .beneficiaryForm {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    background-color: #2b2f3a;
-    padding: 20px;
-    border-radius: 8px;
-    transition: background-color 0.3s ease, opacity 0.3s ease;
-  }
-  
-  .disabledForm input,
-  .disabledForm select {
-    background-color: #444;
-    pointer-events: none;
-  }
-  
-  .inputGroup {
-    flex: 1 1 48%;
-  }
-  
-  .inputLabel {
-    display: block;
-    margin-bottom: 5px;
-    color: #c7ccd8;
-  }
-  
-  .inputField {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #4c5362;
-    border-radius: 4px;
-    background-color: #1f222a;
-    color: #ffffff;
-  }
-  
-  .submitButton {
-    width: 100%;
-    padding: 10px;
-    background-color: #0070f3;
-    border: none;
-    border-radius: 4px;
-    color: #ffffff;
-    font-size: 16px;
-    cursor: pointer;
-    margin-top: 10px;
-  }
-  
-  .submitButton:hover {
-    background-color: #005bb5;
-  }
-  
-  /* Tabla de beneficiarios */
-  .tableContainer {
-    margin-top: 20px;
-    background-color: #2b2f3a;
-    padding: 15px;
-    border-radius: 8px;
-  }
-  
-  .table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-  
-  .tableHeader,
-  .tableCell {
-    padding: 8px;
-    border: 1px solid #444;
-    text-align: left;
-    color: #e1e4eb;
-  }
-  
-  .tableHeader {
-    background-color: #3a3f4b;
-    font-weight: bold;
-  }
-  
-  .tableRow:nth-child(even) {
-    background-color: #323748;
-  }
-  
-
-
-
-
-
-
-
-
-
-
-
-
-  /* Fondo oscuro con blur al fondo */
-/* Fondo oscuro con blur al fondo */
-.modalOverlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(8px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    padding: 10px; /* Añade padding para espacio en dispositivos pequeños */
-}
-  
-/* Contenedor del modal */
-.modal {
-    background-color: #2b2f3a;
-    padding: 20px;
-    border-radius: 10px;
-    max-width: 800px;
-    width: 90%;
-    color: #e1e4eb;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    display: flex;
-    flex-direction: column;
-    max-height: 90vh; /* Limita la altura máxima */
-    overflow-y: auto; /* Habilita el scroll si el contenido es demasiado largo */
+  background-color: #1e1e2d;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  font-family: Arial, sans-serif;
 }
 
-/* Estilos para el título del modal */
-.modal h2 {
-    font-size: 24px;
-    font-weight: bold;
-    margin-bottom: 20px;
-    color: #ffffff;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+/* Contenedor del banner */
+.bannerContainer {
+  width: 100%;
+  max-width: 1100px;
+  margin-bottom: 20px;
 }
 
-/* Organización simétrica de los campos */
+.banner {
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+/* Contenedor principal */
+.container {
+  width: 100%;
+  max-width: 1550px;
+  padding: 20px;
+  background-color: #2b2f3a;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  color: #e1e4eb;
+}
+
+/* Título principal */
+.title {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 20px;
+  color: #ffffff;
+}
+
+/* Sección de búsqueda */
+.searchSection {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.searchInput {
+  flex: 1;
+  padding: 10px;
+  font-size: 16px;
+  border-radius: 4px;
+  border: 1px solid #4c5362;
+  background-color: #1f222a;
+  color: #ffffff;
+  min-width: 250px;
+}
+
+.searchButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 20px;
+  font-size: 16px;
+  font-weight: bold;
+  color: #ffffff;
+  background: linear-gradient(
+    90deg,
+    #00c6ff,
+    #0072ff
+  ); /* Degradado azul-verde */
+  border: none;
+  border-radius: 50px; /* Botón ovalado */
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Sombra sutil */
+  transition: all 0.3s ease; /* Transición suave */
+}
+
+.searchButton:hover {
+  background: linear-gradient(
+    90deg,
+    #00a3cc,
+    #005bb5
+  ); /* Cambia el degradado en hover */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3); /* Intensifica la sombra en hover */
+}
+
+.searchButton:active {
+  transform: scale(0.95); /* Efecto de "presionar" */
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+}
+
+.searchButtonIcon {
+  margin-right: 8px;
+  width: 20px;
+  height: 20px;
+  fill: #ffffff; /* Color de la lupa */
+}
+
+/* Formulario de beneficiario */
+.beneficiaryForm {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  background-color: #2b2f3a;
+  padding: 20px;
+  border-radius: 8px;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
 .inputGroup {
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 15px;
-}
-
-.inputRow {
-    display: flex;
-    gap: 20px;
-}
-
-.inputRow .inputGroup {
-    flex: 1;
+  flex: 1 1 48%;
+  min-width: 280px;
 }
 
 .inputLabel {
-    font-size: 14px;
-    margin-bottom: 5px;
-    color: #e1e4eb;
+  display: block;
+  margin-bottom: 5px;
+  color: #c7ccd8;
 }
 
 .inputField {
-    padding: 8px;
-    border-radius: 5px;
-    border: 1px solid #444;
-    background-color: #3c3f51;
-    color: #e1e4eb;
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #4c5362;
+  border-radius: 4px;
+  background-color: #1f222a;
+  color: #ffffff;
 }
 
-.inputField::placeholder {
-    color: #a9b3c1;
-}
-
+/* Botón de enviar en el formulario */
 .submitButton {
-    width: 100%;
-    padding: 10px;
-    background-color: #1e90ff;
-    color: #ffffff;
-    border: none;
-    border-radius: 5px;
-    font-size: 16px;
-    font-weight: bold;
-    cursor: pointer;
-    margin-top: 15px;
-    transition: background-color 0.3s ease;
+  width: 100%;
+  padding: 12px;
+  background-color: #0070f3;
+  border: none;
+  border-radius: 4px;
+  color: #ffffff;
+  font-size: 16px;
+  cursor: pointer;
+  margin-top: 10px;
 }
 
 .submitButton:hover {
-    background-color: #1c7ecb;
+  background-color: #005bb5;
+}
+
+/* Tabla de beneficiarios */
+.tableContainer {
+  margin-top: 20px;
+  background-color: #2b2f3a;
+  padding: 15px;
+  border-radius: 8px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tableHeader,
+.tableCell {
+  padding: 8px;
+  border: 1px solid #444;
+  text-align: left;
+  color: #e1e4eb;
+}
+
+.tableHeader {
+  background-color: #3a3f4b;
+  font-weight: bold;
+}
+
+.tableRow:nth-child(even) {
+  background-color: #323748;
+}
+
+/* Estilos responsivos */
+@media (max-width: 768px) {
+  .banner {
+    height: auto;
+  }
+
+  .title {
+    font-size: 20px;
+  }
+
+  .searchSection {
+    flex-direction: column;
+  }
+
+  .inputGroup {
+    flex: 1 1 100%;
+  }
+
+  .submitButton {
+    font-size: 14px;
+  }
+}
+
+.submitButton:hover {
+  background-color: #005bb5;
+}
+
+/* Tabla de beneficiarios */
+.tableContainer {
+  margin-top: 20px;
+  background-color: #2b2f3a;
+  padding: 15px;
+  border-radius: 8px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tableHeader,
+.tableCell {
+  padding: 8px;
+  border: 1px solid #444;
+  text-align: left;
+  color: #e1e4eb;
+}
+
+.tableHeader {
+  background-color: #3a3f4b;
+  font-weight: bold;
+}
+
+.tableRow:nth-child(even) {
+  background-color: #323748;
+}
+
+/* Estilos responsivos */
+@media (max-width: 768px) {
+  .banner {
+    height: 100px;
+    width: 370px;
+  }
+
+  .title {
+    font-size: 20px;
+  }
+
+  .searchSection {
+    flex-direction: column;
+  }
+
+  .inputGroup {
+    flex: 1 1 100%;
+  }
+
+  .submitButton {
+    font-size: 14px;
+  }
+}
+
+/* Formulario de beneficiario */
+.beneficiaryForm {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  background-color: #2b2f3a;
+  padding: 20px;
+  border-radius: 8px;
+}
+
+.inputGroup {
+  flex: 1 1 48%;
+}
+
+.inputLabel {
+  display: block;
+  margin-bottom: 5px;
+  color: #c7ccd8;
+}
+
+.inputField {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #4c5362;
+  border-radius: 4px;
+  background-color: #1f222a;
+  color: #ffffff;
+}
+
+.submitButton {
+  width: 100%;
+  padding: 10px;
+  background-color: #0070f3;
+  border: none;
+  border-radius: 4px;
+  color: #ffffff;
+  font-size: 16px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.submitButton:hover {
+  background-color: #005bb5;
+}
+
+/* Tabla de beneficiarios */
+.tableContainer {
+  margin-top: 20px;
+  background-color: #2b2f3a;
+  padding: 15px;
+  border-radius: 8px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tableHeader,
+.tableCell {
+  padding: 8px;
+  border: 1px solid #444;
+  text-align: left;
+  color: #e1e4eb;
+}
+
+.tableHeader {
+  background-color: #3a3f4b;
+  font-weight: bold;
+}
+
+.tableRow:nth-child(even) {
+  background-color: #323748;
+}
+
+/* Título principal */
+.title {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 20px;
+  color: #ffffff;
+}
+
+/* Sección de búsqueda */
+.searchSection {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  padding-top: 10px;
+}
+
+.searchInput {
+  flex: 1;
+  padding: 10px;
+  font-size: 16px;
+  border-radius: 4px;
+  border: 1px solid #4c5362;
+  background-color: #1f222a;
+  color: #ffffff;
+}
+
+/* Mensajes de estado */
+.statusSection {
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.status {
+  padding: 10px;
+  border-radius: 4px;
+  font-weight: bold;
+}
+
+.notFound {
+  color: #ff6b6b;
+  background-color: #3a2b2f;
+}
+
+.found {
+  color: #4caf50;
+  background-color: #2b3a2b;
+}
+
+/* Información del empleado */
+.employeeInfo {
+  background-color: #1e242d;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  color: #c7ccd8;
+}
+
+.employeeInfoTitle {
+  font-size: 18px;
+  font-weight: bold;
+  color: #ffffff;
+  margin-bottom: 10px;
+}
+
+.employeeInfoText {
+  margin: 5px 0;
+}
+
+/* Formulario de beneficiario */
+.beneficiaryForm {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  background-color: #2b2f3a;
+  padding: 20px;
+  border-radius: 8px;
+  transition: background-color 0.3s ease, opacity 0.3s ease;
+}
+
+.disabledForm input,
+.disabledForm select {
+  background-color: #444;
+  pointer-events: none;
+}
+
+.inputGroup {
+  flex: 1 1 48%;
+}
+
+.inputLabel {
+  display: block;
+  margin-bottom: 5px;
+  color: #c7ccd8;
+}
+
+.inputField {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #4c5362;
+  border-radius: 4px;
+  background-color: #1f222a;
+  color: #ffffff;
+}
+
+.submitButton {
+  width: 100%;
+  padding: 10px;
+  background-color: #0070f3;
+  border: none;
+  border-radius: 4px;
+  color: #ffffff;
+  font-size: 16px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.submitButton:hover {
+  background-color: #005bb5;
+}
+
+/* Tabla de beneficiarios */
+.tableContainer {
+  margin-top: 20px;
+  background-color: #2b2f3a;
+  padding: 15px;
+  border-radius: 8px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tableHeader,
+.tableCell {
+  padding: 8px;
+  border: 1px solid #444;
+  text-align: left;
+  color: #e1e4eb;
+}
+
+.tableHeader {
+  background-color: #3a3f4b;
+  font-weight: bold;
+}
+
+.tableRow:nth-child(even) {
+  background-color: #323748;
+}
+
+/* Fondo oscuro con blur al fondo */
+/* Fondo oscuro con blur al fondo */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 10px;
+}
+
+/* Contenedor del modal */
+.modal {
+  position: relative;
+  background-color: #2b2f3a;
+  padding: 20px;
+  border-radius: 10px;
+  max-width: 800px;
+  width: 90%;
+  color: #e1e4eb;
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+  overflow-y: auto;
+/* Glow Effect */
+/* Glow Effect */
+box-shadow: 
+0 0 6px rgba(0, 247, 255, 0.4),  /* Sutil azul cyan */
+5px -5px 10px rgba(0, 166, 255, 0.3), /* Azul claro */
+-5px 5px 15px rgba(115, 0, 255, 0.3), /* Violeta suave */
+5px 5px 5px rgba(101, 0, 255, 0.3); /* Rosa tenue */
+}
+
+
+.modal::after {
+--size: 2px; /* Inner glow size */
+z-index: -1;
+}
+
+.modal::before {
+--size: 10px; /* Outer glow size */
+z-index: -2;
+filter: blur(2vmin); /* Blur for glow effect */
+animation: blur-animation 3s ease-in-out alternate infinite; /* Glow pulse animation */
+}
+
+/* Animaciones del gradiente */
+@keyframes blur-animation {
+to {
+filter: blur(3vmin);
+transform: scale(1.05); /* Slight expansion */
+}
 }
 
 /* Estilos Responsivos */
 @media (max-width: 768px) {
-    .modal {
-        width: 100%;
-        padding: 15px;
-    }
-
-    .modal h2 {
-        font-size: 20px;
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .inputRow {
-        flex-direction: column;
-        gap: 10px;
-    }
-
-    .submitButton {
-        font-size: 14px;
-        padding: 12px;
-    }
+  .modal {
+    width: 100%;
+    padding: 15px;
+  }
 }
 
 @media (max-width: 480px) {
-    .modal {
-        padding: 10px;
-    }
-
-    .inputField, .submitButton {
-        font-size: 14px;
-        padding: 8px;
-    }
-
-    .inputLabel {
-        font-size: 12px;
-    }
+  .modal {
+    padding: 10px;
+  }
 }
 
+/* Estilos para el título del modal */
+.modal h2 {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 20px;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
 
+/* Organización simétrica de los campos */
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 15px;
+}
 
+.inputRow {
+  display: flex;
+  gap: 20px;
+}
 
+.inputRow .inputGroup {
+  flex: 1;
+}
 
+.inputLabel {
+  font-size: 14px;
+  margin-bottom: 5px;
+  color: #e1e4eb;
+}
 
+.inputField {
+  padding: 8px;
+  border-radius: 5px;
+  border: 1px solid #444;
+  background-color: #3c3f51;
+  color: #e1e4eb;
+}
 
-  
-/**ESTILOS SIMETRICOS MODAL*/
-  .tableContainer {
-    overflow-x: auto; /* Para hacer la tabla responsive */
-    margin-top: 20px;
-  }
-  
-  .table {
-    width: 100%;
-    border-collapse: collapse;
-    color: #e1e4eb;
-  }
-  
-  .table thead {
-    background-color: #2b2f3a;
-  }
-  
-  .table th, .table td {
-    padding: 10px;
-    text-align: left;
-    border-bottom: 1px solid #444;
-  }
-  
-  .table th {
-    font-weight: bold;
+.inputField::placeholder {
+  color: #a9b3c1;
+}
+
+.submitButton {
+  width: 100%;
+  padding: 10px;
+  background-color: #1e90ff;
+  color: #ffffff;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 15px;
+  transition: background-color 0.3s ease;
+}
+
+.submitButton:hover {
+  background-color: #1c7ecb;
+}
+/* Contenedor principal del contenido del modal */
+.contentContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+/* Sección de información del beneficiario */
+.infoSection {
+  flex: 2;
+  padding-right: 20px;
+}
+
+.infoSection p {
+  margin: 10px 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #e1e4eb;
+}
+
+.infoSection strong {
+  color: #ffffff;
+}
+
+/* Contenedor de la imagen */
+.imageContainer {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 10px;
+  overflow: hidden;
+  background-color: #3c3f51;
+  border: 1px solid #444;
+}
+
+.beneficiaryImage {
+  border-radius: 10px;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: cover;
+}
+
+/* Responsividad */
+@media (max-width: 768px) {
+  .contentContainer {
+    flex-direction: column;
+    align-items: center;
     text-align: center;
   }
-  
+
+  .infoSection {
+    padding-right: 0;
+  }
+
+  .imageContainer {
+    margin-top: 20px;
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .infoSection p {
+    font-size: 12px;
+  }
+}
+
+/* Estilos Responsivos */
+@media (max-width: 768px) {
+  .modal {
+    width: 100%;
+    padding: 15px;
+  }
+
+  .modal h2 {
+    font-size: 20px;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .inputRow {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .submitButton {
+    font-size: 14px;
+    padding: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal {
+    padding: 10px;
+  }
+
+  .inputField,
+  .submitButton {
+    font-size: 14px;
+    padding: 8px;
+  }
+
+  .inputLabel {
+    font-size: 12px;
+  }
+}
+
+/** ESTILOS SIMÉTRICOS MODAL  beneficiarios**/
+.tableContainer {
+  overflow-x: auto; /* Permite desplazamiento horizontal en pantallas pequeñas */
+  margin-top: 20px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  color: #e1e4eb;
+}
+
+.table thead {
+  background-color: #2b2f3a;
+}
+
+.table th,
+.table td {
+  padding: 10px;
+  text-align: center;
+  border-bottom: 1px solid #444;
+}
+
+.table th {
+  font-weight: bold;
+}
+
+.table td {
+  text-align: center;
+}
+
+.table th,
+.table td {
+  min-width: 120px; /* Asegura una estructura simétrica */
+}
+
+.table tbody tr:nth-child(even) {
+  background-color: #3c3f51;
+}
+
+.table tbody tr:nth-child(odd) {
+  background-color: #2b2f3a;
+}
+
+.table tbody tr:hover {
+  background-color: #4b4f62;
+}
+
+/** ========================= **/
+/** Media Queries Responsivas **/
+/** ========================= **/
+
+/* Pantallas medianas (tablets, etc.) */
+@media (max-width: 768px) {
+  .table th,
+  .table td {
+    padding: 8px;
+    font-size: 14px;
+  }
+
+  .table th {
+    text-align: center; /* Mantiene el encabezado alineado al centro */
+  }
+
   .table td {
     text-align: center;
   }
-  
-  .table th, .table td {
-    min-width: 120px; /* Ajuste mínimo para mantener la simetría */
-  }
-  
-  .table tbody tr:nth-child(even) {
-    background-color: #3c3f51;
-  }
-  
-  .table tbody tr:nth-child(odd) {
-    background-color: #2b2f3a;
-  }
-  
-  .table tbody tr:hover {
-    background-color: #4b4f62;
+}
+
+/* Pantallas pequeñas (móviles) */
+@media (max-width: 480px) {
+  .table thead {
+    display: none; /* Oculta la cabecera en móviles */
   }
 
-  
-  /*ESTILOS BOTON AGREGAR BENEFIAICARIO*/
-
-  .addBeneficiaryButton {
-    display: flex;
-    align-items: center;
-    font-family: inherit;
-    cursor: pointer;
-    font-weight: 500;
-    font-size: 16px;
-    padding: 0.7em 1.4em 0.7em 1.1em;
-    color: white;
-    background: linear-gradient(0deg, rgba(20, 167, 62, 1) 0%, rgba(102, 247, 113, 1) 100%);
-    border: none;
-    box-shadow: 0 0.7em 1.5em -0.5em #14a73e98;
-    letter-spacing: 0.05em;
-    border-radius: 20em;
-    transition: transform 0.1s ease, box-shadow 0.2s ease;
-  }
-  
-  .addBeneficiaryButton svg {
-    margin-right: 6px;
-  }
-  
-  .addBeneficiaryButton:hover {
-    box-shadow: 0 0.5em 1.5em -0.5em #14a73e98;
-  }
-  
-  .addBeneficiaryButton:active {
-    transform: scale(0.95); /* Efecto de presión */
-    box-shadow: 0 0.3em 1em -0.5em #14a73e98;
+  .table td {
+    display: block; /* Cada celda ocupa toda la fila */
+    text-align: left;
+    padding: 10px 20px;
+    position: relative;
   }
 
-  
-
-  /*ESTILOS SWEET ALERT*/
-  .custom-swal-popup {
-    background-color: #2b2f3a; /* Fondo gris oscuro */
-    color: #ffffff; /* Texto blanco */
-    border-radius: 10px; /* Bordes redondeados */
-    box-shadow:
-      0 0 10px rgba(255, 69, 0, 0.7),  /* Capa de sombra roja */
-      0 0 20px rgba(255, 140, 0, 0.5), /* Capa de sombra naranja */
-      0 0 30px rgba(255, 69, 0, 0.4),  /* Capa de sombra roja */
-      0 0 40px rgba(255, 140, 0, 0.3); /* Capa de sombra naranja */
-  }
-  
-
-
-
-
-
-
-  /*Estatus del empleado encontrado o no*/
-  .statusContainer {
-    margin-bottom: 20px;
-  }
-  
-  .statusCard {
-    padding: 1em;
-    border-radius: 8px;
+  .table td::before {
+    content: attr(data-label); /* Muestra el encabezado correspondiente */
+    position: absolute;
+    top: 10px;
+    left: 10px;
     font-weight: bold;
-    color: #ffffff;
-    text-align: center;
-    margin-bottom: 10px;
+    color: #ffffff; /* Encabezado simulado con color blanco */
+    text-transform: uppercase;
   }
-  
-  .found {
-    background-color: #2b2f3a;
-    box-shadow: 0 0 15px rgba(0, 255, 0, 0.5), 0 0 30px rgba(0, 255, 0, 0.3);
-    border: 1px solid #00ff00;
-  }
-  
-  .notFound {
-    background-color: #2b2f3a;
-    box-shadow: 0 0 15px rgba(255, 0, 0, 0.5), 0 0 30px rgba(255, 0, 0, 0.3);
-    border: 1px solid #ff0000;
-  }
-  
-  .employeeInfo {
-    padding: 1em;
+
+  .table tr {
+    margin-bottom: 15px; /* Espacio entre las "cards" */
+    display: block; /* Cada fila se convierte en un bloque */
+    border: 1px solid #444;
     border-radius: 8px;
-    background-color: #2b2f3a;
-    color: #e1e4eb;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    overflow: hidden; /* Evita desbordamientos */
   }
-  
-  
-  /*ESTILOS EDIT BUTTON*/
-  .editButton {
-    background-color: #ffd700;
-    color: #333;
-    border: none;
-    border-radius: 4px;
-    padding: 5px 10px;
-    cursor: pointer;
-  }
-  
-  .editButton:hover {
-    background-color: #ffbf00;
-  }
-  
+}
 
+/*ESTILOS BOTON AGREGAR BENEFIAICARIO*/
 
-  /*TABLA PARA VER LOS DATOS DEL BENEFICICARIO*/
-  .viewButton {
-    background: none;
-    border: none;
-    cursor: pointer;
-    margin-left: 5px;
-  }
-  .closeButton {
-    display: block;
-    width: 100%;
-    padding: 10px;
-    margin-top: 20px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-  }
-  
-  .closeButton:hover {
-    background-color: #0056b3;
-  }
-  
+.addBeneficiaryButton {
+  display: flex;
+  align-items: center;
+  font-family: inherit;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 16px;
+  padding: 0.7em 1.4em 0.7em 1.1em;
+  color: white;
+  background: linear-gradient(
+    0deg,
+    rgba(20, 167, 62, 1) 0%,
+    rgba(102, 247, 113, 1) 100%
+  );
+  border: none;
+  box-shadow: 0 0.7em 1.5em -0.5em #14a73e98;
+  letter-spacing: 0.05em;
+  border-radius: 20em;
+  transition: transform 0.1s ease, box-shadow 0.2s ease;
+}
 
+.addBeneficiaryButton svg {
+  margin-right: 6px;
+}
 
+.addBeneficiaryButton:hover {
+  box-shadow: 0 0.5em 1.5em -0.5em #14a73e98;
+}
 
+.addBeneficiaryButton:active {
+  transform: scale(0.95); /* Efecto de presión */
+  box-shadow: 0 0.3em 1em -0.5em #14a73e98;
+}
 
+/*ESTILOS SWEET ALERT*/
+.custom-swal-popup {
+  background-color: #2b2f3a; /* Fondo gris oscuro */
+  color: #ffffff; /* Texto blanco */
+  border-radius: 10px; /* Bordes redondeados */
+  box-shadow: 0 0 10px rgba(255, 69, 0, 0.7),
+    /* Capa de sombra roja */ 0 0 20px rgba(255, 140, 0, 0.5),
+    /* Capa de sombra naranja */ 0 0 30px rgba(255, 69, 0, 0.4),
+    /* Capa de sombra roja */ 0 0 40px rgba(255, 140, 0, 0.3); /* Capa de sombra naranja */
+}
 
+/*Estatus del empleado encontrado o no*/
+.statusContainer {
+  margin-bottom: 20px;
+}
 
-  /* Estilo general para la celda de acciones */
+.statusCard {
+  padding: 1em;
+  border-radius: 8px;
+  font-weight: bold;
+  color: #ffffff;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.found {
+  background-color: #2b2f3a;
+  box-shadow: 0 0 15px rgba(0, 255, 0, 0.5), 0 0 30px rgba(0, 255, 0, 0.3);
+  border: 1px solid #00ff00;
+}
+
+.notFound {
+  background-color: #2b2f3a;
+  box-shadow: 0 0 15px rgba(255, 0, 0, 0.5), 0 0 30px rgba(255, 0, 0, 0.3);
+  border: 1px solid #ff0000;
+}
+
+.employeeInfo {
+  padding: 1em;
+  border-radius: 8px;
+  background-color: #2b2f3a;
+  color: #e1e4eb;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+/*ESTILOS EDIT BUTTON*/
+.editButton {
+  background-color: #ffd700;
+  color: #333;
+  border: none;
+  border-radius: 4px;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+.editButton:hover {
+  background-color: #ffbf00;
+}
+
+/*TABLA PARA VER LOS DATOS DEL BENEFICICARIO*/
+.viewButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-left: 5px;
+}
+.closeButton {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  margin-top: 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.closeButton:hover {
+  background-color: #0056b3;
+}
+
+/* Estilo general para la celda de acciones */
 .table td {
   text-align: center;
   vertical-align: middle;
@@ -895,8 +1019,6 @@
   margin-right: 5px;
 }
 
-
-
 /* BOTON STATUS BENEFICIARIO */
 .statusButton {
   padding: 10px 20px;
@@ -922,7 +1044,6 @@
   box-shadow: 0px 0px 15px 5px rgba(255, 0, 0, 0.7); /* Sombra roja neón */
 }
 
-
 /*ESTILOS DE BACK BUTTON*/
 .backButton {
   display: flex;
@@ -935,7 +1056,6 @@
   cursor: pointer;
   font-size: 14px;
   transition: background-color 0.2s;
-  
 }
 
 .backButton:hover {
@@ -945,7 +1065,6 @@
 .backButton svg {
   margin-right: 5px;
 }
-
 
 /*ESTILOS ESTATUS SINDICATO*/
 /* Beneficiarios.module.css */
@@ -982,20 +1101,24 @@
 /* Contenedor principal para alinear detalles y sindicato en una fila */
 .employeeInfoContainer {
   display: flex;
+  flex-wrap: wrap; /* Permite que los elementos se ajusten a la siguiente línea en pantallas pequeñas */
   align-items: center; /* Centra verticalmente el card de sindicato */
   background-color: #2a2f3a;
-  padding: 20px;
+  padding: 40px;
   border-radius: 10px;
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+  gap: 20px; /* Espacio entre los elementos cuando se ajustan */
 }
 
 /* Sección de los detalles del empleado */
 .employeeDetails {
-  flex: 1; /* Ocupa el espacio restante a la izquierda */
+  flex: 1; /* Ocupa el espacio restante */
+  min-width: 300px; /* Evita que se reduzca demasiado en pantallas pequeñas */
 }
+
 /* Card de sindicato al lado de los detalles del empleado */
 .sindicatoBadge {
-  margin-left: 20px; /* Separación a la izquierda de los detalles */
+  margin-left: 20px; /* Separación en pantallas grandes */
   background-color: #22283b;
   border-radius: 8px;
   padding: 10px 15px;
@@ -1003,100 +1126,146 @@
   color: #ffd700;
   box-shadow: 0 0 10px #ffd700, 0 0 20px #ffd700, 0 0 30px #ffd700; /* Efecto neón */
 }
+
+/* Ajustes del texto del sindicato */
 .sindicatoText {
   font-weight: bold;
   font-size: 16px;
   color: #ffd700;
 }
+
 .sindicatoName {
   font-size: 14px;
   color: #ffffff;
-
 }
+
+/* ========================== */
+/* Media Queries para diseño */
+/* ========================== */
+
+/* Pantallas medianas (tablets, etc.) */
+@media (max-width: 768px) {
+  .employeeInfoContainer {
+    flex-direction: column; /* Cambia a diseño vertical */
+    align-items: flex-start; /* Alinea los elementos al inicio */
+    gap: 10px; /* Reduce el espacio entre elementos */
+  }
+
+  .sindicatoBadge {
+    margin-left: 0; /* Elimina margen innecesario en diseño vertical */
+    width: 100%; /* Toma el ancho completo */
+  }
+
+  .employeeDetails {
+    text-align: left; /* Alinea el texto a la izquierda */
+    width: 100%; /* Ocupa todo el ancho disponible */
+  }
+}
+
+/* Pantallas pequeñas (móviles) */
+@media (max-width: 480px) {
+  .employeeInfoContainer {
+    padding: 10px; /* Reduce el padding general */
+    gap: 15px; /* Ajusta el espacio entre elementos */
+  }
+
+  .sindicatoBadge {
+    padding: 8px 10px; /* Reduce el padding interno */
+    box-shadow: 0 0 5px #ffd700, 0 0 10px #ffd700, 0 0 15px #ffd700; /* Reduce el efecto neón */
+  }
+
+  .sindicatoText {
+    font-size: 14px; /* Reduce el tamaño de la fuente */
+  }
+
+  .sindicatoName {
+    font-size: 12px; /* Reduce el tamaño de la fuente */
+  }
+}
+
 /*ESTILOS IMAGEN DEL BENEFICIARIO*/
 .imageContainer {
+  position: relative;
   display: flex;
   justify-content: center;
+  align-items: center;
   margin-top: 20px;
 }
 
 .beneficiaryImage {
-  max-width: 100%;
-  max-height: 200px;
-  border-radius: 8px;
-  object-fit: cover;
+  width: 200px; /* Tamaño de la imagen */
+  height: 200px;
+  border-radius: 10px; /* Bordes redondeados */
+  object-fit: cover; /* Ajuste para mantener proporciones */
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5),
+    /* Sombra base */ 0 10px 20px rgba(0, 0, 0, 0.2); /* Sombra difuminada adicional */
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-/*estilos boton imprimir credencial*/
+.beneficiaryImage:hover {
+  transform: scale(1.05); /* Efecto de zoom */
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6),
+    /* Aumentar la sombra base */ 0 15px 30px rgba(0, 0, 0, 0.3),
+    0 0 10px #ffd700; /* Glow dorado sutil */
+}
+
+/* Estilos para los botones de imprimir */
 .printButton {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #e0e0e0; /* Gris claro */
-  color: #333; /* Gris oscuro para texto */
-  border: 1px solid #bdbdbd; /* Borde gris intermedio */
-  border-radius: 8px; /* Bordes redondeados */
-  padding: 10px 15px; /* Espaciado interno */
-  font-size: 16px; /* Tamaño del texto */
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1); /* Sombra suave */
+    align-items: center;
+    justify-content: center;
+    background-color: #004d34;
+    color: #ffffff;
+    border: 2px solid #2c2c2c;
+    border-radius: 15px;
+    padding: 7px 24px;
+    font-size: 1rem;
+    font-weight: normal;
+    cursor: pointer;
+    transition: all 0.4s ease;
+    outline: none;
+    position: relative;
+    overflow: hidden;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1); /* Sombra inicial */
+}
+
+.printButton::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(
+    circle,
+    rgba(2, 175, 135, 0.25) 0%,
+    rgba(2, 104, 118, 0) 70%
+  );
+  transform: scale(0);
+  transition: transform 0.5s ease;
+}
+
+.printButton:hover::after {
+  transform: scale(4); /* Expande el efecto radial */
 }
 
 .printButton:hover {
-  background-color: #d6d6d6; /* Gris más oscuro al pasar el mouse */
-  box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.2); /* Aumentar sombra */
+  border-color: #666666; /* Borde gris más claro */
+  background: #292929; /* Fondo ligeramente más claro */
+  box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.2); /* Sombra más intensa */
 }
 
 .printButton:active {
-  background-color: #c2c2c2; /* Gris más oscuro al hacer clic */
-  box-shadow: none; /* Quitar sombra */
+  background-color: #c2c2c2; /* Gris más claro al hacer clic */
+  box-shadow: none; /* Elimina la sombra */
 }
 
 .printButton svg {
   margin-right: 8px; /* Espaciado entre ícono y texto */
-  fill: #333; /* Color del ícono */
+  fill: #ffffff; /* Color del ícono */
   width: 20px; /* Ancho del ícono */
   height: 20px; /* Altura del ícono */
 }
-
-
-/*BOTON IMPRIMIR CARNET*/
-.printButton {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #e0e0e0; /* Gris claro */
-  color: #333; /* Gris oscuro para texto */
-  border: 1px solid #bdbdbd; /* Borde gris intermedio */
-  border-radius: 8px; /* Bordes redondeados */
-  padding: 10px 15px; /* Espaciado interno */
-  font-size: 16px; /* Tamaño del texto */
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1); /* Sombra suave */
-}
-
-.printButton:hover {
-  background-color: #d6d6d6; /* Gris más oscuro al pasar el mouse */
-  box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.2); /* Aumentar sombra */
-}
-
-.printButton:active {
-  background-color: #c2c2c2; /* Gris más oscuro al hacer clic */
-  box-shadow: none; /* Quitar sombra */
-}
-
-.printButton svg {
-  margin-right: 8px; /* Espaciado entre ícono y texto */
-  fill: #333; /* Color del ícono */
-  width: 20px; /* Ancho del ícono */
-  height: 20px; /* Altura del ícono */
-}
-
-
 
 /*boton para cerrar el modal*/
 .button {
@@ -1166,4 +1335,43 @@
   100% {
     opacity: 1;
   }
+}
+
+
+
+/* Contenedor de la previsualización */
+.previewContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-left: 20px; /* Espaciado entre el input y la previsualización */
+}
+
+/* Tarjeta de previsualización */
+.previewCard {
+  width: 120px;
+  height: 120px;
+  border: 2px dashed #ccc;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background-color: #2b2f3a;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Imagen dentro de la tarjeta */
+.previewImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Texto cuando no hay imagen */
+.previewPlaceholder {
+  color: #aaa;
+  font-size: 14px;
+  text-align: center;
 }
