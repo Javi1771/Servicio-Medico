@@ -51,6 +51,17 @@ export default function RegistroBeneficiario() {
 
   const router = useRouter(); // Define el router usando useRouter
 
+  // Función para formatear fechas al estilo "DD/MM/YYYY"
+  const formatFecha = (fecha) => {
+    if (!fecha) return "";
+    const date = new Date(fecha);
+    return date.toLocaleDateString("es-ES", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  };
+
   const handleGenerateCard = async (beneficiary) => {
     const {
       NO_NOMINA,
@@ -79,17 +90,6 @@ export default function RegistroBeneficiario() {
         (option) => option.ID_PARENTESCO === parentescoId
       );
       return parentesco ? parentesco.PARENTESCO : "Desconocido";
-    };
-
-    // Formatear fechas al formato DD/MM/YYYY
-    const formatFecha = (fecha) => {
-      if (!fecha) return "";
-      const date = new Date(fecha);
-      return date.toLocaleDateString("es-ES", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-      });
     };
 
     // Interpretación del parentesco
@@ -645,10 +645,10 @@ export default function RegistroBeneficiario() {
       esEstudiante: beneficiario.ESESTUDIANTE || "No",
       vigenciaEstudiosInicio:
         formatFecha(beneficiario.VIGENCIA_ESTUDIOS_INICIO) || "",
-      vigenciaEstudiosFin: formatFecha(beneficiario.VIGENCIA_ESTUDIOS_FIN) || "",
+      vigenciaEstudiosFin:
+        formatFecha(beneficiario.VIGENCIA_ESTUDIOS_FIN) || "",
       esDiscapacitado: beneficiario.ESDISCAPACITADO || "No",
     });
-    
 
     setCurrentBeneficiaryId(beneficiario.ID_BENEFICIARIO);
     setIsEditMode(true);
@@ -853,6 +853,18 @@ export default function RegistroBeneficiario() {
           overlayClassName={styles.modalOverlay}
           className={styles.modal}
         >
+          {/* Botón de cerrar con estilos */}
+          <button
+            onClick={() => {
+              setIsModalOpen(false);
+              setIsEditMode(false);
+            }}
+            className={styles.button}
+          >
+            <span className={styles.X}></span>
+            <span className={styles.Y}></span>
+            <span className={styles.close}>Cerrar</span>
+          </button>
           <form onSubmit={handleModalSubmit} className={styles.beneficiaryForm}>
             <h2>
               {isEditMode ? "Editar Beneficiario" : "Registrar Beneficiario"}
