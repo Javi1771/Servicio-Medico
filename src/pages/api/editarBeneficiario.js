@@ -15,14 +15,47 @@ export default async function handler(req, res) {
       telEmergencia,
       nombreEmergencia,
       activo, // Estado de actividad (A o I)
-    } = req.body;
+      curp,
+      situacion_lab,
+      enfermedades_cronicas,
+      tratamientos,
+      domicilio,
+      observaciones,
+      esEstudiante,
+      vigenciaEstudiosInicio,
+      vigenciaEstudiosFin,
+      esDiscapacitado,
+    } = req.body; // Incluyendo todas las propiedades necesarias
 
     if (!idBeneficiario) {
-      return res.status(400).json({ message: "ID del beneficiario es requerido" });
+      return res.status(400).json({ message: 'ID del beneficiario es requerido' });
     }
 
-    // Debug: Verificar el valor de 'activo' recibido
-    console.log("Valor de 'activo' recibido en la API:", activo);
+    // Debug para verificar que los valores se reciben correctamente
+    console.log("Valores recibidos:", {
+      idBeneficiario,
+      parentesco,
+      nombre,
+      aPaterno,
+      aMaterno,
+      sexo,
+      fNacimiento,
+      alergias,
+      sangre,
+      telEmergencia,
+      nombreEmergencia,
+      activo,
+      curp,
+      situacion_lab,
+      enfermedades_cronicas,
+      tratamientos,
+      domicilio,
+      observaciones,
+      esEstudiante,
+      vigenciaEstudiosInicio,
+      vigenciaEstudiosFin,
+      esDiscapacitado,
+    });
 
     // Validación adicional: verificar que 'activo' sea "A" o "I"
     if (activo !== 'A' && activo !== 'I') {
@@ -31,6 +64,8 @@ export default async function handler(req, res) {
 
     try {
       const pool = await connectToDatabase();
+      console.log('Conexión a la base de datos exitosa');
+
       await pool.request()
         .input('idBeneficiario', idBeneficiario)
         .input('parentesco', parentesco)
@@ -43,7 +78,17 @@ export default async function handler(req, res) {
         .input('sangre', sangre)
         .input('telEmergencia', telEmergencia)
         .input('nombreEmergencia', nombreEmergencia)
-        .input('activo', activo) // Asegurarse de que es "A" o "I"
+        .input('activo', activo)
+        .input('curp', curp || null)
+        .input('situacion_lab', situacion_lab || null)
+        .input('enfermedades_cronicas', enfermedades_cronicas || null)
+        .input('tratamientos', tratamientos || null)
+        .input('domicilio', domicilio || null)
+        .input('observaciones', observaciones || null)
+        .input('esEstudiante', esEstudiante || 'No')
+        .input('vigenciaEstudiosInicio', vigenciaEstudiosInicio || null)
+        .input('vigenciaEstudiosFin', vigenciaEstudiosFin || null)
+        .input('esDiscapacitado', esDiscapacitado || 'No')
         .query(`
           UPDATE BENEFICIARIO
           SET PARENTESCO = @parentesco,
@@ -56,7 +101,17 @@ export default async function handler(req, res) {
               SANGRE = @sangre,
               TEL_EMERGENCIA = @telEmergencia,
               NOMBRE_EMERGENCIA = @nombreEmergencia,
-              [ACTIVO] = @activo -- Campo activo
+              [ACTIVO] = @activo,
+              CURP = @curp,
+              SITUACION_LAB = @situacion_lab,
+              ENFERMEDADES_CRONICAS = @enfermedades_cronicas,
+              TRATAMIENTOS = @tratamientos,
+              DOMICILIO = @domicilio,
+              OBSERVACIONES = @observaciones,
+              ESESTUDIANTE = @esEstudiante,
+              VIGENCIA_ESTUDIOS_INICIO = @vigenciaEstudiosInicio,
+              VIGENCIA_ESTUDIOS_FIN = @vigenciaEstudiosFin,
+              ESDISCAPACITADO = @esDiscapacitado
           WHERE ID_BENEFICIARIO = @idBeneficiario
         `);
 

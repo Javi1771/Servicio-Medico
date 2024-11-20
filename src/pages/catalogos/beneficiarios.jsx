@@ -213,17 +213,6 @@ export default function RegistroBeneficiario() {
       return parentesco ? parentesco.PARENTESCO : "Desconocido";
     };
 
-    // Formatear fechas al formato DD/MM/YYYY
-    const formatFecha = (fecha) => {
-      if (!fecha) return "";
-      const date = new Date(fecha);
-      return date.toLocaleDateString("es-ES", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-      });
-    };
-
     const parentescoDescripcion = getParentescoDescripcion(PARENTESCO);
     const edadConAnios = `${EDAD || 0}  AÑOS`;
 
@@ -470,7 +459,7 @@ export default function RegistroBeneficiario() {
         `/api/mostBeneficiarios?num_nom=${numNomina}`
       );
       const data = await response.json();
-      console.log("Datos de beneficiarios recibidos:", data); // Debug
+      console.log("Datos de beneficiarios desde la API:", data); // Asegúrate de que `CURP` está presente
       setBeneficiarios(data);
     } catch (err) {
       console.error("Error fetching beneficiaries:", err);
@@ -544,6 +533,9 @@ export default function RegistroBeneficiario() {
   const handleModalSubmit = async (e) => {
     e.preventDefault();
 
+    // Convertir la fecha de nacimiento al formato ISO 8601
+    const formattedDate = new Date(formData.fNacimiento).toISOString();
+
     // Cambia el endpoint y método según el modo (registro o edición)
     const endpoint = isEditMode
       ? "/api/editarBeneficiario"
@@ -557,6 +549,7 @@ export default function RegistroBeneficiario() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          fNacimiento: formattedDate, // Asegúrate de enviar la fecha correctamente
           idBeneficiario: currentBeneficiaryId, // Solo se usa en modo edición
           ...formData,
           noNomina: numNomina,
@@ -609,10 +602,11 @@ export default function RegistroBeneficiario() {
 
   // Función para editar beneficiario existente
   const handleEditBeneficiary = (beneficiario) => {
-    console.log("Beneficiario a editar:", beneficiario); // Validar si los datos se reciben correctamente
+    console.log("Beneficiario recibido para edición:", beneficiario);
+    console.log("Situación laboral:", beneficiario.situacion_lab); // Depuración
 
     const formatFecha = (fecha) => {
-      if (!fecha) return ""; // Asegúrate de que no sea null
+      if (!fecha) return "";
       const date = new Date(fecha);
       return date.toISOString().split("T")[0]; // Formato YYYY-MM-DD
     };
@@ -629,7 +623,6 @@ export default function RegistroBeneficiario() {
       return edad;
     };
 
-    // Establece los valores iniciales para el formulario
     setFormData({
       parentesco: beneficiario.PARENTESCO || "",
       nombre: beneficiario.NOMBRE || "",
@@ -643,26 +636,27 @@ export default function RegistroBeneficiario() {
       telEmergencia: beneficiario.TEL_EMERGENCIA || "",
       nombreEmergencia: beneficiario.NOMBRE_EMERGENCIA || "",
       activo: beneficiario.ACTIVO || "A",
-      imageUrl: beneficiario.FOTO_URL || "",
-      vigencia: formatFecha(beneficiario.VIGENCIA) || "",
-      curp: beneficiario.CURP || "No especificado",
-      situacion_lab: beneficiario.SITUACION_LAB || "N/A",
-      enfermedades_cronicas: beneficiario.ENFERMEDADES_CRONICAS || "",
-      tratamientos: beneficiario.TRATAMIENTOS || "",
-      domicilio: beneficiario.DOMICILIO || "",
-      observaciones: beneficiario.OBSERVACIONES || "",
+      curp: beneficiario.CURP || "",
+      situacion_lab: beneficiario.situacion_lab || "",
+      enfermedades_cronicas: beneficiario.enfermedades_cronicas || "",
+      tratamientos: beneficiario.tratamientos || "",
+      domicilio: beneficiario.domicilio || "",
+      observaciones: beneficiario.observaciones || "",
       esEstudiante: beneficiario.ESESTUDIANTE || "No",
       vigenciaEstudiosInicio:
         formatFecha(beneficiario.VIGENCIA_ESTUDIOS_INICIO) || "",
-      vigenciaEstudiosFin:
-        formatFecha(beneficiario.VIGENCIA_ESTUDIOS_FIN) || "",
+      vigenciaEstudiosFin: formatFecha(beneficiario.VIGENCIA_ESTUDIOS_FIN) || "",
       esDiscapacitado: beneficiario.ESDISCAPACITADO || "No",
     });
+    
 
     setCurrentBeneficiaryId(beneficiario.ID_BENEFICIARIO);
     setIsEditMode(true);
     setIsModalOpen(true);
+    console.log("Beneficiario recibido para edición:", beneficiario);
   };
+
+  useEffect(() => {}, [formData]);
 
   // Función para ver los datos del beneficiario
   const [selectedBeneficiary, setSelectedBeneficiary] = useState(null);
@@ -716,9 +710,9 @@ export default function RegistroBeneficiario() {
         <Image
           src="/baner_sjr.png"
           alt="Banner"
-          layout="responsive"
-          width={1100}
-          height={150}
+          width={1100} // Asegúrate de definir un ancho
+          height={150} // y altura para la imagen
+          priority // Añade esta propiedad para optimizar la carga
           className={styles.banner}
         />
       </div>
@@ -1063,7 +1057,7 @@ export default function RegistroBeneficiario() {
                   <input
                     type="text"
                     name="curp"
-                    value={formData.curp}
+                    value={formData.curp} // Verifica que formData.curp tenga el valor correcto
                     onChange={handleInputChange}
                     required
                     maxLength="18"
