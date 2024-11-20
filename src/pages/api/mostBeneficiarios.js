@@ -35,6 +35,7 @@ export default async function handler(req, res) {
             VIGENCIA_ESTUDIOS_INICIO,
             VIGENCIA_ESTUDIOS_FIN,
             ESDISCAPACITADO,
+            FOTO_URL,
 
             enfermedades_cronicas -- Incluye este campo
           FROM [PRESIDENCIA].[dbo].[BENEFICIARIO]

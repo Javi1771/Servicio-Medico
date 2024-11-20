@@ -492,7 +492,6 @@
 }
 
 /* Fondo oscuro con blur al fondo */
-/* Fondo oscuro con blur al fondo */
 .modalOverlay {
   position: fixed;
   top: 0;
@@ -505,7 +504,7 @@
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  padding: 10px;
+  padding: 0; /* O ajústalo */
 }
 
 /* Contenedor del modal */
@@ -521,6 +520,7 @@
   flex-direction: column;
   max-height: 90vh;
   overflow-y: auto;
+  
 /* Glow Effect */
 /* Glow Effect */
 box-shadow: 
@@ -530,26 +530,6 @@ box-shadow:
 5px 5px 5px rgba(101, 0, 255, 0.3); /* Rosa tenue */
 }
 
-
-.modal::after {
---size: 2px; /* Inner glow size */
-z-index: -1;
-}
-
-.modal::before {
---size: 10px; /* Outer glow size */
-z-index: -2;
-filter: blur(2vmin); /* Blur for glow effect */
-animation: blur-animation 3s ease-in-out alternate infinite; /* Glow pulse animation */
-}
-
-/* Animaciones del gradiente */
-@keyframes blur-animation {
-to {
-filter: blur(3vmin);
-transform: scale(1.05); /* Slight expansion */
-}
-}
 
 /* Estilos Responsivos */
 @media (max-width: 768px) {
@@ -1339,39 +1319,33 @@ transform: scale(1.05); /* Slight expansion */
 
 
 
-/* Contenedor de la previsualización */
-.previewContainer {
+
+/* Card de vista previa */
+.previewCard {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  margin-left: 20px; /* Espaciado entre el input y la previsualización */
-}
-
-/* Tarjeta de previsualización */
-.previewCard {
-  width: 120px;
-  height: 120px;
-  border: 2px dashed #ccc;
+  background: #1e1e24;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  background-color: #2b2f3a;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  width: 150px; /* Ajusta el tamaño según sea necesario */
+  height: 180px;
+  box-shadow: 0 0 10px rgba(0, 166, 255, 0.2);
 }
 
-/* Imagen dentro de la tarjeta */
 .previewImage {
   width: 100%;
-  height: 100%;
+  height: auto;
+  max-height: 120px;
   object-fit: cover;
+  border-radius: 5px;
 }
 
-/* Texto cuando no hay imagen */
-.previewPlaceholder {
-  color: #aaa;
-  font-size: 14px;
+.previewText {
+  color: #e1e4eb;
+  font-size: 12px;
+  margin-top: 8px;
   text-align: center;
 }

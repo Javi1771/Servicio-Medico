@@ -385,7 +385,8 @@ export default function RegistroBeneficiario() {
 
           const data = await response.json();
           if (data.imageUrl) {
-            setFormData({ ...formData, imageUrl: data.imageUrl });
+              // Actualizar el estado con la URL de la imagen subida
+          setFormData({ ...formData, imageUrl: data.imageUrl });
           }
         } catch (error) {
           console.error("Error al subir la imagen:", error);
@@ -526,7 +527,7 @@ export default function RegistroBeneficiario() {
       Swal.fire("Error", "Por favor, busca primero un empleado.", "warning");
       return;
     }
-  
+
     // Cerrar el modal si ya estaba abierto y resetear los valores
     setIsModalOpen(false);
     setTimeout(() => {
@@ -553,26 +554,27 @@ export default function RegistroBeneficiario() {
         vigenciaEstudiosInicio: "",
         vigenciaEstudiosFin: "",
         esDiscapacitado: "No",
+        imageUrl: "", // Limpia la vista previa de la imagen
       });
-  
+
       // Establecer el modal en modo registro y abrirlo
       setIsEditMode(false);
       setIsModalOpen(true);
     }, 0); // Asegura que el estado se limpie correctamente antes de abrir
   };
-  
+
   const handleModalSubmit = async (e) => {
     e.preventDefault();
-  
+
     // Convertir la fecha de nacimiento al formato ISO 8601
     const formattedDate = new Date(formData.fNacimiento).toISOString();
-  
+
     // Cambia el endpoint y método según el modo (registro o edición)
     const endpoint = isEditMode
       ? "/api/editarBeneficiario"
       : "/api/crearBeneficiario";
     const method = isEditMode ? "PUT" : "POST";
-  
+
     try {
       const response = await fetch(endpoint, {
         method,
@@ -586,11 +588,11 @@ export default function RegistroBeneficiario() {
           noNomina: numNomina,
         }),
       });
-  
+
       if (!response.ok) {
         throw new Error("No se pudo procesar la solicitud.");
       }
-  
+
       Swal.fire(
         "Éxito",
         isEditMode
@@ -598,7 +600,7 @@ export default function RegistroBeneficiario() {
           : "Beneficiario registrado correctamente.",
         "success"
       );
-  
+
       // Reinicia el modal y el formulario después de enviar los datos
       setFormData({
         parentesco: "",
@@ -623,27 +625,28 @@ export default function RegistroBeneficiario() {
         vigenciaEstudiosInicio: "",
         vigenciaEstudiosFin: "",
         esDiscapacitado: "No",
+        imageUrl: "", // Reinicia la imagen previa
+
       });
-  
+
       setIsModalOpen(false); // Cerrar el modal
       fetchBeneficiarios(); // Refrescar la lista de beneficiarios
     } catch (error) {
       Swal.fire("Error", error.message, "error");
     }
   };
-  
 
   // Función para editar beneficiario existente
   const handleEditBeneficiary = (beneficiario) => {
     console.log("Beneficiario recibido para edición:", beneficiario);
     console.log("Situación laboral:", beneficiario.situacion_lab); // Depuración
-  
+
     const formatFecha = (fecha) => {
       if (!fecha) return "";
       const date = new Date(fecha);
       return date.toISOString().split("T")[0]; // Formato YYYY-MM-DD
     };
-  
+
     const calcularEdad = (fechaNacimiento) => {
       if (!fechaNacimiento) return "";
       const hoy = new Date();
@@ -655,7 +658,7 @@ export default function RegistroBeneficiario() {
       }
       return edad;
     };
-  
+
     // Cerrar cualquier modal previo y resetear el estado
     setIsModalOpen(false);
     setTimeout(() => {
@@ -668,6 +671,8 @@ export default function RegistroBeneficiario() {
         fNacimiento: formatFecha(beneficiario.F_NACIMIENTO) || "",
         edad: calcularEdad(beneficiario.F_NACIMIENTO) || "",
         alergias: beneficiario.ALERGIAS || "",
+        vigencia:
+        formatFecha(beneficiario.VIGENCIA) || "",
         sangre: beneficiario.SANGRE || "",
         telEmergencia: beneficiario.TEL_EMERGENCIA || "",
         nombreEmergencia: beneficiario.NOMBRE_EMERGENCIA || "",
@@ -684,14 +689,15 @@ export default function RegistroBeneficiario() {
         vigenciaEstudiosFin:
           formatFecha(beneficiario.VIGENCIA_ESTUDIOS_FIN) || "",
         esDiscapacitado: beneficiario.ESDISCAPACITADO || "No",
+        imageUrl: beneficiario.FOTO_URL || "", // Cargar la imagen existente
+
       });
-  
+
       setCurrentBeneficiaryId(beneficiario.ID_BENEFICIARIO);
       setIsEditMode(true); // Activar modo edición
       setIsModalOpen(true); // Reabrir el modal con datos cargados
     }, 0); // Asegura un reseteo limpio antes de reabrir
   };
-  
 
   useEffect(() => {}, [formData]);
 
@@ -854,6 +860,10 @@ export default function RegistroBeneficiario() {
           </button>
         )}
 
+        <div className="modal">
+          <div className="modal-content"></div>
+        </div>
+
         {/* Modal para agregar beneficiario */}
         <Modal
           isOpen={isModalOpen}
@@ -917,7 +927,7 @@ export default function RegistroBeneficiario() {
               {formData.activo === "A" ? "Activo" : "Inactivo"}
             </button>
             <p></p>
-            {/* Fila 1: Foto */}
+            {/* Fila 1: Foto con vista previa */}
             <div className={styles.inputRow}>
               <div className={styles.inputGroup}>
                 <label className={styles.inputLabel}>
@@ -930,6 +940,20 @@ export default function RegistroBeneficiario() {
                   />
                 </label>
               </div>
+
+              {/* Tarjeta de vista previa */}
+              {formData.imageUrl && (
+                <div className={styles.previewCard}>
+                  <img
+                    src={formData.imageUrl}
+                    alt="Vista previa"
+                    className={styles.previewImage}
+                  />
+                  <p className={styles.previewText}>
+                    Vista previa de la imagen
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Fila 2: Parentesco y Nombre */}
@@ -1154,72 +1178,70 @@ export default function RegistroBeneficiario() {
               </div>
             </div>
 
-
-  {/* Fila 9: Enfermedades Crónicas */}
-  <div className={styles.inputRow}>
-                <div className={styles.inputGroup}>
-                  <label>
-                    <input
-                      type="radio"
-                      name="enfermedades_cronicas"
-                      value="Diabetico"
-                      checked={formData.enfermedades_cronicas === "Diabetico"}
-                      onChange={handleInputChange}
-                    />
-                    Diabetico
-                  </label>
-                  <label>
-                    <input
-                      type="radio"
-                      name="enfermedades_cronicas"
-                      value="Hipertenso"
-                      checked={formData.enfermedades_cronicas === "Hipertenso"}
-                      onChange={handleInputChange}
-                    />
-                    Hipertenso
-                  </label>
-                  <label>
-                    <input
-                      type="radio"
-                      name="enfermedades_cronicas"
-                      value="Cancer"
-                      checked={formData.enfermedades_cronicas === "Cancer"}
-                      onChange={handleInputChange}
-                    />
-                    Cancer
-                  </label>
-                  <label>
-                    <input
-                      type="radio"
-                      name="enfermedades_cronicas"
-                      value="Otro"
-                      checked={formData.enfermedades_cronicas === "Otro"}
-                      onChange={(e) => {
-                        handleInputChange(e);
-                        setIsOtherEnabled(e.target.value === "Otro");
-                      }}
-                    />
-                    Otro
-                  </label>
-                  {isOtherEnabled && (
-                    <input
-                      type="text"
-                      name="enfermedades_cronicas"
-                      value={
-                        formData.enfermedades_cronicas !== "Diabetico" &&
-                        formData.enfermedades_cronicas !== "Hipertenso" &&
-                        formData.enfermedades_cronicas !== "Cancer"
-                          ? formData.enfermedades_cronicas
-                          : ""
-                      }
-                      onChange={handleInputChange}
-                      placeholder="Especifique otra enfermedad"
-                      className={styles.inputField}
-                    />
-                  )}
-                </div>
+            {/* Fila 9: Enfermedades Crónicas */}
+            <div className={styles.inputRow}>
+              <div className={styles.inputGroup}>
+                <label>
+                  <input
+                    type="radio"
+                    name="enfermedades_cronicas"
+                    value="Diabetico"
+                    checked={formData.enfermedades_cronicas === "Diabetico"}
+                    onChange={handleInputChange}
+                  />
+                  Diabetico
+                </label>
+                <label>
+                  <input
+                    type="radio"
+                    name="enfermedades_cronicas"
+                    value="Hipertenso"
+                    checked={formData.enfermedades_cronicas === "Hipertenso"}
+                    onChange={handleInputChange}
+                  />
+                  Hipertenso
+                </label>
+                <label>
+                  <input
+                    type="radio"
+                    name="enfermedades_cronicas"
+                    value="Cancer"
+                    checked={formData.enfermedades_cronicas === "Cancer"}
+                    onChange={handleInputChange}
+                  />
+                  Cancer
+                </label>
+                <label>
+                  <input
+                    type="radio"
+                    name="enfermedades_cronicas"
+                    value="Otro"
+                    checked={formData.enfermedades_cronicas === "Otro"}
+                    onChange={(e) => {
+                      handleInputChange(e);
+                      setIsOtherEnabled(e.target.value === "Otro");
+                    }}
+                  />
+                  Otro
+                </label>
+                {isOtherEnabled && (
+                  <input
+                    type="text"
+                    name="enfermedades_cronicas"
+                    value={
+                      formData.enfermedades_cronicas !== "Diabetico" &&
+                      formData.enfermedades_cronicas !== "Hipertenso" &&
+                      formData.enfermedades_cronicas !== "Cancer"
+                        ? formData.enfermedades_cronicas
+                        : ""
+                    }
+                    onChange={handleInputChange}
+                    placeholder="Especifique otra enfermedad"
+                    className={styles.inputField}
+                  />
+                )}
               </div>
-
+            </div>
 
             {/* Fila 10: Tratamientos y Observaciones */}
             <div className={styles.inputRow}>
