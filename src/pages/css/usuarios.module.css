@@ -1,3 +1,16 @@
+
+
+/* Fondo de pantalla completa */
+.body {
+  background-color: #1e1e2d;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+}
+
 /* Estilos existentes */
 .container {
   padding: 20px;
@@ -40,157 +53,103 @@
 }
 
 /** Estilos de tabla */
+.tableContainer {
+  overflow-x: auto; /* Permite desplazamiento horizontal en pantallas pequeñas */
+  margin-top: 20px;
+}
+
 .table {
   width: 100%;
-  border-spacing: 0px; /* Espacio vertical entre filas */
-  overflow: hidden;
-  border-radius: 10px;
+  border-collapse: collapse;
+  color: #e1e4eb;
+}
+
+.table thead {
+  background-color: #2b2f3a;
 }
 
 .table th,
 .table td {
-  padding: 15px;
-  background-color: #0e11359a; /* Fondo sólido oscuro */
-  color: #ffffff;
-  border-radius: 2px; /* Borde redondeado pequeño en cada celda */
-  transition: color 0.3s ease, background-color 0.3s ease; /* Transición suave para el color */
+  padding: 10px;
+  text-align: center;
+  border-bottom: 1px solid #444;
 }
 
 .table th {
-  text-align: left;
-  background-color: #0e11359a;
+  font-weight: bold;
 }
 
-.table tbody tr:hover td {
-  background: linear-gradient(90deg, #2AF598, #009EFD); /* Degradado verde a azul */
-  -webkit-background-clip: text; /* Aplica el degradado solo al texto */
-  -webkit-text-fill-color: transparent; /* Relleno de texto transparente para mostrar el degradado */
-  background-clip: text; /* Para algunos navegadores adicionales */
+.table td {
+  text-align: center;
 }
 
-
-.table tbody td {
-  position: relative;
+.table th,
+.table td {
+  min-width: 120px; /* Asegura una estructura simétrica */
 }
 
-/* Responsive adjustments */
+.table tbody tr:nth-child(even) {
+  background-color: #3c3f51;
+}
+
+.table tbody tr:nth-child(odd) {
+  background-color: #2b2f3a;
+}
+
+.table tbody tr:hover {
+  background-color: #4b4f62;
+}
+
+/** ========================= **/
+/** Media Queries Responsivas **/
+/** ========================= **/
+
+/* Pantallas medianas (tablets, etc.) */
 @media (max-width: 768px) {
-  .table thead {
-    display: none; /* Oculta el encabezado en pantallas pequeñas */
+  .table th,
+  .table td {
+    padding: 8px;
+    font-size: 14px;
   }
 
-  .table, .table tbody, .table tr, .table td {
-    display: block;
-    width: 100%;
-  }
-
-  .table tr {
-    margin-bottom: 10px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    border-radius: 5px;
+  .table th {
+    text-align: center; /* Mantiene el encabezado alineado al centro */
   }
 
   .table td {
-    padding: 10px;
-    text-align: right;
+    text-align: center;
+  }
+}
+
+/* Pantallas pequeñas (móviles) */
+@media (max-width: 480px) {
+  .table thead {
+    display: none; /* Oculta la cabecera en móviles */
+  }
+
+  .table td {
+    display: block; /* Cada celda ocupa toda la fila */
+    text-align: left;
+    padding: 10px 20px;
     position: relative;
-    border: none;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.3);
   }
 
   .table td::before {
-    content: attr(data-label);
+    content: attr(data-label); /* Muestra el encabezado correspondiente */
     position: absolute;
+    top: 10px;
     left: 10px;
-    text-align: left;
     font-weight: bold;
-    color: #ffffff;
-  }
-
-  .table tr:last-child td {
-    border-bottom: none;
-  }
-}
-
-/* Ajuste para pantallas extra pequeñas */
-@media (max-width: 480px) {
-  .table td {
-    padding: 8px;
-    font-size: 0.9rem;
+    color: #ffffff; /* Encabezado simulado con color blanco */
+    text-transform: uppercase;
   }
 
   .table tr {
-    margin-bottom: 8px;
-  }
-}
-
-
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .table thead {
-    display: none; /* Oculta el encabezado en pantallas pequeñas */
-  }
-
-  .table, .table tbody, .table tr, .table td {
-    display: block;
-    width: 100%;
-  }
-
-  .table tr {
-    margin-bottom: 10px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    border-radius: 5px;
-  }
-
-  .table td {
-    padding: 10px;
-    text-align: left;
-    position: relative;
-    border: none;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.3);
-  }
-
-  .table td::before {
-    content: attr(data-label);
-    position: absolute;
-    left: 10px;
-    text-align: left;
-    font-weight: bold;
-    color: #ffffff;
-  }
-
-  .table tr:last-child td {
-    border-bottom: none;
-  }
-}
-
-/* Ajuste para pantallas extra pequeñas */
-@media (max-width: 480px) {
-  .table td {
-    padding: 8px;
-    font-size: 0.9rem;
-  }
-
-  .table tr {
-    margin-bottom: 8px;
-  }
-}
-
-
-
-
-
-
-/* Ajuste para pantallas extra pequeñas */
-@media (max-width: 480px) {
-  .table td {
-    padding: 8px;
-    font-size: 0.9rem;
-  }
-
-  .table tr {
-    margin-bottom: 8px;
+    margin-bottom: 15px; /* Espacio entre las "cards" */
+    display: block; /* Cada fila se convierte en un bloque */
+    border: 1px solid #444;
+    border-radius: 8px;
+    overflow: hidden; /* Evita desbordamientos */
   }
 }
 
@@ -219,16 +178,6 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Sombra para dar profundidad (opcional) */
 }
 
-.body {
-  background: linear-gradient(to right, #010529, #3d5fae, #0058bd); /* Gradiente en el body */
-  margin: 0;
-  padding: 0;
-  font-family: Arial, sans-serif;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-}
 
 /* Responsive Styles */
 @media (max-width: 768px) {
@@ -363,21 +312,23 @@
 
 /* Mantener el estilo original del modalContent */
 .modalContent {
-  background: #002457; /* Fondo sólido en color negro grisáceo */
-  padding: 30px;
-  border-radius: 12px;
-  width: 95%;
+  position: relative;
+  background-color: #2b2f3a;
+  padding: 20px;
+  border-radius: 10px;
   max-width: 800px;
-  box-shadow: 
-    0 0 15px rgba(0, 0, 0, 0.5),   /* Cian claro */
-    0 0 25px rgba(8, 8, 8, 0.95),   /* Azul más oscuro */
-    0 0 35px rgba(0, 72, 255, 0.3),   /* Magenta */
-    0 0 45px rgba(6, 6, 6, 0.2);    /* Naranja oscuro */
-  text-align: center;
-  color: #ffffff;
-  z-index: 1001;
-  max-height: 90vh; /* Para mantener el modal visible */
-  overflow-y: auto; /* Scroll si el contenido es demasiado largo */
+  width: 90%;
+  color: #e1e4eb;
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+  overflow-y: auto;
+
+  /* Glow Effect */
+  /* Glow Effect */
+  box-shadow: 0 0 80px rgba(0, 247, 255, 0.155),
+    -46px 42px 79px rgba(0, 166, 255, 0.153),
+    14px -35px 35px rgba(115, 0, 255, 0.183), 47px 5px 35px rgba(102, 0, 255, 0.146);
 }
 
 /* Encabezado del modal */
@@ -399,11 +350,11 @@
 .modalForm input {
   width: 100%;
   padding: 10px;
-  border: 1px solid #365074; /* Borde gris */
+  border: 1px solid #3c3f51;
   border-radius: 6px;
-  background: #ffffff; /* Fondo oscuro */
-  color: #7589e7;
-  caret-color: #b3b3b3; /* Color del cursor */
+  background: #3c3f51;
+  color: #ffffff;
+  caret-color: #b3b3b3;
   outline: none;
   transition: background 0.3s ease, border-color 0.3s ease;
 }
@@ -411,14 +362,14 @@
 /* Selector de especialidad y tipo de usuario */
 .modalForm select {
   width: 100%;
-  padding: 10px;
-  margin: 0;
-  border: 1px solid #ffffff; /* Borde gris */
-  border-radius: 6px;
-  background: #aaaa; /* Fondo oscuro */
-  color: #f1f1f1;
-  outline: none;
-  transition: background 0.3s ease, border-color 0.3s ease;
+    padding: 10px;
+    margin: 0;
+    border: 1px solid #2b2f3a;
+    border-radius: 6px;
+    background: #3c3f51;
+    color: #f1f1f1;
+    outline: none;
+    transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 /* Efecto al enfocar los inputs */

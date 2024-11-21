@@ -1,6 +1,14 @@
 // src/pages/api/uploadImage.js
 import cloudinary from '../../lib/cloudinaryServer';
 
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '3mb', // Ajusta el tamaño según tus necesidades
+    },
+  },
+};
+
 // Desactivar la verificación SSL solo en desarrollo
 if (process.env.NODE_ENV === 'development') {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';

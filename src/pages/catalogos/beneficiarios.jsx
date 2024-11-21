@@ -314,8 +314,18 @@ export default function RegistroBeneficiario() {
   // Dentro de handleInputChange para actualizar el estado cuando cambie la fecha de nacimiento
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+
     setFormData((prevData) => {
       const updatedData = { ...prevData, [name]: value };
+
+      // Validación específica para la CURP
+      if (name === "curp") {
+        // Verificar que solo tenga letras y números, y limitar el tamaño a 18 caracteres
+        const curpRegex = /^[A-Z0-9]*$/i; // Alfanumérico
+        if (!curpRegex.test(value) || value.length > 18) {
+          return prevData; // No actualizar si el valor no es válido
+        }
+      }
 
       // Limpiar vigenciaEstudios si esEstudiante es "No" y mantener el valor si es "Sí"
       if (name === "esEstudiante") {
@@ -385,8 +395,8 @@ export default function RegistroBeneficiario() {
 
           const data = await response.json();
           if (data.imageUrl) {
-              // Actualizar el estado con la URL de la imagen subida
-          setFormData({ ...formData, imageUrl: data.imageUrl });
+            // Actualizar el estado con la URL de la imagen subida
+            setFormData({ ...formData, imageUrl: data.imageUrl });
           }
         } catch (error) {
           console.error("Error al subir la imagen:", error);
@@ -456,12 +466,32 @@ export default function RegistroBeneficiario() {
     if (!numNomina) return;
 
     try {
+      // Llama a la API para actualizar el estado de los beneficiarios
+      await fetch("/api/actualizarEstadoBeneficiario", {
+        method: "PUT",
+      });
+
+      // Obtén los beneficiarios actualizados
       const response = await fetch(
         `/api/mostBeneficiarios?num_nom=${numNomina}`
       );
+
       const data = await response.json();
-      console.log("Datos de beneficiarios desde la API:", data); // Asegúrate de que `CURP` está presente
-      setBeneficiarios(data);
+      console.log("Datos de beneficiarios desde la API:", data);
+
+      // Filtrar beneficiarios localmente si es necesario
+      const beneficiariosActualizados = data.map((beneficiario) => {
+        // Cambiar localmente si detecta que la vigencia ha expirado
+        if (
+          new Date(beneficiario.VIGENCIA) < new Date() &&
+          beneficiario.ACTIVO === "A"
+        ) {
+          return { ...beneficiario, ACTIVO: "I" }; // Cambia a inactivo
+        }
+        return beneficiario;
+      });
+
+      setBeneficiarios(beneficiariosActualizados);
     } catch (err) {
       console.error("Error fetching beneficiaries:", err);
     }
@@ -472,7 +502,8 @@ export default function RegistroBeneficiario() {
     if (empleado) {
       fetchBeneficiarios();
     }
-  }, [empleado, fetchBeneficiarios]); // <--- Modificado, se agrega fetchBeneficiarios como dependencia
+  }, [empleado, fetchBeneficiarios]);
+  // <--- Modificado, se agrega fetchBeneficiarios como dependencia
 
   // Obtener opciones de parentesco
   const fetchParentescoOptions = async () => {
@@ -566,6 +597,16 @@ export default function RegistroBeneficiario() {
   const handleModalSubmit = async (e) => {
     e.preventDefault();
 
+    // Validación de la CURP
+    if (formData.curp.length !== 18) {
+      Swal.fire(
+        "Error",
+        "La CURP debe tener exactamente 18 caracteres.",
+        "error"
+      );
+      return;
+    }
+
     // Convertir la fecha de nacimiento al formato ISO 8601
     const formattedDate = new Date(formData.fNacimiento).toISOString();
 
@@ -626,7 +667,6 @@ export default function RegistroBeneficiario() {
         vigenciaEstudiosFin: "",
         esDiscapacitado: "No",
         imageUrl: "", // Reinicia la imagen previa
-
       });
 
       setIsModalOpen(false); // Cerrar el modal
@@ -671,8 +711,7 @@ export default function RegistroBeneficiario() {
         fNacimiento: formatFecha(beneficiario.F_NACIMIENTO) || "",
         edad: calcularEdad(beneficiario.F_NACIMIENTO) || "",
         alergias: beneficiario.ALERGIAS || "",
-        vigencia:
-        formatFecha(beneficiario.VIGENCIA) || "",
+        vigencia: formatFecha(beneficiario.VIGENCIA) || "",
         sangre: beneficiario.SANGRE || "",
         telEmergencia: beneficiario.TEL_EMERGENCIA || "",
         nombreEmergencia: beneficiario.NOMBRE_EMERGENCIA || "",
@@ -690,7 +729,6 @@ export default function RegistroBeneficiario() {
           formatFecha(beneficiario.VIGENCIA_ESTUDIOS_FIN) || "",
         esDiscapacitado: beneficiario.ESDISCAPACITADO || "No",
         imageUrl: beneficiario.FOTO_URL || "", // Cargar la imagen existente
-
       });
 
       setCurrentBeneficiaryId(beneficiario.ID_BENEFICIARIO);
@@ -709,7 +747,7 @@ export default function RegistroBeneficiario() {
   const handleDeleteBeneficiary = (idBeneficiario) => {
     Swal.fire({
       title: "¿Estás seguro?",
-      text: "Esta acción no se puede deshacer",
+      text: "Esta acción eliminará al beneficiario y su imagen asociada. No se puede deshacer.",
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#d33",
@@ -724,18 +762,22 @@ export default function RegistroBeneficiario() {
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify({ idBeneficiario }),
+            body: JSON.stringify({ idBeneficiario }), // Enviar el ID del beneficiario al backend
           });
 
           if (!response.ok) {
-            throw new Error("No se pudo eliminar el beneficiario.");
+            const errorData = await response.json();
+            throw new Error(
+              errorData.error || "No se pudo eliminar el beneficiario."
+            );
           }
 
           Swal.fire(
             "Eliminado",
-            "El beneficiario ha sido eliminado correctamente.",
+            "El beneficiario y su imagen asociada han sido eliminados correctamente.",
             "success"
           );
+
           fetchBeneficiarios(); // Refresca la lista de beneficiarios después de eliminar
         } catch (error) {
           Swal.fire("Error", error.message, "error");
@@ -900,19 +942,6 @@ export default function RegistroBeneficiario() {
           overlayClassName={styles.modalOverlay}
           className={styles.modal}
         >
-          {/* Botón de cerrar con estilos */}
-          <button
-            onClick={() => {
-              setIsModalOpen(false);
-              setIsEditMode(false);
-            }}
-            className={styles.button}
-          >
-            <span className={styles.X}></span>
-            <span className={styles.Y}></span>
-            <span className={styles.close}>Cerrar</span>
-          </button>
-
           <form onSubmit={handleModalSubmit} className={styles.beneficiaryForm}>
             <h2>
               {isEditMode ? "Editar Beneficiario" : "Registrar Beneficiario"}
@@ -1137,14 +1166,22 @@ export default function RegistroBeneficiario() {
                     maxLength="18"
                     className={styles.inputField}
                   />
+                  {formData.curp.length > 0 && formData.curp.length !== 18 && (
+                    <span className={styles.errorText}>
+                      La CURP debe tener exactamente 18 caracteres.
+                    </span>
+                  )}
                 </label>
               </div>
+            </div>
 
-              {/* Fituación Laboral */}
+            {/* Situación Laboral */}
+            <div className={styles.inputRow}>
               <div className={styles.inputGroup}>
                 <label className={styles.inputLabel}>Situación Laboral:</label>
                 <div className={styles.checkboxGroup}>
-                  <label>
+                  <label className={styles.customRadio}>
+                    Pensionado
                     <input
                       type="radio"
                       name="situacion_lab"
@@ -1152,9 +1189,10 @@ export default function RegistroBeneficiario() {
                       checked={formData.situacion_lab === "Pensionado"}
                       onChange={handleInputChange}
                     />
-                    Pensionado
+                    <span className={styles.radioCheckmark}></span>
                   </label>
-                  <label>
+                  <label className={styles.customRadio}>
+                    Jubilado
                     <input
                       type="radio"
                       name="situacion_lab"
@@ -1162,9 +1200,10 @@ export default function RegistroBeneficiario() {
                       checked={formData.situacion_lab === "Jubilado"}
                       onChange={handleInputChange}
                     />
-                    Jubilado
+                    <span className={styles.radioCheckmark}></span>
                   </label>
-                  <label>
+                  <label className={styles.customRadio}>
+                    N/A
                     <input
                       type="radio"
                       name="situacion_lab"
@@ -1172,74 +1211,83 @@ export default function RegistroBeneficiario() {
                       checked={formData.situacion_lab === "N/A"}
                       onChange={handleInputChange}
                     />
-                    N/A
+                    <span className={styles.radioCheckmark}></span>
                   </label>
                 </div>
               </div>
             </div>
 
-            {/* Fila 9: Enfermedades Crónicas */}
+            {/* Enfermedades Crónicas */}
             <div className={styles.inputRow}>
               <div className={styles.inputGroup}>
-                <label>
-                  <input
-                    type="radio"
-                    name="enfermedades_cronicas"
-                    value="Diabetico"
-                    checked={formData.enfermedades_cronicas === "Diabetico"}
-                    onChange={handleInputChange}
-                  />
-                  Diabetico
+                <label className={styles.inputLabel}>
+                  Enfermedades Crónicas:
                 </label>
-                <label>
-                  <input
-                    type="radio"
-                    name="enfermedades_cronicas"
-                    value="Hipertenso"
-                    checked={formData.enfermedades_cronicas === "Hipertenso"}
-                    onChange={handleInputChange}
-                  />
-                  Hipertenso
-                </label>
-                <label>
-                  <input
-                    type="radio"
-                    name="enfermedades_cronicas"
-                    value="Cancer"
-                    checked={formData.enfermedades_cronicas === "Cancer"}
-                    onChange={handleInputChange}
-                  />
-                  Cancer
-                </label>
-                <label>
-                  <input
-                    type="radio"
-                    name="enfermedades_cronicas"
-                    value="Otro"
-                    checked={formData.enfermedades_cronicas === "Otro"}
-                    onChange={(e) => {
-                      handleInputChange(e);
-                      setIsOtherEnabled(e.target.value === "Otro");
-                    }}
-                  />
-                  Otro
-                </label>
-                {isOtherEnabled && (
-                  <input
-                    type="text"
-                    name="enfermedades_cronicas"
-                    value={
-                      formData.enfermedades_cronicas !== "Diabetico" &&
-                      formData.enfermedades_cronicas !== "Hipertenso" &&
-                      formData.enfermedades_cronicas !== "Cancer"
-                        ? formData.enfermedades_cronicas
-                        : ""
-                    }
-                    onChange={handleInputChange}
-                    placeholder="Especifique otra enfermedad"
-                    className={styles.inputField}
-                  />
-                )}
+                <div className={styles.checkboxGroup}>
+                  <label className={styles.customRadio}>
+                    Diabético
+                    <input
+                      type="radio"
+                      name="enfermedades_cronicas"
+                      value="Diabetico"
+                      checked={formData.enfermedades_cronicas === "Diabetico"}
+                      onChange={handleInputChange}
+                    />
+                    <span className={styles.radioCheckmark}></span>
+                  </label>
+                  <label className={styles.customRadio}>
+                    Hipertenso
+                    <input
+                      type="radio"
+                      name="enfermedades_cronicas"
+                      value="Hipertenso"
+                      checked={formData.enfermedades_cronicas === "Hipertenso"}
+                      onChange={handleInputChange}
+                    />
+                    <span className={styles.radioCheckmark}></span>
+                  </label>
+                  <label className={styles.customRadio}>
+                    Cáncer
+                    <input
+                      type="radio"
+                      name="enfermedades_cronicas"
+                      value="Cancer"
+                      checked={formData.enfermedades_cronicas === "Cancer"}
+                      onChange={handleInputChange}
+                    />
+                    <span className={styles.radioCheckmark}></span>
+                  </label>
+                  <label className={styles.customRadio}>
+                    Otro
+                    <input
+                      type="radio"
+                      name="enfermedades_cronicas"
+                      value="Otro"
+                      checked={formData.enfermedades_cronicas === "Otro"}
+                      onChange={(e) => {
+                        handleInputChange(e);
+                        setIsOtherEnabled(e.target.value === "Otro");
+                      }}
+                    />
+                    <span className={styles.radioCheckmark}></span>
+                  </label>
+                  {isOtherEnabled && (
+                    <input
+                      type="text"
+                      name="enfermedades_cronicas"
+                      value={
+                        formData.enfermedades_cronicas !== "Diabetico" &&
+                        formData.enfermedades_cronicas !== "Hipertenso" &&
+                        formData.enfermedades_cronicas !== "Cancer"
+                          ? formData.enfermedades_cronicas
+                          : ""
+                      }
+                      onChange={handleInputChange}
+                      placeholder="Especifique otra enfermedad"
+                      className={styles.inputField}
+                    />
+                  )}
+                </div>
               </div>
             </div>
 
@@ -1370,128 +1418,157 @@ export default function RegistroBeneficiario() {
             </button>
           </form>
         </Modal>
-
         <Modal
-          isOpen={isViewModalOpen}
-          onRequestClose={() => setIsViewModalOpen(false)}
-          overlayClassName={styles.modalOverlay}
-          className={styles.modal}
-        >
-          {selectedBeneficiary && (
-            <div className={styles.contentContainer}>
-              {/* Información del Beneficiario */}
-              <div className={styles.infoSection}>
-                <h2>Información del Beneficiario</h2>
-                <p>
-                  <strong>ID:</strong> {selectedBeneficiary.ID_BENEFICIARIO}
-                </p>
-                <p>
-                  <strong>Número de Nómina:</strong>{" "}
-                  {selectedBeneficiary.NO_NOMINA}
-                </p>
-                <p>
-                  <strong>Parentesco:</strong>{" "}
-                  {parentescoOptions.find(
-                    (p) => p.ID_PARENTESCO === selectedBeneficiary.PARENTESCO
-                  )?.PARENTESCO || "Desconocido"}
-                </p>
-                <p>
-                  <strong>Nombre:</strong>{" "}
-                  {`${selectedBeneficiary.NOMBRE} ${selectedBeneficiary.A_PATERNO} ${selectedBeneficiary.A_MATERNO}`}
-                </p>
-                <p>
-                  <strong>Sexo:</strong>{" "}
-                  {sexoOptions.find(
-                    (s) => String(s.idSexo) === String(selectedBeneficiary.SEXO)
-                  )?.sexo || "Desconocido"}
-                </p>
-                <p>
-                  <strong>Departamento:</strong>{" "}
-                  {selectedBeneficiary.DEPARTAMENTO || "N/A"}
-                </p>
-                <p>
-                  <strong>Fecha de Nacimiento:</strong>{" "}
-                  {selectedBeneficiary.F_NACIMIENTO}
-                </p>
-                <p>
-                  <strong>Edad:</strong> {selectedBeneficiary.EDAD || "N/A"}
-                </p>
-                <p>
-                  <strong>Activo:</strong>{" "}
-                  {selectedBeneficiary.ACTIVO === "A" ? "Sí" : "No"}
-                </p>
-                <p>
-                  <strong>Alergias:</strong>{" "}
-                  {selectedBeneficiary.ALERGIAS || "Ninguna"}
-                </p>
-                <p>
-                  <strong>Tipo de Sangre:</strong>{" "}
-                  {selectedBeneficiary.SANGRE || "N/A"}
-                </p>
-                <p>
-                  <strong>Teléfono de Emergencia:</strong>{" "}
-                  {selectedBeneficiary.TEL_EMERGENCIA || "N/A"}
-                </p>
-                <p>
-                  <strong>Nombre de Contacto de Emergencia:</strong>{" "}
-                  {selectedBeneficiary.NOMBRE_EMERGENCIA || "N/A"}
-                </p>
-                <p>
-                  <strong>CURP:</strong> {selectedBeneficiary.CURP || "N/A"}
-                </p>
-                <p>
-                  <strong>Sindicato:</strong>{" "}
-                  {selectedBeneficiary.SINDICATO || "N/A"}
-                </p>
-                <p>
-                  <strong>Situación Laboral:</strong>{" "}
-                  {selectedBeneficiary.situacion_lab || "N/A"}
-                </p>
-              </div>
+  isOpen={isViewModalOpen}
+  onRequestClose={() => setIsViewModalOpen(false)}
+  overlayClassName={styles.modalOverlay}
+  className={styles.modal}
+>
+  {selectedBeneficiary && (
+    <div className={styles.modalContent}>
+      {/* Imagen del Beneficiario */}
+      <div className={styles.imageContainer}>
+        {selectedBeneficiary.FOTO_URL ? (
+          <Image
+            src={selectedBeneficiary.FOTO_URL}
+            alt={`${selectedBeneficiary.NOMBRE} ${selectedBeneficiary.A_PATERNO}`}
+            width={150}
+            height={150}
+            className={styles.beneficiaryImage}
+          />
+        ) : (
+          <p className={styles.noImageText}>Imagen no disponible</p>
+        )}
+      </div>
 
-              {/* Imagen del Beneficiario */}
-              <div className={styles.imageSection}>
-                {selectedBeneficiary.FOTO_URL ? (
-                  <Image
-                    src={selectedBeneficiary.FOTO_URL}
-                    alt={`${selectedBeneficiary.NOMBRE} ${selectedBeneficiary.A_PATERNO}`}
-                    width={200}
-                    height={200}
-                    className={styles.beneficiaryImage}
-                  />
-                ) : (
-                  <p>Imagen no disponible</p>
-                )}
-                {/* Botones debajo de la imagen */}
-                <div className={styles.buttonsContainer}>
-                  <button
-                    onClick={() => handlePrintCredential(selectedBeneficiary)}
-                    className={styles.printButton}
-                  >
-                    Imprimir Credencial
-                  </button>
-                  <button
-                    onClick={async () => {
-                      try {
-                        await handleGenerateCard(selectedBeneficiary);
-                      } catch (error) {
-                        console.error("Error al generar el carnet:", error);
-                        Swal.fire(
-                          "Error",
-                          "No se pudo generar el carnet. Intenta nuevamente.",
-                          "error"
-                        );
-                      }
-                    }}
-                    className={styles.printButton}
-                  >
-                    Imprimir Carnet
-                  </button>
-                </div>
-              </div>
-            </div>
+      {/* Primera Card: Información Personal */}
+      <div className={styles.card}>
+        <h3 className={styles.cardTitle}>Información Personal</h3>
+        <p>
+          <strong>ID:</strong> {selectedBeneficiary.ID_BENEFICIARIO}
+        </p>
+        <p>
+          <strong>Número de Nómina:</strong> {selectedBeneficiary.NO_NOMINA}
+        </p>
+        <p>
+          <strong>Nombre Completo:</strong>{" "}
+          {`${selectedBeneficiary.NOMBRE} ${selectedBeneficiary.A_PATERNO} ${selectedBeneficiary.A_MATERNO}`}
+        </p>
+        <p>
+          <strong>Sexo:</strong>{" "}
+          {sexoOptions.find(
+            (s) => String(s.idSexo) === String(selectedBeneficiary.SEXO)
+          )?.sexo || "Desconocido"}
+        </p>
+        <p>
+          <strong>Fecha de Nacimiento:</strong>{" "}
+          {new Date(selectedBeneficiary.F_NACIMIENTO).toLocaleDateString(
+            "es-ES",
+            { day: "2-digit", month: "2-digit", year: "numeric" }
           )}
-        </Modal>
+        </p>
+        <p>
+          <strong>Edad:</strong> {selectedBeneficiary.EDAD || "N/A"}
+        </p>
+        <p>
+          <strong>CURP:</strong> {selectedBeneficiary.CURP || "N/A"}
+        </p>
+        <p>
+          <strong>Activo:</strong>{" "}
+          {selectedBeneficiary.ACTIVO === "A" ? "Sí" : "No"}
+        </p>
+      </div>
+
+      {/* Segunda Card: Información Adicional */}
+      <div className={styles.card}>
+        <h3 className={styles.cardTitle}>Información Adicional</h3>
+        <p>
+          <strong>Parentesco:</strong>{" "}
+          {parentescoOptions.find(
+            (p) => p.ID_PARENTESCO === selectedBeneficiary.PARENTESCO
+          )?.PARENTESCO || "Desconocido"}
+        </p>
+        <p>
+          <strong>Alergias:</strong>{" "}
+          {selectedBeneficiary.ALERGIAS || "Ninguna"}
+        </p>
+        <p>
+          <strong>Tipo de Sangre:</strong>{" "}
+          {selectedBeneficiary.SANGRE || "N/A"}
+        </p>
+        <p>
+          <strong>Teléfono de Emergencia:</strong>{" "}
+          {selectedBeneficiary.TEL_EMERGENCIA || "N/A"}
+        </p>
+        <p>
+          <strong>Nombre de Contacto de Emergencia:</strong>{" "}
+          {selectedBeneficiary.NOMBRE_EMERGENCIA || "N/A"}
+        </p>
+        <p>
+          <strong>Vigencia de Estudios (Inicio):</strong>{" "}
+          {selectedBeneficiary.VIGENCIA_ESTUDIOS_INICIO
+            ? new Date(
+                selectedBeneficiary.VIGENCIA_ESTUDIOS_INICIO
+              ).toLocaleDateString("es-ES", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+              })
+            : "N/A"}
+        </p>
+        <p>
+          <strong>Vigencia de Estudios (Fin):</strong>{" "}
+          {selectedBeneficiary.VIGENCIA_ESTUDIOS_FIN
+            ? new Date(
+                selectedBeneficiary.VIGENCIA_ESTUDIOS_FIN
+              ).toLocaleDateString("es-ES", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+              })
+            : "N/A"}
+        </p>
+        <p>
+          <strong>Situación Laboral:</strong>{" "}
+          {selectedBeneficiary.situacion_lab || "N/A"}
+        </p>
+      </div>
+
+      {/* Botones */}
+      <div className={styles.buttonsContainer}>
+        <button
+          onClick={() => handlePrintCredential(selectedBeneficiary)}
+          className={styles.printButton}
+        >
+          Imprimir Credencial
+        </button>
+        <button
+          onClick={async () => {
+            try {
+              await handleGenerateCard(selectedBeneficiary);
+            } catch (error) {
+              console.error("Error al generar el carnet:", error);
+              Swal.fire(
+                "Error",
+                "No se pudo generar el carnet. Intenta nuevamente.",
+                "error"
+              );
+            }
+          }}
+          className={styles.printButton}
+        >
+          Imprimir Carnet
+        </button>
+        <button
+          onClick={() => setIsViewModalOpen(false)}
+          className={styles.cancelButton}
+        >
+          Cancelar
+        </button>
+      </div>
+    </div>
+  )}
+</Modal>
 
         {/* Tabla de beneficiarios, solo se muestra si el empleado es encontrado */}
         {empleado && beneficiarios.length > 0 && (

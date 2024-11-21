@@ -520,17 +520,13 @@
   flex-direction: column;
   max-height: 90vh;
   overflow-y: auto;
-  
-/* Glow Effect */
-/* Glow Effect */
-box-shadow: 
-0 0 6px rgba(0, 247, 255, 0.4),  /* Sutil azul cyan */
-5px -5px 10px rgba(0, 166, 255, 0.3), /* Azul claro */
--5px 5px 15px rgba(115, 0, 255, 0.3), /* Violeta suave */
-5px 5px 5px rgba(101, 0, 255, 0.3); /* Rosa tenue */
+
+  /* Glow Effect */
+  /* Glow Effect */
+  box-shadow: 0 0 80px rgba(0, 247, 255, 0.155),
+    -46px 42px 79px rgba(0, 166, 255, 0.153),
+    14px -35px 35px rgba(115, 0, 255, 0.183), 47px 5px 35px rgba(102, 0, 255, 0.146);
 }
-
-
 /* Estilos Responsivos */
 @media (max-width: 768px) {
   .modal {
@@ -613,6 +609,9 @@ box-shadow:
   justify-content: space-between;
   align-items: flex-start;
   gap: 20px;
+  padding-left: 38px;
+  padding-top: 38px;
+  padding-right: 38px;
 }
 
 /* Sección de información del beneficiario */
@@ -1192,20 +1191,20 @@ box-shadow:
 /* Estilos para los botones de imprimir */
 .printButton {
   display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: #004d34;
-    color: #ffffff;
-    border: 2px solid #2c2c2c;
-    border-radius: 15px;
-    padding: 7px 24px;
-    font-size: 1rem;
-    font-weight: normal;
-    cursor: pointer;
-    transition: all 0.4s ease;
-    outline: none;
-    position: relative;
-    overflow: hidden;
+  align-items: center;
+  justify-content: center;
+  background-color: #004d34;
+  color: #ffffff;
+  border: 2px solid #2c2c2c;
+  border-radius: 15px;
+  padding: 7px 24px;
+  font-size: 1rem;
+  font-weight: normal;
+  cursor: pointer;
+  transition: all 0.4s ease;
+  outline: none;
+  position: relative;
+  overflow: hidden;
   box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1); /* Sombra inicial */
 }
 
@@ -1317,9 +1316,6 @@ box-shadow:
   }
 }
 
-
-
-
 /* Card de vista previa */
 .previewCard {
   display: flex;
@@ -1348,4 +1344,173 @@ box-shadow:
   font-size: 12px;
   margin-top: 8px;
   text-align: center;
+}
+
+/*boton de cancelar beneficiario vista*/
+.cancelButton {
+  background-color: #d32f2f; /* Rojo */
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 15px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+}
+
+.cancelButton:hover {
+  background-color: #b71c1c; /* Rojo más oscuro */
+}
+
+
+
+
+/* Ocultar el input radio por defecto */
+.customRadio input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+/* Personalización de los radios */
+.customRadio {
+  display: block;
+  position: relative;
+  cursor: pointer;
+  font-size: 1rem;
+  user-select: none;
+  margin: 0.5rem 0;
+  padding-left: 2em; /* Espacio para el botón circular */
+}
+
+/* Botón circular para el radio */
+.radioCheckmark {
+  --clr: #0B6E4F;
+  position: absolute;
+  left: 0;
+  top: 0.25em;
+  height: 1.3em;
+  width: 1.3em;
+  background-color: #ccc;
+  border-radius: 50%;
+  transition: background-color 300ms ease-in-out, box-shadow 300ms ease-in-out;
+}
+
+/* Cuando está seleccionado, cambiar estilo */
+.customRadio input:checked ~ .radioCheckmark {
+  background-color: var(--clr);
+  border-radius: 0.5rem;
+  box-shadow: 0 0 8px rgba(0, 183, 107, 0.5);
+}
+
+/* Estilo del indicador de selección */
+.radioCheckmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+
+.customRadio input:checked ~ .radioCheckmark:after {
+  display: block;
+  left: 0.45em;
+  top: 0.25em;
+  width: 0.25em;
+  height: 0.5em;
+  border: solid #e0e0e2;
+  border-width: 0 0.15em 0.15em 0;
+  transform: rotate(45deg);
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 rgba(11, 110, 79, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 10px rgba(11, 110, 79, 0.3);
+  }
+  100% {
+    box-shadow: 0 0 13px rgba(11, 110, 79, 0);
+  }
+}
+
+
+
+
+.modalContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 20px;
+}
+
+.imageContainer {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.beneficiaryImage {
+  border-radius: 50%;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  object-fit: cover;
+}
+
+.noImageText {
+  font-size: 1rem;
+  color: #a0a0a0;
+}
+
+.card {
+  width: 100%;
+  max-width: 595px;
+  background: rgb(43 47 58);
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: 0 4px 8px rgb(0 0 0 / 97%);
+}
+
+.cardTitle {
+  font-size: 1.2rem;
+  margin-bottom: 10px;
+  color: #fff;
+  text-align: center;
+}
+
+.buttonsContainer {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+  width: 100%;
+  max-width: 500px;
+}
+
+.printButton {
+  background: #4caf50;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.printButton:hover {
+  background: #45a049;
+}
+
+.cancelButton {
+  background: #d9534f;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.cancelButton:hover {
+  background: #c9302c;
 }

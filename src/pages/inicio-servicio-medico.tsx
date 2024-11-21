@@ -74,9 +74,20 @@ const Home = () => {
             "Medicamentos",
             "Enfermedades Crónicas",
             "Usuarios y Proveedores",
+            
           ]}
           isOpen={openMenu === "Catálogos"}
           handleMouseEnter={() => handleMouseEnter("Catálogos")}
+          handleMouseLeave={handleMouseLeave}
+        />
+         <SidebarButton
+          title="Farmacia"
+          options={[
+            "Medicamentos",
+            
+          ]}
+          isOpen={openMenu === "Farmacia"}
+          handleMouseEnter={() => handleMouseEnter("Farmacia")}
           handleMouseLeave={handleMouseLeave}
         />
         <SidebarButton
