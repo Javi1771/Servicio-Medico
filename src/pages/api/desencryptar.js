@@ -1,6 +1,6 @@
 // pages/api/desencriptarPassword.js
 
-import { connectToDatabase } from '../api/connectToDatabase';
+import { connectToDatabase } from './connectToDatabase';
 import sql from 'mssql';
 import crypto from 'crypto';
 

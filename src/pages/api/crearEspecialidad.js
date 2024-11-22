@@ -1,6 +1,6 @@
 // pages/api/crearEspecialidad.js
 
-import { connectToDatabase } from '../api/connectToDatabase';
+import { connectToDatabase } from './connectToDatabase';
 import sql from 'mssql';
 
 export default async function handler(req, res) {

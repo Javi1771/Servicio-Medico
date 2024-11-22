@@ -775,144 +775,139 @@ const EnfermedadesCronicas = ({ clavenomina, nombrePaciente }) => {
       )}
 
       {/* Historial de KPIs */}
-      <div className="min-h-screen bg-gradient-to-b from-gray-800 to-gray-900 text-white p-4 md:p-8">
-        <div className="bg-gray-900 p-8 md:p-10 rounded-xl shadow-2xl">
-          <h2 className="text-3xl md:text-4xl font-semibold mb-6 text-center text-purple-400">
-            Historial de KPIs
-          </h2>
-          <div className="overflow-x-auto">
-            <table className="min-w-full rounded-lg text-left">
-              <thead>
-                <tr className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white border-b border-gray-700">
-                  <th className="p-4 md:p-6 text-sm md:text-base font-semibold text-left">
-                    Fecha de Registro
-                  </th>
-                  <th className="p-4 md:p-6 text-sm md:text-base font-semibold text-left">
-                    Enfermedad
-                  </th>
-                  <th className="p-4 md:p-6 text-sm md:text-base font-semibold text-left">
-                    Observaciones Iniciales
-                  </th>
-                  <th className="p-4 md:p-6 text-sm md:text-base font-semibold text-left">
-                    Fecha de Evalucación
-                  </th>
-                  <th className="p-4 md:p-6 text-sm md:text-base font-semibold text-left">
-                    Observaciones Finales
-                  </th>
-                  <th className="p-4 md:p-6 text-sm md:text-base font-semibold text-left">
-                    Estado
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {Array.isArray(historialKPI) && historialKPI.length > 0 ? (
-                  historialKPI.map((kpi, idx) => (
-                    <tr
-                      key={idx}
-                      onClick={() => {
-                        if (kpi.kpi_calificada !== "Calificada") {
-                          handleRowClick(kpi);
-                        }
-                      }}
-                      className={`transition-colors duration-300 ${
+      <div className="bg-gray-900 p-6 md:p-8 rounded-xl shadow-2xl mb-6">
+        <h2 className="text-2xl md:text-4xl font-semibold mb-4 text-center text-purple-400">
+          Historial de KPIs
+        </h2>
+        <div className="overflow-x-auto">
+          <table className="min-w-full rounded-lg text-left">
+            <thead>
+              <tr className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white border-b border-gray-700">
+                <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
+                  Fecha de Registro
+                </th>
+                <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
+                  Enfermedad
+                </th>
+                <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
+                  Observaciones Iniciales
+                </th>
+                <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
+                  Fecha de Evaluación
+                </th>
+                <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
+                  Observaciones Finales
+                </th>
+                <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
+                  Estado
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {Array.isArray(historialKPI) && historialKPI.length > 0 ? (
+                historialKPI.map((kpi, idx) => (
+                  <tr
+                    key={idx}
+                    onClick={() => {
+                      if (kpi.kpi_calificada !== "Calificada") {
+                        handleRowClick(kpi);
+                      }
+                    }}
+                    className={`hover:bg-purple-600 hover:bg-opacity-50 transition-colors duration-300 ${
+                      kpi.kpi_calificada === "Calificada"
+                        ? "bg-gray-800 text-gray-500 cursor-not-allowed"
+                        : "hover:bg-purple-700"
+                    }`}
+                  >
+                    <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
+                      {kpi.fechaRegistro
+                        ? new Date(kpi.fechaRegistro).toLocaleDateString(
+                            "es-ES"
+                          )
+                        : "Sin fecha"}
+                    </td>
+                    <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
+                      {kpi.nombreEnfermedad || "Sin enfermedad"}
+                    </td>
+                    <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
+                      {kpi.observaciones || "Sin observaciones"}
+                    </td>
+                    <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
+                      {kpi.fechaEvaluacion
+                        ? new Date(kpi.fechaEvaluacion).toLocaleDateString(
+                            "es-ES"
+                          )
+                        : "Sin fecha"}
+                    </td>
+                    <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
+                      {kpi.observacionEvaluacion || "Sin observaciones"}
+                    </td>
+                    <td
+                      className={`py-3 px-4 border-t border-gray-800 text-center font-bold text-sm md:text-base rounded-lg shadow-lg ${
                         kpi.kpi_calificada === "Calificada"
-                          ? "bg-gray-800 text-gray-500 cursor-not-allowed"
-                          : "hover:bg-purple-700 hover:bg-opacity-40"
+                          ? "bg-gradient-to-r from-green-900 to-green-700 text-green-200"
+                          : "bg-gradient-to-r from-red-900 to-red-700 text-red-200"
                       }`}
                     >
-                      <td className="py-4 px-6 border-t border-gray-700 text-gray-300">
-                        {kpi.fechaRegistro
-                          ? new Date(kpi.fechaRegistro).toLocaleDateString(
-                              "es-ES"
-                            )
-                          : "Sin fecha"}
-                      </td>
-                      <td className="py-4 px-6 border-t border-gray-700 text-gray-300">
-                        {kpi.nombreEnfermedad || "Sin enfermedad"}
-                      </td>
-                      <td className="py-4 px-6 border-t border-gray-700 text-gray-300">
-                        {kpi.observaciones || "Sin observaciones"}
-                      </td>
-                      <td className="py-4 px-6 border-t border-gray-700 text-gray-300">
-                        {kpi.fechaEvaluacion
-                          ? new Date(kpi.fechaEvaluacion).toLocaleDateString(
-                              "es-ES"
-                            )
-                          : "Sin fecha"}
-                      </td>
-                      <td className="py-4 px-6 border-t border-gray-700 text-gray-300">
-                        {kpi.observacionEvaluacion || "Sin observaciones"}
-                      </td>
-                      <td
-                        className={`py-4 px-6 border-t border-gray-700 text-center font-bold text-lg rounded-lg shadow-lg ${
-                          kpi.kpi_calificada === "Calificada"
-                            ? "bg-gradient-to-r from-green-900 to-green-700 text-green-200"
-                            : "bg-gradient-to-r from-red-900 to-red-700 text-red-200"
-                        }`}
-                      >
-                        <div className="flex flex-col items-center justify-center">
-                          {kpi.kpi_calificada === "Calificada" ? (
-                            <>
-                              <div className="w-10 h-10 bg-green-950 text-green-300 rounded-full flex items-center justify-center shadow-lg">
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  className="h-6 w-6"
-                                  fill="none"
-                                  viewBox="0 0 24 24"
-                                  stroke="currentColor"
-                                  strokeWidth="2"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    d="M5 13l4 4L19 7"
-                                  />
-                                </svg>
-                              </div>
-                              <span className="mt-2 text-xs md:text-sm uppercase tracking-wider">
-                                Calificada
-                              </span>
-                            </>
-                          ) : (
-                            <>
-                              <div className="w-10 h-10 bg-red-950 text-red-300 rounded-full flex items-center justify-center shadow-lg">
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  className="h-6 w-6"
-                                  fill="none"
-                                  viewBox="0 0 24 24"
-                                  stroke="currentColor"
-                                  strokeWidth="2"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    d="M6 18L18 6M6 6l12 12"
-                                  />
-                                </svg>
-                              </div>
-                              <span className="mt-2 text-xs md:text-sm uppercase tracking-wider">
-                                No calificada
-                              </span>
-                            </>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td
-                      colSpan="6"
-                      className="text-center py-6 font-medium text-gray-400 bg-gray-800"
-                    >
-                      No se encontraron registros para este paciente.
+                      <div className="flex flex-col items-center justify-center">
+                        {kpi.kpi_calificada === "Calificada" ? (
+                          <>
+                            <div className="w-8 h-8 bg-green-950 text-green-300 rounded-full flex items-center justify-center shadow-lg">
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="h-5 w-5"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  d="M5 13l4 4L19 7"
+                                />
+                              </svg>
+                            </div>
+                            <span className="mt-1 text-xs uppercase tracking-wider">
+                              Calificada
+                            </span>
+                          </>
+                        ) : (
+                          <>
+                            <div className="w-8 h-8 bg-red-950 text-red-300 rounded-full flex items-center justify-center shadow-lg">
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="h-5 w-5"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  d="M6 18L18 6M6 6l12 12"
+                                />
+                              </svg>
+                            </div>
+                            <span className="mt-1 text-xs uppercase tracking-wider">
+                              No calificada
+                            </span>
+                          </>
+                        )}
+                      </div>
                     </td>
                   </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="6" className="text-center py-4 text-gray-400">
+                    No se encontraron registros para este paciente.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
 

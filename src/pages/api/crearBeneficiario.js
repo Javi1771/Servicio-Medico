@@ -1,5 +1,5 @@
 // /api/crearBeneficiario.js
-import { connectToDatabase } from '../api/connectToDatabase';
+import { connectToDatabase } from './connectToDatabase';
 import fetch from 'node-fetch';
 
 const getSindicato = (grupoNomina, cuotaSindical) => {

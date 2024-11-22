@@ -95,7 +95,13 @@ const DatosAdicionales = ({
         </div>
       )}
 
-      {subPantalla === "Medicamentos" && <Medicamentos />}
+      {subPantalla === "Medicamentos" && (
+        <Medicamentos 
+          clavenomina={numeroDeNomina}
+          nombrePaciente={nombrePaciente}
+          claveConsulta={claveConsulta}
+        />
+      )}
       {subPantalla === "Pase a Especialidad" && (
         <PaseEspecialidad
           claveConsulta={claveConsulta}

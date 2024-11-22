@@ -7,6 +7,21 @@ import DatosAdicionales from "./datos-adicionales/datos-adicionales";
 
 const MySwal = withReactContent(Swal);
 
+const formatearFecha = (fecha) => {
+  if (!fecha) return "N/A";
+
+  const opciones = {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  };
+
+  const fechaLocal = new Date(fecha);
+
+  return fechaLocal.toLocaleString("es-MX", opciones);
+};
+
+
 const Diagnostico = () => {
   const [nombreMedico, setNombreMedico] = useState("Dr. Goku");
   const [claveConsulta, setClaveConsulta] = useState("");
@@ -305,13 +320,13 @@ const Diagnostico = () => {
       });
     }
   };
-  
+
   //* Función de guardado que actualiza clavestatus a 4 solo al guardar exitosamente
   const handleGuardar = async () => {
     const datos = recolectarDatos();
 
     try {
-      // Guardar diagnóstico y observaciones
+      //* Guardar diagnóstico y observaciones
       const responseDiagnostico = await fetch(
         "/api/diagnostico_observaciones",
         {
@@ -332,7 +347,7 @@ const Diagnostico = () => {
         throw new Error("Error al guardar diagnóstico");
       }
 
-      // Guardar pase a especialidad si es necesario
+      //* Guardar pase a especialidad si es necesario
       if (datos.pasarEspecialidad === "si") {
         const responseEspecialidad = await fetch("/api/guardarEspecialidad", {
           method: "POST",
@@ -351,7 +366,7 @@ const Diagnostico = () => {
         }
       }
 
-      // Actualizar el clavestatus a 4
+      //* Actualizar el clavestatus a 4
       const responseStatus = await fetch("/api/actualizarClavestatus", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -367,11 +382,11 @@ const Diagnostico = () => {
         throw new Error("Error al actualizar clavestatus");
       }
 
-      // Guardar en localStorage y recargar lista de pacientes
+      //* Guardar en localStorage y recargar lista de pacientes
       localStorage.setItem("consultaGuardada", datos.claveConsulta);
       await cargarPacientesDelDia();
 
-      // Mostrar alerta de éxito
+      //* Mostrar alerta de éxito
       MySwal.fire({
         icon: "success",
         title:
@@ -387,13 +402,13 @@ const Diagnostico = () => {
         },
       });
 
-      // Resetear estados
+      //! Resetear estados
       setGuardadoExitoso(true);
       setPacienteSeleccionado(null);
     } catch (error) {
       console.error("Error en la solicitud de guardado:", error);
 
-      // Mostrar alerta de error
+      //! Mostrar alerta de error
       MySwal.fire({
         icon: "error",
         title:
@@ -565,7 +580,7 @@ const Diagnostico = () => {
               </li>
               <li className="flex items-center">
                 <span className="font-semibold">Fecha:</span>
-                <span className="ml-1">{fecha}</span>
+                <span className="ml-1">{formatearFecha(fecha)}</span>
               </li>
             </ul>
           </div>

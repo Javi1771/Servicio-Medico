@@ -1,6 +1,6 @@
 // pages/api/usuario.js
 
-import { connectToDatabase } from '../api/connectToDatabase'; // Asegúrate de que la ruta sea correcta
+import { connectToDatabase } from './connectToDatabase'; // Asegúrate de que la ruta sea correcta
 import sql from 'mssql';
 import bcrypt from 'bcrypt'; // Importar bcrypt
 

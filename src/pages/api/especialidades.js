@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 // especialidades.js
 
-import { connectToDatabase } from '../api/connectToDatabase';
+import { connectToDatabase } from './connectToDatabase';
 
 const MAX_RETRIES = 3;
 const RETRY_DELAY_MS = 500;

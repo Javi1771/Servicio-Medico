@@ -35,66 +35,64 @@ const HistorialConsultas = ({ numeroNomina, nombrePaciente }) => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-800 to-gray-900 text-white p-4 md:p-8">
-      <div className="bg-gray-900 p-6 md:p-8 rounded-xl shadow-2xl">
-        <h2 className="text-2xl md:text-4xl font-semibold mb-4 text-center text-purple-400">
-          Consultas Realizadas
-        </h2>
-        <div className="overflow-x-auto">
-          <table className="min-w-full rounded-lg text-left">
-            <thead>
-              <tr className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white border-b border-gray-700">
-                <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
-                  Fecha de Consulta
-                </th>
-                {/* <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
-                  Nombre del Paciente
-                </th> */}
-                <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
-                  Motivo de Consulta
-                </th>
-                <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
-                  Diagnóstico
-                </th>
-                <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
-                  Especialidad
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {consultasFiltradas.length > 0 ? (
-                consultasFiltradas.map((consulta, index) => (
-                  <tr
-                    key={index}
-                    className="hover:bg-purple-600 hover:bg-opacity-50 transition-colors duration-300"
-                  >
-                    <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
-                      {consulta.fechaconsulta}
-                    </td>
-                    {/* <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
-                      {consulta.nombrepaciente}
-                    </td> */}
-                    <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
-                      {consulta.motivoconsulta}
-                    </td>
-                    <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
-                      {consulta.diagnostico}
-                    </td>
-                    <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
-                      {consulta.especialidadinterconsulta || "N/A"}
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="5" className="text-center py-4 text-gray-400">
-                    No hay consultas para el paciente seleccionado.
+    <div className="bg-gray-900 p-6 md:p-8 rounded-xl shadow-2xl mb-6">
+      <h2 className="text-2xl md:text-4xl font-semibold mb-4 text-center text-purple-400">
+        Consultas Realizadas
+      </h2>
+      <div className="overflow-x-auto">
+        <table className="min-w-full rounded-lg text-left">
+          <thead>
+            <tr className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white border-b border-gray-700">
+              <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
+                Fecha de Consulta
+              </th>
+              {/* <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
+                Nombre del Paciente
+              </th> */}
+              <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
+                Motivo de Consulta
+              </th>
+              <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
+                Diagnóstico
+              </th>
+              <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
+                Especialidad
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {consultasFiltradas.length > 0 ? (
+              consultasFiltradas.map((consulta, index) => (
+                <tr
+                  key={index}
+                  className="hover:bg-purple-600 hover:bg-opacity-50 transition-colors duration-300"
+                >
+                  <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
+                    {consulta.fechaconsulta}
+                  </td>
+                  {/* <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
+                    {consulta.nombrepaciente}
+                  </td> */}
+                  <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
+                    {consulta.motivoconsulta}
+                  </td>
+                  <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
+                    {consulta.diagnostico}
+                  </td>
+                  <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
+                    {consulta.especialidadinterconsulta || "N/A"}
                   </td>
                 </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="4" className="text-center py-4 text-gray-400">
+                  No hay consultas para el paciente seleccionado.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       </div>
     </div>
   );
