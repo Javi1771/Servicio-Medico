@@ -1,0 +1,105 @@
+/* Menú lateral */
+.sideMenu {
+  width: 250px;
+  background-color: #00796b;
+  color: #ffffff;
+  padding: 1.5rem 1rem;
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  z-index: 1000;
+  transition: transform 0.3s ease; /* Para animación de aparición/desaparición */
+}
+
+/* Ocultar el menú inicialmente en pantallas pequeñas */
+.sideMenu.hidden {
+  transform: translateX(-100%);
+}
+
+/* Botón de hamburguesa */
+.hamburgerButton {
+  display: none; /* Ocultar por defecto */
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  background-color: #00796b;
+  color: #ffffff;
+  border: none;
+  padding: 0.8rem;
+  border-radius: 8px;
+  font-size: 1.5rem;
+  cursor: pointer;
+  z-index: 1100;
+  box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Líneas del ícono de hamburguesa */
+.hamburgerButton .line {
+  width: 25px;
+  height: 3px;
+  background-color: #ffffff;
+  margin: 4px 0;
+  transition: transform 0.3s ease;
+}
+
+/* Animación del ícono de hamburguesa al abrir */
+.hamburgerButton.open .line:nth-child(1) {
+  transform: rotate(45deg) translate(5px, 5px);
+}
+
+.hamburgerButton.open .line:nth-child(2) {
+  opacity: 0;
+}
+
+.hamburgerButton.open .line:nth-child(3) {
+  transform: rotate(-45deg) translate(5px, -5px);
+}
+
+/* Menú visible siempre en desktop */
+@media (min-width: 1024px) {
+  .sideMenu {
+    transform: translateX(0); /* Siempre visible */
+  }
+
+  .hamburgerButton {
+    display: none; /* Ocultar botón de hamburguesa */
+  }
+}
+
+/* Responsivo: Mostrar botón de hamburguesa en pantallas pequeñas */
+@media (max-width: 1024px) {
+  .sideMenu {
+    transform: translateX(-100%); /* Ocultar menú lateral inicialmente */
+  }
+
+  .hamburgerButton {
+    display: block;
+  }
+}
+
+/* Botón de cada opción del menú */
+.menuButton {
+  background-color: #ffffff;
+  color: #00796b;
+  border: none;
+  padding: 1rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.menuButton:hover {
+  background-color: #f1f1f1;
+  transform: scale(1.05);
+}
+
+.menuButton:active {
+  transform: scale(1);
+}
