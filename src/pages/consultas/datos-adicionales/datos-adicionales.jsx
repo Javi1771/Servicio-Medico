@@ -26,6 +26,7 @@ const DatosAdicionales = ({
   const [motivoConsultaTexto, setMotivoConsultaTexto] = useState("");
   const [nombrePacienteSeleccionado, setNombrePacienteSeleccionado] =
     useState("");
+  const [formularioCompleto, setFormularioCompleto] = useState(false); // Define el estado aquí
 
   const handleDiagnosticoChange = (e) => {
     const value = e.target.value;
@@ -104,6 +105,7 @@ const DatosAdicionales = ({
           setEspecialidadSeleccionada={setEspecialidadSeleccionada}
           observaciones={observaciones}
           setObservaciones={setObservaciones}
+          setFormularioCompleto={setFormularioCompleto}
         />
       )}
       {subPantalla === "Incapacidades" && <Incapacidades />}
@@ -120,7 +122,12 @@ const DatosAdicionales = ({
           nombrePaciente={nombrePaciente}
         />
       )}
-      {subPantalla === "Antecedentes" && <Antecedentes />}
+      {subPantalla === "Antecedentes" && (
+        <Antecedentes
+          clavenomina={numeroDeNomina}
+          nombrePaciente={nombrePaciente}
+        />
+      )}
     </div>
   );
 };

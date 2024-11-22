@@ -7,7 +7,7 @@ export default async function handler(req, res) {
     const pool = await connectToDatabase();
     const query = `
       SELECT 
-        rec.id_enf_cronica,  -- Aquí incluimos el ID de la enfermedad crónica
+        rec.id_enf_cronica,  
         fecha_registro AS fecha, 
         cronica AS enfermedad, 
         observaciones_cronica AS observaciones

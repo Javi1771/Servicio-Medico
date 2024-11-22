@@ -1,3 +1,5 @@
+/* eslint-disable @next/next/no-img-element */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import Swal from "sweetalert2";
@@ -85,7 +87,6 @@ export default function RegistroBeneficiario() {
     }
   };
 
-  /Obtener el sindicato del empleado/
   const getSindicato = (grupoNomina, cuotaSindical) => {
     if (grupoNomina === "NS") {
       return cuotaSindical === "S"

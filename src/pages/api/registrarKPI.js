@@ -8,7 +8,7 @@ export default async function handler(req, res) {
   const {
     id_enf_cronica,
     clavenomina,
-    nombrePaciente,
+    nombre_paciente,
     valor_actual,
     valor_objetivo,
     calificacion,
@@ -17,10 +17,10 @@ export default async function handler(req, res) {
   } = req.body;
 
   //* Registro detallado de cada campo recibido
-  console.log("Datos recibidos en el servidor:");
+  console.log("Datos individuales recibidos en el servidor:");
   console.log("id_enf_cronica:", id_enf_cronica);
   console.log("clavenomina:", clavenomina);
-  console.log("nombrePaciente:", nombrePaciente); 
+  console.log("nombre_paciente:", nombre_paciente);  
   console.log("valor_actual:", valor_actual);
   console.log("valor_objetivo:", valor_objetivo);
   console.log("calificacion:", calificacion);
@@ -31,14 +31,14 @@ export default async function handler(req, res) {
   if (
     !id_enf_cronica ||
     !clavenomina ||
-    !nombrePaciente || 
+    !nombre_paciente ||  
     valor_actual === undefined ||
     valor_objetivo === undefined
   ) {
     console.error("Error: Faltan datos obligatorios", {
       id_enf_cronica,
       clavenomina,
-      nombrePaciente,
+      nombre_paciente,
       valor_actual,
       valor_objetivo,
     });
@@ -55,7 +55,7 @@ export default async function handler(req, res) {
     await pool
       .request()
       .input("id_enf_cronica", id_enf_cronica)
-      .input("nombre_paciente", nombrePaciente)
+      .input("nombre_paciente", nombre_paciente)
       .input("clavenomina", clavenomina)
       .input("valor_actual", valor_actual)
       .input("valor_objetivo", valor_objetivo)

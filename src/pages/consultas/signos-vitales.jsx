@@ -108,6 +108,52 @@ const SignosVitales = () => {
     }
   };
 
+  const actualizarEstado = async (claveConsulta) => {
+    try {
+      const response = await fetch("/api/actualizarclavestatus", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ claveConsulta, clavestatus: 4 }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Error al actualizar el estatus");
+      }
+
+      console.log("Clave de estatus actualizada correctamente a 4");
+      MySwal.fire({
+        icon: "success",
+        title:
+          "<span style='color: #00e676; font-weight: bold; font-size: 1.5em;'>✔️ Estatus actualizado</span>",
+        html: "<p style='color: #fff; font-size: 1.1em;'>La consulta fue marcada como atendida.</p>",
+        background: "linear-gradient(145deg, #004d40, #00251a)",
+        confirmButtonColor: "#00e676",
+        confirmButtonText:
+          "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
+        customClass: {
+          popup:
+            "border border-green-600 shadow-[0px_0px_20px_5px_rgba(0,230,118,0.9)] rounded-lg",
+        },
+      });
+    } catch (error) {
+      console.error("Error al actualizar el estatus:", error);
+      MySwal.fire({
+        icon: "error",
+        title:
+          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error al actualizar el estatus</span>",
+        html: "<p style='color: #fff; font-size: 1.1em;'>No se pudo actualizar el estatus de la consulta. Intenta nuevamente.</p>",
+        background: "linear-gradient(145deg, #4a0000, #220000)",
+        confirmButtonColor: "#ff1744",
+        confirmButtonText:
+          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
+        customClass: {
+          popup:
+            "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
+        },
+      });
+    }
+  };
+
   const [beneficiaryData, setBeneficiaryData] = useState([]);
 
   //! handleSave: Utiliza 'dbFormat' solo para el guardado en la base de datos
@@ -116,18 +162,23 @@ const SignosVitales = () => {
       MySwal.fire({
         icon: "error",
         title:
-          "<span style='color: #ff8080; font-weight: bold; font-size: 1.5em;'>⚠️ Número de nómina requerido</span>",
-        html: "<p style='color: #d1d5db; font-size: 1.1em;'>Por favor, ingresa el número de nómina antes de guardar.</p>",
-        background: "linear-gradient(145deg, #2d3748, #1c2230)",
-        confirmButtonColor: "#7fdbff",
+          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>⚠️ Número de nómina requerido</span>",
+        html: "<p style='color: #fff; font-size: 1.1em;'>Por favor, ingresa el número de nómina antes de guardar.</p>",
+        background: "linear-gradient(145deg, #4a0000, #220000)",
+        confirmButtonColor: "#ff1744",
         confirmButtonText:
-          "<span style='color: #0f172a; font-weight: bold;'>Aceptar</span>",
+          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
         customClass: {
           popup:
-            "border border-red-500 shadow-[0px_0px_15px_5px_rgba(255,0,0,0.7)] rounded-lg",
+            "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
+        },
+        showClass: {
+          popup: "animate__animated animate__fadeInDown",
+        },
+        hideClass: {
+          popup: "animate__animated animate__fadeOutUp",
         },
       });
-
       return;
     }
 
@@ -172,7 +223,7 @@ const SignosVitales = () => {
             ? "SITAM"
             : null
           : null,
-      clavestatus: 1,
+      clavestatus: 1, // Inicialmente en espera
     };
 
     try {
@@ -183,22 +234,27 @@ const SignosVitales = () => {
       });
 
       if (response.ok) {
+        const responseData = await response.json();
+
+        await actualizarEstado(responseData.claveConsulta);
+
         MySwal.fire({
           icon: "success",
           title:
-            "<span style='color: #00ff7f; font-weight: bold; font-size: 1.5em;'>✔️ Consulta guardada correctamente</span>",
-          html: "<p style='color: #e5e7eb; font-size: 1.1em;'>La consulta ha sido registrada en el sistema exitosamente.</p>",
-          background: "linear-gradient(145deg, #2d3748, #1c2230)",
-          confirmButtonColor: "#00ff7f",
+            "<span style='color: #00e676; font-weight: bold; font-size: 1.5em;'>✔️ Consulta guardada correctamente</span>",
+          html: "<p style='color: #fff; font-size: 1.1em;'>La consulta ha sido registrada y atendida exitosamente.</p>",
+          background: "linear-gradient(145deg, #004d40, #00251a)",
+          confirmButtonColor: "#00e676",
           confirmButtonText:
-            "<span style='color: #0f172a; font-weight: bold;'>Aceptar</span>",
+            "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
           customClass: {
             popup:
-              "border border-green-500 shadow-[0px_0px_15px_5px_rgba(0,255,127,0.7)] rounded-lg",
+              "border border-green-600 shadow-[0px_0px_20px_5px_rgba(0,230,118,0.9)] rounded-lg",
           },
         });
+
         handleCloseModal();
-        await cargarPacientesDelDia(); //* Actualiza la tabla después de guardar
+        await cargarPacientesDelDia();
       } else {
         throw new Error("Error al guardar consulta");
       }
@@ -207,15 +263,15 @@ const SignosVitales = () => {
       MySwal.fire({
         icon: "error",
         title:
-          "<span style='color: #ff8080; font-weight: bold; font-size: 1.5em;'>❌ Error al guardar la consulta</span>",
-        html: "<p style='color: #d1d5db; font-size: 1.1em;'>Hubo un problema al intentar guardar la consulta. Por favor, intenta nuevamente.</p>",
-        background: "linear-gradient(145deg, #2d3748, #1c2230)",
-        confirmButtonColor: "#7fdbff",
+          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error al guardar la consulta</span>",
+        html: "<p style='color: #fff; font-size: 1.1em;'>Hubo un problema al intentar guardar la consulta. Por favor, intenta nuevamente.</p>",
+        background: "linear-gradient(145deg, #4a0000, #220000)",
+        confirmButtonColor: "#ff1744",
         confirmButtonText:
-          "<span style='color: #0f172a; font-weight: bold;'>Aceptar</span>",
+          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
         customClass: {
           popup:
-            "border border-red-500 shadow-[0px_0px_15px_5px_rgba(255,128,128,0.7)] rounded-lg",
+            "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
         },
       });
     }
@@ -257,7 +313,6 @@ const SignosVitales = () => {
   };
 
   //* Calcula y asigna la edad cuando obtienes los datos del empleado o beneficiario
-  //* handleSearch: Utiliza solo 'display' para mostrar en la interfaz
   const handleSearch = async () => {
     try {
       const response = await fetch("/api/empleado", {
@@ -279,15 +334,15 @@ const SignosVitales = () => {
         MySwal.fire({
           icon: "error",
           title:
-            "<span style='color: #d60005; font-weight: bold; font-size: 1.5em;'>⚠️ Nómina no encontrada</span>",
-          html: "<p style='color: #d1d5db; font-size: 1.1em;'>El número de nómina ingresado no existe o no se encuentra en el sistema. Intenta nuevamente.</p>",
-          background: "linear-gradient(145deg, #2d3748, #1c2230)",
-          confirmButtonColor: "#d60005", 
+            "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>⚠️ Nómina no encontrada</span>",
+          html: "<p style='color: #fff; font-size: 1.1em;'>El número de nómina ingresado no existe o no se encuentra en el sistema. Intenta nuevamente.</p>",
+          background: "linear-gradient(145deg, #4a0000, #220000)",
+          confirmButtonColor: "#ff1744",
           confirmButtonText:
-            "<span style='color: #ffffff; font-weight: bold;'>Aceptar</span>",
+            "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
           customClass: {
             popup:
-              "border border-red-400 shadow-[0px_0px_15px_5px_rgba(255,0,0,0.7)] rounded-lg", 
+              "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
           },
         });
 
@@ -318,11 +373,17 @@ const SignosVitales = () => {
       console.error("Error al obtener datos del empleado:", error);
       MySwal.fire({
         icon: "error",
-        title: "<span style='color: #ff6347;'>Error al buscar la nómina</span>",
-        html: "<span style='color: #b0b0b0;'>Hubo un problema al buscar la nómina. Intenta nuevamente.</span>",
-        background: "#1F2937",
-        confirmButtonColor: "#FF6347",
-        confirmButtonText: "<span style='color: white;'>Aceptar</span>",
+        title:
+          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error al buscar la nómina</span>",
+        html: "<p style='color: #fff; font-size: 1.1em;'>Hubo un problema al buscar la nómina. Intenta nuevamente.</p>",
+        background: "linear-gradient(145deg, #4a0000, #220000)",
+        confirmButtonColor: "#ff1744",
+        confirmButtonText:
+          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
+        customClass: {
+          popup:
+            "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
+        },
       });
       setEmpleadoEncontrado(false);
       setShowConsulta(false); //! Cierra la ventana emergente en caso de error de red
@@ -350,16 +411,15 @@ const SignosVitales = () => {
         MySwal.fire({
           icon: "info",
           title:
-            "<span style='color: #7fdbff; font-weight: bold; font-size: 1.5em;'>ℹ️ Sin beneficiarios</span>",
-          html: "<p style='color: #e5e7eb; font-size: 1.1em;'>Este empleado no tiene beneficiarios registrados en el sistema.</p>",
-          background: "linear-gradient(145deg, #2d3748, #1c2230)",
-          confirmButtonColor: "#7fdbff",
+            "<span style='color: #00bcd4; font-weight: bold; font-size: 1.5em;'>ℹ️ Sin beneficiarios</span>",
+          html: "<p style='color: #fff; font-size: 1.1em;'>Este empleado no tiene beneficiarios registrados en el sistema.</p>",
+          background: "linear-gradient(145deg, #004d40, #00251a)",
+          confirmButtonColor: "#00bcd4",
           confirmButtonText:
-            "<span style='color: #0f172a; font-weight: bold;'>OK</span>",
+            "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
           customClass: {
             popup:
-              "border border-blue shadow-[0px_0px_15px_5px_rgba(114,197,229,0.7)] rounded-lg",
-              
+              "border border-blue-600 shadow-[0px_0px_20px_5px_rgba(0,188,212,0.9)] rounded-lg",
           },
         });
       }
@@ -368,11 +428,16 @@ const SignosVitales = () => {
       MySwal.fire({
         icon: "error",
         title:
-          "<span style='color: white;'>Error al buscar los beneficiarios</span>",
-        html: "<span style='color: white;'>Hubo un problema al buscar los beneficiarios.</span>",
-        background: "#1F2937",
-        confirmButtonColor: "#FF6347",
-        confirmButtonText: "<span style='color: white;'>OK</span>",
+          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error al buscar beneficiarios</span>",
+        html: "<p style='color: #fff; font-size: 1.1em;'>Hubo un problema al buscar los beneficiarios. Intenta nuevamente.</p>",
+        background: "linear-gradient(145deg, #4a0000, #220000)",
+        confirmButtonColor: "#ff1744",
+        confirmButtonText:
+          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
+        customClass: {
+          popup:
+            "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
+        },
       });
     }
   };
@@ -702,7 +767,7 @@ const SignosVitales = () => {
                   <label>
                     T/A:
                     <input
-                      type="number"
+                      type="text"
                       name="ta"
                       value={signosVitales.ta}
                       onChange={handleVitalChange}
