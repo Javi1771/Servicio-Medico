@@ -5,8 +5,8 @@ export default async function handler(req, res) {
     try {
       const pool = await connectToDatabase();
 
-      // Actualiza los beneficiarios cuya vigencia ha expirado
-      const result = await pool.request()
+      // Actualiza los beneficiarios cuya vigencia ha expirado a inactivo
+      const desactivarResult = await pool.request()
         .query(`
           UPDATE BENEFICIARIO
           SET ACTIVO = 'I' -- Cambia el estado a inactivo
@@ -14,9 +14,19 @@ export default async function handler(req, res) {
             AND ACTIVO = 'A'; -- Solo afecta beneficiarios activos
         `);
 
-      res.status(200).json({ 
+      // Reactiva beneficiarios con vigencia actual o futura
+      const activarResult = await pool.request()
+        .query(`
+          UPDATE BENEFICIARIO
+          SET ACTIVO = 'A' -- Cambia el estado a activo
+          WHERE VIGENCIA >= GETDATE() -- Vigencia actual o futura
+            AND ACTIVO = 'I'; -- Solo afecta beneficiarios inactivos
+        `);
+
+      res.status(200).json({
         message: 'Estados de beneficiarios actualizados correctamente.',
-        rowsAffected: result.rowsAffected[0],
+        desactivados: desactivarResult.rowsAffected[0], // Beneficiarios pasados a inactivo
+        activados: activarResult.rowsAffected[0], // Beneficiarios reactivados
       });
     } catch (error) {
       console.error('Error al actualizar el estado de los beneficiarios:', error);

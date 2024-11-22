@@ -1,0 +1,210 @@
+/* RegisterMedicamento.module.css */
+
+/* Estilo del cuerpo */
+.body {
+  background-color: #ffffff;
+}
+
+/* Contenedor centrado */
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0 auto;
+  padding: 0 2rem; /* Márgenes laterales */
+}
+
+/* Mensaje de feedback */
+.message {
+  color: #0b6e4f;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+/* Títulos */
+.formTitle {
+  text-align: justify;
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #00796b; /* Color distintivo */
+  margin-bottom: 1.5rem;
+}
+
+.subtitle,
+.titleTable {
+  text-align: justify;
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #00796b;
+  margin-bottom: 1.5rem;
+}
+
+/* Inputs y checkbox */
+.input,
+.checkbox {
+  width: 100%;
+  padding: 0.8rem;
+  font-size: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  outline: none;
+  transition: border-color 0.3s ease;
+}
+
+.input:focus {
+  border-color: #00796b;
+}
+
+.checkbox {
+  width: auto;
+  cursor: pointer;
+  margin-left: 10px;
+}
+
+/* Botón */
+.button {
+  width: 100%;
+  padding: 0.8rem 1.2rem;
+  background: linear-gradient(90deg, #00796b, #26a69a);
+  border: none;
+  border-radius: 5px;
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.button:hover {
+  background: linear-gradient(90deg, #26a69a, #00796b);
+}
+
+/* Estilo del formulario */
+.form {
+  width: 100%;
+  max-width: 895px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+}
+
+/* Tabla */
+.table {
+  width: 100%;
+  max-width: 895px;
+  margin-top: 2rem;
+  border-collapse: collapse;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.table th,
+.table td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.table th {
+  background: #00796b;
+  color: #ffffff;
+  font-weight: bold;
+}
+
+.table tbody tr:hover {
+  background: #f1f1f1;
+}
+
+/* Contenedor principal */
+.mainContainer {
+  display: flex;
+}
+
+/* Contenido principal */
+.content {
+  margin-left: 460px; /* Ajusta el espacio del menú lateral */
+  padding: 2rem;
+  flex-grow: 1;
+}
+
+/* Banner */
+.banner {
+  width: 100%;
+  max-width: 900px;
+  margin-bottom: 1.5rem;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Imagen dentro del banner */
+.image {
+  width: 100%; /* Ocupa todo el ancho del banner */
+  height: auto; /* Ajusta la altura automáticamente */
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+/* Responsividad */
+@media (max-width: 768px) {
+  .mainContainer {
+    flex-direction: column; /* Cambia a columna en pantallas pequeñas */
+  }
+
+  .content {
+    margin-left: 0;
+    padding: 1rem;
+  }
+
+  .table {
+    font-size: 0.9rem; /* Reduce el tamaño del texto en la tabla */
+  }
+
+  .form {
+    width: 90%; /* Ajusta el ancho del formulario */
+    padding: 1.5rem;
+  }
+
+  .button {
+    padding: 0.7rem 1rem; /* Reduce el tamaño del botón */
+  }
+
+  .subtitle,
+  .titleTable {
+    font-size: 1.5rem; /* Reduce el tamaño del título */
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 0 1rem; /* Reduce los márgenes laterales */
+  }
+
+  .form {
+    width: 100%; /* Ajusta el formulario para ocupar todo el ancho */
+    padding: 1rem;
+  }
+
+  .table {
+    font-size: 0.8rem; /* Ajusta el tamaño del texto de la tabla */
+  }
+
+  .button {
+    font-size: 0.9rem; /* Ajusta el tamaño del texto del botón */
+  }
+
+  .subtitle,
+  .titleTable {
+    font-size: 1.2rem; /* Ajusta el tamaño del texto del título */
+  }
+
+  .banner {
+    width: 100%; /* Ocupa el ancho completo */
+  }
+}

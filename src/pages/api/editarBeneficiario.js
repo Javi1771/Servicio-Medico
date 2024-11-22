@@ -11,6 +11,7 @@ export default async function handler(req, res) {
       sexo,
       fNacimiento,
       alergias,
+      vigencia,
       sangre,
       telEmergencia,
       nombreEmergencia,
@@ -44,6 +45,7 @@ export default async function handler(req, res) {
       sexo,
       fNacimiento,
       alergias,
+      vigencia,
       sangre,
       telEmergencia,
       nombreEmergencia,
@@ -82,6 +84,7 @@ export default async function handler(req, res) {
         .input("sexo", sexo)
         .input("fNacimiento", fNacimiento)
         .input("alergias", alergias)
+        .input("vigencia", vigencia || null)
         .input("sangre", sangre)
         .input("telEmergencia", telEmergencia)
         .input("nombreEmergencia", nombreEmergencia)
@@ -105,6 +108,7 @@ export default async function handler(req, res) {
               SEXO = @sexo,
               F_NACIMIENTO = @fNacimiento,
               ALERGIAS = @alergias,
+              VIGENCIA = @vigencia,
               SANGRE = @sangre,
               TEL_EMERGENCIA = @telEmergencia,
               NOMBRE_EMERGENCIA = @nombreEmergencia,
