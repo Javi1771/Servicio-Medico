@@ -1,4 +1,4 @@
-/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState, useEffect } from "react";
 
 const PaseEspecialidad = ({
@@ -8,17 +8,19 @@ const PaseEspecialidad = ({
   especialidadSeleccionada,
   setEspecialidadSeleccionada,
   observaciones,
-  setObservaciones
+  setObservaciones,
+  setFormularioCompleto, // Asegúrate de recibir esta prop si se usa
 }) => {
-  const [especialidades, setEspecialidades] = useState([]);
+  const [especialidades, setEspecialidades] = useState([]); // Define el estado especialidades correctamente
 
+  // Carga las especialidades al montar el componente
   useEffect(() => {
     const fetchEspecialidades = async () => {
       try {
         const response = await fetch("/api/especialidades");
         const data = await response.json();
         if (Array.isArray(data)) {
-          setEspecialidades(data);
+          setEspecialidades(data); // Actualiza el estado con los datos recibidos
         } else {
           console.error("Los datos de especialidades no son un array:", data);
           setEspecialidades([]);
@@ -30,17 +32,48 @@ const PaseEspecialidad = ({
     fetchEspecialidades();
   }, [claveConsulta]);
 
-  //* Limpia el formulario cada vez que se cambia el `claveConsulta`
+  // Verifica si el formulario está completo
   useEffect(() => {
-    setPasarEspecialidad(""); //* Resetea el estado del pase a especialidad
-    setEspecialidadSeleccionada(""); //* Limpia la especialidad seleccionada
-    setObservaciones(""); //* Limpia las observaciones
-  }, [claveConsulta]);
+    const verificarFormularioCompleto = () => {
+      const camposRequeridosLlenos =
+        claveConsulta && especialidadSeleccionada && observaciones;
+      setFormularioCompleto(camposRequeridosLlenos);
+    };
+
+    verificarFormularioCompleto();
+  }, [claveConsulta, especialidadSeleccionada, observaciones, setFormularioCompleto]);
+
+  // Resetea los campos si claveConsulta cambia
+  useEffect(() => {
+    setPasarEspecialidad("");
+    setEspecialidadSeleccionada("");
+    setObservaciones("");
+  }, [claveConsulta, setEspecialidadSeleccionada, setObservaciones, setPasarEspecialidad]);
+
+  const handleGuardarEspecialidad = async () => {
+    try {
+      const response = await fetch("/api/guardarEspecialidad", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          claveConsulta,
+          claveEspecialidad: especialidadSeleccionada,
+          observaciones,
+        }),
+      });
+
+      if (!response.ok) {
+        console.error("Error al guardar especialidad:", await response.json());
+      } else {
+        console.log("Especialidad guardada correctamente.");
+      }
+    } catch (error) {
+      console.error("Error al guardar la especialidad:", error);
+    }
+  };
 
   const handlePaseEspecialidadChange = async (value) => {
     setPasarEspecialidad(value);
-
-    //* Registra en consola los valores para verificar
     console.log("Clave Consulta:", claveConsulta, "Valor de Pase:", value);
 
     try {
@@ -78,13 +111,17 @@ const PaseEspecialidad = ({
         </p>
         <div className="grid grid-cols-2 gap-4">
           <button
-            className={`px-4 py-2 rounded-md ${pasarEspecialidad === "si" ? "bg-green-600" : "bg-gray-600"} text-white`}
+            className={`px-4 py-2 rounded-md ${
+              pasarEspecialidad === "si" ? "bg-green-600" : "bg-gray-600"
+            } text-white`}
             onClick={() => handlePaseEspecialidadChange("si")}
           >
             Sí
           </button>
           <button
-            className={`px-4 py-2 rounded-md ${pasarEspecialidad === "no" ? "bg-red-600" : "bg-gray-600"} text-white`}
+            className={`px-4 py-2 rounded-md ${
+              pasarEspecialidad === "no" ? "bg-red-600" : "bg-gray-600"
+            } text-white`}
             onClick={() => handlePaseEspecialidadChange("no")}
           >
             No
@@ -105,13 +142,16 @@ const PaseEspecialidad = ({
             >
               <option value="">Seleccionar Especialidad</option>
               {especialidades.map((especialidad) => (
-                <option key={especialidad.claveespecialidad} value={especialidad.claveespecialidad}>
+                <option
+                  key={especialidad.claveespecialidad}
+                  value={especialidad.claveespecialidad}
+                >
                   {especialidad.especialidad}
                 </option>
               ))}
             </select>
           </div>
-              
+
           <div className="mb-6">
             <label className="text-white font-semibold mb-2 block">
               Observaciones:

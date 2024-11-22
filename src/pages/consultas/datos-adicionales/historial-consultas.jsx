@@ -36,10 +36,6 @@ const HistorialConsultas = ({ numeroNomina, nombrePaciente }) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-800 to-gray-900 text-white p-4 md:p-8">
-      <h1 className="text-3xl md:text-5xl font-extrabold mb-6 md:mb-8 text-center text-indigo-400">
-        Historial de Consultas
-      </h1>
-
       <div className="bg-gray-900 p-6 md:p-8 rounded-xl shadow-2xl">
         <h2 className="text-2xl md:text-4xl font-semibold mb-4 text-center text-purple-400">
           Consultas Realizadas
