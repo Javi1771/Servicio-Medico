@@ -1,0 +1,63 @@
+.tableContainer {
+    max-width: 1200px;
+    margin: 2rem 0 -2rem 0; /* Reduce margen derecho e izquierdo */
+    padding: 1.5rem;
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    margin-left: -165px; /* Alinea la tabla más cerca del sidebar */
+  }
+  
+  .titleTable {
+    text-align: center;
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #00796b;
+    margin-bottom: 1rem;
+  }
+  
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .table th,
+  .table td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .table th {
+    background-color: #00796b;
+    color: #fff;
+    font-weight: bold;
+  }
+  
+  .table tbody tr:hover {
+    background-color: #f9f9f9;
+  }
+  
+  .noData {
+    text-align: center;
+    font-style: italic;
+    color: #999;
+  }
+  
+  .loading {
+    text-align: center;
+    font-size: 1.2rem;
+    color: #00796b;
+  }
+  
+  .error {
+    text-align: center;
+    font-size: 1.2rem;
+    color: #ff4d4f;
+  }
+  @media (max-width: 1024px) {
+    .tableContainer {
+      margin-left: 0; /* Ajusta el margen cuando el SideMenu es deslizable */
+    }
+  }
+  

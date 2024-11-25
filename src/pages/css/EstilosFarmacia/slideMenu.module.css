@@ -1,7 +1,5 @@
-/* Menú lateral */
 .sideMenu {
   width: 250px;
-  background-color: #00796b;
   color: #ffffff;
   padding: 1.5rem 1rem;
   height: 100vh;
@@ -13,7 +11,16 @@
   flex-direction: column;
   gap: 1rem;
   z-index: 1000;
-  transition: transform 0.3s ease; /* Para animación de aparición/desaparición */
+  transition: transform 0.3s ease;
+  border-radius: 9px;
+
+  /* Imagen de fondo con la ruta correcta */
+  background: url("/foto_sllidebarjpg.jpg") no-repeat center center;
+  background-size: cover;
+
+  /* Filtro de color */
+  background-blend-mode: overlay;
+  background-color: rgba(0, 121, 107, 0.9); /* Filtro de color */
 }
 
 /* Ocultar el menú inicialmente en pantallas pequeñas */
@@ -102,4 +109,40 @@
 
 .menuButton:active {
   transform: scale(1);
+}
+
+
+/*BOTON DE SALIR*/
+.salirbutton {
+  background-color: #670000;
+  color: #ffffff;
+  border: none; 
+  padding: 1rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+.salirbutton:hover {
+  background-color: #cb0000;
+  transform: scale(1.05);
+}
+
+.salirbutton:active {
+  transform: scale(1);
+}
+
+/*ESTILOS DE LOGO SLIDEBAR*/
+/* Contenedor del logo */
+.logoContainer {
+  text-align: center;
+  margin-bottom: 1.1rem; /* Espaciado debajo del logo */
+}
+
+/* Imagen del logo */
+.logo {
+  width: 220px; /* Ajusta el tamaño del logo */
+  height: auto; /* Mantiene las proporciones */
+  border-radius: 25px; /* Opcional: redondea las esquinas */
 }

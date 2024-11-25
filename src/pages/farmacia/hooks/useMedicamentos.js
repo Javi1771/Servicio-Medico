@@ -1,5 +1,5 @@
-// hooks/useMedicamentos.js
 import { useState, useEffect } from "react";
+import Swal from "sweetalert2";
 
 export const useMedicamentos = () => {
   const [medicamentos, setMedicamentos] = useState([]);
@@ -34,7 +34,16 @@ export const useMedicamentos = () => {
         setMessage("Medicamento registrado exitosamente.");
         fetchMedicamentos(); // Actualizar la tabla
       } else {
-        setMessage(data.message || "Error al registrar el medicamento.");
+        // Mostrar alerta si la sustancia ya existe
+        if (data.message === "La sustancia ya está registrada.") {
+          Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: "La sustancia ya está registrada en el inventario.",
+          });
+        } else {
+          setMessage(data.message || "Error al registrar el medicamento.");
+        }
       }
     } catch (error) {
       console.error("Error:", error);

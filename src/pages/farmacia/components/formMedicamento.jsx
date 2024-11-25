@@ -30,7 +30,7 @@ const FormMedicamento = ({ onAddMedicamento, message }) => {
 
   return (
     <div>
-      <h2 className={styles.formTitle}>Registro de Medicamentos</h2>
+      <h2 className={styles.titleTable}>Registro de Medicamentos</h2>
       <form onSubmit={handleSubmit} className={styles.form}>
         {message && <p className={styles.message}>{message}</p>}
         <div className={styles.formGroup}>

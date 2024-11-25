@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/router";
 import styles from "../../css/EstilosFarmacia/slideMenu.module.css";
 
 const SideMenu = ({ onMenuClick }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
+  const router = useRouter(); // Hook para manejar la redirección
 
   useEffect(() => {
     // Detecta si la ventana es lo suficientemente grande para ser "desktop"
@@ -23,6 +25,10 @@ const SideMenu = ({ onMenuClick }) => {
 
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
+  };
+
+  const handleSalir = () => {
+    router.push("/inicio-servicio-medico"); // Redirige al usuario
   };
 
   return (
@@ -45,6 +51,15 @@ const SideMenu = ({ onMenuClick }) => {
           menuOpen || isDesktop ? "" : styles.hidden
         }`}
       >
+        {/* Logo en la parte superior */}
+        <div className={styles.logoContainer}>
+          <img
+            src="/Logo_inventarioFarmacia.png" // Ruta al logo
+            alt="Logo"
+            className={styles.logo}
+          />
+        </div>
+
         <button
           className={styles.menuButton}
           onClick={() => {
@@ -62,6 +77,20 @@ const SideMenu = ({ onMenuClick }) => {
           }}
         >
           Gráficos
+        </button>
+
+        <button
+          className={styles.menuButton}
+          onClick={() => {
+            onMenuClick("movimientos");
+            setMenuOpen(false); // Cierra el menú al seleccionar una opción
+          }}
+        >
+          Movimientos
+        </button>
+        {/* Botón de Salir */}
+        <button className={styles.salirbutton} onClick={handleSalir}>
+          Salir
         </button>
       </div>
     </>

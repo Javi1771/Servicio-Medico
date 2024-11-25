@@ -12,19 +12,33 @@ export default async function handler(req, res) {
 
     try {
       const dbPool = await connectToDatabase();
-      
-      const query = `
+
+      // Verificar si la sustancia ya existe
+      const checkQuery = `
+        SELECT COUNT(*) AS count 
+        FROM MEDICAMENTOS_FARMACIA 
+        WHERE sustancia = @sustancia
+      `;
+      const checkResult = await dbPool.request()
+        .input('sustancia', sql.NVarChar(50), sustancia)
+        .query(checkQuery);
+
+      if (checkResult.recordset[0].count > 0) {
+        return res.status(400).json({ message: 'La sustancia ya está registrada.' });
+      }
+
+      // Insertar el medicamento
+      const insertQuery = `
         INSERT INTO MEDICAMENTOS_FARMACIA (ean, sustancia, piezas, fecha_creacion, activo)
         VALUES (@ean, @sustancia, @piezas, GETDATE(), @activo)
       `;
 
-      // Hacer el registro
       await dbPool.request()
         .input('ean', sql.BigInt, ean)
         .input('sustancia', sql.NVarChar(50), sustancia)
         .input('piezas', sql.BigInt, piezas)
         .input('activo', sql.Bit, activo !== undefined ? activo : 1) // Por defecto, activo = 1
-        .query(query);
+        .query(insertQuery);
 
       res.status(200).json({ message: 'Medicamento registrado exitosamente' });
     } catch (error) {
