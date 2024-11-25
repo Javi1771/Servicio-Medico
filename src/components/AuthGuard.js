@@ -20,7 +20,7 @@ const AuthGuard = ({ children }) => {
             // Verificar el rol y redirigir al dashboard adecuado
             switch (rol) {
                 case '1': // Doctor
-                    if (router.pathname !== '/dashboard-doctor') {
+                    if (router.pathname !== '/inicio-servicio-medico') {
                         router.push('/dashboard-doctor');
                     } else {
                         setIsVerified(true);

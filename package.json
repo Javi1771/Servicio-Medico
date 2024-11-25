@@ -25,6 +25,7 @@
     "jsonwebtoken": "^9.0.2",
     "jspdf": "^2.5.2",
     "jspdf-autotable": "^3.8.4",
+    "jwt-decode": "^4.0.0",
     "lodash.debounce": "^4.0.8",
     "mssql": "^11.0.1",
     "mysql2": "^3.11.3",

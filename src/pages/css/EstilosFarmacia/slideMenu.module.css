@@ -1,3 +1,4 @@
+/* Menú lateral */
 .sideMenu {
   width: 250px;
   color: #ffffff;
@@ -6,31 +7,31 @@
   position: fixed;
   top: 0;
   left: 0;
-  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  z-index: 1000;
-  transition: transform 0.3s ease;
-  border-radius: 9px;
+  background: rgba(0, 121, 107, 0.9);
+  backdrop-filter: blur(10px);
+  transition: transform 0.3s ease; /* Animación de aparición/desaparición */
 
-  /* Imagen de fondo con la ruta correcta */
-  background: url("/foto_sllidebarjpg.jpg") no-repeat center center;
-  background-size: cover;
-
-  /* Filtro de color */
-  background-blend-mode: overlay;
-  background-color: rgba(0, 121, 107, 0.9); /* Filtro de color */
+   /* Imagen de fondo con la ruta correcta */
+   background: url("/foto_sllidebarjpg.jpg") no-repeat center center;
+   background-size: cover;
+ 
+   /* Filtro de color */
+   background-blend-mode: overlay;
+   background-color: rgba(0, 121, 107, 0.9); /* Filtro de color */
 }
 
-/* Ocultar el menú inicialmente en pantallas pequeñas */
+/* Ocultar menú lateral */
 .sideMenu.hidden {
   transform: translateX(-100%);
 }
 
 /* Botón de hamburguesa */
 .hamburgerButton {
-  display: none; /* Ocultar por defecto */
+  display: none; /* Oculto por defecto */
   position: fixed;
   top: 1rem;
   left: 1rem;
@@ -42,10 +43,16 @@
   font-size: 1.5rem;
   cursor: pointer;
   z-index: 1100;
-  box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
 }
 
-/* Líneas del ícono de hamburguesa */
+/* Mostrar botón hamburguesa en móvil */
+@media (max-width: 1024px) {
+  .hamburgerButton {
+    display: block;
+  }
+}
+
+/* Animación de líneas del botón */
 .hamburgerButton .line {
   width: 25px;
   height: 3px;
@@ -54,7 +61,7 @@
   transition: transform 0.3s ease;
 }
 
-/* Animación del ícono de hamburguesa al abrir */
+/* Animación del menú al abrir */
 .hamburgerButton.open .line:nth-child(1) {
   transform: rotate(45deg) translate(5px, 5px);
 }
@@ -65,28 +72,6 @@
 
 .hamburgerButton.open .line:nth-child(3) {
   transform: rotate(-45deg) translate(5px, -5px);
-}
-
-/* Menú visible siempre en desktop */
-@media (min-width: 1024px) {
-  .sideMenu {
-    transform: translateX(0); /* Siempre visible */
-  }
-
-  .hamburgerButton {
-    display: none; /* Ocultar botón de hamburguesa */
-  }
-}
-
-/* Responsivo: Mostrar botón de hamburguesa en pantallas pequeñas */
-@media (max-width: 1024px) {
-  .sideMenu {
-    transform: translateX(-100%); /* Ocultar menú lateral inicialmente */
-  }
-
-  .hamburgerButton {
-    display: block;
-  }
 }
 
 /* Botón de cada opción del menú */
