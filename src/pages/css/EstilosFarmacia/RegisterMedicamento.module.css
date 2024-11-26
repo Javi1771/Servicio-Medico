@@ -276,3 +276,122 @@
   background-color: #66bb6a; /* Verde */
   color: #fff;
 }
+
+/*ESTILOS CARD ESTATUSS MEDICAMENTOS*/
+/* Estilo general para el estado de stock */
+.chartCanvas {
+  width: 100%;
+  height: 400px; /* Fijar altura del canvas */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.stockStatus {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-weight: bold;
+  text-align: center;
+}
+
+/* Contenedor principal del gráfico */
+.chartContainer {
+  max-width: 1200px;
+  margin: 2rem auto; /* Centra automáticamente en pantallas grandes */
+  padding: 1.5rem;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  margin-left: -165px; /* Alinea la tabla más cerca del sidebar */
+
+}
+
+/* Wrapper para organizar los gráficos */
+.chartWrapper {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+}
+
+/* Tarjetas para cada gráfico */
+.card {
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  width: 100%; /* Ocupa todo el ancho del contenedor */
+  max-width: 1050px; /* Tamaño máximo de cada tarjeta */
+  min-height: 300px; /* Altura mínima */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  transition: transform 0.2s;
+
+}
+
+.card:hover {
+  transform: scale(1.02); /* Efecto al pasar el mouse */
+}
+
+/* Título del gráfico */
+.chartTitle {
+  font-size: 18px;
+  margin-bottom: 20px;
+  color: #333333;
+  text-align: center;
+}
+
+/* Mensajes de carga y error */
+.loading,
+.error {
+  text-align: center;
+  font-size: 16px;
+  color: #ff0000;
+}
+
+/* Responsividad */
+@media screen and (max-width: 768px) {
+  .chartContainer {
+    padding: 1rem;
+    margin-left: 0px; /* Alinea la tabla más cerca del sidebar */
+
+  }
+
+  .card {
+    max-width: 100%; /* Las tarjetas ocupan todo el ancho en pantallas pequeñas */
+    min-height: 350px; /* Reduce un poco la altura mínima */
+    
+  }
+
+  .chartTitle {
+    font-size: 16px; /* Tamaño de fuente reducido */
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .chartWrapper {
+    flex-direction: column; /* Apila los gráficos verticalmente */
+    gap: 15px; /* Espacio más pequeño entre tarjetas */
+    margin-left: 0px; /* Alinea la tabla más cerca del sidebar */
+
+  }
+
+  .card {
+    padding: 15px; /* Espaciado reducido */
+    max-width: 100%; /* Las tarjetas ocupan todo el ancho en pantallas pequeñas */
+    min-height: 350px; /* Reduce un poco la altura mínima */
+  }
+
+  .chartTitle {
+    font-size: 14px; /* Texto más pequeño */
+  }
+}
+
+/* Contenedor de la gráfica de barras */
+.chartWrapper .chartItem:first-child canvas {
+  max-width: 100%; /* Permite que ocupe todo el ancho del contenedor */
+  height: 900px !important; /* Ajusta la altura */
+}
