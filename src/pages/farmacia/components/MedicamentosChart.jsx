@@ -31,7 +31,7 @@ const MedicamentosChart = () => {
   // Datos de medicamentos registrados (gráfico de barras)
   const fetchMedicamentosData = async () => {
     try {
-      const response = await fetch("/api/obtenerMedicamentos");
+      const response = await fetch("/api/farmacia/obtenerMedicamentos");
       const data = await response.json();
 
       if (response.ok) {

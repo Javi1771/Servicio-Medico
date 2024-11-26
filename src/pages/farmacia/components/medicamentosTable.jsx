@@ -1,7 +1,7 @@
 import React from "react";
 import styles from "../../css/EstilosFarmacia/RegisterMedicamento.module.css";
 
-const MedicamentosTable = ({ medicamentos }) => {
+const MedicamentosTable = ({ medicamentos = [], onDelete, onEdit }) => {
   const getStockStatus = (piezas) => {
     if (piezas < 5) {
       return { status: "Bajo", color: styles.lowStock };
@@ -25,6 +25,7 @@ const MedicamentosTable = ({ medicamentos }) => {
             <th>Estado de Stock</th>
             <th>Fecha de Creación</th>
             <th>Activo</th>
+            <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -44,18 +45,32 @@ const MedicamentosTable = ({ medicamentos }) => {
                   </td>
                   <td>
                     {medicamento.fechaCreacion
-                      ? new Date(medicamento.fechaCreacion).toLocaleDateString(
-                          "es-ES"
-                        )
+                      ? new Date(
+                          medicamento.fechaCreacion
+                        ).toLocaleDateString("es-ES")
                       : "N/A"}
                   </td>
                   <td>{medicamento.activo ? "Sí" : "No"}</td>
+                  <td>
+                    <button
+                      onClick={() => onDelete?.(medicamento.id)} // Manejo de onDelete como opcional
+                      className={styles.deleteButton}
+                    >
+                      Eliminar
+                    </button>
+                    <button
+                      onClick={() => onEdit?.(medicamento)} // Manejo de onEdit como opcional
+                      className={styles.editButton}
+                    >
+                      Editar
+                    </button>
+                  </td>
                 </tr>
               );
             })
           ) : (
             <tr>
-              <td colSpan="7" className={styles.noData}>
+              <td colSpan="8" className={styles.noData}>
                 No hay medicamentos registrados.
               </td>
             </tr>

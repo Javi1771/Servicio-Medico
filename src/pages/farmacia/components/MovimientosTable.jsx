@@ -1,7 +1,7 @@
 import React from "react";
 import styles from "../../css/EstilosFarmacia/MovimientosTable.module.css";
 
-const MovimientosTable = ({ movimientos }) => {
+const MovimientosTable = ({ movimientos = [] }) => {
   return (
     <div className={styles.tableContainer}>
       <h2 className={styles.titleTable}>Movimientos de Medicamentos</h2>
@@ -20,7 +20,7 @@ const MovimientosTable = ({ movimientos }) => {
           </tr>
         </thead>
         <tbody>
-          {movimientos.length > 0 ? (
+          {movimientos?.length > 0 ? (
             movimientos.map((movimiento) => (
               <tr key={movimiento.id_med_pac}>
                 <td>{movimiento.id_med_pac}</td>

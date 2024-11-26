@@ -8,10 +8,10 @@
 /* Contenedor centrado */
 .container {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin: 0 auto;
-  padding: 0 2rem; /* Márgenes laterales */
+    flex-direction: column;
+    align-items: unset;
+    margin: 0 auto;
+    padding: 32px 0rem;
 }
 
 /* Mensaje de feedback */
@@ -394,4 +394,20 @@
 .chartWrapper .chartItem:first-child canvas {
   max-width: 100%; /* Permite que ocupe todo el ancho del contenedor */
   height: 900px !important; /* Ajusta la altura */
+}
+
+
+/*boton para eliminar tabla registro*/
+.deleteButton {
+  background-color: #ffbd92;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.deleteButton:hover {
+  background-color: #ff721a;
 }
