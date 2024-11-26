@@ -9,6 +9,7 @@ import SideMenu from "./components/sideMenu";
 import Banner from "./components/banner";
 import styles from "../css/EstilosFarmacia/RegisterMedicamento.module.css";
 import EditMedicamentoForm from "./components/editMedicamentoForm"; // Importa el formulario de edición
+import { motion, AnimatePresence } from "framer-motion"; // Importa framer-motion
 
 const Medicamentos = () => {
   const {
@@ -32,8 +33,14 @@ const Medicamentos = () => {
     setActiveView("registrar"); // Vuelve a la vista de registro
   };
 
+  // Variants para animaciones
+  const fadeVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1 },
+    exit: { opacity: 0 },
+  };
 
-   return (
+  return (
     <div className={styles.body}>
       <div className={styles.mainContainer}>
         {/* Menú lateral */}
@@ -45,48 +52,84 @@ const Medicamentos = () => {
           <Banner imageSrc="/baner_sjr.png" altText="Banner de Medicamentos" />
 
           <div className={styles.container}>
-            {/* Vista de Registro */}
-            {activeView === "registrar" && (
-              <>
-                <FormMedicamento
-                  onAddMedicamento={addMedicamento}
-                  message={message}
-                />
-                <MedicamentosTable
-                  medicamentos={medicamentos || []} // Pasa un array vacío si es undefined
-                  onDelete={deleteMedicamento}
-                  onEdit={handleEdit} // Llama a handleEdit al hacer clic en "Editar"
-                />
-              </>
-            )}
+            <AnimatePresence mode="wait">
+              {/* Vista de Registro */}
+              {activeView === "registrar" && (
+                <motion.div
+                  key="registrar"
+                  variants={fadeVariants}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                  transition={{ duration: 0.5 }}
+                >
+                  <FormMedicamento
+                    onAddMedicamento={addMedicamento}
+                    message={message}
+                  />
+                  <MedicamentosTable
+                    medicamentos={medicamentos || []} // Pasa un array vacío si es undefined
+                    onDelete={deleteMedicamento}
+                    onEdit={handleEdit} // Llama a handleEdit al hacer clic en "Editar"
+                  />
+                </motion.div>
+              )}
 
-            {/* Vista de Edición */}
-            {activeView === "editar" && selectedMedicamento && (
-              <div>
-                <EditMedicamentoForm
-                  medicamento={selectedMedicamento}
-                  onEdit={(updatedMedicamento) => {
-                    editMedicamento(updatedMedicamento); // Llama a la función para editar
-                    handleBack(); // Vuelve a la vista de registro
-                  }}
-                />
-                <button className={styles.backButton} onClick={handleBack}>
-                  Regresar
-                </button>
-              </div>
-            )}
+              {/* Vista de Edición */}
+              {activeView === "editar" && selectedMedicamento && (
+                <motion.div
+                  key="editar"
+                  variants={fadeVariants}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                  transition={{ duration: 0.5 }}
+                >
+                  <EditMedicamentoForm
+                    medicamento={selectedMedicamento}
+                    onEdit={(updatedMedicamento) => {
+                      editMedicamento(updatedMedicamento); // Llama a la función para editar
+                      handleBack(); // Vuelve a la vista de registro
+                    }}
+                  />
+                  <button className={styles.backButton} onClick={handleBack}>
+                    Regresar
+                  </button>
+                </motion.div>
+              )}
 
-            {/* Vista de Gráficos */}
-            {activeView === "graficos" && <MedicamentosChart />}
+              {/* Vista de Gráficos */}
+              {activeView === "graficos" && (
+                <motion.div
+                  key="graficos"
+                  variants={fadeVariants}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                  transition={{ duration: 0.5 }}
+                >
+                  <MedicamentosChart />
+                </motion.div>
+              )}
 
-            {/* Vista de Movimientos */}
-            {activeView === "movimientos" && (
-              <MovimientosTable
-                movimientos={movimientos}
-                loading={loading}
-                error={error}
-              />
-            )}
+              {/* Vista de Movimientos */}
+              {activeView === "movimientos" && (
+                <motion.div
+                  key="movimientos"
+                  variants={fadeVariants}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                  transition={{ duration: 0.5 }}
+                >
+                  <MovimientosTable
+                    movimientos={movimientos}
+                    loading={loading}
+                    error={error}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
       </div>

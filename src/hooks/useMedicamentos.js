@@ -17,13 +17,15 @@ export const useMedicamentos = () => {
     try {
       const response = await fetch("/api/farmacia/obtenerMedicamentos");
       const data = await response.json();
-      if (response.ok) {
+      if (response.ok && Array.isArray(data)) {
         setMedicamentos(data);
       } else {
-        console.error("Error al obtener medicamentos:", data.message);
+        console.error("Error al obtener medicamentos:", data?.message || "Datos inválidos.");
+        setMedicamentos([]);
       }
     } catch (error) {
       console.error("Error interno:", error);
+      setMedicamentos([]);
     }
   };
 
