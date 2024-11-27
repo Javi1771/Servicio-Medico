@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import styles from "../../css/EstilosFarmacia/slideMenu.module.css";
+import Image from 'next/image';
+
 
 const SideMenu = ({ onMenuClick }) => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -53,9 +55,11 @@ const SideMenu = ({ onMenuClick }) => {
       >
         {/* Logo en la parte superior */}
         <div className={styles.logoContainer}>
-          <img
+          <Image
             src="/Logo_inventarioFarmacia.png" // Ruta al logo
             alt="Logo"
+            width={200}
+            height={200}
             className={styles.logo}
           />
         </div>

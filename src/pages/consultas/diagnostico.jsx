@@ -5,6 +5,8 @@ import Image from "next/image";
 import Pusher from "pusher-js";
 import withReactContent from "sweetalert2-react-content";
 import DatosAdicionales from "./datos-adicionales/datos-adicionales";
+import Cookies from "js-cookie"; // Importar js-cookie
+
 
 const MySwal = withReactContent(Swal);
 
@@ -23,7 +25,7 @@ const formatearFecha = (fecha) => {
 };
 
 const Diagnostico = () => {
-  const [nombreMedico, setNombreMedico] = useState("Dr. Goku");
+  const [nombreMedico, setNombreMedico] = useState("Cargando...");
   const [claveConsulta, setClaveConsulta] = useState("");
   const [fecha, setFecha] = useState("");
   const [diagnostico, setDiagnostico] = useState("");
@@ -61,6 +63,16 @@ const Diagnostico = () => {
 
   const [guardadoExitoso, setGuardadoExitoso] = useState(false);
   const [formularioCompleto, setFormularioCompleto] = useState(false);
+
+
+   // Leer nombre del médico desde las cookies
+   useEffect(() => {
+    const nombre = Cookies.get("nombreusuario"); // Obtén el valor desde las cookies
+    console.log("Nombre del médico desde cookies:", nombre);
+    setNombreMedico(nombre || "No especificado");
+  }, []);
+
+
 
   //* Verifica si todos los campos requeridos están completos
   useEffect(() => {
@@ -597,7 +609,7 @@ const Diagnostico = () => {
             Consulta General
           </h1>
         </div>
-        <div className="text-sm md:text-lg mt-4 md:mt-0">
+       <div className="text-sm md:text-lg mt-4 md:mt-0">
           <span className="font-semibold">Médico: </span>
           {nombreMedico}
         </div>

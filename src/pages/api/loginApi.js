@@ -18,7 +18,9 @@ export default async function handler(req, res) {
     // Actualiza la consulta con los nombres de columnas correctos
     const result = await pool.request()
       .input('usuario', sql.VarChar, usuario)
-      .query('SELECT clavetipousuario, password FROM USUARIOS WHERE usuario = @usuario');
+      .query(
+        "SELECT clavetipousuario, password, nombreusuario FROM USUARIOS WHERE usuario = @usuario"
+      );
 
     const user = result.recordset[0];
     
@@ -39,22 +41,39 @@ export default async function handler(req, res) {
     } else {
       isMatch = await bcrypt.compare(password, storedPassword);
     }
-
     if (isMatch) {
-      // Usar clavetipousuario en el token
-      const token = jwt.sign({ rol: user.clavetipousuario }, 'clave_secreta', { expiresIn: '1h' });
+      // Genera el token
+      const token = jwt.sign(
+        { rol: user.clavetipousuario, nombreusuario: user.nombreusuario },
+        "clave_secreta",
+        { expiresIn: "1h" }
+      );
 
-      res.setHeader('Set-Cookie', [
-        `token=${token}; Path=/; SameSite=Lax`,
-        `rol=${user.clavetipousuario}; Path=/; SameSite=Lax`
-      ]);
 
-      return res.status(200).json({ success: true, message: 'Login exitoso', rol: user.clavetipousuario });
+         // Establece las cookies
+         res.setHeader("Set-Cookie", [
+          `token=${token}; Path=/; SameSite=Lax`,
+          `rol=${user.clavetipousuario}; Path=/; SameSite=Lax`,
+          `nombreusuario=${encodeURIComponent(
+            user.nombreusuario
+          )}; Path=/; SameSite=Lax`,
+        ]);
+
+      return res.status(200).json({
+        success: true,
+        message: "Login exitoso",
+        rol: user.clavetipousuario,
+        nombreusuario: user.nombreusuario,
+      });
     } else {
-      return res.status(401).json({ success: false, message: 'Contraseña incorrecta' });
+      return res
+        .status(401)
+        .json({ success: false, message: "Contraseña incorrecta" });
     }
   } catch (error) {
     console.error(error);
-    res.status(500).json({ success: false, message: 'Error en el servidor' });
+    res
+      .status(500)
+      .json({ success: false, message: "Error en el servidor" });
   }
 }

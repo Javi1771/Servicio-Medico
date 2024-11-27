@@ -26,6 +26,7 @@ const Home = () => {
     Cookies.remove('rol');   // Opcional: elimina la cookie de rol si la usas
     router.push('/');   // Redirige al usuario a la página de login
   };
+  
 
 
   return (
