@@ -38,7 +38,7 @@ const EnfermedadesCronicas = ({ clavenomina, nombrePaciente }) => {
       }
 
       const response = await fetch(
-        `/api/obtenerNombreEnfermedad?id=${idEnfCronica}`
+        `/api/enfermedades-kpis/obtenerNombreEnfermedad?id=${idEnfCronica}`
       );
       if (!response.ok) {
         throw new Error("Error al obtener el nombre de la enfermedad");
@@ -54,7 +54,7 @@ const EnfermedadesCronicas = ({ clavenomina, nombrePaciente }) => {
   const handleRowClick = async (kpi) => {
     try {
       const response = await fetch(
-        `/api/obtenerHistorialKPI?idRegistro=${kpi.idRegistro}`
+        `/api/enfermedades-kpis/obtenerHistorialKPI?idRegistro=${kpi.idRegistro}`
       );
       if (!response.ok) throw new Error("Error al obtener detalles del KPI");
 
@@ -89,7 +89,7 @@ const EnfermedadesCronicas = ({ clavenomina, nombrePaciente }) => {
   const fetchHistorialKPI = async () => {
     try {
       const response = await fetch(
-        `/api/obtenerHistorialKPI?clavenomina=${clavenomina}&nombrePaciente=${encodeURIComponent(
+        `/api/enfermedades-kpis/obtenerHistorialKPI?clavenomina=${clavenomina}&nombrePaciente=${encodeURIComponent(
           nombrePaciente
         )}`
       );
@@ -112,7 +112,7 @@ const EnfermedadesCronicas = ({ clavenomina, nombrePaciente }) => {
   useEffect(() => {
     async function fetchEnfermedades() {
       try {
-        const response = await fetch("/api/enfermedadesCronicas");
+        const response = await fetch("/api/enfermedades-kpis/enfermedadesCronicas");
         const data = await response.json();
         setCatalogoEnfermedades(data);
       } catch (error) {
@@ -174,7 +174,7 @@ const EnfermedadesCronicas = ({ clavenomina, nombrePaciente }) => {
     console.log("Datos que se enviarán para el registro del KPI:", kpiData);
 
     try {
-      const response = await fetch("/api/registrarKPI", {
+      const response = await fetch("/api/enfermedades-kpis/registrarKPI", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -271,7 +271,7 @@ const EnfermedadesCronicas = ({ clavenomina, nombrePaciente }) => {
     console.log("Enviando datos al backend para actualizar el KPI:", kpiData);
 
     try {
-      const response = await fetch("/api/actualizarKPIDetalles", {
+      const response = await fetch("/api/enfermedades-kpis/actualizarKPIDetalles", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(kpiData),
@@ -362,7 +362,7 @@ const EnfermedadesCronicas = ({ clavenomina, nombrePaciente }) => {
   const fetchPadecimientos = async () => {
     try {
       const response = await fetch(
-        `/api/padecimientosActuales?clavenomina=${clavenomina}&nombrePaciente=${nombrePaciente}`
+        `/api/enfermedades-kpis/padecimientosActuales?clavenomina=${clavenomina}&nombrePaciente=${nombrePaciente}`
       );
       const data = await response.json();
       setPadecimientos(Array.isArray(data) ? data : []);
@@ -452,7 +452,7 @@ const EnfermedadesCronicas = ({ clavenomina, nombrePaciente }) => {
     };
 
     try {
-      const response = await fetch("/api/guardarEnfermedadCronica", {
+      const response = await fetch("/api/enfermedades-kpis/guardarEnfermedadCronica", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -8,7 +8,7 @@ const HistorialConsultas = ({ numeroNomina, nombrePaciente }) => {
   const cargarHistorialConsultas = async () => {
     try {
       const response = await fetch(
-        `/api/historialConsultas?num_nom=${numeroNomina}`
+        `/api/historialConsultas/historialConsultas?num_nom=${numeroNomina}`
       );
       const data = await response.json();
       if (response.ok) {
