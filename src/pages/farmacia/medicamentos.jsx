@@ -2,9 +2,9 @@ import React, { useState } from "react";
 import { useMedicamentos } from "../../hooks/useMedicamentos";
 import { useMovimientos } from "../../hooks/useMovimientos"; // Hook para obtener movimientos
 import FormMedicamento from "./components/formMedicamento";
-import MedicamentosTable from "./components/MedicamentosTable";
-import MedicamentosChart from "./components/MedicamentosChart";
-import MovimientosTable from "./components/MovimientosTable"; // Importa la nueva tabla
+import MedicamentosTable from "./components/medicamentosTable";
+import MedicamentosChart from "./components/medicamentosChart";
+import MovimientosTable from "./components/movimientosTable"; // Importa la nueva tabla
 import SideMenu from "./components/sideMenu";
 import Banner from "./components/banner";
 import styles from "../css/EstilosFarmacia/RegisterMedicamento.module.css";
@@ -19,19 +19,26 @@ const Medicamentos = () => {
     editMedicamento,
     message,
   } = useMedicamentos(); // Incluye editMedicamento
+
   const { movimientos, loading, error } = useMovimientos(); // Obtén datos de movimientos
   const [activeView, setActiveView] = useState("registrar");
-  const [selectedMedicamento, setSelectedMedicamento] = useState(null); // Estado para el medicamento seleccionado
+  const [selectedMedicamento, setSelectedMedicamento] = useState(null); // Medicamento seleccionado
+  const [isModalOpen, setIsModalOpen] = useState(false); // Controla si el modal está abierto
+  const [closingModal, setClosingModal] = useState(false); // Nuevo estado para controlar el cierre
+
 
   const handleEdit = (medicamento) => {
     setSelectedMedicamento(medicamento || {}); // Establece el medicamento seleccionado
-    setActiveView("editar"); // Cambia a la vista de edición
+    setIsModalOpen(true); // Abre el modal
   };
 
-  const handleBack = () => {
+  // Cierra el modal y limpia el estado
+  const handleModalClose = () => {
     setSelectedMedicamento(null); // Limpia el medicamento seleccionado
-    setActiveView("registrar"); // Vuelve a la vista de registro
+    setIsModalOpen(false); // Cierra el modal
   };
+  
+  
 
   // Variants para animaciones
   const fadeVariants = {
@@ -52,7 +59,8 @@ const Medicamentos = () => {
           <Banner imageSrc="/baner_sjr.png" altText="Banner de Medicamentos" />
 
           <div className={styles.container}>
-            <AnimatePresence mode="wait">
+           
+              
               {/* Vista de Registro */}
               {activeView === "registrar" && (
                 <motion.div
@@ -61,42 +69,55 @@ const Medicamentos = () => {
                   initial="hidden"
                   animate="visible"
                   exit="exit"
-                  transition={{ duration: 0.5 }}
+                  transition={{ duration: 0.2 }}
                 >
                   <FormMedicamento
                     onAddMedicamento={addMedicamento}
                     message={message}
                   />
                   <MedicamentosTable
-                    medicamentos={medicamentos || []} // Pasa un array vacío si es undefined
+                    medicamentos={medicamentos || []}
                     onDelete={deleteMedicamento}
-                    onEdit={handleEdit} // Llama a handleEdit al hacer clic en "Editar"
+                    onEdit={handleEdit} // Abre el modal al editar
                   />
                 </motion.div>
               )}
 
-              {/* Vista de Edición */}
-              {activeView === "editar" && selectedMedicamento && (
+              {/* Modal para editar */}
+              <AnimatePresence mode="wait">
+              {isModalOpen && (
                 <motion.div
-                  key="editar"
-                  variants={fadeVariants}
-                  initial="hidden"
-                  animate="visible"
-                  exit="exit"
-                  transition={{ duration: 0.5 }}
+                  className={styles.modalBackdrop}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                  onAnimationComplete={() => {
+                    if (closingModal) {
+                      setIsModalOpen(false); // Cierra el modal completamente
+                      setClosingModal(false); // Resetea el estado de cierre
+                    }
+                  }}
                 >
-                  <EditMedicamentoForm
-                    medicamento={selectedMedicamento}
-                    onEdit={(updatedMedicamento) => {
-                      editMedicamento(updatedMedicamento); // Llama a la función para editar
-                      handleBack(); // Vuelve a la vista de registro
-                    }}
-                  />
-                  <button className={styles.backButton} onClick={handleBack}>
-                    Regresar
-                  </button>
+                   <motion.div
+                    className={styles.modalContent}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                       <EditMedicamentoForm
+                      medicamento={selectedMedicamento}
+                      onEdit={(updatedMedicamento) => {
+                        editMedicamento(updatedMedicamento);
+                        handleModalClose();
+                      }}
+                      onCancel={handleModalClose} // Cierra el modal al cancelar
+                    />
+                  </motion.div>
                 </motion.div>
               )}
+            </AnimatePresence>
 
               {/* Vista de Gráficos */}
               {activeView === "graficos" && (
@@ -106,7 +127,7 @@ const Medicamentos = () => {
                   initial="hidden"
                   animate="visible"
                   exit="exit"
-                  transition={{ duration: 0.5 }}
+                  transition={{ duration: 0.2 }}
                 >
                   <MedicamentosChart />
                 </motion.div>
@@ -120,7 +141,7 @@ const Medicamentos = () => {
                   initial="hidden"
                   animate="visible"
                   exit="exit"
-                  transition={{ duration: 0.5 }}
+                  transition={{ duration: 0.2 }}
                 >
                   <MovimientosTable
                     movimientos={movimientos}
@@ -129,7 +150,6 @@ const Medicamentos = () => {
                   />
                 </motion.div>
               )}
-            </AnimatePresence>
           </div>
         </div>
       </div>

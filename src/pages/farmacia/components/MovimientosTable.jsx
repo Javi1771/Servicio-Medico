@@ -19,7 +19,7 @@ const MovimientosTable = ({ movimientos = [] }) => {
             <th>Fecha Otorgación</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody className={styles.tbody}> 
           {movimientos?.length > 0 ? (
             movimientos.map((movimiento) => (
               <tr key={movimiento.id_med_pac}>

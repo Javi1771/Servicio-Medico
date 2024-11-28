@@ -119,6 +119,47 @@ const MedicamentosChart = () => {
     fetchMovimientosData();
   }, []);
 
+   // Opciones globales para gráficos con letras en blanco
+   const commonOptions = {
+    responsive: true,
+    plugins: {
+      legend: {
+        labels: {
+          color: "#FFFFFF", // Color de las etiquetas de la leyenda
+        },
+      },
+      title: {
+        display: true,
+        color: "#FFFFFF", // Color del título
+        font: {
+          size: 16, // Tamaño del título
+        },
+      },
+      tooltip: {
+        bodyColor: "#FFFFFF", // Color del texto del cuerpo del tooltip
+        titleColor: "#FFFFFF", // Color del título del tooltip
+      },
+    },
+    scales: {
+      x: {
+        ticks: {
+          color: "#FFFFFF", // Color de las etiquetas del eje X
+        },
+        grid: {
+          color: "rgba(255, 255, 255, 0.2)", // Líneas del eje X
+        },
+      },
+      y: {
+        ticks: {
+          color: "#FFFFFF", // Color de las etiquetas del eje Y
+        },
+        grid: {
+          color: "rgba(255, 255, 255, 0.2)", // Líneas del eje Y
+        },
+      },
+    },
+  };
+
   return (
     <div className={styles.chartContainer}>
       <h2 className={styles.title}>Gráficos de Medicamentos</h2>
@@ -131,23 +172,7 @@ const MedicamentosChart = () => {
             <h3 className={styles.chartTitle}>Gráfico de Barras</h3>
             {barChartData ? (
               <div className={styles.chartCanvas}>
-                <Bar
-                  data={barChartData}
-                  options={{
-                    responsive: true,
-                    maintainAspectRatio: true, // Mantener proporciones
-                    aspectRatio: 2, // Controlar ancho y alto
-                    plugins: {
-                      legend: {
-                        position: "top",
-                      },
-                      title: {
-                        display: true,
-                        text: "Cantidad de Piezas Registradas por Sustancia",
-                      },
-                    },
-                  }}
-                />
+                <Bar data={barChartData} options={commonOptions} />
               </div>
             ) : (
               <p className={styles.loading}>
@@ -161,23 +186,7 @@ const MedicamentosChart = () => {
             <h3 className={styles.chartTitle}>Gráfico Circular</h3>
             {pieChartData ? (
               <div className={styles.chartCanvas}>
-                <Pie
-                  data={pieChartData}
-                  options={{
-                    responsive: true,
-                    maintainAspectRatio: true, // Mantener proporciones
-                    aspectRatio: 1, // Controlar ancho y alto
-                    plugins: {
-                      legend: {
-                        position: "right",
-                      },
-                      title: {
-                        display: true,
-                        text: "Distribución de Piezas Otorgadas por Sustancia",
-                      },
-                    },
-                  }}
-                />
+                <Pie data={pieChartData} options={commonOptions} />
               </div>
             ) : (
               <p className={styles.loading}>

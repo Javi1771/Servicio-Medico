@@ -2,7 +2,7 @@
 
 /* Estilo del cuerpo */
 .body {
-  background-color: rgb(255, 255, 255);;
+  background-color: #1e1e2d;
 }
 
 /* Contenedor centrado */
@@ -10,8 +10,8 @@
   display: flex;
     flex-direction: column;
     align-items: unset;
-    margin: 0 auto;
-    padding: 32px 0rem;
+    margin: -30px auto;
+    padding: 97px 0rem;
 }
 
 /* Mensaje de feedback */
@@ -35,8 +35,10 @@
   text-align: justify;
   font-size: 1.8rem;
   font-weight: bold;
-  color: #00796b;
+  color: #83e1d6;
   margin-bottom: 1.5rem;
+  padding-top: 79px;
+
 }
 
 /* Inputs y checkbox */
@@ -79,47 +81,181 @@
   background: linear-gradient(90deg, #26a69a, #00796b);
 }
 
-/* Estilo del formulario */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* Contenedor del formulario */
 .form {
   width: 100%;
   max-width: 895px;
+  background: #222234; /* Fondo oscuro */
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0px 4px 10px rgba(0, 228, 213, 0.5);
+  color: #f8fafc; /* Texto claro */
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  background: #ffffff;
+  font-size: 1rem;
+
+}
+
+/* Grupo de formulario */
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* Label del formulario */
+.label {
+  font-size: 1rem;
+  font-weight: bold;
+  color: #ffffff; /* Color del texto del label */
+}
+
+/* Inputs y selects del formulario */
+.input,
+.checkbox {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #334155; /* Borde inicial */
+  border-radius: 8px; /* Esquinas redondeadas */
+  background: #f1f5f9; /* Fondo claro */
+  color: #1e293b; /* Texto oscuro */
+  font-size: 1rem;
+  font-weight: 800; /* Engrosar el texto */
+
+}
+
+/* Efecto de focus */
+.input:focus,
+.checkbox:focus {
+  outline: none;
+  border-color: #38bdf8; /* Color del borde al enfocar */
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.3); /* Sombra */
+}
+
+/* Grupo para checkbox */
+.formGroupCheckbox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Botón */
+.button {
+  padding: 0.75rem 1.5rem;
+  background-color: #38bdf8; /* Color del botón */
+  color: #fff; /* Color del texto */
+  font-weight: bold;
+  font-size: 1rem;
+  border: none;
   border-radius: 8px;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-  padding: 2rem;
+  cursor: pointer;
+  text-align: center;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Hover y focus en el botón */
+.button:hover,
+.button:focus {
+  background-color: #0ea5e9; /* Color más oscuro al interactuar */
+  box-shadow: 0px 4px 10px rgba(14, 165, 233, 0.5);
+}
+
+/* Mensaje */
+.message {
+  font-size: 0.9rem;
+  color: #e63946; /* Color del mensaje de error */
+  text-align: center;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* Contenedor de tabla para scroll horizontal */
+.tableContainer {
+  width: 100%;
+  overflow-x: auto;
+  margin-top: 2rem;
+  border-radius: 8px;
+  margin-left: -165px;
 }
 
 /* Tabla */
 .table {
   width: 100%;
-  max-width: 895px;
-  margin-top: 2rem;
   border-collapse: collapse;
-  background: #ffffff;
-  border-radius: 8px;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  background: #24243a;
+  color: white;
   overflow: hidden;
+  border-radius: 8px;
 }
 
-.table th,
-.table td {
-  padding: 1rem;
-  text-align: left;
-  border-bottom: 1px solid #ddd;
-}
-
+/* Encabezados */
 .table th {
   background: #00796b;
   color: #ffffff;
   font-weight: bold;
+  padding: 1rem;
+  text-align: left;
+  white-space: nowrap; /* Evitar que los encabezados se desborden */
+  font-size: 1rem; /* Ajustar tamaño para que se adapte mejor en pantallas pequeñas */
 }
 
-.table tbody tr:hover {
-  background: #f1f1f1;
+/* Celdas */
+.table td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid #3d3d5c;
+  font-size: 0.9rem; /* Reducir el tamaño del texto en pantallas pequeñas */
+  white-space: nowrap; /* Evitar que el contenido se desborde */
 }
+
+/* Filas hover */
+.table tbody tr:hover {
+  background: #00796b;
+}
+
+/* Hacer que las celdas se ajusten en pantallas pequeñas */
+@media (max-width: 768px) {
+  .tableContainer
+  {  margin-left:0px;
+  }
+  .table th,
+  .table td {
+    font-size: 0.8rem; /* Texto más pequeño */
+    padding: 0.75rem; /* Reducir padding */
+  }
+
+  .table th {
+    white-space: normal; /* Permitir que los encabezados se envuelvan */
+  }
+}
+
 
 /* Contenedor principal */
 .mainContainer {
@@ -162,10 +298,6 @@
     padding: 1rem;
   }
 
-  .table {
-    font-size: 0.9rem; /* Reduce el tamaño del texto en la tabla */
-  }
-
   .form {
     width: 90%; /* Ajusta el ancho del formulario */
     padding: 1.5rem;
@@ -183,7 +315,8 @@
 
 @media (max-width: 480px) {
   .container {
-    padding: 0 1rem; /* Reduce los márgenes laterales */
+    padding:0 1rem; /* Reduce los márgenes laterales */
+    padding-top: 30px;
   }
 
   .form {
@@ -191,17 +324,8 @@
     padding: 1rem;
   }
 
-  .table {
-    font-size: 0.8rem; /* Ajusta el tamaño del texto de la tabla */
-  }
-
   .button {
     font-size: 0.9rem; /* Ajusta el tamaño del texto del botón */
-  }
-
-  .subtitle,
-  .titleTable {
-    font-size: 1.2rem; /* Ajusta el tamaño del texto del título */
   }
 
   .banner {
@@ -217,7 +341,7 @@
 .chartContainer {
   max-width: 900px;
   padding: 2rem; /* Aumenta el relleno interno */
-  background: #ffffff;
+  background: #a54949;
   border-radius: 8px;
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
 
@@ -228,10 +352,9 @@
 }
 
 .title {
-  text-align: center;
   font-size: 1.8rem;
   font-weight: bold;
-  color: #00796b;
+  color: #83e1d6;
   margin-bottom: 1rem;
 }
 
@@ -299,7 +422,7 @@
   max-width: 1200px;
   margin: 2rem auto; /* Centra automáticamente en pantallas grandes */
   padding: 1.5rem;
-  background: #ffffff;
+  background: #1e1e2d;
   border-radius: 8px;
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
   margin-left: -165px; /* Alinea la tabla más cerca del sidebar */
@@ -316,19 +439,19 @@
 
 /* Tarjetas para cada gráfico */
 .card {
-  background-color: #ffffff;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-  padding: 20px;
-  width: 100%; /* Ocupa todo el ancho del contenedor */
-  max-width: 1050px; /* Tamaño máximo de cada tarjeta */
-  min-height: 300px; /* Altura mínima */
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: space-between;
-  transition: transform 0.2s;
+  background-color: #202031;
+    border: 1px solid #1e1e2d;
+    border-radius: 8px;
+    box-shadow: 0px 4px 8px rgb(0 231 255);
+    padding: 20px;
+    width: 100%;
+    max-width: 1050px;
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    transition: transform 0.2s;
 
 }
 
@@ -340,7 +463,7 @@
 .chartTitle {
   font-size: 18px;
   margin-bottom: 20px;
-  color: #333333;
+  color: #ffffff;
   text-align: center;
 }
 
@@ -398,16 +521,263 @@
 
 
 /*boton para eliminar tabla registro*/
-.deleteButton {
-  background-color: #ffbd92;
-  color: white;
-  border: none;
-  padding: 5px 10px;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s;
+/* Contenedor de los botones en fila */
+.buttonRow {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: flex-start;
 }
 
-.deleteButton:hover {
-  background-color: #ff721a;
+/* Botón de "Surtir" */
+.surtirButton {
+  background-color: transparent;
+  position: relative;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #0ea5e9;
+}
+
+.surtirButton::after {
+  content: 'surtir';
+  position: absolute;
+  top: -130%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: fit-content;
+  height: fit-content;
+  background-color: rgb(29, 78, 216); /* Azul */
+  padding: 4px 8px;
+  border-radius: 5px;
+  transition: 0.2s linear;
+  transition-delay: 0.2s;
+  color: white;
+  text-transform: uppercase;
+  font-size: 12px;
+  opacity: 0;
+  visibility: hidden;
+}
+
+.surtirButton:hover > .icon {
+  transform: scale(1.5);
+}
+
+.surtirButton:hover > .icon path {
+  stroke: rgb(29, 78, 216);
+}
+
+.surtirButton:hover::after {
+  visibility: visible;
+  opacity: 1;
+  top: -160%;
+}
+
+
+
+
+/* Botón de "Eliminar" (ya definido anteriormente) */
+.deleteButton {
+  background-color: transparent;
+  position: relative;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #e95151;
+
+}
+
+.deleteButton::after {
+  content: 'delete';
+  position: absolute;
+  top: -130%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: fit-content;
+  height: fit-content;
+  background-color: rgb(168, 7, 7); /* Rojo */
+  padding: 4px 8px;
+  border-radius: 5px;
+  transition: 0.2s linear;
+  transition-delay: 0.2s;
+  color: white;
+  text-transform: uppercase;
+  font-size: 12px;
+  opacity: 0;
+  visibility: hidden;
+}
+
+.deleteButton:hover > .icon {
+  transform: scale(1.5);
+}
+
+.deleteButton:hover > .icon path {
+  stroke: rgb(168, 7, 7);
+}
+
+.deleteButton:hover::after {
+  visibility: visible;
+  opacity: 1;
+  top: -160%;
+}
+
+/* Estilo del ícono */
+.icon {
+  transform: scale(1.2);
+  transition: 0.2s linear;
+}
+
+.iconSvg {
+  width: 24px;
+  height: 24px;
+}
+
+
+
+/* Estilo para el fondo difuminado (blur) del modal */
+/* Fondo del modal */
+.modalBackdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden; /* Evita que el contenido interno salga del contenedor */
+}
+
+/* Contenedor del modal */
+.modalContent {
+  background: #1e293b;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  width: 90%;
+  max-width: 500px;
+  transform-origin: center;
+  overflow: hidden; /* Evita que los elementos sobresalgan */
+}
+
+/* From Uiverse.io by tiagoadag1203 */ 
+.input {
+  max-width: 900px;
+  background-color: #efefef;
+  border: none;
+  padding: 10px;
+  border-radius: 10px;
+  outline: none;
+  color: rgb(0, 0, 0);
+}
+
+.input:focus {
+  animation: rotateShadow2 2s infinite linear;
+}
+
+@keyframes rotateShadow2 {
+  0% {
+    box-shadow: -2px -2px 8px 1px #aa00ff, 2px 2px 8px 1px #3700ff;
+  }
+  25% {
+    box-shadow: -2px 2px 8px 1px #aa00ff, 2px -2px 8px 1px #3700ff;
+  }
+  50% {
+    box-shadow: 2px 2px 8px 1px #aa00ff, -2px -2px 8px 1px #3700ff;
+  }
+  75% {
+    box-shadow: 2px -2px 8px 1px #aa00ff, -2px 2px 8px 1px #3700ff;
+  }
+  100% {
+    box-shadow: -2px -2px 8px 1px #aa00ff, 2px 2px 8px 1px #3700ff;
+  }
+}
+
+
+
+
+
+/*ESTILOS DE FILTRO DE BUSQUEDA*/
+.searchContainer {
+  margin-bottom: 1rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.searchWrapper {
+  display: flex;
+  width: 100%; /* Ocupa el ancho de la tabla */
+  max-width: 100%; /* Asegura que no se exceda */
+  border-radius: 15px;
+  background: #ffffff;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.searchBar {
+  flex: 1;
+  border: none;
+  padding: 12px 16px;
+  border-radius: 12px 0 0 8px;
+  outline: none;
+  font-size: 16px;
+  color: #333;
+}
+
+.searchBar::placeholder {
+  color: #aaa;
+}
+
+.searchButton {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 0 15px 8px 0;
+}
+
+.searchButton:hover {
+  background-color: #00c6b3c4;
+}
+
+.searchIcon {
+  width: 20px;
+  height: 20px;
+  stroke: #555;
+}
+
+.searchButton:hover .searchIcon {
+  stroke: #000;
+}
+
+
+.searchBar:focus {
+  animation: rotateShadow 2s infinite linear;
+}
+
+@keyframes rotateShadow {
+  0% {
+    box-shadow: -2px -2px 8px 1px #00c3ff, 2px 2px 8px 1px #1aff00;
+  }
+  25% {
+    box-shadow: -2px 2px 8px 1px #00c3ff, 2px -2px 8px 1px #1aff00;
+  }
+  50% {
+    box-shadow: 2px 2px 8px 1px #00c3ff, -2px -2px 8px 1px #1aff00;
+  }
+  75% {
+    box-shadow: 2px -2px 8px 1px #00c3ff, -2px 2px 8px 1px #1aff00;
+  }
+  100% {
+    box-shadow: -2px -2px 8px 1px #00c3ff, 2px 2px 8px 1px #1aff00;
+  }
 }
