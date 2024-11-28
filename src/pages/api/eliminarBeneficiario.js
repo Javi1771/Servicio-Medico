@@ -35,6 +35,7 @@ export default async function handler(req, res) {
       if (FOTO_URL) {
         const publicId = extractCloudinaryPublicId(FOTO_URL); // Extrae el public_id de la URL
         await cloudinary.v2.uploader.destroy(publicId);
+        await cloudinary.uploader.destroy(publicId, { invalidate: true }); // Usar invalidate
         console.log(`Imagen eliminada de Cloudinary: ${publicId}`);
       }
 

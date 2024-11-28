@@ -42,7 +42,7 @@ export default function UsuariosTable() {
       try {
         const [usuariosResponse, especialidadesResponse, tiposUsuariosResponse] = await Promise.all([
           fetch('/api/usuario'),
-          fetch('/api/especialidades'),
+          fetch('/api/especialidades/especialidades'),
           fetch('/api/tiposusuarios')
         ]);
 
