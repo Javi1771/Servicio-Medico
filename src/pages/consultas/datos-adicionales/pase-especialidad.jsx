@@ -9,18 +9,18 @@ const PaseEspecialidad = ({
   setEspecialidadSeleccionada,
   observaciones,
   setObservaciones,
-  setFormularioCompleto, // Asegúrate de recibir esta prop si se usa
+  setFormularioCompleto, 
 }) => {
-  const [especialidades, setEspecialidades] = useState([]); // Define el estado especialidades correctamente
+  const [especialidades, setEspecialidades] = useState([]); 
 
-  // Carga las especialidades al montar el componente
+  //* Carga las especialidades al montar el componente
   useEffect(() => {
     const fetchEspecialidades = async () => {
       try {
-        const response = await fetch("/api/especialidades");
+        const response = await fetch("/api/especialidades/especialidades");
         const data = await response.json();
         if (Array.isArray(data)) {
-          setEspecialidades(data); // Actualiza el estado con los datos recibidos
+          setEspecialidades(data); //* Actualiza el estado con los datos recibidos
         } else {
           console.error("Los datos de especialidades no son un array:", data);
           setEspecialidades([]);
@@ -32,7 +32,7 @@ const PaseEspecialidad = ({
     fetchEspecialidades();
   }, [claveConsulta]);
 
-  // Verifica si el formulario está completo
+  //* Verifica si el formulario está completo
   useEffect(() => {
     const verificarFormularioCompleto = () => {
       const camposRequeridosLlenos =
@@ -43,7 +43,7 @@ const PaseEspecialidad = ({
     verificarFormularioCompleto();
   }, [claveConsulta, especialidadSeleccionada, observaciones, setFormularioCompleto]);
 
-  // Resetea los campos si claveConsulta cambia
+  //* Resetea los campos si claveConsulta cambia
   useEffect(() => {
     setPasarEspecialidad("");
     setEspecialidadSeleccionada("");
@@ -52,7 +52,7 @@ const PaseEspecialidad = ({
 
   const handleGuardarEspecialidad = async () => {
     try {
-      const response = await fetch("/api/guardarEspecialidad", {
+      const response = await fetch("/api/especialidades/guardarEspecialidad", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -77,7 +77,7 @@ const PaseEspecialidad = ({
     console.log("Clave Consulta:", claveConsulta, "Valor de Pase:", value);
 
     try {
-      const response = await fetch("/api/actualizarConsultaEspecialidad", {
+      const response = await fetch("/api/especialidades/actualizarConsultaEspecialidad", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import Image from "next/image";
+import Pusher from "pusher-js";
 import withReactContent from "sweetalert2-react-content";
 import DatosAdicionales from "./datos-adicionales/datos-adicionales";
 import Cookies from "js-cookie"; // Importar js-cookie
@@ -22,7 +23,6 @@ const formatearFecha = (fecha) => {
 
   return fechaLocal.toLocaleString("es-MX", opciones);
 };
-
 
 const Diagnostico = () => {
   const [nombreMedico, setNombreMedico] = useState("Cargando...");
@@ -120,7 +120,7 @@ const Diagnostico = () => {
         claveConsulta &&
         localStorage.getItem("consultaGuardada") !== claveConsulta
       ) {
-        fetch("/api/actualizarClavestatus", {
+        fetch("/api/pacientes-consultas/actualizarClavestatus", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ claveConsulta, clavestatus: 3 }),
@@ -138,7 +138,7 @@ const Diagnostico = () => {
   useEffect(() => {
     const updateStatusIfNotSaved = async () => {
       if (pacienteSeleccionado && !guardadoExitoso) {
-        await fetch("/api/actualizarClavestatus", {
+        await fetch("/api/pacientes-consultas/actualizarClavestatus", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -154,10 +154,54 @@ const Diagnostico = () => {
     };
   }, [pacienteSeleccionado, guardadoExitoso, claveConsulta]);
 
+  useEffect(() => {
+    const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY, {
+      cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER,
+      encrypted: true,
+    });
+
+    const channel = pusher.subscribe("consultas");
+
+    // Escucha de eventos
+    channel.bind("nueva-consulta", (data) => {
+      console.log("[INFO] Nueva consulta recibida de Pusher:", data);
+      setPacientes((prevPacientes) => [...prevPacientes, data]);
+    });
+
+    channel.bind("estatus-actualizado", (data) => {
+      console.log("[INFO] Estatus actualizado recibido de Pusher:", data);
+      setPacientes((prevPacientes) => {
+        // Filtra la consulta si está cancelada o finalizada
+        if (data.clavestatus === 3 || data.clavestatus === 4) {
+          return prevPacientes.filter(
+            (paciente) => paciente.claveconsulta !== data.claveConsulta
+          );
+        }
+
+        // Actualiza la consulta si ya existe
+        const index = prevPacientes.findIndex(
+          (paciente) => paciente.claveconsulta === data.claveConsulta
+        );
+        if (index !== -1) {
+          const updatedPacientes = [...prevPacientes];
+          updatedPacientes[index] = { ...prevPacientes[index], ...data };
+          return updatedPacientes;
+        }
+
+        return prevPacientes;
+      });
+    });
+
+    return () => {
+      channel.unbind_all();
+      channel.unsubscribe();
+    };
+  }, []);
+
   //* Función para cargar pacientes del día
   const cargarPacientesDelDia = async () => {
     try {
-      const response = await fetch("/api/consultasHoy");
+      const response = await fetch("/api/pacientes-consultas/consultasHoy");
       const data = await response.json();
       if (response.ok) {
         const pacientesOrdenados = data.consultas.sort(
@@ -271,22 +315,33 @@ const Diagnostico = () => {
     setMostrarEmergente(true);
     setClaveConsulta(paciente.claveconsulta);
 
+    // Establecer los signos vitales del paciente
     setSignosVitales({
-      ta: paciente.presionarterialpaciente,
-      temperatura: paciente.temperaturapaciente,
-      fc: paciente.pulsosxminutopaciente,
-      oxigenacion: paciente.respiracionpaciente,
-      altura: paciente.estaturapaciente,
-      peso: paciente.pesopaciente,
-      glucosa: paciente.glucosapaciente,
+      ta: paciente.presionarterialpaciente || "",
+      temperatura: paciente.temperaturapaciente || "",
+      fc: paciente.pulsosxminutopaciente || "",
+      oxigenacion: paciente.respiracionpaciente || "",
+      altura: paciente.estaturapaciente || "",
+      peso: paciente.pesopaciente || "",
+      glucosa: paciente.glucosapaciente || "",
     });
 
+    // Establecer alergias y datos editados
     setAlergias(paciente.alergias || "");
     setDatosEditados({
-      signosVitales: paciente.signosVitales || {},
+      signosVitales: {
+        ta: paciente.presionarterialpaciente || "",
+        temperatura: paciente.temperaturapaciente || "",
+        fc: paciente.pulsosxminutopaciente || "",
+        oxigenacion: paciente.respiracionpaciente || "",
+        altura: paciente.estaturapaciente || "",
+        peso: paciente.pesopaciente || "",
+        glucosa: paciente.glucosapaciente || "",
+      },
       alergias: paciente.alergias || "",
     });
 
+    // Establecer el tipo de consulta (beneficiario o empleado)
     if (paciente.parentesco_desc) {
       setConsultaSeleccionada("beneficiario");
       setSelectedBeneficiary({
@@ -298,24 +353,42 @@ const Diagnostico = () => {
       setSelectedBeneficiary(null);
     }
 
+    // Obtener datos del empleado
     await obtenerDatosEmpleado(paciente.clavenomina);
 
-    //* Cambia clavestatus a 2 al seleccionar un paciente
+    // Cambiar el clavestatus del paciente a 2 (seleccionado)
     try {
-      await fetch("/api/actualizarClavestatus", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          claveConsulta: paciente.claveconsulta,
-          clavestatus: 2,
-        }),
-      });
-      cargarPacientesDelDia();
+      const response = await fetch(
+        "/api/pacientes-consultas/actualizarClavestatus",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            claveConsulta: paciente.claveconsulta,
+            clavestatus: 2,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Error al actualizar clavestatus.");
+      }
+
+      // Actualizar la lista de pacientes en tiempo real sin recargar
+      setPacientes((prevPacientes) =>
+        prevPacientes.map((p) =>
+          p.claveconsulta === paciente.claveconsulta
+            ? { ...p, clavestatus: 2 }
+            : p
+        )
+      );
     } catch (error) {
       console.error(
         "Error al actualizar clavestatus al seleccionar paciente:",
         error
       );
+
+      // Mostrar mensaje de error al usuario
       MySwal.fire({
         icon: "error",
         title:
@@ -340,7 +413,7 @@ const Diagnostico = () => {
     try {
       //* Guardar diagnóstico y observaciones
       const responseDiagnostico = await fetch(
-        "/api/diagnostico_observaciones",
+        "/api/pacientes-consultas/diagnostico_observaciones",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -356,50 +429,57 @@ const Diagnostico = () => {
       if (!responseDiagnostico.ok) {
         const error = await responseDiagnostico.json();
         console.error("Error al guardar diagnóstico:", error);
-        throw new Error("Error al guardar diagnóstico");
+        throw new Error("Error al guardar diagnóstico.");
       }
 
       //* Guardar pase a especialidad si es necesario
       if (datos.pasarEspecialidad === "si") {
-        const responseEspecialidad = await fetch("/api/guardarEspecialidad", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            claveConsulta: datos.claveConsulta,
-            claveEspecialidad: datos.especialidadSeleccionada,
-            observaciones: datos.observaciones,
-          }),
-        });
+        const responseEspecialidad = await fetch(
+          "/api/especialidades/guardarEspecialidad",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              claveConsulta: datos.claveConsulta,
+              claveEspecialidad: datos.especialidadSeleccionada,
+              observaciones: datos.observaciones,
+            }),
+          }
+        );
 
         if (!responseEspecialidad.ok) {
           const error = await responseEspecialidad.json();
           console.error("Error al guardar especialidad:", error);
-          throw new Error("Error al guardar especialidad");
+          throw new Error("Error al guardar especialidad.");
         }
       }
 
       //* Actualizar el clavestatus a 4
-      const responseStatus = await fetch("/api/actualizarClavestatus", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          claveConsulta: datos.claveConsulta,
-          clavestatus: 4,
-        }),
-      });
+      const responseStatus = await fetch(
+        "/api/pacientes-consultas/actualizarClavestatus",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            claveConsulta: datos.claveConsulta,
+            clavestatus: 4,
+          }),
+        }
+      );
 
       if (!responseStatus.ok) {
         const error = await responseStatus.json();
         console.error("Error al actualizar clavestatus:", error);
-        throw new Error("Error al actualizar clavestatus");
+        throw new Error("Error al actualizar clavestatus.");
       }
 
-      //* Guardar en localStorage y recargar lista de pacientes
+      //* Confirmar éxito en localStorage y recargar lista de pacientes
       localStorage.setItem("consultaGuardada", datos.claveConsulta);
+      setGuardadoExitoso(true); //* Establece guardado exitoso antes de recargar
       await cargarPacientesDelDia();
 
       //* Mostrar alerta de éxito
-      MySwal.fire({
+      await MySwal.fire({
         icon: "success",
         title:
           "<span style='color: #00e676; font-weight: bold; font-size: 1.5em;'>✔️ Guardado exitoso</span>",
@@ -414,14 +494,13 @@ const Diagnostico = () => {
         },
       });
 
-      //! Resetear estados
-      setGuardadoExitoso(true);
+      //! Resetear estados después de mostrar éxito
       setPacienteSeleccionado(null);
     } catch (error) {
       console.error("Error en la solicitud de guardado:", error);
 
       //! Mostrar alerta de error
-      MySwal.fire({
+      await MySwal.fire({
         icon: "error",
         title:
           "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error al guardar</span>",
@@ -441,7 +520,7 @@ const Diagnostico = () => {
   const handleCancelar = async () => {
     try {
       //* Actualiza en la base de datos clavestatus a 3 y limpia otros campos
-      await fetch("/api/cancelarConsulta", {
+      await fetch("/api/pacientes-consultas/actualizarClavestatus", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -551,11 +630,17 @@ const Diagnostico = () => {
           </thead>
           <tbody>
             {pacientes.length > 0 ? (
-              pacientes.map((paciente) => (
+              pacientes.map((paciente, index) => (
                 <tr
                   key={paciente.claveconsulta}
-                  className="bg-gray-700 bg-opacity-50 hover:bg-gradient-to-r from-yellow-500 to-yellow-700 transition duration-300 ease-in-out rounded-lg shadow-md"
-                  onClick={() => handlePacienteClick(paciente)}
+                  className={`bg-gray-700 bg-opacity-50 ${
+                    index === 0
+                      ? "hover:bg-gradient-to-r from-yellow-500 to-yellow-700 transition duration-300 ease-in-out cursor-pointer"
+                      : "cursor-not-allowed opacity-50"
+                  } rounded-lg shadow-md`}
+                  onClick={() => {
+                    if (index === 0) handlePacienteClick(paciente);
+                  }}
                 >
                   <td className="py-4 px-6 font-medium text-center text-gray-200">
                     {paciente.clavenomina || "N/A"}

@@ -1,6 +1,8 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
+import Pusher from "pusher-js";
 import { AiOutlineUserAdd } from "react-icons/ai";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
@@ -95,26 +97,37 @@ const SignosVitales = () => {
   //* Función para cargar la lista de espera
   const cargarPacientesDelDia = async () => {
     try {
-      const response = await fetch("/api/consultasHoy");
+      const response = await fetch("/api/pacientes-consultas/consultasHoy");
       const data = await response.json();
       if (response.ok && data.consultas?.length > 0) {
         const consultasOrdenadas = data.consultas.sort(
           (a, b) => new Date(a.fechaconsulta) - new Date(b.fechaconsulta)
         );
-        setPacientes(consultasOrdenadas);
+        setPacientes((prevPacientes) => {
+          //? Solo actualiza si los datos son diferentes
+          if (JSON.stringify(prevPacientes) !== JSON.stringify(consultasOrdenadas)) {
+            console.log("Actualizando lista de pacientes...");
+            return consultasOrdenadas;
+          }
+          return prevPacientes; //! No actualiza si los datos son iguales
+        });
       }
     } catch (error) {
       console.error("Error al cargar consultas del día:", error);
     }
   };
+  
 
   const actualizarEstado = async (claveConsulta) => {
     try {
-      const response = await fetch("/api/actualizarclavestatus", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ claveConsulta, clavestatus: 4 }),
-      });
+      const response = await fetch(
+        "/api/pacientes-consultas/actualizarclavestatus",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ claveConsulta, clavestatus: 4 }),
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Error al actualizar el estatus");
@@ -227,7 +240,7 @@ const SignosVitales = () => {
     };
 
     try {
-      const response = await fetch("/api/saveConsulta", {
+      const response = await fetch("/api/pacientes-consultas/saveConsulta", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(consultaData),
@@ -392,7 +405,7 @@ const SignosVitales = () => {
 
   const handleSearchBeneficiary = async () => {
     try {
-      const response = await fetch("/api/beneficiario", {
+      const response = await fetch("/api/beneficiarios/beneficiario", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -450,18 +463,73 @@ const SignosVitales = () => {
     }));
   };
 
-  //* Hook para cargar datos automáticamente cada 5 segundos
+  //* Hook para cargar pacientes al inicio y actualizar en tiempo real
   useEffect(() => {
-    const cargarTodasLasConsultas = () => {
-      cargarPacientesDelDia();
+    //* Configuración inicial de pacientes
+    cargarPacientesDelDia();
+
+    //* Configuración de Pusher
+    const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY, {
+      cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER,
+      encrypted: true,
+    });
+
+    const channel = pusher.subscribe("consultas");
+
+    //* Escuchar eventos de nuevas consultas
+    channel.bind("nueva-consulta", (data) => {
+      console.log("Nueva consulta recibida:", data);
+
+      setPacientes((prevPacientes) => {
+        const existe = prevPacientes.some(
+          (paciente) => paciente.claveconsulta === data.claveConsulta
+        );
+        if (!existe) {
+          return [...prevPacientes, data].sort(
+            (a, b) => new Date(a.fechaconsulta) - new Date(b.fechaconsulta)
+          );
+        }
+        return prevPacientes;
+      });
+    });
+
+    //* Escuchar eventos de actualización de estatus
+    channel.bind("estatus-actualizado", (data) => {
+      console.log("Actualización de estatus recibida:", data);
+
+      setPacientes((prevPacientes) => {
+        // Filtrar si la consulta cambia de estado y ya no pertenece a la lista de espera
+        if (
+          data.clavestatus === 3 ||
+          data.clavestatus === 4 ||
+          data.clavestatus === 2
+        ) {
+          return prevPacientes.filter(
+            (paciente) => paciente.claveconsulta !== data.claveConsulta
+          );
+        }
+
+        // Si es un paciente en espera actualizado, modificar su estado
+        const index = prevPacientes.findIndex(
+          (paciente) => paciente.claveconsulta === data.claveConsulta
+        );
+        if (index !== -1) {
+          const actualizados = [...prevPacientes];
+          actualizados[index] = { ...actualizados[index], ...data };
+          return actualizados;
+        }
+
+        return prevPacientes;
+      });
+    });
+
+    //* Limpieza al desmontar el componente
+    return () => {
+      channel.unbind_all();
+      channel.unsubscribe();
+      pusher.disconnect();
     };
-
-    cargarTodasLasConsultas(); //* Llama a todas las funciones inmediatamente
-
-    const interval = setInterval(cargarTodasLasConsultas, 5000);
-
-    return () => clearInterval(interval); //* Limpia el intervalo al desmontar el componente
-  }, []);
+  }, [cargarPacientesDelDia]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-900 to-black text-white px-4 py-8 md:px-12 flex flex-col items-center pt-10">
@@ -510,25 +578,33 @@ const SignosVitales = () => {
               </tr>
             </thead>
             <tbody>
-              {pacientes.map((paciente, index) => (
-                <tr
-                  key={index}
-                  className="bg-gray-700 bg-opacity-50 hover:bg-gradient-to-r from-yellow-500 to-yellow-700 transition duration-300 ease-in-out rounded-lg shadow-md"
-                >
-                  <td className="py-4 px-6 font-medium text-center">
-                    {paciente.clavenomina || "N/A"}
-                  </td>
-                  <td className="py-4 px-6 text-center">
-                    {paciente.nombrepaciente || "No disponible"}
-                  </td>
-                  <td className="py-4 px-6 text-center">
-                    {paciente.edad || "Desconocida"}
-                  </td>
-                  <td className="py-4 px-6 text-center">
-                    {paciente.departamento || "No asignado"}
+              {pacientes.length > 0 ? (
+                pacientes.map((paciente, index) => (
+                  <tr
+                    key={index}
+                    className="bg-gray-700 bg-opacity-50 hover:bg-gradient-to-r from-yellow-500 to-yellow-700 transition duration-300 ease-in-out rounded-lg shadow-md"
+                  >
+                    <td className="py-4 px-6 font-medium text-center">
+                      {paciente.clavenomina || "N/A"}
+                    </td>
+                    <td className="py-4 px-6 text-center">
+                      {paciente.nombrepaciente || "No disponible"}
+                    </td>
+                    <td className="py-4 px-6 text-center">
+                      {paciente.edad || "Desconocida"}
+                    </td>
+                    <td className="py-4 px-6 text-center">
+                      {paciente.departamento || "No asignado"}
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="4" className="text-center py-4 text-gray-400">
+                    No hay consultas para el día de hoy.
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>
