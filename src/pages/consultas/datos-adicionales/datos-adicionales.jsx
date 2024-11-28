@@ -98,7 +98,7 @@ const DatosAdicionales = ({
       )}
 
       {subPantalla === "Medicamentos" && (
-        <Medicamentos 
+        <Medicamentos
           clavenomina={numeroDeNomina}
           nombrePaciente={nombrePaciente}
           claveConsulta={claveConsulta}
@@ -116,8 +116,13 @@ const DatosAdicionales = ({
           observaciones={observaciones}
           setObservaciones={setObservaciones}
           setFormularioCompleto={setFormularioCompleto}
+          nombreMedico={nombreMedico}
+          claveEspecialidad={claveEspecialidad}
+          nombrePaciente={nombrePaciente}
+          numeroDeNomina={numeroDeNomina}
         />
       )}
+
       {subPantalla === "Incapacidades" && <Incapacidades />}
       {subPantalla === "Historial de Consultas" && (
         <HistorialConsultas

@@ -317,7 +317,6 @@ const Diagnostico = () => {
     setMostrarEmergente(true);
     setClaveConsulta(paciente.claveconsulta);
 
-    //* Establecer los signos vitales del paciente
     setSignosVitales({
       ta: paciente.presionarterialpaciente || "",
       temperatura: paciente.temperaturapaciente || "",
@@ -328,7 +327,6 @@ const Diagnostico = () => {
       glucosa: paciente.glucosapaciente || "",
     });
 
-    //* Establecer alergias y datos editados
     setAlergias(paciente.alergias || "");
     setDatosEditados({
       signosVitales: {
@@ -343,7 +341,6 @@ const Diagnostico = () => {
       alergias: paciente.alergias || "",
     });
 
-    //* Establecer el tipo de consulta (beneficiario o empleado)
     if (paciente.parentesco_desc) {
       setConsultaSeleccionada("beneficiario");
       setSelectedBeneficiary({
@@ -355,10 +352,8 @@ const Diagnostico = () => {
       setSelectedBeneficiary(null);
     }
 
-    //* Obtener datos del empleado
     await obtenerDatosEmpleado(paciente.clavenomina);
 
-    //* Cambiar el clavestatus del paciente a 2 (seleccionado)
     try {
       const response = await fetch(
         "/api/pacientes-consultas/actualizarClavestatus",
@@ -376,7 +371,6 @@ const Diagnostico = () => {
         throw new Error("Error al actualizar clavestatus.");
       }
 
-      //* Actualizar la lista de pacientes en tiempo real sin recargar
       setPacientes((prevPacientes) =>
         prevPacientes.map((p) =>
           p.claveconsulta === paciente.claveconsulta
@@ -385,15 +379,17 @@ const Diagnostico = () => {
         )
       );
 
-      //* Desplazarse automáticamente hacia la subpantalla
-      subPantallaRef.current?.scrollIntoView({ behavior: "smooth" });
+      //* Desplazarse suavemente hacia la subpantalla con animación elegante
+      subPantallaRef.current?.scrollIntoView({
+        behavior: "smooth", // Animación suave
+        block: "start", // Alineación al inicio de la subpantalla
+      });
     } catch (error) {
       console.error(
         "Error al actualizar clavestatus al seleccionar paciente:",
         error
       );
 
-      //! Mostrar mensaje de error al usuario
       MySwal.fire({
         icon: "error",
         title:
@@ -674,7 +670,7 @@ const Diagnostico = () => {
 
       {pacienteSeleccionado && (
         <div
-          ref={subPantallaRef} // Asigna la referencia aquí
+          ref={subPantallaRef}
           className="bg-gray-800 p-4 md:p-6 rounded-lg shadow-lg"
         >
           <div className="bg-gray-800 p-4 md:p-6 rounded-lg shadow-lg">

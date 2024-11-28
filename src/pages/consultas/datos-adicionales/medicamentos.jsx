@@ -109,24 +109,40 @@ const Medicamentos = ({
           med.tratamiento &&
           med.piezas > 0
         ) {
+          const datos = {
+            ...med,
+            nombrePaciente,
+            clavenomina,
+            claveConsulta,
+            fecha: fechaActual,
+            nombreMedico,
+            claveEspecialidad,
+          };
+
+          // Log para verificar los datos antes de enviarlos
+          console.log("Datos enviados al backend:", datos);
+
           //* Guardar en el backend
           const response = await fetch("/api/medicamentos/guardar", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              ...med,
-              nombrePaciente,
-              clavenomina,
-              claveConsulta,
-              fecha: fechaActual,
-              nombreMedico,
-              claveEspecialidad,
-            }),
+            body: JSON.stringify(datos),
           });
 
           if (!response.ok) {
+            const errorData = await response.json();
+            console.error(
+              "Error en el servidor al guardar medicamento:",
+              errorData
+            );
             throw new Error("Error al guardar en el servidor");
           }
+
+          // Log para confirmar el guardado exitoso en el servidor
+          console.log(
+            "Medicamento guardado exitosamente en el servidor:",
+            datos
+          );
 
           //* Guardar localmente para actualizar el historial después
           medicamentosGuardados.push({
@@ -146,6 +162,10 @@ const Medicamentos = ({
       const historialData = await historialResponse.json();
 
       if (historialData.ok) {
+        console.log(
+          "Historial actualizado exitosamente:",
+          historialData.historial
+        );
         setHistorialMedicamentos(historialData.historial || []);
       } else {
         console.error("Error al actualizar el historial:", historialData.error);
@@ -289,8 +309,7 @@ const Medicamentos = ({
           </div>
         </div>
       ))}
-
-      <div className="text-right mt-6">
+      <div className="text-right mt-6 mb-10">
         <button
           onClick={guardarMedicamentoEnHistorial}
           disabled={!botonHabilitado}
@@ -304,8 +323,7 @@ const Medicamentos = ({
         </button>
       </div>
       <div className="bg-gray-900 p-6 md:p-8 rounded-xl shadow-2xl mb-6">
-        <p></p>
-        <h2 className="text-2xl md:text-4xl font-semibold mb-4 text-center text-purple-400">
+        <h2 className="text-2xl md:text-4xl font-semibold mb-6 text-center text-purple-400">
           Historial de Medicamentos Otorgados
         </h2>
         <div className="overflow-x-auto">
