@@ -6,12 +6,12 @@ const Antecedentes = ({ clavenomina, nombrePaciente }) => {
   const [fechaInicioEnfermedad, setFechaInicioEnfermedad] = useState("");
   const [antecedentes, setAntecedentes] = useState([]);
 
-  // Cargar antecedentes desde la API
+  //* Cargar antecedentes desde la API
   useEffect(() => {
     const fetchAntecedentes = async () => {
       try {
         const response = await fetch(
-          `/api/obtenerAntecedentes?clavenomina=${clavenomina}`
+          `/api/antecedentes/obtenerAntecedentes?clavenomina=${clavenomina}`
         );
         if (response.ok) {
           const data = await response.json();
@@ -29,7 +29,7 @@ const Antecedentes = ({ clavenomina, nombrePaciente }) => {
     fetchAntecedentes();
   }, [clavenomina]);
 
-  // Guardar un nuevo antecedente
+  //* Guardar un nuevo antecedente
   const handleGuardarAntecedente = async () => {
     if (!descripcion || !tipoAntecedente || !fechaInicioEnfermedad) {
       alert("Por favor, completa todos los campos.");
@@ -37,7 +37,7 @@ const Antecedentes = ({ clavenomina, nombrePaciente }) => {
     }
 
     try {
-      const response = await fetch("/api/guardarAntecedente", {
+      const response = await fetch("/api/antecedentes/guardarAntecedente", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

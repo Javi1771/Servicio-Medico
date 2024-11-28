@@ -1,22 +1,22 @@
 import Pusher from "pusher";
-import https from "https";  // Asegúrate de importar el módulo https
+import https from "https";  
 
-// Crea un agente HTTPS personalizado para permitir certificados autofirmados
+//* Crear un agente HTTPS personalizado para permitir certificados autofirmados
 const httpsAgent = new https.Agent({
-  rejectUnauthorized: false, // Permite certificados autofirmados
+  rejectUnauthorized: false, //* Permite certificados autofirmados
 });
 
-// Configuración de Pusher
+//* Configuración de Pusher
 const pusher = new Pusher({
   appId: process.env.PUSHER_APP_ID,
   key: process.env.PUSHER_KEY,
   secret: process.env.PUSHER_SECRET,
   cluster: process.env.PUSHER_CLUSTER,
   useTLS: true,
-  agent: httpsAgent, // Usar el agente HTTPS personalizado
+  agent: httpsAgent, //* Usar el agente HTTPS personalizado
 });
 
-// Exporta el handler para manejar solicitudes HTTP
+//* Exporta el handler para manejar solicitudes HTTP
 async function handler(req, res) {
   if (req.method === "POST") {
     const { channel, event, data } = req.body;
@@ -33,5 +33,4 @@ async function handler(req, res) {
   }
 }
 
-// Exporta tanto el handler como la instancia de Pusher
 export { handler as default, pusher };

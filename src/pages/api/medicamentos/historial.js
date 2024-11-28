@@ -21,6 +21,7 @@ export default async function handler(req, res) {
           nombre_paciente
         FROM [PRESIDENCIA].[dbo].[MEDICAMENTO_PACIENTE]
         WHERE nombre_paciente = @nombrePaciente
+        ORDER BY [fecha_otorgacion] DESC
       `;
       const result = await pool.request().input("nombrePaciente", nombrePaciente).query(query);
 

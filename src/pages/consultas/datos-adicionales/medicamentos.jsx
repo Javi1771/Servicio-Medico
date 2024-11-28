@@ -17,10 +17,9 @@ const formatearFecha = (fecha) => {
   return fechaFormateada;
 };
 
-
 const Medicamentos = ({ clavenomina, nombrePaciente, claveConsulta }) => {
   const [medicamentos, setMedicamentos] = useState([
-    { ean: "", medicamento: "", piezas: 0, indicaciones: "", tratamiento: "" },
+    { ean: "", medicamento: "", piezas: "", indicaciones: "", tratamiento: "" },
   ]);
   const [listaMedicamentos, setListaMedicamentos] = useState([]);
   const [historialMedicamentos, setHistorialMedicamentos] = useState([]);
@@ -62,7 +61,7 @@ const Medicamentos = ({ clavenomina, nombrePaciente, claveConsulta }) => {
       {
         ean: "",
         medicamento: "",
-        piezas: 0,
+        piezas: "",
         indicaciones: "",
         tratamiento: "",
       },
@@ -94,7 +93,9 @@ const Medicamentos = ({ clavenomina, nombrePaciente, claveConsulta }) => {
 
   const guardarMedicamentoEnHistorial = async () => {
     try {
-      const fechaActual = new Date().toLocaleDateString();
+      const fechaActual = new Date().toISOString();
+      const medicamentosGuardados = [];
+
       for (const med of medicamentos) {
         if (
           med.medicamento &&
@@ -102,7 +103,8 @@ const Medicamentos = ({ clavenomina, nombrePaciente, claveConsulta }) => {
           med.tratamiento &&
           med.piezas > 0
         ) {
-          await fetch("/api/medicamentos/guardar", {
+          //* Guardar en el backend
+          const response = await fetch("/api/medicamentos/guardar", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -110,30 +112,47 @@ const Medicamentos = ({ clavenomina, nombrePaciente, claveConsulta }) => {
               nombrePaciente,
               clavenomina,
               claveConsulta,
+              fecha: fechaActual,
             }),
           });
 
-          const nuevoHistorial = {
+          if (!response.ok) {
+            throw new Error("Error al guardar en el servidor");
+          }
+
+          //* Guardar localmente para actualizar el historial después
+          medicamentosGuardados.push({
+            ...med,
             fecha: fechaActual,
-            medicamento: med.medicamento,
-            piezas: med.piezas,
-            indicaciones: med.indicaciones,
-            tratamiento: med.tratamiento,
             diagnostico: "General",
-          };
-          setHistorialMedicamentos((prevHistorial) => [
-            ...prevHistorial,
-            nuevoHistorial,
-          ]);
+          });
         }
       }
 
-      //! Resetear medicamentos después de guardar
+      //* Actualizar historial después de guardar en el servidor
+      const historialResponse = await fetch(
+        `/api/medicamentos/historial?nombrePaciente=${encodeURIComponent(
+          nombrePaciente
+        )}`
+      );
+      const historialData = await historialResponse.json();
+
+      if (historialData.ok) {
+        setHistorialMedicamentos(historialData.historial || []);
+      } else {
+        console.error("Error al actualizar el historial:", historialData.error);
+        setHistorialMedicamentos((prevHistorial) => [
+          ...prevHistorial,
+          ...medicamentosGuardados,
+        ]);
+      }
+
+      //* Resetear medicamentos después de guardar
       setMedicamentos([
         {
           ean: "",
           medicamento: "",
-          piezas: 0,
+          piezas: "",
           indicaciones: "",
           tratamiento: "",
         },
@@ -276,45 +295,78 @@ const Medicamentos = ({ clavenomina, nombrePaciente, claveConsulta }) => {
           Guardar Medicamento en Historial
         </button>
       </div>
-
-      <div className="bg-gray-700 p-4 md:p-6 rounded-lg shadow-lg mt-8">
-        <h3 className="text-2xl md:text-3xl font-bold mb-4 md:mb-6 text-white">
+      <div className="bg-gray-900 p-6 md:p-8 rounded-xl shadow-2xl mb-6">
+      <p></p>
+        <h2 className="text-2xl md:text-4xl font-semibold mb-4 text-center text-purple-400">
           Historial de Medicamentos Otorgados
-        </h3>
-        <table className="min-w-full bg-gray-800 rounded-lg text-left">
-          <thead>
-            <tr className="bg-gray-700 text-white">
-              <th className="p-3">Fecha</th>
-              <th className="p-3">Medicamento</th>
-              <th className="p-3">Piezas</th>
-              <th className="p-3">Indicaciones</th>
-              <th className="p-3">Tratamiento</th>
-              <th className="p-3">Diagnostico</th>
-              <th className="p-3">Motivo de Consulta</th>
-            </tr>
-          </thead>
-          <tbody>
-            {historialMedicamentos.length > 0 ? (
-              historialMedicamentos.map((h, i) => (
-                <tr key={i} className="hover:bg-gray-600">
-                  <td className="p-3">{formatearFecha(h.fecha)}</td>
-                  <td className="p-3">{h.medicamento}</td>
-                  <td className="p-3">{h.piezas}</td>
-                  <td className="p-3">{h.indicaciones}</td>
-                  <td className="p-3">{h.tratamiento}</td>
-                  <td className="p-3">{h.diagnostico || "N/A"}</td>
-                  <td className="p-3">{h.motivoConsulta || "N/A"}</td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="7" className="text-center py-4 text-gray-400">
-                  No hay medicamentos registrados en el historial.
-                </td>
+        </h2>
+        <div className="overflow-x-auto">
+          <table className="min-w-full rounded-lg text-left">
+            <thead>
+              <tr className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white border-b border-gray-700">
+                <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
+                  Fecha
+                </th>
+                <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
+                  Medicamento
+                </th>
+                <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
+                  Piezas
+                </th>
+                <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
+                  Indicaciones
+                </th>
+                <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
+                  Tratamiento
+                </th>
+                <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
+                  Diagnóstico
+                </th>
+                <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
+                  Motivo de Consulta
+                </th>
               </tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {historialMedicamentos.length > 0 ? (
+                historialMedicamentos.map((h, i) => (
+                  <tr
+                    key={i}
+                    className="hover:bg-purple-600 hover:bg-opacity-50 transition-colors duration-300"
+                  >
+                    <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
+                      {formatearFecha(h.fecha)}
+                    </td>
+                    <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
+                      {h.medicamento}
+                    </td>
+                    <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
+                      {h.piezas}
+                    </td>
+                    <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
+                      {h.indicaciones}
+                    </td>
+                    <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
+                      {h.tratamiento}
+                    </td>
+                    <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
+                      {h.diagnostico || "N/A"}
+                    </td>
+                    <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
+                      {h.motivoConsulta || "N/A"}
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="7" className="text-center py-4 text-gray-400">
+                    No hay medicamentos registrados en el historial.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
