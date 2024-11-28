@@ -26,19 +26,30 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
     e.preventDefault();
 
     Swal.fire({
-      title: "¿Estás seguro?",
-      text: "Los cambios serán permanentes.",
+      title: "<span style='color: #ffffff; font-weight: bold;'>¿Estás seguro?</span>",
+      html: "<p style='color: #ffffff; font-size: 1.1rem;'>Los cambios serán permanentes.</p>",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
+      confirmButtonColor: "#ff9800", // Botón de confirmación naranja
+      cancelButtonColor: "#d33", // Botón de cancelación rojo
       confirmButtonText: "Sí, guardar cambios",
       cancelButtonText: "Cancelar",
+      background: "#222234f7", // Fondo gris oscuro
+      customClass: {
+        popup: "custom-popup", // Clase para personalización adicional
+      },
+      didOpen: () => {
+        const popup = Swal.getPopup();
+        popup.style.boxShadow =
+          "0px 0px 20px 4px rgba(255, 152, 0, 0.9), 0px 0px 30px 10px rgba(255, 152, 0, 0.6)"; // Sombra neón naranja
+        popup.style.borderRadius = "15px"; // Esquinas redondeadas opcionales
+      },
     }).then((result) => {
       if (result.isConfirmed) {
         onEdit?.(formData); // Realiza el update directamente
       }
     });
+    
   };
 
   return (

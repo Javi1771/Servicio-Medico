@@ -42,9 +42,20 @@ export const useMedicamentos = () => {
       if (response.ok) {
         Swal.fire({
           icon: "success",
-          title: "Registrado",
-          text: "El medicamento fue registrado exitosamente al inventario.",
+          title: "<span style='color: #ffffff; font-weight: bold;'>Registrado</span>",
+          html: "<p style='color: #ffffff; font-size: 1.1rem;'>El medicamento fue registrado exitosamente.</p>",
+          background: "#222234f7", // Fondo gris container
+          customClass: {
+            popup: "custom-popup",
+          },
+          didOpen: () => {
+            const popup = Swal.getPopup();
+            popup.style.boxShadow =
+              "0px 0px 20px 4px rgba(76, 175, 80, 0.9), 0px 0px 30px 10px rgba(76, 175, 80, 0.6)";
+            popup.style.borderRadius = "15px"; // Esquinas redondeadas opcionales
+          },
         });
+
         fetchMedicamentos(); // Actualizar la tabla
       } else {
         // Mostrar alerta si la sustancia ya existe
@@ -69,16 +80,26 @@ export const useMedicamentos = () => {
 const deleteMedicamento = async (id) => {
   // Preguntar si el usuario quiere confirmar la eliminación
   const result = await Swal.fire({
-    title: "¿Estás seguro?",
-    text: "confirma si quieres eliminar este medicamento del inventario",
+    title: "<span style='color: #ffffff; font-weight: bold;'>¿Estás seguro?</span>",
+    html: "<p style='color: #ffffff; font-size: 1.1rem;'>Confirma si quieres eliminar este medicamento del inventario</p>",
     icon: "warning",
     showCancelButton: true,
     confirmButtonColor: "#d33",
     cancelButtonColor: "#3085d6",
-    confirmButtonText: "Sí, eliminar",
-    cancelButtonText: "Cancelar",
+    confirmButtonText: "<span style='color: #fff; font-weight: bold;'>Sí, eliminar</span>",
+    cancelButtonText: "<span style='color: #fff;'>Cancelar</span>",
+    background: "#222234f7", // Fondo gris container
+    customClass: {
+      popup: "custom-popup",
+    },
+    didOpen: () => {
+      const popup = Swal.getPopup();
+      popup.style.boxShadow =
+        "0px 0px 20px 4px rgba(255, 76, 76, 0.9), 0px 0px 30px 10px rgba(255, 76, 76, 0.6)";
+      popup.style.borderRadius = "15px"; // Esquinas redondeadas opcionales
+    },
   });
-
+  
   if (result.isConfirmed) {
     try {
       const response = await fetch("/api/farmacia/eliminarMedicamento", {
@@ -89,12 +110,22 @@ const deleteMedicamento = async (id) => {
 
       const data = await response.json();
       if (response.ok) {
-        // Mostrar mensaje de éxito
         Swal.fire({
           icon: "success",
-          title: "Eliminado",
-          text: "El medicamento fue eliminado exitosamente.",
+          title: "<span style='color: #ffffff; font-weight: bold;'>Eliminado</span>",
+          html: "<p style='color: #ffffff; font-size: 1.1rem;'>El medicamento fue eliminado exitosamente.</p>",
+          background: "#222234f7", // Fondo gris container
+          customClass: {
+            popup: "custom-popup",
+          },
+          didOpen: () => {
+            const popup = Swal.getPopup();
+            popup.style.boxShadow =
+              "0px 0px 20px 4px rgba(76, 175, 80, 0.9), 0px 0px 30px 10px rgba(76, 175, 80, 0.6)";
+            popup.style.borderRadius = "15px"; // Esquinas redondeadas opcionales
+          },
         });
+        
 
         // Actualizar la lista de medicamentos
         fetchMedicamentos();
@@ -134,8 +165,18 @@ const deleteMedicamento = async (id) => {
     if (response.ok) {
       Swal.fire({
         icon: "success",
-        title: "Éxito",
-        text: "Medicamento editado correctamente.",
+        title: "<span style='color: #ffffff; font-weight: bold;'>Exito</span>",
+        html: "<p style='color: #ffffff; font-size: 1.1rem;'>El medicamento fue editado exitosamente.</p>",
+        background: "#222234f7", // Fondo gris container
+        customClass: {
+          popup: "custom-popup",
+        },
+        didOpen: () => {
+          const popup = Swal.getPopup();
+          popup.style.boxShadow =
+            "0px 0px 20px 4px rgba(76, 175, 80, 0.9), 0px 0px 30px 10px rgba(76, 175, 80, 0.6)";
+          popup.style.borderRadius = "15px"; // Esquinas redondeadas opcionales
+        },
       });
 
       // Actualizar la lista de medicamentos

@@ -26,7 +26,11 @@ ChartJS.register(
 const MedicamentosChart = () => {
   const [barChartData, setBarChartData] = useState(null); // Datos para gráfico de barras
   const [pieChartData, setPieChartData] = useState(null); // Datos para gráfico circular
+  const [barCurrentPage, setBarCurrentPage] = useState(0); // Página actual del gráfico de barras
+  const [pieCurrentPage, setPieCurrentPage] = useState(0); // Página actual del gráfico circular
   const [error, setError] = useState(null);
+
+  const ITEMS_PER_PAGE = 10; // Número de elementos por página
 
   // Datos de medicamentos registrados (gráfico de barras)
   const fetchMedicamentosData = async () => {
@@ -35,21 +39,8 @@ const MedicamentosChart = () => {
       const data = await response.json();
 
       if (response.ok) {
-        const labels = data.map((medicamento) => medicamento.sustancia);
-        const cantidades = data.map((medicamento) => medicamento.piezas);
-
-        setBarChartData({
-          labels,
-          datasets: [
-            {
-              label: "Cantidad de Piezas Registradas",
-              data: cantidades,
-              backgroundColor: "rgba(75, 192, 192, 0.5)",
-              borderColor: "rgba(75, 192, 192, 1)",
-              borderWidth: 1,
-            },
-          ],
-        });
+        const sortedData = data.sort((a, b) => b.piezas - a.piezas); // Ordenar por piezas
+        paginateBarData(sortedData); // Generar datos paginados
       } else {
         setError(data.message || "Error al obtener los medicamentos registrados");
       }
@@ -68,42 +59,20 @@ const MedicamentosChart = () => {
       if (response.ok) {
         const sustanciasMap = {};
         data.forEach((movimiento) => {
+          const piezasOtorgadas = Number(movimiento.piezas_otorgadas);
           if (sustanciasMap[movimiento.sustancia]) {
-            sustanciasMap[movimiento.sustancia] += movimiento.piezas_otorgadas;
+            sustanciasMap[movimiento.sustancia] += piezasOtorgadas;
           } else {
-            sustanciasMap[movimiento.sustancia] = movimiento.piezas_otorgadas;
+            sustanciasMap[movimiento.sustancia] = piezasOtorgadas;
           }
         });
 
-        const labels = Object.keys(sustanciasMap);
-        const cantidades = Object.values(sustanciasMap);
-
-        setPieChartData({
-          labels,
-          datasets: [
-            {
-              label: "Piezas Otorgadas",
-              data: cantidades,
-              backgroundColor: [
-                "rgba(255, 99, 132, 0.5)",
-                "rgba(54, 162, 235, 0.5)",
-                "rgba(255, 206, 86, 0.5)",
-                "rgba(75, 192, 192, 0.5)",
-                "rgba(153, 102, 255, 0.5)",
-                "rgba(255, 159, 64, 0.5)",
-              ],
-              borderColor: [
-                "rgba(255, 99, 132, 1)",
-                "rgba(54, 162, 235, 1)",
-                "rgba(255, 206, 86, 1)",
-                "rgba(75, 192, 192, 1)",
-                "rgba(153, 102, 255, 1)",
-                "rgba(255, 159, 64, 1)",
-              ],
-              borderWidth: 1,
-            },
-          ],
-        });
+        const sustanciasArray = Object.entries(sustanciasMap).map(([sustancia, piezas]) => ({
+          sustancia,
+          piezas,
+        }));
+        sustanciasArray.sort((a, b) => b.piezas - a.piezas); // Ordenar por piezas
+        paginatePieData(sustanciasArray); // Generar datos paginados
       } else {
         setError(data.message || "Error al obtener los movimientos");
       }
@@ -113,53 +82,107 @@ const MedicamentosChart = () => {
     }
   };
 
+  // Generar datos paginados para el gráfico de barras
+  const paginateBarData = (data) => {
+    const start = barCurrentPage * ITEMS_PER_PAGE;
+    const end = start + ITEMS_PER_PAGE;
+    const currentData = data.slice(start, end);
+
+    const labels = currentData.map((medicamento) => medicamento.sustancia);
+    const cantidades = currentData.map((medicamento) => medicamento.piezas);
+
+    setBarChartData({
+      labels,
+      datasets: [
+        {
+          label: `Cantidad de Piezas Registradas (Página ${barCurrentPage + 1})`,
+          data: cantidades,
+          backgroundColor: "rgba(75, 192, 192, 0.5)",
+          borderColor: "rgba(75, 192, 192, 1)",
+          borderWidth: 1,
+        },
+      ],
+    });
+  };
+
+  // Generar datos paginados para el gráfico circular
+  const paginatePieData = (data) => {
+    const start = pieCurrentPage * ITEMS_PER_PAGE;
+    const end = start + ITEMS_PER_PAGE;
+    const currentData = data.slice(start, end);
+
+    const labels = currentData.map((item) => item.sustancia);
+    const cantidades = currentData.map((item) => item.piezas);
+
+    setPieChartData({
+      labels,
+      datasets: [
+        {
+          label: `Piezas Otorgadas (Página ${pieCurrentPage + 1})`,
+          data: cantidades,
+          backgroundColor: [
+            "rgba(255, 99, 132, 0.5)",
+            "rgba(54, 162, 235, 0.5)",
+            "rgba(255, 206, 86, 0.5)",
+            "rgba(75, 192, 192, 0.5)",
+            "rgba(153, 102, 255, 0.5)",
+            "rgba(255, 159, 64, 0.5)",
+          ],
+          borderColor: [
+            "rgba(255, 99, 132, 1)",
+            "rgba(54, 162, 235, 1)",
+            "rgba(255, 206, 86, 1)",
+            "rgba(75, 192, 192, 1)",
+            "rgba(153, 102, 255, 1)",
+            "rgba(255, 159, 64, 1)",
+          ],
+          borderWidth: 1,
+        },
+      ],
+    });
+  };
+
   // Llamar a ambas APIs al cargar el componente
   useEffect(() => {
     fetchMedicamentosData();
     fetchMovimientosData();
-  }, []);
+  }, [barCurrentPage, pieCurrentPage]);
 
-   // Opciones globales para gráficos con letras en blanco
-   const commonOptions = {
+  // Opciones globales para gráficos con letras en blanco
+  const commonOptions = {
     responsive: true,
+    maintainAspectRatio: false, // Permitir que el gráfico ocupe un tamaño personalizado
     plugins: {
       legend: {
         labels: {
-          color: "#FFFFFF", // Color de las etiquetas de la leyenda
+          color: "#FFFFFF",
         },
       },
       title: {
         display: true,
-        color: "#FFFFFF", // Color del título
-        font: {
-          size: 16, // Tamaño del título
-        },
-      },
-      tooltip: {
-        bodyColor: "#FFFFFF", // Color del texto del cuerpo del tooltip
-        titleColor: "#FFFFFF", // Color del título del tooltip
+        color: "#FFFFFF",
       },
     },
     scales: {
       x: {
         ticks: {
-          color: "#FFFFFF", // Color de las etiquetas del eje X
+          color: "#FFFFFF",
         },
         grid: {
-          color: "rgba(255, 255, 255, 0.2)", // Líneas del eje X
+          color: "rgba(255, 255, 255, 0.2)",
         },
       },
       y: {
         ticks: {
-          color: "#FFFFFF", // Color de las etiquetas del eje Y
+          color: "#FFFFFF",
         },
         grid: {
-          color: "rgba(255, 255, 255, 0.2)", // Líneas del eje Y
+          color: "rgba(255, 255, 255, 0.2)",
         },
       },
     },
   };
-
+  
   return (
     <div className={styles.chartContainer}>
       <h2 className={styles.title}>Gráficos de Medicamentos</h2>
@@ -171,13 +194,32 @@ const MedicamentosChart = () => {
           <div className={styles.card}>
             <h3 className={styles.chartTitle}>Gráfico de Barras</h3>
             {barChartData ? (
-              <div className={styles.chartCanvas}>
-                <Bar data={barChartData} options={commonOptions} />
-              </div>
+              <>
+                <Bar
+                  data={barChartData}
+                  options={{
+                    ...commonOptions,
+                    maintainAspectRatio: true,
+                  }}
+                  height={300}
+                />
+                <div className={styles.paginationButtons}>
+                  <button
+                    className={styles.prevButton}
+                    onClick={() => setBarCurrentPage(Math.max(barCurrentPage - 1, 0))}
+                  >
+                    ⬅
+                  </button>
+                  <button
+                    className={styles.nextButton}
+                    onClick={() => setBarCurrentPage(barCurrentPage + 1)}
+                  >
+                    ➡
+                  </button>
+                </div>
+              </>
             ) : (
-              <p className={styles.loading}>
-                Cargando datos del gráfico de barras...
-              </p>
+              <p className={styles.loading}>Cargando datos del gráfico de barras...</p>
             )}
           </div>
 
@@ -185,13 +227,32 @@ const MedicamentosChart = () => {
           <div className={styles.card}>
             <h3 className={styles.chartTitle}>Gráfico Circular</h3>
             {pieChartData ? (
-              <div className={styles.chartCanvas}>
-                <Pie data={pieChartData} options={commonOptions} />
-              </div>
+              <>
+                <Pie
+                  data={pieChartData}
+                  options={{
+                    ...commonOptions,
+                    maintainAspectRatio: true,
+                  }}
+                  height={300}
+                />
+                <div className={styles.paginationButtons}>
+                  <button
+                    className={styles.prevButton}
+                    onClick={() => setPieCurrentPage(Math.max(pieCurrentPage - 1, 0))}
+                  >
+                    ⬅
+                  </button>
+                  <button
+                    className={styles.nextButton}
+                    onClick={() => setPieCurrentPage(pieCurrentPage + 1)}
+                  >
+                    ➡
+                  </button>
+                </div>
+              </>
             ) : (
-              <p className={styles.loading}>
-                Cargando datos del gráfico circular...
-              </p>
+              <p className={styles.loading}>Cargando datos del gráfico circular...</p>
             )}
           </div>
         </div>
