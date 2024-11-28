@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Swal from "sweetalert2";
 import Image from "next/image";
 import Pusher from "pusher-js";
 import withReactContent from "sweetalert2-react-content";
 import DatosAdicionales from "./datos-adicionales/datos-adicionales";
-import Cookies from "js-cookie"; 
+import Cookies from "js-cookie";
 
 const MySwal = withReactContent(Swal);
 
@@ -24,6 +24,7 @@ const formatearFecha = (fecha) => {
 };
 
 const Diagnostico = () => {
+  const subPantallaRef = useRef(null);
   const [nombreMedico, setNombreMedico] = useState("Cargando...");
   const [claveEspecialidad, setClaveEspecialidad] = useState("");
   const [claveConsulta, setClaveConsulta] = useState("");
@@ -64,16 +65,15 @@ const Diagnostico = () => {
   const [guardadoExitoso, setGuardadoExitoso] = useState(false);
   const [formularioCompleto, setFormularioCompleto] = useState(false);
 
-
-   //* Leer nombre del médico desde las cookies
-   useEffect(() => {
+  //* Leer nombre del médico desde las cookies
+  useEffect(() => {
     const nombre = Cookies.get("nombreusuario"); //* Obtén el valor desde las cookies
     console.log("Nombre del médico desde cookies:", nombre);
     setNombreMedico(nombre || "No especificado");
 
     const especialidad = Cookies.get("claveespecialidad");
     console.log("Clave especialidad: ", especialidad);
-    setClaveEspecialidad(especialidad || "No especificado")
+    setClaveEspecialidad(especialidad || "No especificado");
   }, []);
 
   //* Verifica si todos los campos requeridos están completos
@@ -384,6 +384,9 @@ const Diagnostico = () => {
             : p
         )
       );
+
+      //* Desplazarse automáticamente hacia la subpantalla
+      subPantallaRef.current?.scrollIntoView({ behavior: "smooth" });
     } catch (error) {
       console.error(
         "Error al actualizar clavestatus al seleccionar paciente:",
@@ -611,7 +614,7 @@ const Diagnostico = () => {
             Consulta General
           </h1>
         </div>
-       <div className="text-sm md:text-lg mt-4 md:mt-0">
+        <div className="text-sm md:text-lg mt-4 md:mt-0">
           <span className="font-semibold">Médico: </span>
           {nombreMedico}
         </div>
@@ -670,116 +673,124 @@ const Diagnostico = () => {
       </div>
 
       {pacienteSeleccionado && (
-        <div className="bg-gray-800 p-4 md:p-6 rounded-lg shadow-lg">
-          <div className="mb-4 md:mb-8">
-            <ul className="list-disc pl-5 text-sm md:text-base">
-              <li className="flex items-center">
-                <span className="font-semibold">Folio:</span>
-                <span className="ml-1">{claveConsulta}</span>
-              </li>
-              <li className="flex items-center">
-                <span className="font-semibold">Fecha:</span>
-                <span className="ml-1">{formatearFecha(fecha)}</span>
-              </li>
-            </ul>
-          </div>
-
-          <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-8 mb-8">
-            <div>
-              <Image
-                src={fotoEmpleado || "/user_icon_.png"}
-                alt="Empleado"
-                width={160}
-                height={160}
-                className="h-24 w-24 md:h-40 md:w-40 object-cover rounded-full bg-gray-600"
-              />
+        <div
+          ref={subPantallaRef} // Asigna la referencia aquí
+          className="bg-gray-800 p-4 md:p-6 rounded-lg shadow-lg"
+        >
+          <div className="bg-gray-800 p-4 md:p-6 rounded-lg shadow-lg">
+            <div className="mb-4 md:mb-8">
+              <ul className="list-disc pl-5 text-sm md:text-base">
+                <li className="flex items-center">
+                  <span className="font-semibold">Folio:</span>
+                  <span className="ml-1">{claveConsulta}</span>
+                </li>
+                <li className="flex items-center">
+                  <span className="font-semibold">Fecha:</span>
+                  <span className="ml-1">{formatearFecha(fecha)}</span>
+                </li>
+              </ul>
             </div>
-            <div className="bg-gray-700 p-4 rounded flex-1 shadow-lg transition duration-300 hover:shadow-xl">
-              <h2 className="text-md md:text-lg font-bold mb-2">
-                Datos del Paciente
-              </h2>
-              <p>
-                Paciente:{" "}
-                {pacienteSeleccionado?.nombrepaciente || "No disponible"}
-              </p>
-              <p>Edad: {pacienteSeleccionado?.edad || "Desconocida"}</p>
-              <p>
-                Parentesco:{" "}
-                {consultaSeleccionada === "beneficiario" && selectedBeneficiary
-                  ? selectedBeneficiary.PARENTESCO_DESC
-                  : "Empleado(a)"}
-              </p>
+
+            <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-8 mb-8">
+              <div>
+                <Image
+                  src={fotoEmpleado || "/user_icon_.png"}
+                  alt="Empleado"
+                  width={160}
+                  height={160}
+                  className="h-24 w-24 md:h-40 md:w-40 object-cover rounded-full bg-gray-600"
+                />
+              </div>
+              <div className="bg-gray-700 p-4 rounded flex-1 shadow-lg transition duration-300 hover:shadow-xl">
+                <h2 className="text-md md:text-lg font-bold mb-2">
+                  Datos del Paciente
+                </h2>
+                <p>
+                  Paciente:{" "}
+                  {pacienteSeleccionado?.nombrepaciente || "No disponible"}
+                </p>
+                <p>Edad: {pacienteSeleccionado?.edad || "Desconocida"}</p>
+                <p>
+                  Parentesco:{" "}
+                  {consultaSeleccionada === "beneficiario" &&
+                  selectedBeneficiary
+                    ? selectedBeneficiary.PARENTESCO_DESC
+                    : "Empleado(a)"}
+                </p>
+              </div>
+              <div className="bg-gray-700 p-4 rounded-lg flex-1 shadow-lg transition duration-300 hover:shadow-xl">
+                <h2 className="text-md md:text-lg font-bold mb-2">
+                  Datos del Empleado
+                </h2>
+                <p>
+                  Nómina: {pacienteSeleccionado?.clavenomina || "No disponible"}
+                </p>
+                <p>
+                  Trabajador: {empleadoData?.nombreCompleto || "No disponible"}
+                </p>
+                <p>
+                  Departamento: {empleadoData?.departamento || "No asignado"}
+                </p>
+              </div>
             </div>
-            <div className="bg-gray-700 p-4 rounded-lg flex-1 shadow-lg transition duration-300 hover:shadow-xl">
-              <h2 className="text-md md:text-lg font-bold mb-2">
-                Datos del Empleado
-              </h2>
-              <p>
-                Nómina: {pacienteSeleccionado?.clavenomina || "No disponible"}
-              </p>
-              <p>
-                Trabajador: {empleadoData?.nombreCompleto || "No disponible"}
-              </p>
-              <p>Departamento: {empleadoData?.departamento || "No asignado"}</p>
+
+            <div className="mt-4 md:mt-6 mb-6 md:mb-12">
+              <h3 className="text-lg md:text-2xl font-bold mb-4">
+                Signos Vitales
+              </h3>
+              <form className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {Object.entries(signosVitales).map(([key, value]) => (
+                  <label key={key} className="text-sm md:text-base">
+                    {key.toUpperCase()}:
+                    <input
+                      type="text"
+                      name={key}
+                      value={value}
+                      readOnly
+                      className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white p-2"
+                    />
+                  </label>
+                ))}
+              </form>
             </div>
-          </div>
 
-          <div className="mt-4 md:mt-6 mb-6 md:mb-12">
-            <h3 className="text-lg md:text-2xl font-bold mb-4">
-              Signos Vitales
-            </h3>
-            <form className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {Object.entries(signosVitales).map(([key, value]) => (
-                <label key={key} className="text-sm md:text-base">
-                  {key.toUpperCase()}:
-                  <input
-                    type="text"
-                    name={key}
-                    value={value}
-                    readOnly
-                    className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white p-2"
-                  />
-                </label>
-              ))}
-            </form>
-          </div>
+            <DatosAdicionales
+              subPantalla={subPantalla}
+              handleSubPantallaChange={setSubPantalla}
+              setDiagnostico={setDiagnostico}
+              setMotivoConsulta={setMotivoConsulta}
+              claveConsulta={claveConsulta}
+              pasarEspecialidad={pasarEspecialidad}
+              setPasarEspecialidad={setPasarEspecialidad}
+              especialidadSeleccionada={especialidadSeleccionada}
+              setEspecialidadSeleccionada={setEspecialidadSeleccionada}
+              observaciones={observaciones}
+              setObservaciones={setObservaciones}
+              numeroDeNomina={pacienteSeleccionado?.clavenomina}
+              nombrePaciente={pacienteSeleccionado?.nombrepaciente}
+              nombreMedico={nombreMedico}
+              claveEspecialidad={claveEspecialidad}
+            />
 
-          <DatosAdicionales
-            subPantalla={subPantalla}
-            handleSubPantallaChange={setSubPantalla}
-            setDiagnostico={setDiagnostico}
-            setMotivoConsulta={setMotivoConsulta}
-            claveConsulta={claveConsulta}
-            pasarEspecialidad={pasarEspecialidad}
-            setPasarEspecialidad={setPasarEspecialidad}
-            especialidadSeleccionada={especialidadSeleccionada}
-            setEspecialidadSeleccionada={setEspecialidadSeleccionada}
-            observaciones={observaciones}
-            setObservaciones={setObservaciones}
-            numeroDeNomina={pacienteSeleccionado?.clavenomina}
-            nombrePaciente={pacienteSeleccionado?.nombrepaciente}
-            nombreMedico={nombreMedico}
-            claveEspecialidad={claveEspecialidad}
-          />
-
-          <div className="flex space-x-2 md:space-x-4 mt-4">
-            <button
-              onClick={handleGuardar}
-              disabled={!formularioCompleto}
-              className={`px-4 py-2 md:px-6 md:py-3 rounded-lg font-semibold tracking-wide transition duration-300 ease-in-out transform ${
-                formularioCompleto
-                  ? "bg-green-500 hover:bg-green-600 hover:scale-105 text-white shadow-lg"
-                  : "bg-gray-400 text-gray-300 cursor-not-allowed"
-              }`}
-            >
-              Guardar
-            </button>
-            <button
-              onClick={handleCancelar}
-              className="px-4 py-2 md:px-6 md:py-3 bg-red-500 text-white rounded-lg font-semibold tracking-wide hover:bg-red-600 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg"
-            >
-              Cancelar
-            </button>
+            <div className="flex space-x-2 md:space-x-4 mt-4">
+              <button
+                onClick={handleGuardar}
+                disabled={!formularioCompleto}
+                className={`px-4 py-2 md:px-6 md:py-3 rounded-lg font-semibold tracking-wide transition duration-300 ease-in-out transform ${
+                  formularioCompleto
+                    ? "bg-green-500 hover:bg-green-600 hover:scale-105 text-white shadow-lg"
+                    : "bg-gray-400 text-gray-300 cursor-not-allowed"
+                }`}
+              >
+                Guardar
+              </button>
+              <button
+                onClick={handleCancelar}
+                className="px-4 py-2 md:px-6 md:py-3 bg-red-500 text-white rounded-lg font-semibold tracking-wide hover:bg-red-600 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg"
+              >
+                Cancelar
+              </button>
+            </div>
           </div>
         </div>
       )}
