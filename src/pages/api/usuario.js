@@ -1,4 +1,4 @@
-import { connectToDatabase } from '../connectToDatabase';
+import { connectToDatabase } from '../api/connectToDatabase';
 
 export default async function handler(req, res) {
   try {
