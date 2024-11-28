@@ -5,7 +5,7 @@ import Image from "next/image";
 import Pusher from "pusher-js";
 import withReactContent from "sweetalert2-react-content";
 import DatosAdicionales from "./datos-adicionales/datos-adicionales";
-import Cookies from "js-cookie"; // Importar js-cookie
+import Cookies from "js-cookie"; 
 
 
 const MySwal = withReactContent(Swal);
@@ -65,9 +65,9 @@ const Diagnostico = () => {
   const [formularioCompleto, setFormularioCompleto] = useState(false);
 
 
-   // Leer nombre del médico desde las cookies
+   //* Leer nombre del médico desde las cookies
    useEffect(() => {
-    const nombre = Cookies.get("nombreusuario"); // Obtén el valor desde las cookies
+    const nombre = Cookies.get("nombreusuario"); //* Obtén el valor desde las cookies
     console.log("Nombre del médico desde cookies:", nombre);
     setNombreMedico(nombre || "No especificado");
   }, []);
@@ -162,7 +162,7 @@ const Diagnostico = () => {
 
     const channel = pusher.subscribe("consultas");
 
-    // Escucha de eventos
+    //* Escucha de eventos
     channel.bind("nueva-consulta", (data) => {
       console.log("[INFO] Nueva consulta recibida de Pusher:", data);
       setPacientes((prevPacientes) => [...prevPacientes, data]);
@@ -171,14 +171,14 @@ const Diagnostico = () => {
     channel.bind("estatus-actualizado", (data) => {
       console.log("[INFO] Estatus actualizado recibido de Pusher:", data);
       setPacientes((prevPacientes) => {
-        // Filtra la consulta si está cancelada o finalizada
+        //* Filtra la consulta si está cancelada o finalizada
         if (data.clavestatus === 3 || data.clavestatus === 4) {
           return prevPacientes.filter(
             (paciente) => paciente.claveconsulta !== data.claveConsulta
           );
         }
 
-        // Actualiza la consulta si ya existe
+        //* Actualiza la consulta si ya existe
         const index = prevPacientes.findIndex(
           (paciente) => paciente.claveconsulta === data.claveConsulta
         );
@@ -315,7 +315,7 @@ const Diagnostico = () => {
     setMostrarEmergente(true);
     setClaveConsulta(paciente.claveconsulta);
 
-    // Establecer los signos vitales del paciente
+    //* Establecer los signos vitales del paciente
     setSignosVitales({
       ta: paciente.presionarterialpaciente || "",
       temperatura: paciente.temperaturapaciente || "",
@@ -326,7 +326,7 @@ const Diagnostico = () => {
       glucosa: paciente.glucosapaciente || "",
     });
 
-    // Establecer alergias y datos editados
+    //* Establecer alergias y datos editados
     setAlergias(paciente.alergias || "");
     setDatosEditados({
       signosVitales: {
@@ -341,7 +341,7 @@ const Diagnostico = () => {
       alergias: paciente.alergias || "",
     });
 
-    // Establecer el tipo de consulta (beneficiario o empleado)
+    //* Establecer el tipo de consulta (beneficiario o empleado)
     if (paciente.parentesco_desc) {
       setConsultaSeleccionada("beneficiario");
       setSelectedBeneficiary({
@@ -353,10 +353,10 @@ const Diagnostico = () => {
       setSelectedBeneficiary(null);
     }
 
-    // Obtener datos del empleado
+    //* Obtener datos del empleado
     await obtenerDatosEmpleado(paciente.clavenomina);
 
-    // Cambiar el clavestatus del paciente a 2 (seleccionado)
+    //* Cambiar el clavestatus del paciente a 2 (seleccionado)
     try {
       const response = await fetch(
         "/api/pacientes-consultas/actualizarClavestatus",
@@ -374,7 +374,7 @@ const Diagnostico = () => {
         throw new Error("Error al actualizar clavestatus.");
       }
 
-      // Actualizar la lista de pacientes en tiempo real sin recargar
+      //* Actualizar la lista de pacientes en tiempo real sin recargar
       setPacientes((prevPacientes) =>
         prevPacientes.map((p) =>
           p.claveconsulta === paciente.claveconsulta
@@ -388,7 +388,7 @@ const Diagnostico = () => {
         error
       );
 
-      // Mostrar mensaje de error al usuario
+      //! Mostrar mensaje de error al usuario
       MySwal.fire({
         icon: "error",
         title:
