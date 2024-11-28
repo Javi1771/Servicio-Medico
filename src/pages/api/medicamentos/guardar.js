@@ -10,6 +10,7 @@ export default async function handler(req, res) {
       tratamiento,
       nombrePaciente,
       claveConsulta,
+      nombreMedico,
     } = req.body;
 
     if (
@@ -19,7 +20,8 @@ export default async function handler(req, res) {
       !indicaciones ||
       !tratamiento ||
       !nombrePaciente ||
-      !claveConsulta
+      !claveConsulta ||
+      !nombreMedico
     ) {
       return res.status(400).json({ error: "Faltan datos en la solicitud" });
     }
@@ -58,8 +60,8 @@ export default async function handler(req, res) {
       //* Insertar en historial
       const queryInsertarHistorial = `
         INSERT INTO [PRESIDENCIA].[dbo].[MEDICAMENTO_PACIENTE] 
-        (ean, sustancia, nombre_paciente, piezas_otorgadas, indicaciones, tratamiento, claveconsulta, fecha_otorgacion) 
-        VALUES (@ean, @medicamento, @nombrePaciente, @piezas, @indicaciones, @tratamiento, @claveConsulta, GETDATE())
+        (ean, sustancia, nombre_paciente, piezas_otorgadas, indicaciones, tratamiento, claveconsulta, fecha_otorgacion, nombre_medico) 
+        VALUES (@ean, @medicamento, @nombrePaciente, @piezas, @indicaciones, @tratamiento, @claveConsulta, @nombreMedico, GETDATE())
       `;
       await pool
         .request()
@@ -70,6 +72,7 @@ export default async function handler(req, res) {
         .input("indicaciones", indicaciones)
         .input("tratamiento", tratamiento)
         .input("claveConsulta", claveConsulta)
+        .input("nombreMedico", nombreMedico)
         .query(queryInsertarHistorial);
 
       res.status(200).json({ message: "Medicamento guardado exitosamente" });

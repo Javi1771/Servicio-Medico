@@ -72,8 +72,6 @@ const Diagnostico = () => {
     setNombreMedico(nombre || "No especificado");
   }, []);
 
-
-
   //* Verifica si todos los campos requeridos están completos
   useEffect(() => {
     const verificarFormularioCompleto = () => {
@@ -756,6 +754,7 @@ const Diagnostico = () => {
             setObservaciones={setObservaciones}
             numeroDeNomina={pacienteSeleccionado?.clavenomina}
             nombrePaciente={pacienteSeleccionado?.nombrepaciente}
+            nombreMedico={nombre}
           />
 
           <div className="flex space-x-2 md:space-x-4 mt-4">

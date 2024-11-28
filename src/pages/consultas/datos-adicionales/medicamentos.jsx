@@ -17,7 +17,7 @@ const formatearFecha = (fecha) => {
   return fechaFormateada;
 };
 
-const Medicamentos = ({ clavenomina, nombrePaciente, claveConsulta }) => {
+const Medicamentos = ({ clavenomina, nombrePaciente, nombreMedico, claveConsulta }) => {
   const [medicamentos, setMedicamentos] = useState([
     { ean: "", medicamento: "", piezas: "", indicaciones: "", tratamiento: "" },
   ]);
@@ -113,6 +113,7 @@ const Medicamentos = ({ clavenomina, nombrePaciente, claveConsulta }) => {
               clavenomina,
               claveConsulta,
               fecha: fechaActual,
+              nombreMedico,
             }),
           });
 
