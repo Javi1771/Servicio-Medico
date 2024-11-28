@@ -11,6 +11,8 @@ export default async function handler(req, res) {
       nombrePaciente,
       claveConsulta,
       nombreMedico,
+      claveEspecialidad,
+      clave_nomina,
     } = req.body;
 
     if (
@@ -21,7 +23,9 @@ export default async function handler(req, res) {
       !tratamiento ||
       !nombrePaciente ||
       !claveConsulta ||
-      !nombreMedico
+      !nombreMedico ||
+      !claveEspecialidad ||
+      !clave_nomina 
     ) {
       return res.status(400).json({ error: "Faltan datos en la solicitud" });
     }
@@ -29,39 +33,10 @@ export default async function handler(req, res) {
     try {
       const pool = await connectToDatabase();
 
-      //* Verificar piezas disponibles
-      const queryObtenerPiezas = `
-        SELECT piezas 
-        FROM [PRESIDENCIA].[dbo].[MEDICAMENTOS_FARMACIA] 
-        WHERE ean = @ean
-      `;
-      const result = await pool
-        .request()
-        .input("ean", ean)
-        .query(queryObtenerPiezas);
-      const piezasDisponibles = result.recordset[0]?.piezas;
-
-      if (!piezasDisponibles || piezasDisponibles < piezas) {
-        return res.status(400).json({ error: "Piezas insuficientes" });
-      }
-
-      //* Actualizar piezas disponibles
-      const queryActualizarPiezas = `
-        UPDATE [PRESIDENCIA].[dbo].[MEDICAMENTOS_FARMACIA] 
-        SET piezas = piezas - @piezas 
-        WHERE ean = @ean
-      `;
-      await pool
-        .request()
-        .input("ean", ean)
-        .input("piezas", piezas)
-        .query(queryActualizarPiezas);
-
-      //* Insertar en historial
       const queryInsertarHistorial = `
         INSERT INTO [PRESIDENCIA].[dbo].[MEDICAMENTO_PACIENTE] 
-        (ean, sustancia, nombre_paciente, piezas_otorgadas, indicaciones, tratamiento, claveconsulta, fecha_otorgacion, nombre_medico) 
-        VALUES (@ean, @medicamento, @nombrePaciente, @piezas, @indicaciones, @tratamiento, @claveConsulta, @nombreMedico, GETDATE())
+        (ean, sustancia, nombre_paciente, piezas_otorgadas, indicaciones, tratamiento, claveconsulta, fecha_otorgacion, nombre_medico, id_especialidad, clave_nomina) 
+        VALUES (@ean, @medicamento, @nombrePaciente, @piezas, @indicaciones, @tratamiento, @claveConsulta, GETDATE(), @nombreMedico, @claveEspecialidad, @clave_nomina)
       `;
       await pool
         .request()
@@ -73,6 +48,8 @@ export default async function handler(req, res) {
         .input("tratamiento", tratamiento)
         .input("claveConsulta", claveConsulta)
         .input("nombreMedico", nombreMedico)
+        .input("claveEspecialidad", claveEspecialidad)
+        .input("clave_nomina", clave_nomina)
         .query(queryInsertarHistorial);
 
       res.status(200).json({ message: "Medicamento guardado exitosamente" });

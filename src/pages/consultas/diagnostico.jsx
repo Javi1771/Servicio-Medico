@@ -7,7 +7,6 @@ import withReactContent from "sweetalert2-react-content";
 import DatosAdicionales from "./datos-adicionales/datos-adicionales";
 import Cookies from "js-cookie"; 
 
-
 const MySwal = withReactContent(Swal);
 
 const formatearFecha = (fecha) => {
@@ -26,6 +25,7 @@ const formatearFecha = (fecha) => {
 
 const Diagnostico = () => {
   const [nombreMedico, setNombreMedico] = useState("Cargando...");
+  const [claveEspecialidad, setClaveEspecialidad] = useState("");
   const [claveConsulta, setClaveConsulta] = useState("");
   const [fecha, setFecha] = useState("");
   const [diagnostico, setDiagnostico] = useState("");
@@ -70,6 +70,10 @@ const Diagnostico = () => {
     const nombre = Cookies.get("nombreusuario"); //* Obtén el valor desde las cookies
     console.log("Nombre del médico desde cookies:", nombre);
     setNombreMedico(nombre || "No especificado");
+
+    const especialidad = Cookies.get("claveespecialidad");
+    console.log("Clave especialidad: ", especialidad);
+    setClaveEspecialidad(especialidad || "No especificado")
   }, []);
 
   //* Verifica si todos los campos requeridos están completos
@@ -754,7 +758,8 @@ const Diagnostico = () => {
             setObservaciones={setObservaciones}
             numeroDeNomina={pacienteSeleccionado?.clavenomina}
             nombrePaciente={pacienteSeleccionado?.nombrepaciente}
-            nombreMedico={nombre}
+            nombreMedico={nombreMedico}
+            claveEspecialidad={claveEspecialidad}
           />
 
           <div className="flex space-x-2 md:space-x-4 mt-4">

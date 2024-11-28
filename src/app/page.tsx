@@ -8,7 +8,7 @@ const Login = () => {
   const router = useRouter();
   const [usuario, setUsuario] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false); // Estado para controlar la visibilidad de la contraseña
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -24,13 +24,11 @@ const Login = () => {
     const data = await response.json();
 
     if (data.success) {
-      // Establece la cookie de autenticación
-      document.cookie = 'auth=true; path=/;';
+      console.log("Clave Especialidad:", data.claveespecialidad); // Registro en consola
+      document.cookie = `auth=true; path=/;`;
 
-      // Introduce un pequeño retardo para permitir que la cookie sea detectada
-      setTimeout(() => {
-        router.push('/inicio-servicio-medico');
-      }, 500); // Retardo de 500 ms
+      // Redirige al inicio del servicio médico
+      router.push('/inicio-servicio-medico');
     } else {
       setError(data.message);
     }

@@ -17,7 +17,13 @@ const formatearFecha = (fecha) => {
   return fechaFormateada;
 };
 
-const Medicamentos = ({ clavenomina, nombrePaciente, nombreMedico, claveConsulta }) => {
+const Medicamentos = ({
+  clavenomina,
+  nombrePaciente,
+  nombreMedico,
+  claveConsulta,
+  claveEspecialidad,
+}) => {
   const [medicamentos, setMedicamentos] = useState([
     { ean: "", medicamento: "", piezas: "", indicaciones: "", tratamiento: "" },
   ]);
@@ -114,6 +120,7 @@ const Medicamentos = ({ clavenomina, nombrePaciente, nombreMedico, claveConsulta
               claveConsulta,
               fecha: fechaActual,
               nombreMedico,
+              claveEspecialidad,
             }),
           });
 
@@ -297,7 +304,7 @@ const Medicamentos = ({ clavenomina, nombrePaciente, nombreMedico, claveConsulta
         </button>
       </div>
       <div className="bg-gray-900 p-6 md:p-8 rounded-xl shadow-2xl mb-6">
-      <p></p>
+        <p></p>
         <h2 className="text-2xl md:text-4xl font-semibold mb-4 text-center text-purple-400">
           Historial de Medicamentos Otorgados
         </h2>
@@ -305,26 +312,31 @@ const Medicamentos = ({ clavenomina, nombrePaciente, nombreMedico, claveConsulta
           <table className="min-w-full rounded-lg text-left">
             <thead>
               <tr className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white border-b border-gray-700">
-                <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
-                  Fecha
+                <th className="p-4 text-sm font-semibold text-left">Fecha</th>
+                <th className="p-4 text-sm font-semibold text-left">
+                  Nómina del Paciente
                 </th>
-                <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
+                <th className="p-4 text-sm font-semibold text-left">
                   Medicamento
                 </th>
-                <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
-                  Piezas
-                </th>
-                <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
+                <th className="p-4 text-sm font-semibold text-left">Piezas</th>
+                <th className="p-4 text-sm font-semibold text-left">
                   Indicaciones
                 </th>
-                <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
+                <th className="p-4 text-sm font-semibold text-left">
                   Tratamiento
                 </th>
-                <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
+                <th className="p-4 text-sm font-semibold text-left">
                   Diagnóstico
                 </th>
-                <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
+                <th className="p-4 text-sm font-semibold text-left">
                   Motivo de Consulta
+                </th>
+                <th className="p-4 text-sm font-semibold text-left">
+                  Especialidad del Médico
+                </th>
+                <th className="p-4 text-sm font-semibold text-left">
+                  Nombre del Médico
                 </th>
               </tr>
             </thead>
@@ -335,32 +347,42 @@ const Medicamentos = ({ clavenomina, nombrePaciente, nombreMedico, claveConsulta
                     key={i}
                     className="hover:bg-purple-600 hover:bg-opacity-50 transition-colors duration-300"
                   >
-                    <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
+                    <td className="p-4 border-t border-gray-800">
                       {formatearFecha(h.fecha)}
                     </td>
-                    <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
+                    <td className="p-4 border-t border-gray-800">
+                      {h.clavenomina}
+                    </td>
+                    <td className="p-4 border-t border-gray-800">
                       {h.medicamento}
                     </td>
-                    <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
-                      {h.piezas}
-                    </td>
-                    <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
+                    <td className="p-4 border-t border-gray-800">{h.piezas}</td>
+                    <td className="p-4 border-t border-gray-800">
                       {h.indicaciones}
                     </td>
-                    <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
+                    <td className="p-4 border-t border-gray-800">
                       {h.tratamiento}
                     </td>
-                    <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
+                    <td className="p-4 border-t border-gray-800">
                       {h.diagnostico || "N/A"}
                     </td>
-                    <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
+                    <td className="p-4 border-t border-gray-800">
                       {h.motivoConsulta || "N/A"}
+                    </td>
+                    <td className="p-4 border-t border-gray-800">
+                      {h.nombre_especialidad || "No asignado"}
+                    </td>
+                    <td className="p-4 border-t border-gray-800">
+                      {h.nombre_medico || "N/A"}
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan="7" className="text-center py-4 text-gray-400">
+                  <td
+                    colSpan="10"
+                    className="p-4 text-center border-t border-gray-800"
+                  >
                     No hay medicamentos registrados en el historial.
                   </td>
                 </tr>

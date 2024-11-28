@@ -14,16 +14,16 @@ export default async function handler(req, res) {
 
   try {
     const pool = await connectToDatabase();
-    
-    // Actualiza la consulta con los nombres de columnas correctos
+
+    // Consulta con `claveespecialidad`
     const result = await pool.request()
       .input('usuario', sql.VarChar, usuario)
       .query(
-        "SELECT clavetipousuario, password, nombreusuario FROM USUARIOS WHERE usuario = @usuario"
+        "SELECT clavetipousuario, password, nombreusuario, claveespecialidad FROM USUARIOS WHERE usuario = @usuario"
       );
 
     const user = result.recordset[0];
-    
+
     if (!user) {
       return res.status(401).json({ success: false, message: 'Usuario no encontrado' });
     }
@@ -41,6 +41,7 @@ export default async function handler(req, res) {
     } else {
       isMatch = await bcrypt.compare(password, storedPassword);
     }
+
     if (isMatch) {
       // Genera el token
       const token = jwt.sign(
@@ -49,21 +50,21 @@ export default async function handler(req, res) {
         { expiresIn: "1h" }
       );
 
+      // Establece las cookies
+      res.setHeader("Set-Cookie", [
+        `token=${token}; Path=/; SameSite=Lax`,
+        `rol=${user.clavetipousuario}; Path=/; SameSite=Lax`,
+        `nombreusuario=${encodeURIComponent(user.nombreusuario)}; Path=/; SameSite=Lax`,
+        `claveespecialidad=${user.claveespecialidad || ''}; Path=/; SameSite=Lax`,
+      ]);
 
-         // Establece las cookies
-         res.setHeader("Set-Cookie", [
-          `token=${token}; Path=/; SameSite=Lax`,
-          `rol=${user.clavetipousuario}; Path=/; SameSite=Lax`,
-          `nombreusuario=${encodeURIComponent(
-            user.nombreusuario
-          )}; Path=/; SameSite=Lax`,
-        ]);
-
+      // Devuelve la respuesta con éxito
       return res.status(200).json({
         success: true,
         message: "Login exitoso",
         rol: user.clavetipousuario,
         nombreusuario: user.nombreusuario,
+        claveespecialidad: user.claveespecialidad || '',
       });
     } else {
       return res
@@ -72,8 +73,6 @@ export default async function handler(req, res) {
     }
   } catch (error) {
     console.error(error);
-    res
-      .status(500)
-      .json({ success: false, message: "Error en el servidor" });
+    res.status(500).json({ success: false, message: "Error en el servidor" });
   }
 }

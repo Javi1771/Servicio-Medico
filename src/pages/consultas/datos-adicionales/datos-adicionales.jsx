@@ -22,6 +22,7 @@ const DatosAdicionales = ({
   numeroDeNomina,
   nombrePaciente,
   nombreMedico,
+  claveEspecialidad,
 }) => {
   const [diagnosticoTexto, setDiagnosticoTexto] = useState("");
   const [motivoConsultaTexto, setMotivoConsultaTexto] = useState("");
@@ -102,6 +103,7 @@ const DatosAdicionales = ({
           nombrePaciente={nombrePaciente}
           claveConsulta={claveConsulta}
           nombreMedico={nombreMedico}
+          claveEspecialidad={claveEspecialidad}
         />
       )}
       {subPantalla === "Pase a Especialidad" && (
