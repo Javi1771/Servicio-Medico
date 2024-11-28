@@ -10,12 +10,14 @@ export default async function handler(req, res) {
           id_med_pac AS id,
           ean,
           sustancia,
+          clave_nomina,
           nombre_paciente,
           piezas_otorgadas,
           indicaciones,
           tratamiento,
           claveconsulta,
-          fecha_otorgacion
+          fecha_otorgacion,
+          nombre_medico
         FROM MEDICAMENTO_PACIENTE
       `);
 

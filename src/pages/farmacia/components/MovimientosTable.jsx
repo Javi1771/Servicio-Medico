@@ -11,12 +11,16 @@ const MovimientosTable = ({ movimientos = [] }) => {
             <th>ID</th>
             <th>EAN</th>
             <th>Sustancia</th>
+            <th>N°Nomina</th>
             <th>Paciente</th>
             <th>Piezas Otorgadas</th>
             <th>Indicaciones</th>
             <th>Tratamiento</th>
             <th>Clave Consulta</th>
+            <th>Nombre Medico</th>
             <th>Fecha Otorgación</th>
+           
+
           </tr>
         </thead>
         <tbody className={styles.tbody}> 
@@ -26,11 +30,14 @@ const MovimientosTable = ({ movimientos = [] }) => {
                 <td>{movimiento.id_med_pac}</td>
                 <td>{movimiento.ean}</td>
                 <td>{movimiento.sustancia}</td>
+                <td>{movimiento.clave_nomina}</td>
                 <td>{movimiento.nombre_paciente || "N/A"}</td>
                 <td>{movimiento.piezas_otorgadas}</td>
                 <td>{movimiento.indicaciones || "N/A"}</td>
                 <td>{movimiento.tratamiento || "N/A"}</td>
                 <td>{movimiento.claveconsulta || "N/A"}</td>
+                <td>{movimiento.nombre_medico || "N/A"}</td>
+
                 <td>
                   {movimiento.fecha_otorgacion
                     ? new Date(movimiento.fecha_otorgacion).toLocaleString(

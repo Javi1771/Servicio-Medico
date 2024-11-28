@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import sql from 'mssql';
 
 const dbConfig = {
@@ -10,29 +9,45 @@ const dbConfig = {
     encrypt: process.env.DB_ENCRYPT === 'true',
     trustServerCertificate: process.env.DB_TRUST_SERVER_CERTIFICATE === 'true',
   },
+  pool: {
+    max: 10, // Máximo de conexiones en el pool
+    min: 0,  // Mínimo de conexiones
+    idleTimeoutMillis: 30000, // Tiempo máximo de inactividad
+  },
 };
 
-let pool;
+let pool; // Pool global
 
+// Función para conectar a la base de datos
 export const connectToDatabase = async () => {
   try {
-    if (!pool) {
+    if (!pool || !pool.connected) {
       pool = await sql.connect(dbConfig);
       console.log('Conexión a la base de datos exitosa');
-      console.log("Server:", process.env.DB_SERVER);
+      console.log('Servidor:', process.env.DB_SERVER);
     }
     return pool;
   } catch (error) {
     console.error('Error al conectar con la base de datos:', error);
-    throw error;
+    throw new Error('No se pudo conectar a la base de datos');
   }
 };
 
+// Función para cerrar la conexión (si es necesario)
+export const closeDatabaseConnection = async () => {
+  if (pool) {
+    await pool.close();
+    console.log('Conexión a la base de datos cerrada');
+  }
+};
+
+// API para probar la conexión
 export default async function handler(req, res) {
   try {
     const dbPool = await connectToDatabase();
     res.status(200).json({ message: 'Conexión exitosa' });
   } catch (error) {
-    res.status(500).json({ message: 'Error de conexión', error });
+    console.error('Error en la conexión:', error.message);
+    res.status(500).json({ message: 'Error de conexión', error: error.message });
   }
 }

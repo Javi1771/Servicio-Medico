@@ -24,7 +24,7 @@ export default function EspecialidadesTable() {
 
   const fetchEspecialidades = async () => {
     try {
-      const response = await fetch('/api/especialidades');
+      const response = await fetch('/api/especialidades/especialidades');
       const data = await response.json();
       setEspecialidades(data);
     } catch {
