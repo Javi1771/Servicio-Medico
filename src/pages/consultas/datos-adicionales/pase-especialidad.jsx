@@ -11,13 +11,11 @@ const PaseEspecialidad = ({
   setObservaciones,
   setFormularioCompleto,
   nombreMedico,
-  claveEspecialidad,
   nombrePaciente,
   numeroDeNomina,
 }) => {
   const [especialidades, setEspecialidades] = useState([]);
   const [loading, setLoading] = useState(true);
-  
 
   //* Carga las especialidades al montar el componente
   useEffect(() => {
@@ -62,24 +60,30 @@ const PaseEspecialidad = ({
       especialidadSeleccionada,
       observaciones,
       nombreMedico,
-      claveEspecialidad,
       nombrePaciente,
       numeroDeNomina,
     });
-  }, [claveConsulta, pasarEspecialidad, especialidadSeleccionada, observaciones, nombreMedico, claveEspecialidad, nombrePaciente, numeroDeNomina]);
-  
+  }, [
+    claveConsulta,
+    pasarEspecialidad,
+    especialidadSeleccionada,
+    observaciones,
+    nombreMedico,
+    nombrePaciente,
+    numeroDeNomina,
+  ]);
 
   const handleGuardarEspecialidad = async () => {
     const datos = {
       claveConsulta,
-      claveEspecialidad: especialidadSeleccionada,
+      claveEspecialidad: especialidadSeleccionada, // Especialidad seleccionada por el usuario
       observaciones,
       nombreMedico: nombreMedico || "No definido",
       numeroDeNomina: numeroDeNomina || "No definido",
       nombrePaciente: nombrePaciente || "No definido",
     };
 
-    // Log de los datos que se enviarán al backend
+    // Log para verificar los datos enviados
     console.log("Datos enviados al backend:", datos);
 
     try {
@@ -92,7 +96,9 @@ const PaseEspecialidad = ({
       if (!response.ok) {
         const errorData = await response.json();
         console.error("Error al guardar especialidad:", errorData);
-        alert("Hubo un problema al guardar la consulta. Inténtalo nuevamente.");
+        alert(
+          "Hubo un problema al guardar la especialidad. Inténtalo nuevamente."
+        );
       } else {
         console.log("Especialidad guardada correctamente.");
         alert("La especialidad se guardó correctamente.");
@@ -216,6 +222,13 @@ const PaseEspecialidad = ({
               aria-label="Escribe observaciones"
             />
           </div>
+
+          <button
+            className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded"
+            onClick={handleGuardarEspecialidad}
+          >
+            Guardar Especialidad
+          </button>
         </>
       )}
     </div>
