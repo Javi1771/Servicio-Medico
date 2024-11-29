@@ -16,14 +16,7 @@ export default async function handler(req, res) {
   } = req.body;
 
   // Log de los datos recibidos
-  console.log("Datos recibidos en el backend:", {
-    claveConsulta,
-    claveEspecialidad,
-    observaciones,
-    nombreMedico,
-    numeroDeNomina,
-    nombrePaciente,
-  });
+  console.log("Datos recibidos en el backend:", req.body);
 
   if (
     !claveConsulta ||
@@ -49,57 +42,24 @@ export default async function handler(req, res) {
 
     const estatus = 1;
 
-    const especialidadQuery = await pool
-      .request()
-      .input("claveEspecialidad", sql.Int, claveEspecialidad).query(`
-        SELECT especialidad 
-        FROM especialidades 
-        WHERE claveespecialidad = @claveEspecialidad
-      `);
-
-    if (!especialidadQuery.recordset.length) {
-      console.error(
-        "No se encontró especialidad para la clave proporcionada:",
-        claveEspecialidad
-      );
-      return res
-        .status(400)
-        .json({
-          message: "Especialidad no encontrada para la clave proporcionada.",
-        });
-    }
-
-    const especialidadTexto = especialidadQuery.recordset[0]?.especialidad;
-    console.log("Especialidad obtenida:", especialidadTexto);
-
+    // Inserción en la tabla detalleEspecialidad
     await pool
       .request()
       .input("claveconsulta", sql.Int, claveConsulta)
+      .input("clave_nomina", sql.NVarChar, numeroDeNomina)
+      .input("nombre_paciente", sql.NVarChar, nombrePaciente)
       .input("claveespecialidad", sql.Int, claveEspecialidad)
       .input("observaciones", sql.Text, observaciones)
       .input("estatus", sql.Int, estatus)
-      .input("nombreMedico", sql.NVarChar, nombreMedico)
-      .input("numeroDeNomina", sql.NVarChar, numeroDeNomina)
-      .input("nombrePaciente", sql.NVarChar, nombrePaciente)
-      .input("especialidad", sql.NVarChar, especialidadTexto).query(`
+      .input("nombre_medico", sql.NVarChar, nombreMedico)
+      .query(`
         INSERT INTO detalleEspecialidad 
-        (claveconsulta, claveespecialidad, observaciones, estatus, nombre_medico, clave_nomina, nombre_paciente, especialidad)
+        (claveconsulta, clave_nomina, nombre_paciente, claveespecialidad, observaciones, estatus, nombre_medico)
         VALUES 
-        (@claveconsulta, @claveespecialidad, @observaciones, @estatus, @nombreMedico, @numeroDeNomina, @nombrePaciente, @especialidad)
+        (@claveconsulta, @clave_nomina, @nombre_paciente, @claveespecialidad, @observaciones, @estatus, @nombre_medico)
       `);
 
     console.log("Inserción en detalleEspecialidad completada.");
-
-    await pool
-      .request()
-      .input("claveconsulta", sql.Int, claveConsulta)
-      .input("claveEspecialidad", sql.Int, claveEspecialidad).query(`
-        UPDATE consultas
-        SET especialidadinterconsulta = @claveEspecialidad
-        WHERE claveconsulta = @claveconsulta
-      `);
-
-    console.log("Actualización en consultas completada.");
     res.status(200).json({ message: "Especialidad guardada correctamente." });
   } catch (error) {
     console.error("Error al guardar la especialidad:", error);

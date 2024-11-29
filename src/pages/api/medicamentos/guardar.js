@@ -53,6 +53,7 @@ export default async function handler(req, res) {
         clavenomina,
       });
 
+      // Insertar en la tabla de historial de medicamentos
       const queryInsertarHistorial = `
         INSERT INTO [PRESIDENCIA].[dbo].[MEDICAMENTO_PACIENTE] 
         (ean, sustancia, nombre_paciente, piezas_otorgadas, indicaciones, tratamiento, claveconsulta, fecha_otorgacion, nombre_medico, id_especialidad, clave_nomina) 
@@ -73,9 +74,35 @@ export default async function handler(req, res) {
         .input("clavenomina", sql.VarChar, clavenomina)
         .query(queryInsertarHistorial);
 
-      // Confirmación de éxito
       console.log("Medicamento guardado exitosamente en la base de datos");
-      res.status(200).json({ message: "Medicamento guardado exitosamente" });
+
+      // Actualizar el stock del medicamento en la tabla MEDICAMENTOS_FARMACIA
+      const queryActualizarStock = `
+        UPDATE [PRESIDENCIA].[dbo].[MEDICAMENTOS_FARMACIA]
+        SET piezas = piezas - @piezas
+        WHERE ean = @ean
+      `;
+
+      const resultadoStock = await pool
+        .request()
+        .input("ean", sql.VarChar, ean)
+        .input("piezas", sql.Int, piezas)
+        .query(queryActualizarStock);
+
+      if (resultadoStock.rowsAffected[0] === 0) {
+        console.warn(
+          "No se actualizó el stock. Verifica que el EAN exista en la tabla MEDICAMENTOS_FARMACIA."
+        );
+        return res
+          .status(400)
+          .json({ error: "No se encontró el medicamento en la farmacia." });
+      }
+
+      console.log("Stock del medicamento actualizado correctamente");
+
+      res
+        .status(200)
+        .json({ message: "Medicamento guardado y stock actualizado correctamente" });
     } catch (error) {
       // Log detallado del error
       console.error("Error al guardar medicamento en la base de datos:", error);

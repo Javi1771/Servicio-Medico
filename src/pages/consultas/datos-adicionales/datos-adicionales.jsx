@@ -117,7 +117,6 @@ const DatosAdicionales = ({
           setObservaciones={setObservaciones}
           setFormularioCompleto={setFormularioCompleto}
           nombreMedico={nombreMedico}
-          claveEspecialidad={claveEspecialidad}
           nombrePaciente={nombrePaciente}
           numeroDeNomina={numeroDeNomina}
         />
