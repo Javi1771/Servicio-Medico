@@ -3,7 +3,14 @@
 /* Estilo del cuerpo */
 .body {
   background-color: #1e1e2d;
+  min-height: 100vh; /* Asegura que ocupe toda la altura de la ventana */
+  width: 100%; /* Asegura que ocupe todo el ancho */
+  margin: 0; /* Elimina márgenes externos */
+  padding: 0; /* Elimina cualquier padding */
+  display: flex; /* Útil si tienes que alinear contenido */
+  flex-direction: column; /* Permite que el contenido fluya de arriba hacia abajo */
 }
+
 
 /* Contenedor centrado */
 .container {
@@ -12,6 +19,7 @@
     align-items: unset;
     margin: -30px auto;
     padding: 97px 0rem;
+   
 }
 
 /* Mensaje de feedback */
@@ -202,49 +210,76 @@
   overflow-x: auto;
   margin-top: 2rem;
   border-radius: 8px;
+}
+
+/* Contenedor de la Tabla */
+.tableContainer {
+  max-width: 1200px;
+  margin: 2rem auto; /* Centra el contenedor */
+  padding: 1.5rem;
+  background: #1e1e2d;
+  border-radius: 12px; /* Bordes redondeados */
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1); /* Shadow suave */
+  transition: box-shadow 0.3s ease; /* Transición para el box-shadow */
   margin-left: -140px;
+
+}
+
+.tableContainer:hover {
+  box-shadow: 0px 8px 20px rgba(27, 239, 204, 0.5), 
+              0px 0px 15px rgba(0, 255, 234, 0.8); /* Glow neon */
 }
 
 /* Tabla */
 .table {
   width: 100%;
   border-collapse: collapse;
-  background: #24243a;
-  color: white;
+  background: #24243a; /* Fondo oscuro */
+  color: #f9f9f9; /* Texto claro */
   overflow: hidden;
-  border-radius: 8px;
+  border-radius: 12px; /* Bordes redondeados */
 }
 
 /* Encabezados */
 .table th {
-  background: #00796b;
-  color: #ffffff;
+  background: #057f72; /* Fondo verde neon */
+  color: #ffffff; /* Texto blanco */
   font-weight: bold;
   padding: 1rem;
   text-align: left;
-  white-space: nowrap; /* Evitar que los encabezados se desborden */
-  font-size: 1rem; /* Ajustar tamaño para que se adapte mejor en pantallas pequeñas */
+  white-space: nowrap; /* Evita desbordes */
+  font-size: 1rem; /* Ajusta tamaño */
 }
 
 /* Celdas */
 .table td {
   padding: 1rem;
   text-align: left;
-  border-bottom: 1px solid #3d3d5c;
-  font-size: 0.9rem; /* Reducir el tamaño del texto en pantallas pequeñas */
-  white-space: nowrap; /* Evitar que el contenido se desborde */
+  border-bottom: 1px solid #3d3d5c; /* Líneas separadoras */
+  font-size: 0.9rem; /* Texto reducido */
+  white-space: nowrap; /* Evita desbordes */
 }
 
-/* Filas hover */
+/* Hover en las Filas */
+.table tbody tr {
+  transition: transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
 .table tbody tr:hover {
-  background: #00796b;
+  background: #00796b; /* Fondo verde claro */
+  transform: scale(1.02); /* Efecto de profundidad */
+  box-shadow: 0px 5px 15px rgba(0, 255, 234, 0.4); /* Glow */
+  z-index: 1;
+  position: relative;
 }
 
-/* Hacer que las celdas se ajusten en pantallas pequeñas */
+/* Responsividad */
 @media (max-width: 768px) {
-  .tableContainer
-  {  margin-left:0px;
+  .tableContainer {
+    margin: 1rem;
+    padding: 1rem;
   }
+
   .table th,
   .table td {
     font-size: 0.8rem; /* Texto más pequeño */
@@ -255,6 +290,21 @@
     white-space: normal; /* Permitir que los encabezados se envuelvan */
   }
 }
+
+@media (max-width: 480px) {
+  .tableContainer {
+    margin: 0.5rem;
+    padding: 0.8rem;
+    border-radius: 8px; /* Bordes más pequeños */
+  }
+
+  .table th,
+  .table td {
+    padding: 0.5rem;
+    font-size: 0.7rem; /* Texto aún más pequeño */
+  }
+}
+
 
 
 /* Contenedor principal */

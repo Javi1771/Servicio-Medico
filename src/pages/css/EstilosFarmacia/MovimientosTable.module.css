@@ -1,87 +1,101 @@
 .tableContainer {
-  max-width: 1200px;
+  max-width: 1301px;;
   margin: 2rem auto; /* Centra el contenedor */
   padding: 1.5rem;
   background: #1e1e2d;
-  border-radius: 8px;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-  margin-left: -165px;
+  border-radius: 12px; /* Bordes redondeados */
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1); /* Shadow suave */
+  transition: box-shadow 0.3s ease; /* Solo la transición para el box-shadow */
+  margin-left: -180px;
+  
+}
+.tableContainer:hover {
+  box-shadow: 0px 8px 20px rgba(27, 239, 204, 0.5), 0px 0px 15px 
+  rgba(0, 255, 234, 0.8); 
 }
 
 .titleTable {
   text-align: center;
   font-size: 1.8rem;
   font-weight: bold;
-  color: #00796b;
+  color: #00fadd; /* Color neon para el título */
   margin-bottom: 1rem;
+  text-shadow: 0 0 10px hwb(153 2% 69% / 0.8);
 }
 
 .table {
   width: 100%;
   border-collapse: collapse;
+  border-radius: 12px; /* Asegura bordes redondeados en toda la tabla */
+  overflow: hidden; /* Elimina bordes cortados */
 }
 
 .table th,
 .table td {
   padding: 1rem;
   text-align: left;
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* Línea tenue */
 }
 
 .table th {
-  background-color: #00796b;
-  color: #fff;
+  background-color: #057f72; /* Fondo verde neon */
+  color: #1e1e2d; /* Texto oscuro */
   font-weight: bold;
 }
 
+.table tbody tr {
+  transition: transform 0.3s ease, background-color 0.3s ease,
+    box-shadow 0.3s ease; /* Añadimos transición suave */
+}
+
 .table tbody tr:hover {
-  background-color: #00796b;
+  background-color: rgba(27, 239, 204, 0.416); /* Fondo verde claro */
+  transform: scale(1.02); /* Profundidad en la fila */
+  box-shadow: 0px 5px 15px rgba(0, 255, 234, 0.4); /* Glow fila */
+  z-index: 1; /* Asegura que sobresalga visualmente */
+  position: relative; /* Necesario para aplicar el z-index */
+  box-shadow:#fa009a ;
 }
 
 .tbody {
-  color: #f9f9f9;
+  color: #f9f9f9; /* Texto claro */
 }
 
 /* Responsividad */
 @media (max-width: 768px) {
   .tableContainer {
-    margin: 1rem; /* Reduce los márgenes */
+    margin: 1rem;
     padding: 1rem;
   }
 
   .titleTable {
-    font-size: 1.5rem; /* Reduce el tamaño de fuente */
+    font-size: 1.5rem;
   }
 
   .table th,
   .table td {
-    padding: 0.8rem; /* Reduce el padding */
-    font-size: 0.9rem; /* Ajusta el tamaño de texto */
-  }
-
-  .table {
+    padding: 0.8rem;
     font-size: 0.9rem;
   }
 
-  /* Hacer la tabla desplazable horizontalmente */
   .tableContainer {
-    overflow-x: auto;
+    overflow-x: auto; /* Desplazamiento horizontal */
   }
 
   .table {
-    display: block; /* Activa desplazamiento horizontal */
-    min-width: 600px; /* Define un ancho mínimo */
+    display: block;
+    min-width: 600px; /* Ancho mínimo para la tabla */
   }
 }
 
 @media (max-width: 480px) {
   .tableContainer {
-    margin: 0.5rem; /* Reduce aún más los márgenes */
+    margin: 0.5rem;
     padding: 0.8rem;
   }
 
   .titleTable {
-    font-size: 1.3rem; /* Ajusta el título */
+    font-size: 1.3rem;
   }
 
   .table th,
@@ -90,14 +104,11 @@
     font-size: 0.8rem; /* Reduce más el tamaño del texto */
   }
 
-  .table {
-    font-size: 0.8rem;
-  }
-
   .tableContainer {
-    border-radius: 5px; /* Reduce el borde redondeado */
+    border-radius: 8px; /* Redondeo más pequeño en pantallas pequeñas */
   }
 }
+
 
 
 
@@ -150,21 +161,27 @@
   }
   
 
+  
+
   /*ESTILOS DE FILTRO DE BUSQUEDA*/
+/*ESTILOS DE FILTRO DE BÚSQUEDA*/
 .searchContainer {
   margin-bottom: 1rem;
   display: flex;
   justify-content: center;
   align-items: center;
+  padding-left: 60px;
+  flex-wrap: wrap; /* Permite que los elementos se envuelvan en pantallas pequeñas */
 }
 
 .searchWrapper {
   display: flex;
-  width: 100%; /* Ocupa el ancho de la tabla */
-  max-width: 100%; /* Asegura que no se exceda */
+  width: 100%; /* Ocupa el ancho completo */
+  max-width: 100%; /* Limita el tamaño máximo */
   border-radius: 15px;
   background: #ffffff;
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  margin-right: 50px;
 }
 
 .searchBar {
@@ -206,7 +223,6 @@
   stroke: #000;
 }
 
-
 .searchBar:focus {
   animation: rotateShadow 2s infinite linear;
 }
@@ -226,5 +242,58 @@
   }
   100% {
     box-shadow: -2px -2px 8px 1px #00c3ff, 2px 2px 8px 1px #1aff00;
+  }
+}
+
+/* Responsividad */
+@media (max-width: 1024px) {
+  .searchContainer {
+    padding-left: 20px; /* Reduce padding */
+    margin-bottom: 1rem;
+  }
+
+  .searchWrapper {
+    max-width: 90%; /* Reduce ancho máximo */
+    margin-right: 0; /* Elimina márgenes innecesarios */
+  }
+
+  .searchBar {
+    font-size: 14px; /* Reduce tamaño del texto */
+    padding: 10px 14px; /* Ajusta padding */
+  }
+
+  .searchButton {
+    padding: 6px; /* Reduce tamaño del botón */
+  }
+
+  .searchIcon {
+    width: 18px; /* Reduce el tamaño del ícono */
+    height: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .searchContainer {
+    padding-left: 10px; /* Ajusta padding para pantallas pequeñas */
+    margin-bottom: 1rem;
+  }
+
+  .searchWrapper {
+    max-width: 100%; /* Usa todo el ancho disponible */
+    margin-right: 0;
+  }
+
+  .searchBar {
+    font-size: 12px; /* Texto más pequeño */
+    padding: 8px 12px; /* Menor padding */
+  }
+
+  .searchButton {
+    padding: 4px; /* Ajusta tamaño del botón */
+  }
+
+  .searchIcon {
+    width: 16px; /* Reduce tamaño del ícono */
+    height: 16px;
   }
 }
