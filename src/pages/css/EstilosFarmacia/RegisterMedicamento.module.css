@@ -426,6 +426,8 @@
   border-radius: 8px;
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
   margin-left: -165px; /* Alinea la tabla más cerca del sidebar */
+  margin-top: -91px;
+
 
 }
 
@@ -444,9 +446,9 @@
     border-radius: 8px;
     box-shadow: 0px 4px 8px rgb(0 231 255);
     padding: 20px;
-    width: 100%;
-    max-width: 1050px;
-    min-height: 300px;
+    width: 603px;
+    max-width: 460px;
+    min-height: 500px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -479,7 +481,8 @@
 @media screen and (max-width: 768px) {
   .chartContainer {
     padding: 1rem;
-    margin-left: 0px; /* Alinea la tabla más cerca del sidebar */
+    margin-left: 0px;
+    margin-top: -21px;
 
   }
 
@@ -503,9 +506,9 @@
   }
 
   .card {
-    padding: 15px; /* Espaciado reducido */
-    max-width: 100%; /* Las tarjetas ocupan todo el ancho en pantallas pequeñas */
-    min-height: 350px; /* Reduce un poco la altura mínima */
+    padding: 0px;
+    max-width: 313px;
+    min-height: 522px;
   }
 
   .chartTitle {
@@ -780,4 +783,28 @@
   100% {
     box-shadow: -2px -2px 8px 1px #00c3ff, 2px 2px 8px 1px #1aff00;
   }
+}
+
+
+/*boton para next pagina de graficcos*/
+.paginationButtons {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 1rem;
+}
+
+.prevButton,
+.nextButton {
+  background-color: #202031;
+  color: #ffffff;
+  border: none;
+  border-radius: 5px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+}
+
+.prevButton:hover,
+.nextButton:hover {
+  background-color: #005a4e;
 }
