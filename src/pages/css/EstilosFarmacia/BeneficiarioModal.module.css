@@ -1,0 +1,160 @@
+.modalBackdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modalContent {
+  background: #1e293b;
+  color: #ffffff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  width: 90%; /* Ajusta para pantallas más pequeñas */
+  max-width: 800px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.8);
+  position: relative;
+}
+
+.modalCloseButton {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: transparent;
+  color: #ffffff;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.modalHeader {
+  text-align: center;
+  border-bottom: 1px solid #ffffff;
+  padding-bottom: 0.5rem;
+}
+
+.modalTitle {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.modalBody {
+  display: flex;
+  flex-direction: row; /* Mantiene la foto y la información en filas horizontales */
+  gap: 2rem;
+}
+
+/* Información y Foto */
+.infoContainer {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.infoRow {
+  display: flex;
+  justify-content: space-between;
+}
+
+.infoRow p {
+  flex: 1;
+  margin: 0;
+}
+
+.imageContainer {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.beneficiarioPhoto {
+  max-width: 100%;
+  max-height: 250px;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+.beneficiarioPhoto:hover {
+  transform: scale(1.05); /* Efecto de zoom al pasar el ratón */
+}
+
+.statusBadge {
+  display: inline-block;
+  padding: 0.3rem 0.6rem;
+  border-radius: 5px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: white;
+  text-align: center;
+  min-width: 80px;
+}
+
+/* Estilos Responsivos */
+
+/* Para pantallas pequeñas (móviles) */
+@media (max-width: 600px) {
+  .modalContent {
+    width: 95%; /* Ajusta el ancho para móviles */
+    padding: 1.8rem;
+  }
+
+  .modalBody {
+    flex-direction: column; /* Cambia a disposición vertical */
+    gap: 1rem;
+  }
+
+  .infoRow {
+    flex-direction: column; /* Información apilada en móviles */
+  }
+
+  .modalTitle {
+    font-size: 1.2rem; /* Reduce el tamaño del título */
+  }
+
+  .beneficiarioPhoto {
+    max-height: 200px; /* Reduce la altura máxima */
+  }
+}
+
+/* Para tablets */
+@media (min-width: 601px) and (max-width: 1024px) {
+  .modalContent {
+    width: 85%; /* Ajusta el ancho para tablets */
+    padding: 1.2rem;
+  }
+
+  .modalTitle {
+    font-size: 1.4rem; /* Ajusta el tamaño del título */
+  }
+
+  .modalBody {
+    gap: 1.5rem; /* Reduce el espacio entre elementos */
+  }
+
+  .beneficiarioPhoto {
+    max-height: 220px; /* Ajusta la altura de la foto */
+  }
+}
+
+/* Para pantallas grandes (escritorios grandes) */
+@media (min-width: 1025px) {
+  .modalContent {
+    max-width: 900px; /* Aumenta el ancho máximo */
+  }
+
+  .modalBody {
+    gap: 2.5rem; /* Aumenta el espacio entre la información y la foto */
+  }
+}
+

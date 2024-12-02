@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import styles from "../../css/EstilosFarmacia/slideMenu.module.css";
-import Image from 'next/image';
-
+import Image from "next/image";
 
 const SideMenu = ({ onMenuClick }) => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -92,6 +91,17 @@ const SideMenu = ({ onMenuClick }) => {
         >
           Movimientos
         </button>
+
+        <button
+          className={styles.menuButton}
+          onClick={() => {
+            onMenuClick("surtirBeneficiario");
+            setMenuOpen(false); // Cierra el menú
+          }}
+        >
+          Surtir a Beneficiario
+        </button>
+
         {/* Botón de Salir */}
         <button className={styles.salirbutton} onClick={handleSalir}>
           Salir

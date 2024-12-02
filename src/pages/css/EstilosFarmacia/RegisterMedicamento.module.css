@@ -18,7 +18,7 @@
     flex-direction: column;
     align-items: unset;
     margin: -30px auto;
-    padding: 97px 0rem;
+    padding: 38px 0rem;
    
 }
 
@@ -709,10 +709,10 @@
 
 /* Contenedor del modal */
 .modalContent {
-  background: #1e293b;
+  background: #273b5858;
   padding: 2rem;
   border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0);
   width: 90%;
   max-width: 500px;
   transform-origin: center;
@@ -722,12 +722,12 @@
 /* From Uiverse.io by tiagoadag1203 */ 
 .input {
   max-width: 900px;
-  background-color: #efefef;
+  background-color: #5949d617;
   border: none;
   padding: 10px;
   border-radius: 10px;
   outline: none;
-  color: rgb(0, 0, 0);
+  color: rgb(221, 221, 221);
 }
 
 .input:focus {
@@ -781,6 +781,7 @@
   outline: none;
   font-size: 16px;
   color: #333;
+  background: #272642;
 }
 
 .searchBar::placeholder {
@@ -788,7 +789,7 @@
 }
 
 .searchButton {
-  background-color: transparent;
+  background-color: #03a392;
   border: none;
   cursor: pointer;
   padding: 8px;
@@ -805,7 +806,7 @@
 .searchIcon {
   width: 20px;
   height: 20px;
-  stroke: #555;
+  stroke: #f0f0f0;
 }
 
 .searchButton:hover .searchIcon {
