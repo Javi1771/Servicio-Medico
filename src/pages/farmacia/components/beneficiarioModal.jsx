@@ -1,8 +1,9 @@
-import React from "react";
-import { motion, AnimatePresence } from "framer-motion"; // Asegúrate de importar framer-motion
+import React, { useState } from "react";
+import { motion } from "framer-motion";
 import styles from "../../css/EstilosFarmacia/BeneficiarioModal.module.css";
-import Image from "next/image";
+import SurtirMedicamentoModal from "./registroMedicamentBenef"; // Importa el nuevo componente
 
+  
 // Función para formatear la fecha al formato "día/mes/año"
 const formatDate = (dateString) => {
   if (!dateString) return "N/A";
@@ -23,52 +24,47 @@ const parentescoMap = {
   5: "Madre",
 };
 
-// Función para obtener el color y texto del estatus
-const getStatus = (status) => {
-  if (status === "I") {
-    return { label: "Inactivo", color: "red" };
-  } else if (status === "A") {
-    return { label: "Activo", color: "green" };
-  }
-  return { label: "No especificado", color: "gray" };
-};
+const BeneficiarioModal = ({ beneficiario, onClose, medicamentos }) => {
+  const [isSurtirModalOpen, setIsSurtirModalOpen] = useState(false);
 
-const BeneficiarioModal = ({ beneficiario, onClose }) => {
   if (!beneficiario) return null;
 
-  const { label: statusLabel, color: statusColor } = getStatus(
-    beneficiario.ACTIVO
-  );
+  const handleSurtirClick = () => {
+    setIsSurtirModalOpen(true);
+  };
+
+  const closeSurtirModal = () => {
+    setIsSurtirModalOpen(false);
+  };
+
+  // Variants para animaciones
+  const fadeVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1 },
+    exit: { opacity: 0 },
+  };
 
   return (
-    <AnimatePresence>
-      <motion.div
-        className={styles.modalBackdrop}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.3 }}
-      >
+    <>
+      {/* Modal principal */}
+      <div className={styles.modalBackdrop}>
         <motion.div
           className={styles.modalContent}
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.8 }}
+          initial="hidden"
+          animate="visible"
+          exit="exit"
+          variants={fadeVariants}
           transition={{ duration: 0.3 }}
         >
           <button className={styles.modalCloseButton} onClick={onClose}>
             ✕
           </button>
-
-          <div className={styles.modalHeader}>
-            <h3 className={styles.modalTitle}>
-              Beneficiario:{" "}
-              {`${beneficiario.NOMBRE} ${beneficiario.A_PATERNO} ${beneficiario.A_MATERNO}`}
-            </h3>
-          </div>
+          <h3 className={styles.modalTitle}>
+            Beneficiario:{" "}
+            {`${beneficiario.NOMBRE} ${beneficiario.A_PATERNO} ${beneficiario.A_MATERNO}`}
+          </h3>
 
           <div className={styles.modalBody}>
-            {/* Información del beneficiario */}
             <div className={styles.infoContainer}>
               <div className={styles.infoRow}>
                 <p>
@@ -86,16 +82,6 @@ const BeneficiarioModal = ({ beneficiario, onClose }) => {
                 </p>
                 <p>
                   <strong>Edad:</strong> {beneficiario.EDAD || "N/A"}
-                </p>
-              </div>
-              <div className={styles.infoRow}>
-                <p>
-                  <strong>Alergias:</strong>{" "}
-                  {beneficiario.ALERGIAS || "Ninguna"}
-                </p>
-                <p>
-                  <strong>Tipo de Sangre:</strong>{" "}
-                  {beneficiario.SANGRE || "N/A"}
                 </p>
               </div>
               <div className={styles.infoRow}>
@@ -133,31 +119,46 @@ const BeneficiarioModal = ({ beneficiario, onClose }) => {
                   <strong>Observaciones:</strong>{" "}
                   {beneficiario.observaciones || "N/A"}
                 </p>
-                <div
-                  className={styles.statusBadge}
-                  style={{ backgroundColor: statusColor }}
-                >
-                  {statusLabel}
-                </div>
+                <p>
+                  <strong>Estado:</strong>{" "}
+                  <span
+                    className={`${styles.statusBadge} ${
+                      beneficiario.ACTIVO === "A"
+                        ? styles.statusActive
+                        : styles.statusInactive
+                    }`}
+                  >
+                    {beneficiario.ACTIVO === "A" ? "Activo" : "Inactivo"}
+                  </span>
+                </p>
               </div>
             </div>
-
-            {/* Foto del beneficiario alineada a la derecha */}
-            {beneficiario.FOTO_URL && (
-              <div className={styles.imageContainer}>
-                <Image
-                  src={beneficiario.FOTO_URL}
-                  alt="Foto del Beneficiario"
-                  className={styles.beneficiarioPhoto}
-                  width={200} // Ajusta el ancho según sea necesario
-                  height={200} // Ajusta la altura según sea necesario
-                />
+            <div className={styles.imageContainer}>
+              <img
+                src={beneficiario.FOTO_URL}
+                alt="Foto del Beneficiario"
+                className={styles.beneficiarioPhoto}
+              />
+              <div className={styles.buttonContainer}>
+                <button
+                  className={styles.surtirButton}
+                  onClick={handleSurtirClick}
+                >
+                  Surtir Medicamento
+                </button>
               </div>
-            )}
+            </div>
           </div>
         </motion.div>
-      </motion.div>
-    </AnimatePresence>
+      </div>
+
+      {/* Modal de surtir medicamento */}
+      <SurtirMedicamentoModal
+        isOpen={isSurtirModalOpen}
+        onClose={closeSurtirModal}
+        medicamentos={medicamentos} // Pasar medicamentos como prop
+      />
+    </>
   );
 };
 
