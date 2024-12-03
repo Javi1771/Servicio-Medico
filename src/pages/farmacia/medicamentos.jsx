@@ -185,6 +185,7 @@ const Medicamentos = () => {
             <BeneficiarioModal
               beneficiario={selectedBeneficiario}
               onClose={() => setSelectedBeneficiario(null)}
+              medicamentos={medicamentos} // Pasamos los medicamentos aquí
             />
           )}
         </div>

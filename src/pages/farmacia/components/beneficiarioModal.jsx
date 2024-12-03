@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import styles from "../../css/EstilosFarmacia/BeneficiarioModal.module.css";
 import SurtirMedicamentoModal from "./registroMedicamentBenef"; // Importa el nuevo componente
+import Image from 'next/image'
+
 
   
 // Función para formatear la fecha al formato "día/mes/año"
@@ -134,10 +136,12 @@ const BeneficiarioModal = ({ beneficiario, onClose, medicamentos }) => {
               </div>
             </div>
             <div className={styles.imageContainer}>
-              <img
+              <Image
                 src={beneficiario.FOTO_URL}
                 alt="Foto del Beneficiario"
                 className={styles.beneficiarioPhoto}
+                width={200}
+                height={200}
               />
               <div className={styles.buttonContainer}>
                 <button
@@ -157,6 +161,8 @@ const BeneficiarioModal = ({ beneficiario, onClose, medicamentos }) => {
         isOpen={isSurtirModalOpen}
         onClose={closeSurtirModal}
         medicamentos={medicamentos} // Pasar medicamentos como prop
+        beneficiario={beneficiario} // Pasa el beneficiario seleccionado
+
       />
     </>
   );
