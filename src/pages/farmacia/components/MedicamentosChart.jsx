@@ -136,7 +136,7 @@ const MedicamentosChart = () => {
 
   const commonOptions = {
     responsive: true,
-    maintainAspectRatio: false,
+    maintainAspectRatio: true,
     plugins: {
       legend: { labels: { color: "#FFFFFF" } },
       title: { display: true, color: "#FFFFFF" },
@@ -163,7 +163,7 @@ const MedicamentosChart = () => {
           {/* Gráfico de Barras */}
           {barChartData ? (
             <>
-              <Bar data={barChartData} options={commonOptions} />
+              <Bar data={barChartData} options={commonOptions} width={400} height={200} />
               <div className={styles.pagination}>
                 <button className={styles.paginationButton} onClick={handleBarPrevPage} disabled={barCurrentPage === 0}>
                   Anterior
@@ -179,7 +179,7 @@ const MedicamentosChart = () => {
           {/* Gráfico Circular */}
           {pieChartData ? (
             <>
-              <Pie data={pieChartData} options={commonOptions} />
+              <Pie data={pieChartData} options={commonOptions} width={400} height={200} />
               <div className={styles.pagination}>
                 <button className={styles.paginationButton} onClick={handlePiePrevPage} disabled={pieCurrentPage === 0}>
                   Anterior
