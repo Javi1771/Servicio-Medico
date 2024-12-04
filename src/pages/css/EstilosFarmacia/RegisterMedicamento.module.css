@@ -3,7 +3,14 @@
 /* Estilo del cuerpo */
 .body {
   background-color: #1e1e2d;
+  min-height: 100vh; /* Asegura que ocupe toda la altura de la ventana */
+  width: 100%; /* Asegura que ocupe todo el ancho */
+  margin: 0; /* Elimina márgenes externos */
+  padding: 0; /* Elimina cualquier padding */
+  display: flex; /* Útil si tienes que alinear contenido */
+  flex-direction: column; /* Permite que el contenido fluya de arriba hacia abajo */
 }
+
 
 /* Contenedor centrado */
 .container {
@@ -11,7 +18,8 @@
     flex-direction: column;
     align-items: unset;
     margin: -30px auto;
-    padding: 97px 0rem;
+    padding: 38px 0rem;
+   
 }
 
 /* Mensaje de feedback */
@@ -202,49 +210,76 @@
   overflow-x: auto;
   margin-top: 2rem;
   border-radius: 8px;
+}
+
+/* Contenedor de la Tabla */
+.tableContainer {
+  max-width: 1200px;
+  margin: 2rem auto; /* Centra el contenedor */
+  padding: 1.5rem;
+  background: #1e1e2d;
+  border-radius: 12px; /* Bordes redondeados */
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1); /* Shadow suave */
+  transition: box-shadow 0.3s ease; /* Transición para el box-shadow */
   margin-left: -140px;
+
+}
+
+.tableContainer:hover {
+  box-shadow: 0px 8px 20px rgba(27, 239, 204, 0.5), 
+              0px 0px 15px rgba(0, 255, 234, 0.8); /* Glow neon */
 }
 
 /* Tabla */
 .table {
   width: 100%;
   border-collapse: collapse;
-  background: #24243a;
-  color: white;
+  background: #24243a; /* Fondo oscuro */
+  color: #f9f9f9; /* Texto claro */
   overflow: hidden;
-  border-radius: 8px;
+  border-radius: 12px; /* Bordes redondeados */
 }
 
 /* Encabezados */
 .table th {
-  background: #00796b;
-  color: #ffffff;
+  background: #057f72; /* Fondo verde neon */
+  color: #ffffff; /* Texto blanco */
   font-weight: bold;
   padding: 1rem;
   text-align: left;
-  white-space: nowrap; /* Evitar que los encabezados se desborden */
-  font-size: 1rem; /* Ajustar tamaño para que se adapte mejor en pantallas pequeñas */
+  white-space: nowrap; /* Evita desbordes */
+  font-size: 1rem; /* Ajusta tamaño */
 }
 
 /* Celdas */
 .table td {
   padding: 1rem;
   text-align: left;
-  border-bottom: 1px solid #3d3d5c;
-  font-size: 0.9rem; /* Reducir el tamaño del texto en pantallas pequeñas */
-  white-space: nowrap; /* Evitar que el contenido se desborde */
+  border-bottom: 1px solid #3d3d5c; /* Líneas separadoras */
+  font-size: 0.9rem; /* Texto reducido */
+  white-space: nowrap; /* Evita desbordes */
 }
 
-/* Filas hover */
+/* Hover en las Filas */
+.table tbody tr {
+  transition: transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
 .table tbody tr:hover {
-  background: #00796b;
+  background: #00796b; /* Fondo verde claro */
+  transform: scale(1.02); /* Efecto de profundidad */
+  box-shadow: 0px 5px 15px rgba(0, 255, 234, 0.4); /* Glow */
+  z-index: 1;
+  position: relative;
 }
 
-/* Hacer que las celdas se ajusten en pantallas pequeñas */
+/* Responsividad */
 @media (max-width: 768px) {
-  .tableContainer
-  {  margin-left:0px;
+  .tableContainer {
+    margin: 1rem;
+    padding: 1rem;
   }
+
   .table th,
   .table td {
     font-size: 0.8rem; /* Texto más pequeño */
@@ -255,6 +290,21 @@
     white-space: normal; /* Permitir que los encabezados se envuelvan */
   }
 }
+
+@media (max-width: 480px) {
+  .tableContainer {
+    margin: 0.5rem;
+    padding: 0.8rem;
+    border-radius: 8px; /* Bordes más pequeños */
+  }
+
+  .table th,
+  .table td {
+    padding: 0.5rem;
+    font-size: 0.7rem; /* Texto aún más pequeño */
+  }
+}
+
 
 
 /* Contenedor principal */
@@ -337,20 +387,21 @@
 
 
 
-/*ESTILOS DE GRAFICOS*/
+/* Contenedor General de los Gráficos */
 .chartContainer {
   max-width: 900px;
-  padding: 2rem; /* Aumenta el relleno interno */
+  padding: 2rem; /* Espaciado interno */
   background: #a54949;
   border-radius: 8px;
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
 
   display: flex;
   flex-direction: column;
-  align-items: center; /* Alinea horizontalmente */
-  justify-content: center; /* Alinea verticalmente */
+  align-items: center;
+  justify-content: center;
 }
 
+/* Título de los Gráficos */
 .title {
   font-size: 1.8rem;
   font-weight: bold;
@@ -358,16 +409,35 @@
   margin-bottom: 1rem;
 }
 
+/* Mensajes de Error */
 .error {
   color: #ff4d4f;
   text-align: center;
   font-size: 1.2rem;
 }
 
+/* Mensaje de Cargando */
 .loading {
   text-align: center;
   font-size: 1.2rem;
   color: #00796b;
+}
+
+/* Estilos Específicos para los Gráficos Individuales */
+.chartCard {
+  width: 100%; /* Ocupa el ancho completo del contenedor */
+  max-width: 600px; /* Limita el tamaño máximo */
+  max-height: 400px; /* Limita el tamaño máximo */
+  overflow: hidden; /* Evita desbordamientos */
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 1rem;
+  margin: 1rem 0;
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.1);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 
@@ -659,10 +729,10 @@
 
 /* Contenedor del modal */
 .modalContent {
-  background: #1e293b;
+  background: #273b5858;
   padding: 2rem;
   border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0);
   width: 90%;
   max-width: 500px;
   transform-origin: center;
@@ -672,12 +742,12 @@
 /* From Uiverse.io by tiagoadag1203 */ 
 .input {
   max-width: 900px;
-  background-color: #efefef;
+  background-color: #5949d617;
   border: none;
   padding: 10px;
   border-radius: 10px;
   outline: none;
-  color: rgb(0, 0, 0);
+  color: rgb(221, 221, 221);
 }
 
 .input:focus {
@@ -686,19 +756,19 @@
 
 @keyframes rotateShadow2 {
   0% {
-    box-shadow: -2px -2px 8px 1px #aa00ff, 2px 2px 8px 1px #3700ff;
+    box-shadow: -2px -2px 8px 1px #00fffb, 2px 2px 8px 1px #00ffae;
   }
   25% {
-    box-shadow: -2px 2px 8px 1px #aa00ff, 2px -2px 8px 1px #3700ff;
+    box-shadow: -2px 2px 8px 1px #00fffb, 2px -2px 8px 1px #00ffae;
   }
   50% {
-    box-shadow: 2px 2px 8px 1px #aa00ff, -2px -2px 8px 1px #3700ff;
+    box-shadow: 2px 2px 8px 1px #00fffb, -2px -2px 8px 1px #00ffae;
   }
   75% {
-    box-shadow: 2px -2px 8px 1px #aa00ff, -2px 2px 8px 1px #3700ff;
+    box-shadow: 2px -2px 8px 1px #00fffb, -2px 2px 8px 1px #00ffae;
   }
   100% {
-    box-shadow: -2px -2px 8px 1px #aa00ff, 2px 2px 8px 1px #3700ff;
+    box-shadow: -2px -2px 8px 1px #00fffb, 2px 2px 8px 1px #00ffae;
   }
 }
 
@@ -731,6 +801,7 @@
   outline: none;
   font-size: 16px;
   color: #333;
+  background: #272642;
 }
 
 .searchBar::placeholder {
@@ -738,7 +809,7 @@
 }
 
 .searchButton {
-  background-color: transparent;
+  background-color: #03a392;
   border: none;
   cursor: pointer;
   padding: 8px;
@@ -755,7 +826,7 @@
 .searchIcon {
   width: 20px;
   height: 20px;
-  stroke: #555;
+  stroke: #f0f0f0;
 }
 
 .searchButton:hover .searchIcon {
@@ -807,4 +878,51 @@
 .prevButton:hover,
 .nextButton:hover {
   background-color: #005a4e;
+}
+
+
+/*botones anterior y siguiente*/
+.pagination {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+  gap: 10px;
+}
+
+.paginationButton {
+  background-color: #1e40af;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.paginationButton:hover {
+  background-color: #2563eb;
+}
+
+.paginationButton:disabled {
+  background-color: #64748b;
+  cursor: not-allowed;
+}
+
+
+/*responsividad graficos*/
+.chartWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.chartContainer {
+  width: 100%;
+  max-width: 1200px; /* Ajusta según tu diseño */
+}
+
+.chartWrapper canvas {
+  max-width: 100%;
+  height: auto !important;
 }

@@ -44,7 +44,10 @@ export const closeDatabaseConnection = async () => {
 // API para probar la conexión
 export default async function handler(req, res) {
   try {
-    const dbPool = await connectToDatabase();
+    const dbPool = await connectToDatabase(); // Conexión al pool
+    if (dbPool.connected) {
+      console.log('Pool conectado correctamente'); // Opcional para depuración
+    }
     res.status(200).json({ message: 'Conexión exitosa' });
   } catch (error) {
     console.error('Error en la conexión:', error.message);

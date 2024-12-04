@@ -1,0 +1,260 @@
+.modalBackdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modalContent {
+  background: #1e293b;
+  color: #ffffff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  width: 90%; /* Ajusta para pantallas más pequeñas */
+  max-width: 800px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.8);
+  position: relative;
+}
+
+.modalCloseButton {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: transparent;
+  color: #ffffff;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.modalHeader {
+  text-align: center;
+  border-bottom: 1px solid #ffffff;
+  padding-bottom: 0.5rem;
+}
+
+.modalTitle {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.modalBody {
+  display: flex;
+  flex-direction: row; /* Mantiene la foto y la información en filas horizontales */
+  gap: 2rem;
+}
+
+/* Información y Foto */
+.infoContainer {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.infoRow {
+  display: flex;
+  justify-content: space-between;
+}
+
+.infoRow p {
+  flex: 1;
+  margin: 0;
+}
+
+.imageContainer {
+  display: flex;
+  flex-direction: column; /* Cambia la dirección a columna */
+  align-items: center; /* Centra la imagen y el botón horizontalmente */
+  justify-content: center;
+  gap: 1rem; /* Espaciado entre la imagen y el botón */
+}
+
+.beneficiarioPhoto {
+  max-width: 100%;
+  max-height: 180px;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+.beneficiarioPhoto:hover {
+  transform: scale(1.05); /* Efecto de zoom al pasar el ratón */
+}
+
+.statusBadge {
+  display: inline-block;
+  padding: 0.3rem 0.6rem;
+  border-radius: 5px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: white;
+  text-align: center;
+  min-width: 80px;
+}
+
+.statusActive {
+  background-color: #00b570; /* Verde para Activo */
+}
+
+.statusInactive {
+  background-color: #f56565; /* Rojo para Inactivo */
+}
+
+/* Estilos Responsivos */
+
+/* Para pantallas pequeñas (móviles) */
+@media (max-width: 600px) {
+  .modalContent {
+    width: 95%; /* Ajusta el ancho para móviles */
+    padding: 1.8rem;
+  }
+
+  .modalBody {
+    flex-direction: column; /* Cambia a disposición vertical */
+    gap: 1rem;
+  }
+
+  .infoRow {
+    flex-direction: column; /* Información apilada en móviles */
+  }
+
+  .modalTitle {
+    font-size: 1.2rem; /* Reduce el tamaño del título */
+  }
+
+  .beneficiarioPhoto {
+    max-height: 200px; /* Reduce la altura máxima */
+  }
+}
+
+/* Para tablets */
+@media (min-width: 601px) and (max-width: 1024px) {
+  .modalContent {
+    width: 85%; /* Ajusta el ancho para tablets */
+    padding: 1.2rem;
+  }
+
+  .modalTitle {
+    font-size: 1.4rem; /* Ajusta el tamaño del título */
+  }
+
+  .modalBody {
+    gap: 1.5rem; /* Reduce el espacio entre elementos */
+  }
+
+  .beneficiarioPhoto {
+    max-height: 220px; /* Ajusta la altura de la foto */
+  }
+}
+
+/* Para pantallas grandes (escritorios grandes) */
+@media (min-width: 1025px) {
+  .modalContent {
+    max-width: 900px; /* Aumenta el ancho máximo */
+  }
+
+  .modalBody {
+    gap: 2.5rem; /* Aumenta el espacio entre la información y la foto */
+  }
+}
+
+/*boton surtir medicamento*/
+.surtirButton {
+  margin-top: 1rem;
+  padding: 0.8rem 1.5rem;
+  background-color: #00fa9a; /* Verde neon */
+  color: #1e293b; /* Texto oscuro */
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.3); /* Sombra */
+}
+
+.surtirButton:hover {
+  background-color: #04c487; /* Verde más oscuro al pasar el ratón */
+  transform: scale(1.05); /* Zoom al pasar el ratón */
+}
+
+.surtirButton:active {
+  transform: scale(0.95); /* Pequeño efecto de pulsación */
+}
+
+
+
+
+
+
+
+
+
+
+
+.surtirForm {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+}
+
+.formGroup label {
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+  color: #ffffff; /* Texto blanco */
+}
+
+.formGroup input,
+.formGroup textarea {
+  width: 100%;
+  padding: 0.8rem;
+  border: 1px solid #4a5568; /* Gris oscuro */
+  border-radius: 8px;
+  font-size: 1rem;
+  background-color: #2d3748; /* Fondo oscuro */
+  color: #ffffff; /* Texto blanco */
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.formGroup input:focus,
+.formGroup textarea:focus {
+  outline: none;
+  border-color: #00fa9a; /* Color verde neon */
+  box-shadow: 0px 0px 5px #00fa9a; /* Sombra verde */
+}
+
+.textarea {
+  min-height: 100px;
+  resize: none; /* Evita que el usuario pueda cambiar el tamaño */
+}
+
+.submitButton {
+  background-color: #00fa9a;
+  color: #1e293b; /* Texto oscuro */
+  padding: 0.8rem;
+  font-size: 1rem;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.submitButton:hover {
+  background-color: #04c487; /* Verde oscuro */
+  transform: scale(1.05); /* Efecto de zoom al pasar el ratón */
+}

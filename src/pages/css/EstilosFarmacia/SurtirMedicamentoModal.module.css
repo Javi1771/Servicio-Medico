@@ -1,0 +1,152 @@
+.modalBackdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(26, 26, 26, 0); /* Reduce opacidad para un mejor efecto */
+  backdrop-filter: blur(10px); /* Aplica el efecto de desenfoque */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modalContent {
+  background: #1e293b;
+  color: #ffffff;
+  border-radius: 12px;
+  padding: 2rem;
+  width: 100%;
+  max-width: 912px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  position: relative;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25); /* Añade un poco de profundidad */
+}
+
+
+.modalCloseButton {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: transparent;
+  color: #ffffff;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.modalTitle {
+  font-size: 1.5rem;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.surtirForm {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+}
+
+.formGroup label {
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+}
+
+.formGroup input,
+.formGroup textarea {
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 1rem;
+  color: #f7f7f7;
+  background: #263349;
+}
+
+.submitButton {
+  background-color: #00fa9a;
+  color: #1e293b;
+  padding: 0.7rem;
+  font-size: 1rem;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.submitButton:hover {
+  background-color: #04c487;
+}
+
+
+/*estilos input select medicamentos*/
+/* Archivo CSS: SurtirMedicamentoModal.module.css */
+
+.selectInput {
+  width: 100%;
+  padding: 0.5rem;
+  font-size: 1rem;
+  color: #ffffff;
+  background-color: #1e293b; /* Fondo oscuro */
+  border: 1px solid #00fa9a; /* Borde verde neon */
+  border-radius: 8px;
+  outline: none;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  appearance: none; /* Quitar la flecha por defecto en navegadores */
+}
+
+.selectInput:hover,
+.selectInput:focus {
+  border-color: #04c487; /* Cambiar color del borde al enfocar */
+  box-shadow: 0 0 10px rgba(0, 250, 154, 0.5); /* Efecto de brillo */
+}
+
+.selectInput option {
+  background-color: #1e293b; /* Fondo para las opciones */
+  color: #ffffff;
+  padding: 0.5rem;
+  font-size: 1rem;
+}
+
+.selectInput option:disabled {
+  color: #9ca3af; /* Color gris claro */
+}
+
+@media (max-width: 768px) {
+  .selectInput {
+    font-size: 0.9rem;
+    padding: 0.4rem;
+  }
+}
+
+
+.formColumns {
+  display: flex;
+  gap: 2rem; /* Espaciado entre columnas */
+}
+
+.column {
+  flex: 1; /* Distribuye el espacio de forma uniforme */
+}
+
+.textInput,
+.selectInput {
+  width: 100%;
+  padding: 0.5rem;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.textarea {
+  resize: none;
+}

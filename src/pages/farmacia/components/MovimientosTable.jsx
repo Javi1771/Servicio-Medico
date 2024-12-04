@@ -7,9 +7,11 @@ const MovimientosTable = ({ movimientos = [] }) => {
 
   // Filtrar movimientos según el término de búsqueda
   const filteredMovimientos = movimientos.filter((movimiento) =>
-    [movimiento.ean, movimiento.sustancia, movimiento.nombre_paciente]
+    [movimiento.ean, movimiento.sustancia, movimiento.nombre_paciente, movimiento.clave_nomina]
       .filter(Boolean) // Maneja valores nulos o indefinidos
-      .some((value) => value.toLowerCase().includes(searchTerm.toLowerCase()))
+      .some((value) =>
+        value.toString().toLowerCase().includes(searchTerm.toLowerCase()) // Convierte el valor a string para manejar números
+      )
   );
 
   return (

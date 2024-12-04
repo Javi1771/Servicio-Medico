@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { Bar, Pie } from "react-chartjs-2";
 import styles from "../../css/EstilosFarmacia/RegisterMedicamento.module.css";
 import {
@@ -24,67 +24,16 @@ ChartJS.register(
 );
 
 const MedicamentosChart = () => {
-  const [barChartData, setBarChartData] = useState(null); // Datos para gráfico de barras
-  const [pieChartData, setPieChartData] = useState(null); // Datos para gráfico circular
-  const [barCurrentPage, setBarCurrentPage] = useState(0); // Página actual del gráfico de barras
-  const [pieCurrentPage, setPieCurrentPage] = useState(0); // Página actual del gráfico circular
+  const [barChartData, setBarChartData] = useState(null);
+  const [pieChartData, setPieChartData] = useState(null);
   const [error, setError] = useState(null);
+  const [barCurrentPage, setBarCurrentPage] = useState(0);
+  const [pieCurrentPage, setPieCurrentPage] = useState(0);
 
-  const ITEMS_PER_PAGE = 10; // Número de elementos por página
+  const ITEMS_PER_PAGE = 10;
 
-  // Datos de medicamentos registrados (gráfico de barras)
-  const fetchMedicamentosData = async () => {
-    try {
-      const response = await fetch("/api/farmacia/obtenerMedicamentos");
-      const data = await response.json();
-
-      if (response.ok) {
-        const sortedData = data.sort((a, b) => b.piezas - a.piezas); // Ordenar por piezas
-        paginateBarData(sortedData); // Generar datos paginados
-      } else {
-        setError(data.message || "Error al obtener los medicamentos registrados");
-      }
-    } catch (error) {
-      console.error("Error al obtener los medicamentos registrados:", error);
-      setError("Error interno del servidor");
-    }
-  };
-
-  // Datos de movimientos (piezas otorgadas por sustancia) para el gráfico circular
-  const fetchMovimientosData = async () => {
-    try {
-      const response = await fetch("/api/obtenerMovimientos");
-      const data = await response.json();
-
-      if (response.ok) {
-        const sustanciasMap = {};
-        data.forEach((movimiento) => {
-          const piezasOtorgadas = Number(movimiento.piezas_otorgadas);
-          if (sustanciasMap[movimiento.sustancia]) {
-            sustanciasMap[movimiento.sustancia] += piezasOtorgadas;
-          } else {
-            sustanciasMap[movimiento.sustancia] = piezasOtorgadas;
-          }
-        });
-
-        const sustanciasArray = Object.entries(sustanciasMap).map(([sustancia, piezas]) => ({
-          sustancia,
-          piezas,
-        }));
-        sustanciasArray.sort((a, b) => b.piezas - a.piezas); // Ordenar por piezas
-        paginatePieData(sustanciasArray); // Generar datos paginados
-      } else {
-        setError(data.message || "Error al obtener los movimientos");
-      }
-    } catch (error) {
-      console.error("Error al obtener los movimientos:", error);
-      setError("Error interno del servidor");
-    }
-  };
-
-  // Generar datos paginados para el gráfico de barras
-  const paginateBarData = (data) => {
-    const start = barCurrentPage * ITEMS_PER_PAGE;
+  const paginateBarData = useCallback((data, page = 0) => {
+    const start = page * ITEMS_PER_PAGE;
     const end = start + ITEMS_PER_PAGE;
     const currentData = data.slice(start, end);
 
@@ -95,7 +44,7 @@ const MedicamentosChart = () => {
       labels,
       datasets: [
         {
-          label: `Cantidad de Piezas Registradas (Página ${barCurrentPage + 1})`,
+          label: `Cantidad de Piezas Registradas (Página ${page + 1})`,
           data: cantidades,
           backgroundColor: "rgba(75, 192, 192, 0.5)",
           borderColor: "rgba(75, 192, 192, 1)",
@@ -103,11 +52,10 @@ const MedicamentosChart = () => {
         },
       ],
     });
-  };
+  }, []);
 
-  // Generar datos paginados para el gráfico circular
-  const paginatePieData = (data) => {
-    const start = pieCurrentPage * ITEMS_PER_PAGE;
+  const paginatePieData = useCallback((data, page = 0) => {
+    const start = page * ITEMS_PER_PAGE;
     const end = start + ITEMS_PER_PAGE;
     const currentData = data.slice(start, end);
 
@@ -118,71 +66,93 @@ const MedicamentosChart = () => {
       labels,
       datasets: [
         {
-          label: `Piezas Otorgadas (Página ${pieCurrentPage + 1})`,
+          label: `Piezas Otorgadas (Página ${page + 1})`,
           data: cantidades,
           backgroundColor: [
             "rgba(255, 99, 132, 0.5)",
             "rgba(54, 162, 235, 0.5)",
             "rgba(255, 206, 86, 0.5)",
-            "rgba(75, 192, 192, 0.5)",
-            "rgba(153, 102, 255, 0.5)",
-            "rgba(255, 159, 64, 0.5)",
           ],
           borderColor: [
             "rgba(255, 99, 132, 1)",
             "rgba(54, 162, 235, 1)",
             "rgba(255, 206, 86, 1)",
-            "rgba(75, 192, 192, 1)",
-            "rgba(153, 102, 255, 1)",
-            "rgba(255, 159, 64, 1)",
           ],
           borderWidth: 1,
         },
       ],
     });
-  };
+  }, []);
 
-  // Llamar a ambas APIs al cargar el componente
+  const fetchMedicamentosData = useCallback(async () => {
+    try {
+      const response = await fetch("/api/farmacia/obtenerMedicamentos");
+      const data = await response.json();
+
+      if (response.ok) {
+        const sortedData = data.sort((a, b) => b.piezas - a.piezas);
+        paginateBarData(sortedData, barCurrentPage);
+      } else {
+        setError(data.message || "Error al obtener los medicamentos registrados");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      setError("Error interno del servidor");
+    }
+  }, [paginateBarData, barCurrentPage]);
+
+  const fetchMovimientosData = useCallback(async () => {
+    try {
+      const response = await fetch("/api/obtenerMovimientos");
+      const data = await response.json();
+
+      if (response.ok) {
+        const sustanciasMap = {};
+        data.forEach((movimiento) => {
+          const piezasOtorgadas = Number(movimiento.piezas_otorgadas);
+          sustanciasMap[movimiento.sustancia] =
+            (sustanciasMap[movimiento.sustancia] || 0) + piezasOtorgadas;
+        });
+
+        const sustanciasArray = Object.entries(sustanciasMap).map(([sustancia, piezas]) => ({
+          sustancia,
+          piezas,
+        }));
+        sustanciasArray.sort((a, b) => b.piezas - a.piezas);
+        paginatePieData(sustanciasArray, pieCurrentPage);
+      } else {
+        setError(data.message || "Error al obtener los movimientos");
+      }
+    } catch (error) {
+      console.error("Error al obtener los movimientos:", error);
+      setError("Error interno del servidor");
+    }
+  }, [paginatePieData, pieCurrentPage]);
+
   useEffect(() => {
     fetchMedicamentosData();
     fetchMovimientosData();
-  }, [barCurrentPage, pieCurrentPage]);
+  }, [fetchMedicamentosData, fetchMovimientosData]);
 
-  // Opciones globales para gráficos con letras en blanco
   const commonOptions = {
     responsive: true,
-    maintainAspectRatio: false, // Permitir que el gráfico ocupe un tamaño personalizado
+    maintainAspectRatio: false,
     plugins: {
-      legend: {
-        labels: {
-          color: "#FFFFFF",
-        },
-      },
-      title: {
-        display: true,
-        color: "#FFFFFF",
-      },
+      legend: { labels: { color: "#FFFFFF" } },
+      title: { display: true, color: "#FFFFFF" },
     },
     scales: {
-      x: {
-        ticks: {
-          color: "#FFFFFF",
-        },
-        grid: {
-          color: "rgba(255, 255, 255, 0.2)",
-        },
-      },
-      y: {
-        ticks: {
-          color: "#FFFFFF",
-        },
-        grid: {
-          color: "rgba(255, 255, 255, 0.2)",
-        },
-      },
+      x: { ticks: { color: "#FFFFFF" }, grid: { color: "rgba(255, 255, 255, 0.2)" } },
+      y: { ticks: { color: "#FFFFFF" }, grid: { color: "rgba(255, 255, 255, 0.2)" } },
     },
   };
-  
+
+  const handleBarPrevPage = () => setBarCurrentPage((prev) => Math.max(prev - 1, 0));
+  const handleBarNextPage = () => setBarCurrentPage((prev) => prev + 1);
+
+  const handlePiePrevPage = () => setPieCurrentPage((prev) => Math.max(prev - 1, 0));
+  const handlePieNextPage = () => setPieCurrentPage((prev) => prev + 1);
+
   return (
     <div className={styles.chartContainer}>
       <h2 className={styles.title}>Gráficos de Medicamentos</h2>
@@ -191,70 +161,37 @@ const MedicamentosChart = () => {
       ) : (
         <div className={styles.chartWrapper}>
           {/* Gráfico de Barras */}
-          <div className={styles.card}>
-            <h3 className={styles.chartTitle}>Gráfico de Barras</h3>
-            {barChartData ? (
-              <>
-                <Bar
-                  data={barChartData}
-                  options={{
-                    ...commonOptions,
-                    maintainAspectRatio: true,
-                  }}
-                  height={300}
-                />
-                <div className={styles.paginationButtons}>
-                  <button
-                    className={styles.prevButton}
-                    onClick={() => setBarCurrentPage(Math.max(barCurrentPage - 1, 0))}
-                  >
-                    ⬅
-                  </button>
-                  <button
-                    className={styles.nextButton}
-                    onClick={() => setBarCurrentPage(barCurrentPage + 1)}
-                  >
-                    ➡
-                  </button>
-                </div>
-              </>
-            ) : (
-              <p className={styles.loading}>Cargando datos del gráfico de barras...</p>
-            )}
-          </div>
-
+          {barChartData ? (
+            <>
+              <Bar data={barChartData} options={commonOptions} />
+              <div className={styles.pagination}>
+                <button className={styles.paginationButton} onClick={handleBarPrevPage} disabled={barCurrentPage === 0}>
+                  Anterior
+                </button>
+                <button className={styles.paginationButton} onClick={handleBarNextPage}>
+                  Siguiente
+                </button>
+              </div>
+            </>
+          ) : (
+            <p className={styles.loading}>Cargando datos del gráfico de barras...</p>
+          )}
           {/* Gráfico Circular */}
-          <div className={styles.card}>
-            <h3 className={styles.chartTitle}>Gráfico Circular</h3>
-            {pieChartData ? (
-              <>
-                <Pie
-                  data={pieChartData}
-                  options={{
-                    ...commonOptions,
-                    maintainAspectRatio: true,
-                  }}
-                  height={300}
-                />
-                <div className={styles.paginationButtons}>
-                  <button
-                    className={styles.prevButton}
-                    onClick={() => setPieCurrentPage(Math.max(pieCurrentPage - 1, 0))}
-                  >
-                    ⬅
-                  </button>
-                  <button
-                    className={styles.nextButton}
-                    onClick={() => setPieCurrentPage(pieCurrentPage + 1)}
-                  >
-                    ➡
-                  </button>
-                </div>
-              </>
-            ) : (
-              <p className={styles.loading}>Cargando datos del gráfico circular...</p>
-            )}
-          </div>
+          {pieChartData ? (
+            <>
+              <Pie data={pieChartData} options={commonOptions} />
+              <div className={styles.pagination}>
+                <button className={styles.paginationButton} onClick={handlePiePrevPage} disabled={pieCurrentPage === 0}>
+                  Anterior
+                </button>
+                <button className={styles.paginationButton} onClick={handlePieNextPage}>
+                  Siguiente
+                </button>
+              </div>
+            </>
+          ) : (
+            <p className={styles.loading}>Cargando datos del gráfico circular...</p>
+          )}
         </div>
       )}
     </div>

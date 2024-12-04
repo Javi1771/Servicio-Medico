@@ -1,0 +1,28 @@
+.beneficiariosTable {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+    background: #24243a;
+    color: white;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  
+  .beneficiariosTable th,
+  .beneficiariosTable td {
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid #3d3d5c;
+  }
+  
+  .beneficiariosTable th {
+    background-color: #057f72;
+    color: #ffffff;
+    font-weight: bold;
+  }
+  
+  .beneficiariosTable tbody tr:hover {
+    background-color: rgba(27, 239, 204, 0.2);
+    transition: background-color 0.3s ease;
+  }
+  

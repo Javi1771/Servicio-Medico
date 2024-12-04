@@ -1,0 +1,292 @@
+
+.body {
+    background-color: #1e1e2d;
+    min-height: 70vh; /* Asegura que ocupe toda la altura de la ventana */
+    width: 100%; /* Asegura que ocupe todo el ancho */
+    margin: 0; /* Elimina márgenes externos */
+    padding: 0; /* Elimina cualquier padding */
+    display: flex; /* Útil si tienes que alinear contenido */
+    flex-direction: column; /* Permite que el contenido fluya de arriba hacia abajo */
+  }
+
+
+  .surtirBeneficiarioContainer {
+    position: absolute;
+    top: 330px;
+    left: 350px;
+    margin: 0 auto;
+    padding: 1rem;
+    background: #1e1e2d;
+    border-radius: 12px;
+    width: 90%; /* Se ajusta al 90% del ancho de la pantalla */
+    max-width: 1200px; /* Ancho máximo para pantallas grandes */
+    padding-top: 20px;
+    box-shadow: 0px 4px 10px rgb(255, 255, 255);
+  }
+  
+  .surtirBeneficiarioTitle {
+    text-align: center;
+    font-size: 1.8rem;
+    color: #00fadd;
+    text-shadow: 0 0 10px rgba(0, 255, 234, 0.8);
+    margin-bottom: 1rem;
+  }
+  
+  .surtirBeneficiarioSearchContainer {
+    display: flex;
+    flex-wrap: wrap; /* Permite que los elementos pasen a la siguiente línea en pantallas pequeñas */
+    gap: 1rem;
+    justify-content: center;
+    margin-bottom: 1rem;
+  }
+  
+  .surtirBeneficiarioSearchBar {
+    flex: 1;
+    padding: 0.75rem;
+    border-radius: 8px;
+    border: none;
+    outline: none;
+    font-size: 1rem;
+    min-width: 200px; /* Asegura que el campo de entrada no se haga demasiado pequeño */
+  }
+  
+  .surtirBeneficiarioSearchButton {
+    padding: 0.75rem 1.5rem;
+    background: #057f72;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    min-width: 120px; /* Asegura que el botón no sea demasiado pequeño */
+  }
+  
+  .surtirBeneficiarioCard {
+    background: #24243a;
+    color: white;
+    padding: 1rem;
+    border-radius: 8px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+    margin-top: 1rem;
+  }
+  
+  .surtirBeneficiarioError {
+    color: #ff4d4f;
+    text-align: center;
+  }
+  
+  /* Estilos para pantallas más pequeñas */
+  @media (max-width: 768px) {
+    .surtirBeneficiarioContainer {
+      width: 100%; /* Usa todo el ancho de la pantalla */
+      padding: 1rem;
+      box-shadow: none; /* Reduce la sombra para una mejor experiencia móvil */
+      position:relative;
+      top: -24px;
+      left: 0px;
+    }
+  
+    .surtirBeneficiarioTitle {
+      font-size: 1.5rem; /* Ajusta el tamaño del texto */
+    }
+  
+    .surtirBeneficiarioSearchBar {
+      font-size: 0.9rem; /* Reduce el tamaño de la fuente */
+    }
+  
+    .surtirBeneficiarioSearchButton {
+      padding: 0.5rem 1rem; /* Reduce el tamaño del botón */
+      font-size: 0.9rem;
+    }
+  
+    .surtirBeneficiarioCard {
+      margin-top: 0.5rem; /* Reduce el margen superior */
+      padding: 0.8rem; /* Ajusta el padding */
+    }
+  }
+  
+  /* Estilos para pantallas muy pequeñas */
+  @media (max-width: 480px) {
+    .surtirBeneficiarioTitle {
+      font-size: 1.3rem;
+    }
+  
+    .surtirBeneficiarioSearchBar,
+    .surtirBeneficiarioSearchButton {
+      font-size: 0.8rem;
+      padding: 0.5rem;
+    }
+  
+    .surtirBeneficiarioCard {
+      padding: 0.5rem; /* Reduce el padding aún más */
+    }
+  }
+  
+  
+
+
+
+
+
+
+
+  
+
+
+
+  /*card del tipo de sindicato*/
+  .surtirBeneficiarioContent {
+    display: flex;
+    gap: 1rem;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .surtirBeneficiarioCard {
+    background: #24243a;
+    color: white;
+    padding: 1rem;
+    border-radius: 8px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+    flex: 1;
+  }
+  
+/* Card general de sindicalización */
+.surtirBeneficiarioSindicatoCard {
+    background: #24243a;
+    padding: 1rem;
+    border-radius: 8px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+    margin-left: 1rem; /* Separación del card de información */
+    flex: 1;
+    transition: box-shadow 0.3s ease;
+    max-width: 220px;
+  }
+  
+  /* Estilo para sindicalizados */
+  .sindicato {
+    box-shadow: 0px 0px 20px 4px rgba(0, 255, 234, 0.9),
+      0px 0px 30px 10px rgba(0, 255, 234, 0.6); /* Azul neón */
+    color: #00fadd; /* Texto azul neón */
+  }
+  
+  /* Estilo para no sindicalizados */
+  .noSindicato {
+    box-shadow: 0px 0px 20px 4px rgba(244, 67, 54, 0.9),
+      0px 0px 30px 10px rgba(244, 67, 54, 0.6); /* Rojo */
+    color: #f44336; /* Texto rojo */
+  }
+  
+
+
+
+/* Tabla Beneficiarios Farmacia */
+/* Beneficiarios Table Container */
+.beneficiariosTableContainer {
+  max-width: 1301px;
+  margin: 2rem auto;
+  padding: 1.5rem;
+  background: #1e1e2d;
+  border-radius: 12px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  overflow-x: auto; /* Permite el scroll horizontal */
+}
+
+.beneficiariosTableContainer:hover {
+  box-shadow: 0px 8px 20px rgba(27, 239, 204, 0.5), 0px 0px 15px rgba(0, 255, 234, 0.8);
+}
+
+.beneficiariosTableTitle {
+  text-align: center;
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #00fadd;
+  margin-bottom: 1rem;
+  text-shadow: 0 0 10px rgba(0, 255, 234, 0.8);
+}
+
+/* Tabla */
+.beneficiariosTable {
+  width: 100%;
+  border-collapse: collapse;
+  border-radius: 12px;
+  overflow: hidden;
+  table-layout: auto; /* Ajuste automático de columnas */
+}
+
+.beneficiariosTable th,
+.beneficiariosTable td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.beneficiariosTable th {
+  background-color: #057f72;
+  color: #e7e7e7;
+  font-weight: bold;
+}
+
+.beneficiariosTable tbody tr {
+  transition: transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.beneficiariosTable tbody tr:hover {
+  background-color: rgba(27, 239, 204, 0.416);
+  transform: scale(1.02);
+  box-shadow: 0px 5px 15px rgba(0, 255, 234, 0.4);
+  z-index: 1;
+  position: relative;
+}
+
+.beneficiariosTable td {
+  color: #f9f9f9;
+}
+
+/* Responsividad */
+
+/* Pantallas pequeñas (móviles) */
+@media (max-width: 600px) {
+  .beneficiariosTableContainer {
+    padding: 1rem;
+  }
+
+  .beneficiariosTableTitle {
+    font-size: 1.5rem;
+  }
+
+  .beneficiariosTable th,
+  .beneficiariosTable td {
+    padding: 0.6rem;
+    font-size: 0.8rem;
+  }
+
+  /* Asegura el scroll horizontal */
+  .beneficiariosTableContainer {
+    overflow-x: auto;
+  }
+
+  .beneficiariosTable {
+    display: block;
+    min-width: 600px; /* Evita que la tabla colapse en pantallas muy pequeñas */
+  }
+}
+
+/* Pantallas medianas (tablets) */
+@media (min-width: 601px) and (max-width: 1024px) {
+  .beneficiariosTableContainer {
+    max-width: 90%;
+    padding: 1.2rem;
+  }
+
+  .beneficiariosTableTitle {
+    font-size: 1.6rem;
+  }
+
+  .beneficiariosTable th,
+  .beneficiariosTable td {
+    padding: 0.9rem;
+    font-size: 1rem;
+  }
+}
+
+
