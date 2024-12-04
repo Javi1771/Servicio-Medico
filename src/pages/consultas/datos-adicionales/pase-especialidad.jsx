@@ -38,13 +38,9 @@ const PaseEspecialidad = ({
 
   //* Verifica si el formulario está completo
   useEffect(() => {
-    const verificarFormularioCompleto = () => {
-      const camposRequeridosLlenos =
-        claveConsulta && especialidadSeleccionada && observaciones;
-      setFormularioCompleto(camposRequeridosLlenos);
-    };
-
-    verificarFormularioCompleto();
+    const camposRequeridosLlenos =
+      claveConsulta && especialidadSeleccionada && observaciones;
+    setFormularioCompleto(camposRequeridosLlenos);
   }, [
     claveConsulta,
     especialidadSeleccionada,
@@ -76,15 +72,14 @@ const PaseEspecialidad = ({
   const handleGuardarEspecialidad = async () => {
     const datos = {
       claveConsulta,
-      claveEspecialidad: especialidadSeleccionada, // Especialidad seleccionada por el usuario
+      claveEspecialidad: especialidadSeleccionada,
       observaciones,
-      nombreMedico: nombreMedico || "No definido",
-      numeroDeNomina: numeroDeNomina || "No definido",
-      nombrePaciente: nombrePaciente || "No definido",
+      nombreMedico: nombreMedico,
+      numeroDeNomina: numeroDeNomina,
+      nombrePaciente: nombrePaciente,
     };
 
-    // Log para verificar los datos enviados
-    console.log("Datos enviados al backend:", datos);
+    console.log("Datos enviados al backend:", datos); // Depurar datos enviados
 
     try {
       const response = await fetch("/api/especialidades/guardarEspecialidad", {

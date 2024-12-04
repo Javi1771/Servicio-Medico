@@ -29,8 +29,10 @@ export default async function handler(req, res) {
       999
     );
 
+    // Validar y convertir clavestatus
     const clavestatus = req.query.clavestatus ? parseInt(req.query.clavestatus) : 1;
 
+    // Ejecutar la consulta SQL
     const result = await pool
       .request()
       .input("startOfDay", sql.DateTime, startOfDay)
@@ -41,16 +43,19 @@ export default async function handler(req, res) {
           consultas.*, 
           P.PARENTESCO AS parentesco_desc 
         FROM consultas
-        LEFT JOIN PARENTESCO P ON consultas.parentesco = P.ID_PARENTESCO
+        LEFT JOIN PARENTESCO P 
+          ON TRY_CAST(consultas.parentesco AS SMALLINT) = P.ID_PARENTESCO
         WHERE consultas.clavestatus = @clavestatus 
           AND consultas.fechaconsulta >= @startOfDay 
           AND consultas.fechaconsulta <= @endOfDay
         ORDER BY consultas.fechaconsulta ASC
       `);
 
+    // Respuesta exitosa con los resultados
     res.status(200).json({ consultas: result.recordset });
     console.log("Número de consultas obtenidas:", result.recordset.length);
   } catch (error) {
+    // Manejo de errores
     console.error("Error al cargar consultas del día:", error);
     res.status(500).json({ message: "Error al cargar consultas del día" });
   }
