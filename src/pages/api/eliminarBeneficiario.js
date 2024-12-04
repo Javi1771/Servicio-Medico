@@ -1,13 +1,5 @@
-// pages/api/eliminarBeneficiario.js
 import { connectToDatabase } from './connectToDatabase';
-import cloudinary from 'cloudinary';
-
-// Configura Cloudinary
-cloudinary.v2.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
+import cloudinary from '../../lib/cloudinaryServer'; // Importa la configuración centralizada de Cloudinary
 
 export default async function handler(req, res) {
   if (req.method === 'DELETE') {
@@ -20,7 +12,7 @@ export default async function handler(req, res) {
     try {
       const pool = await connectToDatabase();
 
-      // Consulta para obtener la URL de la imagen del beneficiario antes de eliminar
+      // Obtener URL de la imagen
       const imageResult = await pool.request()
         .input('idBeneficiario', idBeneficiario)
         .query('SELECT FOTO_URL FROM PRESIDENCIA.dbo.BENEFICIARIO WHERE ID_BENEFICIARIO = @idBeneficiario');
@@ -31,15 +23,14 @@ export default async function handler(req, res) {
 
       const { FOTO_URL } = imageResult.recordset[0];
 
-      // Si existe una URL de imagen, elimina la imagen de Cloudinary
+      // Eliminar la imagen de Cloudinary si existe
       if (FOTO_URL) {
-        const publicId = extractCloudinaryPublicId(FOTO_URL); // Extrae el public_id de la URL
-        await cloudinary.v2.uploader.destroy(publicId);
+        const publicId = extractCloudinaryPublicId(FOTO_URL);
         await cloudinary.uploader.destroy(publicId, { invalidate: true }); // Usar invalidate
         console.log(`Imagen eliminada de Cloudinary: ${publicId}`);
       }
 
-      // Eliminar el beneficiario de la base de datos
+      // Eliminar beneficiario de la base de datos
       const result = await pool.request()
         .input('idBeneficiario', idBeneficiario)
         .query('DELETE FROM PRESIDENCIA.dbo.BENEFICIARIO WHERE ID_BENEFICIARIO = @idBeneficiario');
@@ -60,7 +51,7 @@ export default async function handler(req, res) {
 
 // Función para extraer el `public_id` de la URL de Cloudinary
 function extractCloudinaryPublicId(imageUrl) {
-  const regex = /\/([^\/]*)\.[a-zA-Z]{3,4}$/; // Extrae el nombre del archivo antes de la extensión
+  const regex = /\/([^\/]*)\.[a-zA-Z]{3,4}$/;
   const match = imageUrl.match(regex);
-  return match ? match[1] : null; // Devuelve el `public_id`
+  return match ? match[1] : null;
 }

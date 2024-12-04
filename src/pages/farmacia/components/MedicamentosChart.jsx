@@ -26,15 +26,14 @@ ChartJS.register(
 const MedicamentosChart = () => {
   const [barChartData, setBarChartData] = useState(null);
   const [pieChartData, setPieChartData] = useState(null);
-  const [barCurrentPage, ] = useState(0);
-  const [pieCurrentPage, ] = useState(0);
   const [error, setError] = useState(null);
+  const [barCurrentPage, setBarCurrentPage] = useState(0);
+  const [pieCurrentPage, setPieCurrentPage] = useState(0);
 
   const ITEMS_PER_PAGE = 10;
 
-  // Función para generar datos paginados para el gráfico de barras
-  const paginateBarData = useCallback((data) => {
-    const start = barCurrentPage * ITEMS_PER_PAGE;
+  const paginateBarData = useCallback((data, page = 0) => {
+    const start = page * ITEMS_PER_PAGE;
     const end = start + ITEMS_PER_PAGE;
     const currentData = data.slice(start, end);
 
@@ -45,7 +44,7 @@ const MedicamentosChart = () => {
       labels,
       datasets: [
         {
-          label: `Cantidad de Piezas Registradas (Página ${barCurrentPage + 1})`,
+          label: `Cantidad de Piezas Registradas (Página ${page + 1})`,
           data: cantidades,
           backgroundColor: "rgba(75, 192, 192, 0.5)",
           borderColor: "rgba(75, 192, 192, 1)",
@@ -53,11 +52,10 @@ const MedicamentosChart = () => {
         },
       ],
     });
-  }, [barCurrentPage, ITEMS_PER_PAGE]);
+  }, []);
 
-  // Función para generar datos paginados para el gráfico circular
-  const paginatePieData = useCallback((data) => {
-    const start = pieCurrentPage * ITEMS_PER_PAGE;
+  const paginatePieData = useCallback((data, page = 0) => {
+    const start = page * ITEMS_PER_PAGE;
     const end = start + ITEMS_PER_PAGE;
     const currentData = data.slice(start, end);
 
@@ -68,17 +66,24 @@ const MedicamentosChart = () => {
       labels,
       datasets: [
         {
-          label: `Piezas Otorgadas (Página ${pieCurrentPage + 1})`,
+          label: `Piezas Otorgadas (Página ${page + 1})`,
           data: cantidades,
-          backgroundColor: ["rgba(255, 99, 132, 0.5)", "rgba(54, 162, 235, 0.5)"],
-          borderColor: ["rgba(255, 99, 132, 1)", "rgba(54, 162, 235, 1)"],
+          backgroundColor: [
+            "rgba(255, 99, 132, 0.5)",
+            "rgba(54, 162, 235, 0.5)",
+            "rgba(255, 206, 86, 0.5)",
+          ],
+          borderColor: [
+            "rgba(255, 99, 132, 1)",
+            "rgba(54, 162, 235, 1)",
+            "rgba(255, 206, 86, 1)",
+          ],
           borderWidth: 1,
         },
       ],
     });
-  }, [pieCurrentPage, ITEMS_PER_PAGE]);
+  }, []);
 
-  // Función para obtener los medicamentos registrados
   const fetchMedicamentosData = useCallback(async () => {
     try {
       const response = await fetch("/api/farmacia/obtenerMedicamentos");
@@ -86,7 +91,7 @@ const MedicamentosChart = () => {
 
       if (response.ok) {
         const sortedData = data.sort((a, b) => b.piezas - a.piezas);
-        paginateBarData(sortedData);
+        paginateBarData(sortedData, barCurrentPage);
       } else {
         setError(data.message || "Error al obtener los medicamentos registrados");
       }
@@ -94,9 +99,8 @@ const MedicamentosChart = () => {
       console.error("Error:", error);
       setError("Error interno del servidor");
     }
-  }, [paginateBarData]);
+  }, [paginateBarData, barCurrentPage]);
 
-  // Función para obtener los movimientos registrados
   const fetchMovimientosData = useCallback(async () => {
     try {
       const response = await fetch("/api/obtenerMovimientos");
@@ -115,7 +119,7 @@ const MedicamentosChart = () => {
           piezas,
         }));
         sustanciasArray.sort((a, b) => b.piezas - a.piezas);
-        paginatePieData(sustanciasArray);
+        paginatePieData(sustanciasArray, pieCurrentPage);
       } else {
         setError(data.message || "Error al obtener los movimientos");
       }
@@ -123,9 +127,8 @@ const MedicamentosChart = () => {
       console.error("Error al obtener los movimientos:", error);
       setError("Error interno del servidor");
     }
-  }, [paginatePieData]);
+  }, [paginatePieData, pieCurrentPage]);
 
-  // Llamar a las funciones de carga de datos al cargar el componente
   useEffect(() => {
     fetchMedicamentosData();
     fetchMovimientosData();
@@ -144,6 +147,12 @@ const MedicamentosChart = () => {
     },
   };
 
+  const handleBarPrevPage = () => setBarCurrentPage((prev) => Math.max(prev - 1, 0));
+  const handleBarNextPage = () => setBarCurrentPage((prev) => prev + 1);
+
+  const handlePiePrevPage = () => setPieCurrentPage((prev) => Math.max(prev - 1, 0));
+  const handlePieNextPage = () => setPieCurrentPage((prev) => prev + 1);
+
   return (
     <div className={styles.chartContainer}>
       <h2 className={styles.title}>Gráficos de Medicamentos</h2>
@@ -153,13 +162,33 @@ const MedicamentosChart = () => {
         <div className={styles.chartWrapper}>
           {/* Gráfico de Barras */}
           {barChartData ? (
-            <Bar data={barChartData} options={commonOptions} height={300} />
+            <>
+              <Bar data={barChartData} options={commonOptions} />
+              <div className={styles.pagination}>
+                <button className={styles.paginationButton} onClick={handleBarPrevPage} disabled={barCurrentPage === 0}>
+                  Anterior
+                </button>
+                <button className={styles.paginationButton} onClick={handleBarNextPage}>
+                  Siguiente
+                </button>
+              </div>
+            </>
           ) : (
             <p className={styles.loading}>Cargando datos del gráfico de barras...</p>
           )}
           {/* Gráfico Circular */}
           {pieChartData ? (
-            <Pie data={pieChartData} options={commonOptions} height={300} />
+            <>
+              <Pie data={pieChartData} options={commonOptions} />
+              <div className={styles.pagination}>
+                <button className={styles.paginationButton} onClick={handlePiePrevPage} disabled={pieCurrentPage === 0}>
+                  Anterior
+                </button>
+                <button className={styles.paginationButton} onClick={handlePieNextPage}>
+                  Siguiente
+                </button>
+              </div>
+            </>
           ) : (
             <p className={styles.loading}>Cargando datos del gráfico circular...</p>
           )}
