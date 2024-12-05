@@ -6,6 +6,10 @@ import Incapacidades from "./incapacidades";
 import HistorialConsultas from "./historial-consultas";
 import EnfermedadesCronicas from "./enfermedades-cronicas";
 import Antecedentes from "./antecedentes";
+import Swal from "sweetalert2";
+import withReactContent from "sweetalert2-react-content";
+
+const MySwal = withReactContent(Swal);
 
 const DatosAdicionales = ({
   subPantalla,
@@ -26,9 +30,7 @@ const DatosAdicionales = ({
 }) => {
   const [diagnosticoTexto, setDiagnosticoTexto] = useState("");
   const [motivoConsultaTexto, setMotivoConsultaTexto] = useState("");
-  const [nombrePacienteSeleccionado, setNombrePacienteSeleccionado] =
-    useState("");
-  const [formularioCompleto, setFormularioCompleto] = useState(false); // Define el estado aquí
+  const [formularioCompleto, setFormularioCompleto] = useState(false);
 
   const handleDiagnosticoChange = (e) => {
     const value = e.target.value;
@@ -42,9 +44,62 @@ const DatosAdicionales = ({
     setMotivoConsulta(value); //* Actualiza en el componente principal
   };
 
-  const handlePacienteClick = (paciente) => {
-    setPacienteSeleccionado(paciente);
-    setNombrePacienteSeleccionado(paciente.nombrepaciente); //* Establece el nombre del paciente seleccionado
+  //* Función para guardar datos
+  const handleGuardar = async () => {
+    try {
+      const response = await fetch(
+        "/api/pacientes-consultas/diagnostico_observaciones",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            claveConsulta,
+            diagnostico: diagnosticoTexto,
+            motivoconsulta: motivoConsultaTexto,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+        console.error("Error al guardar:", error);
+        throw new Error("Error al guardar datos.");
+      }
+
+      //* Mostrar alerta de éxito
+      MySwal.fire({
+        icon: "success",
+        title:
+          "<span style='color: #00e676; font-weight: bold; font-size: 1.5em;'>✔️ Datos guardados correctamente</span>",
+        html: "<p style='color: #fff; font-size: 1.1em;'>El diagnóstico y motivo de consulta han sido guardados exitosamente.</p>",
+        background: "linear-gradient(145deg, #004d40, #00251a)",
+        confirmButtonColor: "#00e676",
+        confirmButtonText:
+          "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
+        customClass: {
+          popup:
+            "border border-green-600 shadow-[0px_0px_20px_5px_rgba(0,230,118,0.9)] rounded-lg",
+        },
+      });
+    } catch (error) {
+      console.error("Error en la solicitud de guardado:", error);
+
+      //! Mostrar alerta de error
+      MySwal.fire({
+        icon: "error",
+        title:
+          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error al guardar</span>",
+        html: "<p style='color: #fff; font-size: 1.1em;'>Hubo un problema al guardar los datos. Por favor, inténtalo nuevamente.</p>",
+        background: "linear-gradient(145deg, #4a0000, #220000)",
+        confirmButtonColor: "#ff1744",
+        confirmButtonText:
+          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
+        customClass: {
+          popup:
+            "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
+        },
+      });
+    }
   };
 
   return (
@@ -94,6 +149,12 @@ const DatosAdicionales = ({
             value={motivoConsultaTexto}
             onChange={handleMotivoConsultaChange}
           />
+          <button
+            className="mt-4 bg-blue-600 hover:bg-blue-800 text-white font-bold py-2 px-4 rounded"
+            onClick={handleGuardar}
+          >
+            Guardar
+          </button>
         </div>
       )}
 
@@ -106,6 +167,7 @@ const DatosAdicionales = ({
           claveEspecialidad={claveEspecialidad}
         />
       )}
+      
       {subPantalla === "Pase a Especialidad" && (
         <PaseEspecialidad
           claveConsulta={claveConsulta}
@@ -122,7 +184,15 @@ const DatosAdicionales = ({
         />
       )}
 
-      {subPantalla === "Incapacidades" && <Incapacidades />}
+      {subPantalla === "Incapacidades" && (
+        <Incapacidades
+          clavenomina={numeroDeNomina}
+          nombrePaciente={nombrePaciente}
+          claveConsulta={claveConsulta}
+          nombreMedico={nombreMedico}
+        />
+      )}
+
       {subPantalla === "Historial de Consultas" && (
         <HistorialConsultas
           numeroNomina={numeroDeNomina}

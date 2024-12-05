@@ -1,4 +1,4 @@
-import { connectToDatabase } from "./connectToDatabase";
+import { connectToDatabase } from "../connectToDatabase";
 
 export default async function handler(req, res) {
   if (req.method === "GET") {
@@ -37,7 +37,7 @@ export default async function handler(req, res) {
             ESDISCAPACITADO,
             FOTO_URL,
 
-            enfermedades_cronicas -- Incluye este campo
+            enfermedades_cronicas 
           FROM [PRESIDENCIA].[dbo].[BENEFICIARIO]
           WHERE NO_NOMINA = @num_nom
         `);

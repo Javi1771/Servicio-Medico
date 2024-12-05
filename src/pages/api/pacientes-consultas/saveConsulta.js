@@ -1,4 +1,4 @@
-import { pusher } from "../pusher"; // Importa solo la instancia de Pusher
+import { pusher } from "../pusher"; 
 import { connectToDatabase } from "../connectToDatabase";
 import sql from "mssql";
 
@@ -7,10 +7,10 @@ export default async function handler(req, res) {
     const consultaData = req.body;
 
     try {
-      // Conexión a la base de datos
+      //* Conexión a la base de datos
       const pool = await connectToDatabase();
 
-      // Inserción en la base de datos
+      //* Inserción en la base de datos
       const result = await pool
         .request()
         .input("fechaconsulta", sql.VarChar, consultaData.fechaconsulta)
@@ -46,7 +46,7 @@ export default async function handler(req, res) {
 
       const claveConsulta = result.recordset[0].claveConsulta;
 
-      // Enviar evento a Pusher
+      //* Enviar evento a Pusher
       await pusher.trigger("consultas", "nueva-consulta", {
         claveConsulta,
         ...consultaData,
