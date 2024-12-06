@@ -1,4 +1,5 @@
 import { connectToDatabase } from "../connectToDatabase";
+import sql from "mssql";
 
 export default async function handler(req, res) {
   if (req.method === "GET") {
@@ -13,27 +14,41 @@ export default async function handler(req, res) {
     try {
       const pool = await connectToDatabase();
 
-      // Consulta principal para medicamentos
+      //* Obtener la fecha actual menos un mes
+      const today = new Date();
+      const oneMonthAgo = new Date(
+        today.getFullYear(),
+        today.getMonth() - 1,
+        today.getDate()
+      );
+
+      //* Consulta principal para medicamentos y datos de consulta
       const queryMedicamentos = `
         SELECT 
-          fecha_otorgacion AS fecha,
-          sustancia AS medicamento,
-          piezas_otorgadas AS piezas,
-          indicaciones,
-          tratamiento,
-          clave_nomina AS clavenomina,
-          claveconsulta,
-          nombre_paciente, 
-          id_especialidad AS claveespecialidad, 
-          nombre_medico
-        FROM [PRESIDENCIA].[dbo].[MEDICAMENTO_PACIENTE]
-        WHERE nombre_paciente = @nombrePaciente
-        ORDER BY [fecha_otorgacion] DESC
+          mp.fecha_otorgacion AS fecha,
+          mp.sustancia AS medicamento,
+          mp.piezas_otorgadas AS piezas,
+          mp.indicaciones,
+          mp.tratamiento,
+          mp.clave_nomina AS clavenomina,
+          mp.claveconsulta,
+          mp.nombre_paciente,
+          mp.id_especialidad AS claveespecialidad,
+          mp.nombre_medico,
+          c.diagnostico,
+          c.motivoconsulta
+        FROM [PRESIDENCIA].[dbo].[MEDICAMENTO_PACIENTE] mp
+        LEFT JOIN [PRESIDENCIA].[dbo].[consultas] c
+        ON mp.claveconsulta = c.claveconsulta
+        WHERE mp.nombre_paciente = @nombrePaciente
+          AND mp.fecha_otorgacion >= @oneMonthAgo
+        ORDER BY mp.fecha_otorgacion DESC
       `;
 
       const medicamentosResult = await pool
         .request()
         .input("nombrePaciente", nombrePaciente)
+        .input("oneMonthAgo", sql.DateTime, oneMonthAgo)
         .query(queryMedicamentos);
 
       const medicamentos = medicamentosResult.recordset;
@@ -42,7 +57,7 @@ export default async function handler(req, res) {
         return res.status(200).json({ ok: true, historial: [] });
       }
 
-      // Extraer IDs únicos de claveespecialidad
+      //* Extraer IDs únicos de claveespecialidad
       const especialidadIds = [
         ...new Set(
           medicamentos
@@ -51,7 +66,7 @@ export default async function handler(req, res) {
         ),
       ];
 
-      // Consulta de especialidades
+      //* Consulta de especialidades
       let especialidadesMap = {};
       if (especialidadIds.length > 0) {
         const queryEspecialidades = `
@@ -65,14 +80,14 @@ export default async function handler(req, res) {
         const especialidadesResult = await pool.request().query(queryEspecialidades);
         const especialidades = especialidadesResult.recordset;
 
-        // Crear un mapa para las especialidades
+        //* Crear un mapa para las especialidades
         especialidadesMap = especialidades.reduce((acc, esp) => {
           acc[esp.id_especialidad] = esp.nombre_especialidad;
           return acc;
         }, {});
       }
 
-      // Combinar historial con nombres de especialidades
+      //* Combinar historial con nombres de especialidades
       const historialConEspecialidad = medicamentos.map((med) => ({
         ...med,
         nombre_especialidad: especialidadesMap[med.claveespecialidad] || "No asignado",

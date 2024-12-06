@@ -1,5 +1,6 @@
 import { connectToDatabase } from '../connectToDatabase';
 import sql from 'mssql';
+import { pusher } from '../pusher'; // Importa la configuración de Pusher
 
 export default async function handler(req, res) {
   if (req.method !== "GET") {
@@ -51,9 +52,21 @@ export default async function handler(req, res) {
         ORDER BY consultas.fechaconsulta ASC
       `);
 
-    // Respuesta exitosa con los resultados
-    res.status(200).json({ consultas: result.recordset });
-    console.log("Número de consultas obtenidas:", result.recordset.length);
+    const consultas = result.recordset;
+
+    // Llamar a Pusher para notificar cambios
+    try {
+      await pusher.trigger("consultas-channel", "consultas-updated", {
+        consultas,
+      });
+      console.log("Evento enviado a Pusher: consultas-updated");
+    } catch (pusherError) {
+      console.error("Error al enviar evento a Pusher:", pusherError);
+    }
+
+    // Responder con los resultados
+    res.status(200).json({ consultas });
+    console.log("Número de consultas obtenidas:", consultas.length);
   } catch (error) {
     // Manejo de errores
     console.error("Error al cargar consultas del día:", error);

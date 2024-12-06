@@ -25,7 +25,7 @@ export default async function handler(req, res) {
   try {
     const pool = await connectToDatabase();
 
-    // Obtener todos los datos relevantes
+    //* Obtener todos los datos relevantes
     const consultaActual = await pool
       .request()
       .input("claveconsulta", sql.Int, claveConsulta)
@@ -41,7 +41,7 @@ export default async function handler(req, res) {
 
     const estadoActual = consultaActual.recordset[0];
 
-    // Evitar actualizaciones inválidas
+    //! Evitar actualizaciones inválidas
     if (estadoActual.clavestatus === 4 && clavestatus === 3) {
       return res.status(400).json({
         message: "No se puede cambiar de atendida a cancelada.",
@@ -58,7 +58,7 @@ export default async function handler(req, res) {
         WHERE claveconsulta = @claveconsulta
       `);
 
-    // Construir el payload completo para Pusher
+    //* Construir el payload completo para Pusher
     const payload = {
       claveConsulta,
       clavestatus,

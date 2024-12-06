@@ -119,7 +119,7 @@ const Medicamentos = ({
             claveEspecialidad,
           };
 
-          // Log para verificar los datos antes de enviarlos
+          //* Log para verificar los datos antes de enviarlos
           console.log("Datos enviados al backend:", datos);
 
           //* Guardar en el backend
@@ -138,7 +138,7 @@ const Medicamentos = ({
             throw new Error("Error al guardar en el servidor");
           }
 
-          // Log para confirmar el guardado exitoso en el servidor
+          //* Log para confirmar el guardado exitoso en el servidor
           console.log(
             "Medicamento guardado exitosamente en el servidor:",
             datos
@@ -227,7 +227,7 @@ const Medicamentos = ({
       <h3 className="text-2xl md:text-3xl font-bold mb-4 md:mb-6 text-white">
         Prescripción de Medicamentos
       </h3>
-
+  
       {medicamentos.map((med, index) => (
         <div
           key={index}
@@ -309,7 +309,9 @@ const Medicamentos = ({
           </div>
         </div>
       ))}
-      <div className="text-right mt-6 mb-10">
+  
+      {/* Botón de Guardar Medicamento en Historial */}
+      <div className="text-right mt-12 mb-12">
         <button
           onClick={guardarMedicamentoEnHistorial}
           disabled={!botonHabilitado}
@@ -322,6 +324,8 @@ const Medicamentos = ({
           Guardar Medicamento en Historial
         </button>
       </div>
+  
+      {/* Historial de Medicamentos Otorgados */}
       <div className="bg-gray-900 p-6 md:p-8 rounded-xl shadow-2xl mb-6">
         <h2 className="text-2xl md:text-4xl font-semibold mb-6 text-center text-purple-400">
           Historial de Medicamentos Otorgados
@@ -382,10 +386,10 @@ const Medicamentos = ({
                       {h.tratamiento}
                     </td>
                     <td className="p-4 border-t border-gray-800">
-                      {h.diagnostico || "N/A"}
+                      {h.diagnostico || "No registrado"}
                     </td>
                     <td className="p-4 border-t border-gray-800">
-                      {h.motivoConsulta || "N/A"}
+                      {h.motivoconsulta || "No registrado"}
                     </td>
                     <td className="p-4 border-t border-gray-800">
                       {h.nombre_especialidad || "No asignado"}
@@ -411,6 +415,7 @@ const Medicamentos = ({
       </div>
     </div>
   );
+  
 };
 
 export default Medicamentos;
