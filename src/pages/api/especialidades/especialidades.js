@@ -30,11 +30,14 @@ export default async function handler(req, res) {
   try {
     const pool = await connectToDatabase();
 
-    const result = await pool.request().query('SELECT * FROM especialidades'); 
+    // Modificar la consulta para incluir solo especialidades activas (estatus = 1)
+    const query = 'SELECT * FROM especialidades WHERE estatus = 1';
 
-    console.log('Resultados de la consulta:', result.recordset);
+    const result = await queryWithRetries(pool, query);
 
-    res.status(200).json(result.recordset);
+    console.log('Resultados de la consulta:', result);
+
+    res.status(200).json(result);
   } catch (error) {
     console.error('Error al realizar la consulta de especialidades:', error);
     res.status(500).json({ message: 'Error al realizar la consulta', error });

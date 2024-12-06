@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { useMedicamentos } from "../../hooks/useMedicamentos";
-import { useMovimientos } from "../../hooks/useMovimientos";
+import { useMedicamentos } from "../../hooks/farmaciaHook/useMedicamentos";
+import { useMovimientos } from "../../hooks/farmaciaHook/useMovimientos";
 import FormMedicamento from "./components/formMedicamento";
 import MedicamentosTable from "./components/medicamentosTable";
 import MedicamentosChart from "./components/MedicamentosChart";

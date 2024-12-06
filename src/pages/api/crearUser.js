@@ -25,9 +25,8 @@ export default async function handler(req, res) {
       // Encriptar la contraseña antes de almacenarla
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      // Realizar la inserción
+      // Realizar la inserción con el campo activo por defecto como 'S'
       await pool.request()
-      
         .input('nombreusuario', sql.VarChar, nombreusuario)
         .input('direcciousuario', sql.VarChar, direcciousuario)
         .input('coloniausuario', sql.VarChar, coloniausuario)
@@ -38,11 +37,12 @@ export default async function handler(req, res) {
         .input('usuario', sql.VarChar, usuario)
         .input('password', sql.VarChar, hashedPassword) // Guardar la contraseña encriptada
         .input('clavetipousuario', sql.Int, clavetipousuario) // Asegúrate de que esté en formato entero
+        .input('activo', sql.VarChar, 'S') // Establecer el campo activo como 'S'
         .query(`
           INSERT INTO USUARIOS 
-            (nombreusuario, direcciousuario, coloniausuario, telefonousuario, celularusuario, cedulausuario, claveespecialidad, usuario, password, clavetipousuario)
+            (nombreusuario, direcciousuario, coloniausuario, telefonousuario, celularusuario, cedulausuario, claveespecialidad, usuario, password, clavetipousuario, activo)
           VALUES 
-            (@nombreusuario, @direcciousuario, @coloniausuario, @telefonousuario, @celularusuario, @cedulausuario, @claveespecialidad, @usuario, @password, @clavetipousuario)
+            (@nombreusuario, @direcciousuario, @coloniausuario, @telefonousuario, @celularusuario, @cedulausuario, @claveespecialidad, @usuario, @password, @clavetipousuario, @activo)
         `);
 
       res.status(201).json({ message: 'Usuario agregado exitosamente' });
