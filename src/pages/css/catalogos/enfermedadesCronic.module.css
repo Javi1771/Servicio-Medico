@@ -1,0 +1,331 @@
+/* Body */
+.body {
+  background-color: #1e1e2d;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+/* Container */
+.container {
+  background: rgba(255, 255, 255, 0.1); /* Transparencia */
+  border-radius: 16px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1); /* Glassmorphism blur */
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 20px;
+  max-width: 900px;
+  width: 100%;
+  text-align: center;
+  animation: fadeIn 1s ease;
+}
+
+/* Title */
+.title {
+  font-size: 24px;
+  font-weight: bold;
+  color: #ffffff;
+  margin-bottom: 20px;
+  text-shadow: 0 0 10px rgba(0, 123, 255, 0.6);
+}
+
+/* Subtitle */
+.subtitle {
+  font-size: 20px;
+  font-weight: bold;
+  color: #ffffff;
+  margin-top: 30px;
+  text-shadow: 0 0 8px rgba(0, 123, 255, 0.6);
+}
+
+/* Form */
+.form {
+  margin-bottom: 20px;
+}
+
+.input {
+  width: calc(100% - 20px);
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  margin-bottom: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  outline: none;
+  margin-top: 20px;
+}
+
+.input:focus {
+  border-color: #00d4ff;
+  box-shadow: 0 0 8px rgba(0, 212, 255, 0.8);
+}
+
+/* Button */
+.button {
+  background: linear-gradient(90deg, #00d4ff, #007bff);
+  color: #ffffff;
+  border: none;
+  padding: 10px 20px;
+  font-size: 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 0 20px #00d4ff;
+}
+
+/* Table */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  background: rgba(255, 255, 255, 0.05); /* Transparencia */
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 0 15px rgba(0, 212, 255, 0.6); /* Neon shadow */
+}
+
+.table th,
+.table td {
+  padding: 15px;
+  text-align: center;
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.table th {
+  color: #ffffff;
+  text-transform: uppercase;
+}
+.trstyles {
+  background: linear-gradient(90deg, #00d4ff, #007bff);
+}
+
+.table tr {
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.table tr:nth-child(even) {
+  background: rgba(255, 255, 255, 0.1); /* Background for even rows */
+}
+
+.table tr:hover {
+  background: rgba(0, 123, 255, 0.2); /* Background for hover effect */
+  transform: translateY(-5px);
+  box-shadow: 0 0 15px rgba(0, 212, 255, 0.8); /* Neon shadow on hover */
+}
+
+/* Error message */
+.error {
+  color: #ff6b6b;
+  font-size: 14px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Tooltip Container */
+.tooltipContainer {
+  position: relative;
+  display: inline-block;
+}
+
+/* Tooltip Text */
+.tooltipText {
+  visibility: hidden;
+  width: 120px;
+  background-color: rgb(255, 255, 255);
+  color: #171717;
+  text-align: center;
+  border-radius: 8px;
+  padding: 8px 10px;
+  position: absolute;
+  bottom: 125%; /* Posición encima del botón */
+  left: 50%;
+  transform: translateX(-50%) scale(0.8); /* Inicialmente pequeña */
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  box-shadow: #007bff;
+}
+/* Mostrar Tooltip con animación */
+.tooltipContainer:hover .tooltipText {
+  visibility: visible;
+  opacity: 1;
+  transform: translateX(-50%) scale(1); /* Ampliar suavemente */
+}
+
+/* Botón para Registrar KPIs */
+.kpiButton {
+  background: #5f1c28;
+  border: none;
+  font-size: 18px;
+  color: #fff;
+  cursor: pointer;
+  border-radius: 15px; /* Bordes redondeados */
+  padding: 10px 15px;
+  box-shadow: 0 4px 10px rgba(255, 77, 109, 0.5);
+  transition: all 0.3s ease;
+}
+
+.kpiButton:hover {
+  transform: scale(1.1); /* Efecto de agrandamiento */
+  background: #4d1e27; /* Cambio de color */
+}
+
+/* Fila de la tabla */
+.row:hover {
+  background-color: rgba(0, 123, 255, 0.2); /* Efecto hover */
+  transform: translateY(-5px);
+  box-shadow: 0 0 15px rgba(0, 212, 255, 0.8); /* Neon shadow */
+  transition: all 0.3s ease;
+}
+
+/* Botón de corazón */
+.kpiButton {
+  background: #681d2b;
+  border: none;
+  font-size: 18px;
+  color: #fff;
+  cursor: pointer;
+  border-radius: 14px; /* Botón redondeado */
+  padding: 10px 15px;
+  box-shadow: 0 4px 10px rgba(255, 77, 109, 0.5);
+  transition: all 0.3s ease;
+}
+
+.kpiButton:hover {
+  transform: scale(1.1); /* Efecto de agrandamiento */
+  background: #ff6d88; /* Cambio de color */
+}
+
+/* Formulario de KPI */
+.kpiFormContainer {
+  margin-top: 20px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.9); /* Fondo blanco translúcido */
+  border-radius: 8px;
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+  animation: slideIn 0.5s ease; /* Animación al aparecer */
+}
+
+/* Animación del formulario */
+@keyframes slideIn {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Título del formulario */
+.kpiFormTitle {
+  font-size: 18px;
+  font-weight: bold;
+  color: #ffffff;
+  margin-bottom: 10px;
+}
+
+/* Input de KPI */
+.kpiForm input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  font-size: 16px;
+  border: 1px solid #ffffff;
+  border-radius: 4px;
+  outline: none;
+}
+
+.kpiForm input:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
+/* Botón de corazón */
+.kpiButton {
+  background: #681d2b;
+  border: none;
+  font-size: 18px;
+  color: #fff;
+  cursor: pointer;
+  border-radius: 14px; /* Botón redondeado */
+  padding: 10px 15px;
+  box-shadow: 0 4px 10px rgba(255, 77, 109, 0.5);
+  transition: all 0.3s ease;
+}
+
+.kpiButton:hover {
+  transform: scale(1.1); /* Efecto de agrandamiento */
+  background: #1e1e2d; /* Cambio de color */
+}
+
+/* Formulario de KPI */
+.kpiFormContainer {
+  margin-top: 20px;
+  padding: 20px;
+  background: #40404c; /* Fondo blanco translúcido */
+  border-radius: 8px;
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+  animation: slideIn 0.5s ease; /* Animación al aparecer */
+}
+
+/* Animación del formulario */
+@keyframes slideIn {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/*ESTILOS DE BACK BUTTON*/
+.backButton {
+  display: flex;
+  align-items: center;
+  margin-right: 10px;
+  padding: 5px 10px;
+  background-color: #930404;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+  color: white;
+  width: 100px;
+  padding: 7px;
+  padding-left: 17px;
+  margin-left: 10px;
+}
+
+.backButton:hover {
+  background-color: #470000;
+}
+
+.backButton svg {
+  margin-right: 5px;
+}

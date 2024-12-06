@@ -5,6 +5,7 @@ import styles from "../css/usuarios.module.css";
 import Swal from "sweetalert2";
 import Image from "next/image"; // Asegúrate de importar Image desde next/image
 import { useRouter } from "next/router";
+import { arrayAsString } from "pdf-lib";
 
 export default function UsuariosTable() {
   const [usuarios, setUsuarios] = useState([]);
@@ -14,6 +15,7 @@ export default function UsuariosTable() {
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [showModal, setShowModal] = useState(false);
+  
 
   const [showPassword, setShowPassword] = useState(false); // Estado para el ojo de visibilidad
   const togglePasswordVisibility = () => {
@@ -70,41 +72,47 @@ export default function UsuariosTable() {
   const handleDeleteUser = async (usuario) => {
     const confirmDelete = await Swal.fire({
       title: "¿Estás seguro?",
-      text: "No podrás revertir esta acción",
+      text: "El usuario será desactivado y no podrás revertir esta acción.",
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#3085d6",
       cancelButtonColor: "#d33",
-      confirmButtonText: "Sí, eliminar",
+      confirmButtonText: "Sí, desactivar",
     });
-
+  
     if (confirmDelete.isConfirmed) {
       try {
         const response = await fetch(`/api/eliminarUser?usuario=${usuario}`, {
-          method: "DELETE",
+          method: "PUT",
         });
+  
         if (!response.ok) {
-          throw new Error("Error al eliminar el usuario");
+          throw new Error("Error al desactivar el usuario");
         }
+  
+        // Actualizar la lista de usuarios
         const usuariosResponse = await fetch("/api/usuario");
         const usuariosData = await usuariosResponse.json();
         setUsuarios(usuariosData);
-
-        Swal.fire("Eliminado", "El usuario ha sido eliminado", "success");
+  
+        Swal.fire("Desactivado", "El usuario ha sido desactivado.", "success");
       } catch (error) {
-        console.error(error);
-        setError("Error al eliminar el usuario");
+        console.error("Error al desactivar el usuario:", error);
+        setError("Error al desactivar el usuario.");
       }
     }
   };
+  
 
   const filteredUsuarios = Array.isArray(usuarios)
-    ? usuarios.filter(
-        (usuario) =>
-          usuario.nombreusuario &&
-          usuario.nombreusuario.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    : [];
+  ? usuarios.filter(
+      (usuario) =>
+        usuario.activo === "S" && // Solo incluir usuarios activos
+        usuario.nombreusuario &&
+        usuario.nombreusuario.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+  : [];
+
 
   const getEspecialidadNombre = (clave) => {
     if (!Array.isArray(especialidades) || especialidades.length === 0) {

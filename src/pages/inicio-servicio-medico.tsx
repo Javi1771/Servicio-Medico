@@ -73,7 +73,7 @@ const Home = () => {
             "Beneficiarios",
             "Especialidades",
             "Medicamentos",
-            "Enfermedades Crónicas",
+            "Enfermedades Cronicas",
             "Usuarios y Proveedores",
             
           ]}

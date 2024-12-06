@@ -1,18 +1,21 @@
-// /api/mostMedicamentos.js
 import { connectToDatabase } from './connectToDatabase';
 
 export default async function handler(req, res) {
   try {
-    // Conectar a la base de datos usando connectToDatabase
+    // Conectar a la base de datos
     const pool = await connectToDatabase();
 
-    // Realizar la consulta en la tabla MEDICAMENTOS
-    const result = await pool.request().query('SELECT * FROM MEDICAMENTOS');
+    // Consulta solo los medicamentos activos y selecciona las columnas necesarias
+    const result = await pool.request().query(`
+      SELECT CLAVEMEDICAMENTO, MEDICAMENTO, CLASIFICACION, EAN, ESTATUS
+      FROM MEDICAMENTOS
+      WHERE ESTATUS = 1
+    `);
 
-    // Imprimir los resultados en la consola
-    console.log('Resultados de la consulta de medicamentos:', result.recordset);
+    // Imprimir los resultados en la consola para depuración
+    console.log('Medicamentos activos obtenidos:', result.recordset);
 
-    // Enviar la respuesta al cliente
+    // Enviar la respuesta con los medicamentos activos
     res.status(200).json(result.recordset);
   } catch (error) {
     console.error('Error al realizar la consulta de medicamentos:', error);

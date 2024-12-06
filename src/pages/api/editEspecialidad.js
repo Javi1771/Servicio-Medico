@@ -7,11 +7,11 @@ export default async function handler(req, res) {
     return res.status(405).json({ message: 'Método no permitido' });
   }
 
-  const { claveespecialidad, especialidad, especial, estatus } = req.body;
+  const { claveespecialidad, especialidad } = req.body;
 
   // Validación de datos
-  if (!claveespecialidad || !especialidad || !especial) {
-    return res.status(400).json({ message: 'Faltan datos requeridos' });
+  if (!claveespecialidad || !especialidad) {
+    return res.status(400).json({ message: 'Faltan datos requeridos: claveespecialidad y especialidad son obligatorios.' });
   }
 
   try {
@@ -20,16 +20,12 @@ export default async function handler(req, res) {
     // Preparar la consulta de actualización
     const request = pool.request()
       .input('claveespecialidad', sql.Int, claveespecialidad)
-      .input('especialidad', sql.VarChar, especialidad)
-      .input('especial', sql.VarChar, especial)
-      .input('estatus', sql.Bit, estatus);
+      .input('especialidad', sql.VarChar, especialidad);
 
     const query = `
       UPDATE especialidades
       SET 
-        especialidad = @especialidad,
-        especial = @especial,
-        estatus = @estatus
+        especialidad = @especialidad
       WHERE claveespecialidad = @claveespecialidad
     `;
 

@@ -7,14 +7,16 @@ export default async function handler(req, res) {
     return res.status(405).json({ message: 'Método no permitido' });
   }
 
-  const { clavemedicamento, medicamento, clasificacion } = req.body;
+  const { clavemedicamento, medicamento, clasificacion, ean } = req.body;
 
   // Log de los datos recibidos
-  console.log("Datos recibidos:", { clavemedicamento, medicamento, clasificacion });
+  console.log("Datos recibidos:", { clavemedicamento, medicamento, clasificacion, ean });
 
   // Validación de datos
   if (!clavemedicamento || !medicamento || !clasificacion) {
-    return res.status(400).json({ message: 'Faltan datos requeridos (clave del medicamento, nombre del medicamento o clasificación)' });
+    return res.status(400).json({
+      message: 'Faltan datos requeridos (clave del medicamento, nombre del medicamento o clasificación)',
+    });
   }
 
   try {
@@ -24,13 +26,15 @@ export default async function handler(req, res) {
     const request = pool.request()
       .input('clavemedicamento', sql.NVarChar, clavemedicamento)
       .input('medicamento', sql.NVarChar, medicamento)
-      .input('clasificacion', sql.NVarChar, clasificacion);
+      .input('clasificacion', sql.NVarChar, clasificacion)
+      .input('ean', sql.NVarChar, ean || null); // Permitir que EAN sea opcional
 
     const query = `
       UPDATE MEDICAMENTOS
       SET 
         MEDICAMENTO = @medicamento,
-        CLASIFICACION = @clasificacion
+        CLASIFICACION = @clasificacion,
+        EAN = @ean
       WHERE CLAVEMEDICAMENTO = @clavemedicamento
     `;
 
