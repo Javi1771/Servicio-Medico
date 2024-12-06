@@ -30,11 +30,7 @@ export default async function handler(req, res) {
     imageUrl,
     vigencia,
     curp,
-    situacion_lab,
-    enfermedades_cronicas,
-    tratamientos,
     domicilio,
-    observaciones,
     esEstudiante,
     esDiscapacitado,
     vigenciaEstudiosInicio, // Fecha de inicio de vigencia de estudios
@@ -89,11 +85,7 @@ export default async function handler(req, res) {
       .input('imageUrl', imageUrl)
       .input('vigencia', new Date(vigencia).toISOString())
       .input('curp', curp)
-      .input('situacion_lab', situacion_lab)
-      .input('enfermedades_cronicas', enfermedades_cronicas)
-      .input('tratamientos', tratamientos)
       .input('domicilio', domicilio)
-      .input('observaciones', observaciones)
       .input('esEstudiante', esEstudiante)
       .input('vigenciaEstudiosInicio', vigenciaEstudiosInicio ? new Date(vigenciaEstudiosInicio).toISOString() : null)
       .input('vigenciaEstudiosFin', vigenciaEstudiosFin ? new Date(vigenciaEstudiosFin).toISOString() : null)
@@ -103,16 +95,14 @@ export default async function handler(req, res) {
         INSERT INTO BENEFICIARIO (
           NO_NOMINA, PARENTESCO, NOMBRE, A_PATERNO, A_MATERNO, SEXO, 
           F_NACIMIENTO, EDAD, DEPARTAMENTO, SINDICATO, ALERGIAS, SANGRE, 
-          TEL_EMERGENCIA, NOMBRE_EMERGENCIA, FOTO_URL, VIGENCIA, CURP, 
-          situacion_lab, enfermedades_cronicas, tratamientos, domicilio, observaciones, 
-          ESESTUDIANTE, VIGENCIA_ESTUDIOS_INICIO, VIGENCIA_ESTUDIOS_FIN, 
+          TEL_EMERGENCIA, NOMBRE_EMERGENCIA, FOTO_URL, VIGENCIA, CURP,domicilio,ESESTUDIANTE, VIGENCIA_ESTUDIOS_INICIO, VIGENCIA_ESTUDIOS_FIN, 
           ESDISCAPACITADO, ACTIVO
         )
         VALUES (
           @noNomina, @parentesco, @nombre, @aPaterno, @aMaterno, @sexo, 
           @fNacimiento, @edad, @departamento, @sindicato, @alergias, @sangre, 
           @telEmergencia, @nombreEmergencia, @imageUrl, @vigencia, @curp, 
-          @situacion_lab, @enfermedades_cronicas, @tratamientos, @domicilio, @observaciones, 
+          @domicilio,
           @esEstudiante, @vigenciaEstudiosInicio, @vigenciaEstudiosFin, 
           @esDiscapacitado, @estatus
         )

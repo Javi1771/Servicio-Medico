@@ -22,8 +22,7 @@ export default async function handler(req, res) {
           SEXO, ESCOLARIDAD, F_NACIMIENTO, EDAD, DEPARTAMENTO, SINDICATO, 
           ACTIVO, ALERGIAS, SANGRE, TEL_EMERGENCIA, NOMBRE_EMERGENCIA, 
           ESDISCAPACITADO, ESESTUDIANTE, VIGENCIA_ESTUDIOS_INICIO, VIGENCIA_ESTUDIOS_FIN, 
-          FOTO_URL, VIGENCIA, CURP, situacion_lab, enfermedades_cronicas, tratamientos, 
-          domicilio, observaciones
+          FOTO_URL, VIGENCIA, CURP, domicilio
         FROM BENEFICIARIO
         WHERE ID_BENEFICIARIO = @idBeneficiario
       `);

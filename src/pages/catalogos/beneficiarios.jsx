@@ -32,11 +32,7 @@ export default function RegistroBeneficiario() {
     imageUrl: "", // URL de la imagen en Cloudinary
     vigencia: "", // Añadir el campo de vigencia
     curp: "", // Nuevo campo CURP
-    situacion_lab: "", // Nuevo campo de situación laboral
-    enfermedades_cronicas: "", // Inicialización del campo enfermedades_cronicas
-    tratamientos: "", // Nuevo campo tratamientos
     domicilio: "", // Nuevo campo domicilio
-    observaciones: "", // Nuevo campo observaciones
     esEstudiante: "No", // Default value
     vigenciaEstudiosInicio: "",
     vigenciaEstudiosFin: "",
@@ -576,11 +572,7 @@ export default function RegistroBeneficiario() {
         activo: "A",
         vigencia: "",
         curp: "",
-        situacion_lab: "",
-        enfermedades_cronicas: "",
-        tratamientos: "",
         domicilio: "",
-        observaciones: "",
         esEstudiante: "No",
         vigenciaEstudiosInicio: "",
         vigenciaEstudiosFin: "",
@@ -657,11 +649,7 @@ export default function RegistroBeneficiario() {
         activo: "A",
         vigencia: "",
         curp: "",
-        situacion_lab: "",
-        enfermedades_cronicas: "",
-        tratamientos: "",
         domicilio: "",
-        observaciones: "",
         esEstudiante: "No",
         vigenciaEstudiosInicio: "",
         vigenciaEstudiosFin: "",
@@ -679,7 +667,6 @@ export default function RegistroBeneficiario() {
   // Función para editar beneficiario existente
   const handleEditBeneficiary = (beneficiario) => {
     console.log("Beneficiario recibido para edición:", beneficiario);
-    console.log("Situación laboral:", beneficiario.situacion_lab); // Depuración
 
     const formatFecha = (fecha) => {
       if (!fecha) return "";
@@ -717,11 +704,7 @@ export default function RegistroBeneficiario() {
         nombreEmergencia: beneficiario.NOMBRE_EMERGENCIA || "",
         activo: beneficiario.ACTIVO || "A",
         curp: beneficiario.CURP || "",
-        situacion_lab: beneficiario.situacion_lab || "",
-        enfermedades_cronicas: beneficiario.enfermedades_cronicas || "",
-        tratamientos: beneficiario.tratamientos || "",
         domicilio: beneficiario.domicilio || "",
-        observaciones: beneficiario.observaciones || "",
         esEstudiante: beneficiario.ESESTUDIANTE || "No",
         vigenciaEstudiosInicio:
           formatFecha(beneficiario.VIGENCIA_ESTUDIOS_INICIO) || "",
@@ -928,11 +911,7 @@ export default function RegistroBeneficiario() {
               activo: "A",
               vigencia: "",
               curp: "",
-              situacion_lab: "",
-              enfermedades_cronicas: "",
-              tratamientos: "",
               domicilio: "",
-              observaciones: "",
               esEstudiante: "No",
               vigenciaEstudiosInicio: "",
               vigenciaEstudiosFin: "",
@@ -1175,157 +1154,6 @@ export default function RegistroBeneficiario() {
               </div>
             </div>
 
-            {/* Situación Laboral */}
-            <div className={styles.inputRow}>
-              <div className={styles.inputGroup}>
-                <label className={styles.inputLabel}>Situación Laboral:</label>
-                <div className={styles.checkboxGroup}>
-                  <label className={styles.customRadio}>
-                    Pensionado
-                    <input
-                      type="radio"
-                      name="situacion_lab"
-                      value="Pensionado"
-                      checked={formData.situacion_lab === "Pensionado"}
-                      onChange={handleInputChange}
-                    />
-                    <span className={styles.radioCheckmark}></span>
-                  </label>
-                  <label className={styles.customRadio}>
-                    Jubilado
-                    <input
-                      type="radio"
-                      name="situacion_lab"
-                      value="Jubilado"
-                      checked={formData.situacion_lab === "Jubilado"}
-                      onChange={handleInputChange}
-                    />
-                    <span className={styles.radioCheckmark}></span>
-                  </label>
-                  <label className={styles.customRadio}>
-                    N/A
-                    <input
-                      type="radio"
-                      name="situacion_lab"
-                      value="N/A"
-                      checked={formData.situacion_lab === "N/A"}
-                      onChange={handleInputChange}
-                    />
-                    <span className={styles.radioCheckmark}></span>
-                  </label>
-                </div>
-              </div>
-            </div>
-
-            {/* Enfermedades Crónicas */}
-            <div className={styles.inputRow}>
-              <div className={styles.inputGroup}>
-                <label className={styles.inputLabel}>
-                  Enfermedades Crónicas:
-                </label>
-                <div className={styles.checkboxGroup}>
-                  <label className={styles.customRadio}>
-                    Diabético
-                    <input
-                      type="radio"
-                      name="enfermedades_cronicas"
-                      value="Diabetico"
-                      checked={formData.enfermedades_cronicas === "Diabetico"}
-                      onChange={handleInputChange}
-                    />
-                    <span className={styles.radioCheckmark}></span>
-                  </label>
-                  <label className={styles.customRadio}>
-                    Hipertenso
-                    <input
-                      type="radio"
-                      name="enfermedades_cronicas"
-                      value="Hipertenso"
-                      checked={formData.enfermedades_cronicas === "Hipertenso"}
-                      onChange={handleInputChange}
-                    />
-                    <span className={styles.radioCheckmark}></span>
-                  </label>
-                  <label className={styles.customRadio}>
-                    Cáncer
-                    <input
-                      type="radio"
-                      name="enfermedades_cronicas"
-                      value="Cancer"
-                      checked={formData.enfermedades_cronicas === "Cancer"}
-                      onChange={handleInputChange}
-                    />
-                    <span className={styles.radioCheckmark}></span>
-                  </label>
-                  <label className={styles.customRadio}>
-                    Otro
-                    <input
-                      type="radio"
-                      name="enfermedades_cronicas"
-                      value="Otro"
-                      checked={formData.enfermedades_cronicas === "Otro"}
-                      onChange={(e) => {
-                        handleInputChange(e);
-                        setIsOtherEnabled(e.target.value === "Otro");
-                      }}
-                    />
-                    <span className={styles.radioCheckmark}></span>
-                  </label>
-                  {isOtherEnabled && (
-                    <input
-                      type="text"
-                      name="enfermedades_cronicas"
-                      value={
-                        formData.enfermedades_cronicas !== "Diabetico" &&
-                        formData.enfermedades_cronicas !== "Hipertenso" &&
-                        formData.enfermedades_cronicas !== "Cancer"
-                          ? formData.enfermedades_cronicas
-                          : ""
-                      }
-                      onChange={handleInputChange}
-                      placeholder="Especifique otra enfermedad"
-                      className={styles.inputField}
-                    />
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Fila 10: Tratamientos y Observaciones */}
-            <div className={styles.inputRow}>
-              <div className={styles.inputGroup}>
-                <label className={styles.inputLabel}>
-                  Observaciones:
-                  <textarea
-                    name="observaciones"
-                    value={formData.observaciones}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        observaciones: e.target.value,
-                      })
-                    }
-                    placeholder="Añadir observaciones"
-                    className={styles.inputField}
-                  />
-                </label>
-              </div>
-              <div className={styles.inputGroup}>
-                <label className={styles.inputLabel}>
-                  Tratamientos:
-                  <textarea
-                    name="tratamientos"
-                    value={formData.tratamientos}
-                    onChange={(e) =>
-                      setFormData({ ...formData, tratamientos: e.target.value })
-                    }
-                    placeholder="Especifica tratamientos"
-                    className={styles.inputField}
-                  />
-                </label>
-              </div>
-            </div>
-
             {/* Fila: Es Discapacitado */}
             <div className={styles.inputRow}>
               <div className={styles.inputGroup}>
@@ -1527,10 +1355,6 @@ export default function RegistroBeneficiario() {
                 year: "numeric",
               })
             : "N/A"}
-        </p>
-        <p>
-          <strong>Situación Laboral:</strong>{" "}
-          {selectedBeneficiary.situacion_lab || "N/A"}
         </p>
       </div>
 

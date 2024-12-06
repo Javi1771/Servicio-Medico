@@ -17,11 +17,7 @@ export default async function handler(req, res) {
       nombreEmergencia,
       activo, // Estado de actividad (A o I)
       curp,
-      situacion_lab,
-      enfermedades_cronicas,
-      tratamientos,
       domicilio,
-      observaciones,
       esEstudiante,
       vigenciaEstudiosInicio,
       vigenciaEstudiosFin,
@@ -51,11 +47,7 @@ export default async function handler(req, res) {
       nombreEmergencia,
       activo,
       curp,
-      situacion_lab,
-      enfermedades_cronicas,
-      tratamientos,
       domicilio,
-      observaciones,
       esEstudiante,
       vigenciaEstudiosInicio,
       vigenciaEstudiosFin,
@@ -90,11 +82,7 @@ export default async function handler(req, res) {
         .input("nombreEmergencia", nombreEmergencia)
         .input("activo", activo)
         .input("curp", curp || null)
-        .input("situacion_lab", situacion_lab || null)
-        .input("enfermedades_cronicas", enfermedades_cronicas || null)
-        .input("tratamientos", tratamientos || null)
         .input("domicilio", domicilio || null)
-        .input("observaciones", observaciones || null)
         .input("esEstudiante", esEstudiante || "No")
         .input("vigenciaEstudiosInicio", vigenciaEstudiosInicio || null)
         .input("vigenciaEstudiosFin", vigenciaEstudiosFin || null)
@@ -114,11 +102,7 @@ export default async function handler(req, res) {
               NOMBRE_EMERGENCIA = @nombreEmergencia,
               [ACTIVO] = @activo,
               CURP = @curp,
-              SITUACION_LAB = @situacion_lab,
-              ENFERMEDADES_CRONICAS = @enfermedades_cronicas,
-              TRATAMIENTOS = @tratamientos,
               DOMICILIO = @domicilio,
-              OBSERVACIONES = @observaciones,
               ESESTUDIANTE = @esEstudiante,
               VIGENCIA_ESTUDIOS_INICIO = @vigenciaEstudiosInicio,
               VIGENCIA_ESTUDIOS_FIN = @vigenciaEstudiosFin,

@@ -27,17 +27,12 @@ export default async function handler(req, res) {
             TEL_EMERGENCIA, 
             NOMBRE_EMERGENCIA,
             CURP, 
-            situacion_lab,
-            tratamientos,
-            observaciones,
             domicilio,
             ESESTUDIANTE,
             VIGENCIA_ESTUDIOS_INICIO,
             VIGENCIA_ESTUDIOS_FIN,
             ESDISCAPACITADO,
-            FOTO_URL,
-
-            enfermedades_cronicas 
+            FOTO_URL
           FROM [PRESIDENCIA].[dbo].[BENEFICIARIO]
           WHERE NO_NOMINA = @num_nom
         `);
