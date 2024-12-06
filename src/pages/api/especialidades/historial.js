@@ -15,35 +15,33 @@ export default async function handler(req, res) {
   try {
     const pool = await connectToDatabase();
 
-    const currentMonth = new Date().getMonth() + 1; // Mes actual
-    const currentYear = new Date().getFullYear(); // Año actual
-
     const result = await pool
       .request()
       .input("noNomina", sql.NVarChar, noNomina)
       .input("nombrePaciente", sql.NVarChar, nombrePaciente)
-      .input("currentMonth", sql.Int, currentMonth)
-      .input("currentYear", sql.Int, currentYear)
       .query(`
         SELECT 
           d.claveConsulta,
-          e.especialidad,
+          ISNULL(e.especialidad, 'Sin asignar') AS especialidad,
           d.prioridad,
           d.observaciones,
-          FORMAT(DATEADD(HOUR, -5, d.fecha_asignacion), 'dd/MM/yyyy') AS fecha_asignacion -- Ajuste a zona horaria local
+          d.nombre_medico,
+          FORMAT(DATEADD(HOUR, -5, d.fecha_asignacion), 'yyyy-MM-dd HH:mm:ss') AS fecha_asignacion
         FROM detalleEspecialidad d
-        JOIN especialidades e ON d.claveespecialidad = e.claveespecialidad
+        LEFT JOIN especialidades e ON d.claveespecialidad = e.claveespecialidad
         WHERE 
           d.clave_nomina = @noNomina
           AND d.nombre_paciente = @nombrePaciente
-          AND MONTH(d.fecha_asignacion) = @currentMonth
-          AND YEAR(d.fecha_asignacion) = @currentYear
-        ORDER BY d.claveConsulta DESC
+        ORDER BY d.fecha_asignacion DESC
       `);
 
-    res.status(200).json({ historial: result.recordset });
+    const historial = result.recordset;
+
+    return res.status(200).json({ historial });
   } catch (error) {
     console.error("Error al obtener historial de especialidades:", error);
-    res.status(500).json({ message: "Error al obtener historial de especialidades." });
+    return res
+      .status(500)
+      .json({ message: "Error al obtener historial.", error: error.message });
   }
 }

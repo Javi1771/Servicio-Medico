@@ -131,6 +131,16 @@ const DatosAdicionales = ({
       {subPantalla === "Diagnóstico" && (
         <div className="bg-gray-800 p-4 md:p-8 rounded-lg shadow-lg">
           <h3 className="text-2xl md:text-3xl font-bold mb-4 md:mb-6 text-white">
+            Motivo de Consulta
+          </h3>
+          <textarea
+            className="mt-2 md:mt-3 block w-full h-32 md:h-40 rounded-lg bg-gray-700 border-gray-600 text-white p-3"
+            placeholder="Escribe aquí las observaciones..."
+            value={motivoConsultaTexto}
+            onChange={handleMotivoConsultaChange}
+          />
+          <br />
+          <h3 className="text-2xl md:text-3xl font-bold mb-4 md:mb-6 text-white">
             Diagnóstico
           </h3>
           <textarea
@@ -138,16 +148,6 @@ const DatosAdicionales = ({
             placeholder="Escribe aquí el diagnóstico..."
             value={diagnosticoTexto}
             onChange={handleDiagnosticoChange}
-          />
-          <br />
-          <h3 className="text-xl md:text-2xl font-bold mb-2 md:mb-4 text-white">
-            Motivo de Consulta y Observaciones
-          </h3>
-          <textarea
-            className="mt-2 md:mt-3 block w-full h-32 md:h-40 rounded-lg bg-gray-700 border-gray-600 text-white p-3"
-            placeholder="Escribe aquí las observaciones..."
-            value={motivoConsultaTexto}
-            onChange={handleMotivoConsultaChange}
           />
           <button
             className="mt-4 bg-blue-600 hover:bg-blue-800 text-white font-bold py-2 px-4 rounded"
@@ -167,7 +167,7 @@ const DatosAdicionales = ({
           claveEspecialidad={claveEspecialidad}
         />
       )}
-      
+
       {subPantalla === "Pase a Especialidad" && (
         <PaseEspecialidad
           claveConsulta={claveConsulta}

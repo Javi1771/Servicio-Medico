@@ -13,7 +13,7 @@ const pusher = new Pusher({
   secret: process.env.PUSHER_SECRET,
   cluster: process.env.PUSHER_CLUSTER,
   useTLS: true,
-  agent: httpsAgent, //* Usar el agente HTTPS personalizado
+  agent: httpsAgent, //* Usar el agente HTTPS personalizado si es necesario
 });
 
 //* Exporta el handler para manejar solicitudes HTTP
@@ -22,6 +22,7 @@ async function handler(req, res) {
     const { channel, event, data } = req.body;
 
     try {
+      console.log(`Enviando evento ${event} al canal ${channel} con datos:`, data);
       await pusher.trigger(channel, event, data);
       res.status(200).json({ message: "Evento enviado a Pusher" });
     } catch (error) {

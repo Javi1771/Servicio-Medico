@@ -246,7 +246,7 @@ const Medicamentos = ({
                 <option value="">Seleccionar Medicamento</option>
                 {listaMedicamentos.map((m, i) => (
                   <option key={i} value={m.sustancia}>
-                    {m.sustancia} - {m.piezas} disponibles
+                    {m.sustancia}
                   </option>
                 ))}
               </select>

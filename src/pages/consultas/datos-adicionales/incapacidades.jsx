@@ -2,6 +2,9 @@
 import React, { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { FaCalendarAlt } from "react-icons/fa";
 
 const MySwal = withReactContent(Swal);
 
@@ -65,8 +68,8 @@ const Incapacidades = ({
         claveConsulta,
         noNomina: clavenomina,
         nombrePaciente,
-        fechaInicial: fechaInicio,
-        fechaFinal: fechaFin,
+        fechaInicial: fechaInicio.toISOString(),
+        fechaFinal: fechaFin.toISOString(),
         diagnostico,
         estatus: 1,
         nombreMedico,
@@ -200,24 +203,30 @@ const Incapacidades = ({
             <label className="text-white font-semibold mb-2 block">
               Fecha Inicial:
             </label>
-            <input
-              type="date"
-              value={fechaInicio}
-              onChange={(e) => setFechaInicio(e.target.value)}
-              className="block w-full rounded-lg bg-gray-600 border-gray-500 text-white p-2 md:p-3"
-            />
+            <div className="flex items-center bg-gray-600 rounded-lg">
+              <DatePicker
+                selected={fechaInicio}
+                onChange={(date) => setFechaInicio(date)}
+                className="w-full p-2 bg-gray-600 text-white border-none focus:outline-none"
+                placeholderText="Selecciona una fecha"
+              />
+              <FaCalendarAlt className="text-white mx-3" size={20} />
+            </div>
           </div>
 
           <div className="mb-6">
             <label className="text-white font-semibold mb-2 block">
               Fecha Final:
             </label>
-            <input
-              type="date"
-              value={fechaFin}
-              onChange={(e) => setFechaFin(e.target.value)}
-              className="block w-full rounded-lg bg-gray-600 border-gray-500 text-white p-2 md:p-3"
-            />
+            <div className="flex items-center bg-gray-600 rounded-lg">
+              <DatePicker
+                selected={fechaFin}
+                onChange={(date) => setFechaFin(date)}
+                className="w-full p-2 bg-gray-600 text-white border-none focus:outline-none"
+                placeholderText="Selecciona una fecha"
+              />
+              <FaCalendarAlt className="text-white mx-3" size={20} />
+            </div>
           </div>
 
           <div className="mb-6">
