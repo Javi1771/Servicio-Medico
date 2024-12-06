@@ -51,33 +51,45 @@ export default function EspecialidadesTable() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     const especialidadData = {
       claveespecialidad: selectedEspecialidad?.claveespecialidad, // Solo si es edición
       especialidad: newEspecialidad.especialidad,
     };
-
+  
     console.log("Datos enviados al backend:", especialidadData);
-
+  
     try {
       const url = selectedEspecialidad
         ? "/api/editEspecialidad"
         : "/api/crearEspecialidad";
       const method = selectedEspecialidad ? "PUT" : "POST";
-
+  
       const response = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(especialidadData),
       });
-
-      if (!response.ok)
+  
+      if (response.status === 409) {
+        // Manejo del error de clave duplicada con SweetAlert
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "Ya existe una especialidad con este nombre. Por favor, ingrese un nombre diferente.",
+          confirmButtonText: "Entendido",
+        });
+        return;
+      }
+  
+      if (!response.ok) {
         throw new Error(
           selectedEspecialidad
             ? "Error al actualizar la especialidad"
             : "Error al agregar la especialidad"
         );
-
+      }
+  
       Swal.fire({
         icon: "success",
         title: selectedEspecialidad
@@ -86,11 +98,21 @@ export default function EspecialidadesTable() {
         showConfirmButton: false,
         timer: 2000,
       });
-
+  
       await fetchEspecialidades();
       toggleModal();
     } catch (error) {
       console.error(error);
+  
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: selectedEspecialidad
+          ? "Ocurrió un problema al actualizar la especialidad. Inténtelo de nuevo más tarde."
+          : "Ocurrió un problema al agregar la especialidad. Inténtelo de nuevo más tarde.",
+        confirmButtonText: "Entendido",
+      });
+  
       setError(
         selectedEspecialidad
           ? "Error al actualizar la especialidad"
@@ -98,6 +120,7 @@ export default function EspecialidadesTable() {
       );
     }
   };
+  
 
   const handleDeleteEspecialidad = async (claveespecialidad) => {
     console.log(
