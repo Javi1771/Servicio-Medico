@@ -81,12 +81,12 @@
   box-shadow: 0 0 20px #00d4ff;
 }
 
-/* Table */
+/* Estilos Generales de la Tabla */
 .table {
   width: 100%;
   border-collapse: collapse;
   margin-top: 20px;
-  background: rgba(255, 255, 255, 0.05); /* Transparencia */
+  background: rgba(255, 255, 255, 0.05); /* Transparente con opacidad */
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 0 15px rgba(0, 212, 255, 0.6); /* Neon shadow */
@@ -98,14 +98,16 @@
   text-align: center;
   color: #ffffff;
   border: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 16px;
 }
 
 .table th {
   color: #ffffff;
   text-transform: uppercase;
 }
+
 .trstyles {
-  background: linear-gradient(90deg, #00d4ff, #007bff);
+  background: linear-gradient(90deg, #00d4ff, #007bff); /* Efecto degradado */
 }
 
 .table tr {
@@ -113,16 +115,16 @@
 }
 
 .table tr:nth-child(even) {
-  background: rgba(255, 255, 255, 0.1); /* Background for even rows */
+  background: rgba(255, 255, 255, 0.1); /* Fondo para filas pares */
 }
 
 .table tr:hover {
-  background: rgba(0, 123, 255, 0.2); /* Background for hover effect */
+  background: rgba(0, 123, 255, 0.2); /* Fondo en hover */
   transform: translateY(-5px);
-  box-shadow: 0 0 15px rgba(0, 212, 255, 0.8); /* Neon shadow on hover */
+  box-shadow: 0 0 15px rgba(0, 212, 255, 0.8); /* Neon shadow en hover */
 }
 
-/* Error message */
+/* Estilos para Mensajes de Error */
 .error {
   color: #ff6b6b;
   font-size: 14px;
@@ -130,7 +132,7 @@
   text-align: center;
 }
 
-/* Animations */
+/* Animaciones */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -141,6 +143,80 @@
     transform: translateY(0);
   }
 }
+
+/* --- Responsividad --- */
+
+/* Tablets (max-width: 768px) */
+@media (max-width: 768px) {
+  .table th,
+  .table td {
+    padding: 10px; /* Reducir padding */
+    font-size: 14px; /* Reducir tamaño de fuente */
+    align-items: center;
+  }
+
+  .table tr:hover {
+    transform: translateY(-3px); /* Menor efecto hover */
+  }
+}
+
+/* Móviles (max-width: 480px) */
+@media (max-width: 480px) {
+  .table {
+    display: block;
+    border: none;
+    margin-top: 0;
+    background: transparent; /* Fondo limpio */
+    box-shadow: none; /* Eliminar sombra */
+    overflow-x: auto; /* Desplazamiento horizontal para pantallas pequeñas */
+    align-items: center;
+  }
+
+  .table th,
+  .table td {
+    display: block;
+    text-align: left;
+    padding: 10px 15px;
+    font-size: 14px; /* Ajustar fuente */
+    border: none;
+    align-items: center;
+  }
+
+  .table thead {
+    display: none; /* Ocultar encabezados de la tabla */
+  }
+
+  .table tr {
+    display: block;
+    margin-bottom: 15px; /* Espaciado entre registros */
+    background: rgba(0, 123, 255, 0.1); /* Fondo para registros individuales */
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Sombra ligera */
+  }
+
+  .table td {
+    padding: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* Línea separadora */
+  }
+
+  .table td:last-child {
+    border-bottom: none; /* Sin borde en el último elemento */
+  }
+
+  /* Mostrar encabezados como etiquetas */
+  .table td::before {
+    content: attr(data-label);
+    font-weight: bold;
+    text-transform: uppercase;
+    color: #00d4ff;
+    margin-right: 10px;
+    font-size: 12px;
+  }
+}
+
 
 /* Tooltip Container */
 .tooltipContainer {

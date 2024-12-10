@@ -22,21 +22,17 @@ export default function RegistroBeneficiario() {
     aPaterno: "",
     aMaterno: "",
     sexo: "",
-    edad: "", // Añadimos el campo edad
     fNacimiento: "",
+    escolaridad: "",
+    activo: "A", // Por defecto "A" (activo)
     alergias: "",
     sangre: "",
     telEmergencia: "",
     nombreEmergencia: "",
-    activo: "A", // Campo de estado del beneficiario (A=Activo, I=Inactivo)
-    imageUrl: "", // URL de la imagen en Cloudinary
-    vigencia: "", // Añadir el campo de vigencia
-    curp: "", // Nuevo campo CURP
-    domicilio: "", // Nuevo campo domicilio
-    esEstudiante: "No", // Default value
-    vigenciaEstudiosInicio: "",
-    vigenciaEstudiosFin: "",
-    esDiscapacitado: "No", // Añadido campo discapacitado, valor predeterminado "No"
+    esEstudiante: 0, // 0 o 1
+    esDiscapacitado: 0, // 0 o 1
+    vigenciaEstudios: "",
+    imageUrl: "", // URL de Cloudinary
   });
 
   const [error, setError] = useState(null);
@@ -44,8 +40,38 @@ export default function RegistroBeneficiario() {
   const [isEditMode, setIsEditMode] = useState(false);
   const [currentBeneficiaryId, setCurrentBeneficiaryId] = useState(null);
   const [isOtherEnabled, setIsOtherEnabled] = useState(false); // Nueva variable de estado
+  /*Const para validaciones de beneficiarios*/
+  const [showDisabilityInput, setShowDisabilityInput] = useState(false);
+  const [showBirthDateInput, setShowBirthDateInput] = useState(false);
+  const [showStudyValidityInput, setShowStudyValidityInput] = useState(false);
+  const [showNameFields, setShowNameFields] = useState(false);
+  const [showSaveButton, setShowSaveButton] = useState(false);
+
+  const resetDynamicFields = () => {
+    setShowDisabilityInput(false);
+    setShowBirthDateInput(false);
+    setShowStudyValidityInput(false);
+    setShowNameFields(false);
+    setShowSaveButton(false);
+  };
 
   const router = useRouter(); // Define el router usando useRouter
+
+  // Calcula la edad basada en la fecha de nacimiento
+  function calculateAge(birthDate) {
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+
+    // Ajustar si el mes o día actual es antes que el mes/día de nacimiento
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birthDate.getDate())
+    ) {
+      age--;
+    }
+    return age;
+  }
 
   // Función para formatear fechas al estilo "DD/MM/YYYY"
   const formatFecha = (fecha) => {
@@ -310,43 +336,42 @@ export default function RegistroBeneficiario() {
   // Dentro de handleInputChange para actualizar el estado cuando cambie la fecha de nacimiento
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-
+  
     setFormData((prevData) => {
       const updatedData = { ...prevData, [name]: value };
-
-      // Validación específica para la CURP
-      if (name === "curp") {
-        // Verificar que solo tenga letras y números, y limitar el tamaño a 18 caracteres
-        const curpRegex = /^[A-Z0-9]*$/i; // Alfanumérico
-        if (!curpRegex.test(value) || value.length > 18) {
-          return prevData; // No actualizar si el valor no es válido
-        }
-      }
-
-      // Limpiar vigenciaEstudios si esEstudiante es "No" y mantener el valor si es "Sí"
-      if (name === "esEstudiante") {
-        updatedData.vigenciaEstudios =
-          value === "Sí" ? prevData.vigenciaEstudios : "N/A";
-      }
-
-      // Calcular edad automáticamente al actualizar la fecha de nacimiento
+  
+      // Calcular la edad si cambia la fecha de nacimiento
       if (name === "fNacimiento") {
         const birthDate = new Date(value);
-        const today = new Date();
-        let age = today.getFullYear() - birthDate.getFullYear();
-        const monthDiff = today.getMonth() - birthDate.getMonth();
-        if (
-          monthDiff < 0 ||
-          (monthDiff === 0 && today.getDate() < birthDate.getDate())
-        ) {
-          age--;
-        }
+        const age = calculateAge(birthDate);
         updatedData.edad = age;
+  
+        // Revalidar checkboxes basados en el nuevo valor de edad
+        updateCheckboxState(age, updatedData.parentesco);
       }
-
+  
+      // Revalidar checkboxes si cambia el parentesco
+      if (name === "parentesco") {
+        updateCheckboxState(updatedData.edad, value);
+      }
+  
       return updatedData;
     });
   };
+  
+
+  const updateCheckboxState = (edad, parentescoId) => {
+    const isHijo = parentescoId === "2"; // "Hijo(a)" tiene ID 2
+    const isMayorOIgual15 = edad >= 15;
+  
+    setFormData((prev) => ({
+      ...prev,
+      showCheckboxes: isHijo && isMayorOIgual15,
+      esEstudiante: 0, // Reinicia "esEstudiante"
+      esDiscapacitado: 0, // Reinicia "esDiscapacitado"
+    }));
+  };
+  
 
   const handleViewBeneficiary = async (beneficiario) => {
     try {
@@ -462,10 +487,10 @@ export default function RegistroBeneficiario() {
     if (!numNomina) return;
 
     try {
-      // Llama a la API para actualizar el estado de los beneficiarios
-      await fetch("/api/actualizarEstadoBeneficiario", {
-        method: "PUT",
-      });
+      // Elimina esta parte si ya no necesitas llamar a esa API
+      // await fetch("/api/actualizarEstadoBeneficiario", {
+      //   method: "PUT",
+      // });
 
       // Obtén los beneficiarios actualizados
       const response = await fetch(
@@ -511,11 +536,6 @@ export default function RegistroBeneficiario() {
       console.error("Error fetching parentesco options:", err);
     }
   };
-
-  /*const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-  };*/
 
   const handleSearch = async () => {
     if (!numNomina) {
@@ -570,13 +590,7 @@ export default function RegistroBeneficiario() {
         telEmergencia: "",
         nombreEmergencia: "",
         activo: "A",
-        vigencia: "",
-        curp: "",
-        domicilio: "",
-        esEstudiante: "No",
-        vigenciaEstudiosInicio: "",
-        vigenciaEstudiosFin: "",
-        esDiscapacitado: "No",
+        vigenciaEstudios: "",
         imageUrl: "", // Limpia la vista previa de la imagen
       });
 
@@ -589,20 +603,19 @@ export default function RegistroBeneficiario() {
   const handleModalSubmit = async (e) => {
     e.preventDefault();
 
-    // Validación de la CURP
-    if (formData.curp.length !== 18) {
-      Swal.fire(
-        "Error",
-        "La CURP debe tener exactamente 18 caracteres.",
-        "error"
-      );
+    // Verificar que la imagen tenga una URL válida
+    if (!formData.imageUrl || !formData.imageUrl.startsWith("http")) {
+      Swal.fire("Error", "Por favor, sube una imagen válida.", "error");
       return;
     }
 
-    // Convertir la fecha de nacimiento al formato ISO 8601
-    const formattedDate = new Date(formData.fNacimiento).toISOString();
+    const formattedNacimiento = formData.fNacimiento
+      ? new Date(formData.fNacimiento).toISOString()
+      : null;
+    const formattedVigenciaEstudios = formData.vigenciaEstudios
+      ? new Date(formData.vigenciaEstudios).toISOString()
+      : null;
 
-    // Cambia el endpoint y método según el modo (registro o edición)
     const endpoint = isEditMode
       ? "/api/editarBeneficiario"
       : "/api/crearBeneficiario";
@@ -615,26 +628,43 @@ export default function RegistroBeneficiario() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          fNacimiento: formattedDate, // Enviar la fecha correctamente
-          idBeneficiario: currentBeneficiaryId, // Solo en modo edición
-          ...formData,
+          ...(isEditMode && { idBeneficiario: currentBeneficiaryId }), // Solo en edición
           noNomina: numNomina,
+          parentesco: formData.parentesco,
+          nombre: formData.nombre,
+          aPaterno: formData.aPaterno,
+          aMaterno: formData.aMaterno,
+          sexo: formData.sexo,
+          fNacimiento: formattedNacimiento,
+          escolaridad: formData.escolaridad || null,
+          activo: formData.activo || "A",
+          alergias: formData.alergias || "",
+          sangre: formData.sangre || null,
+          telEmergencia: formData.telEmergencia,
+          nombreEmergencia: formData.nombreEmergencia,
+          esEstudiante: formData.esEstudiante || 0,
+          esDiscapacitado: formData.esDiscapacitado || 0,
+          vigenciaEstudios: formattedVigenciaEstudios,
+          imageUrl: formData.imageUrl,
         }),
       });
 
       if (!response.ok) {
-        throw new Error("No se pudo procesar la solicitud.");
+        throw new Error(
+          isEditMode
+            ? "Error al actualizar el beneficiario."
+            : "Error al registrar el beneficiario."
+        );
       }
 
       Swal.fire(
         "Éxito",
         isEditMode
-          ? "Beneficiario editado correctamente."
+          ? "Beneficiario actualizado correctamente."
           : "Beneficiario registrado correctamente.",
         "success"
       );
 
-      // Reinicia el modal y el formulario después de enviar los datos
       setFormData({
         parentesco: "",
         nombre: "",
@@ -642,24 +672,22 @@ export default function RegistroBeneficiario() {
         aMaterno: "",
         sexo: "",
         fNacimiento: "",
+        escolaridad: "",
         alergias: "",
         sangre: "",
         telEmergencia: "",
         nombreEmergencia: "",
         activo: "A",
-        vigencia: "",
-        curp: "",
-        domicilio: "",
-        esEstudiante: "No",
-        vigenciaEstudiosInicio: "",
-        vigenciaEstudiosFin: "",
-        esDiscapacitado: "No",
-        imageUrl: "", // Reinicia la imagen previa
+        vigenciaEstudios: "",
+        esEstudiante: 0,
+        esDiscapacitado: 0,
+        imageUrl: "",
       });
 
-      setIsModalOpen(false); // Cerrar el modal
-      fetchBeneficiarios(); // Refrescar la lista de beneficiarios
+      setIsModalOpen(false);
+      fetchBeneficiarios();
     } catch (error) {
+      console.error("Error al enviar el formulario:", error.message);
       Swal.fire("Error", error.message, "error");
     }
   };
@@ -667,58 +695,42 @@ export default function RegistroBeneficiario() {
   // Función para editar beneficiario existente
   const handleEditBeneficiary = (beneficiario) => {
     console.log("Beneficiario recibido para edición:", beneficiario);
-
+  
     const formatFecha = (fecha) => {
       if (!fecha) return "";
       const date = new Date(fecha);
       return date.toISOString().split("T")[0]; // Formato YYYY-MM-DD
     };
-
-    const calcularEdad = (fechaNacimiento) => {
-      if (!fechaNacimiento) return "";
-      const hoy = new Date();
-      const nacimiento = new Date(fechaNacimiento);
-      let edad = hoy.getFullYear() - nacimiento.getFullYear();
-      const mes = hoy.getMonth() - nacimiento.getMonth();
-      if (mes < 0 || (mes === 0 && hoy.getDate() < nacimiento.getDate())) {
-        edad--;
-      }
-      return edad;
-    };
-
-    // Cerrar cualquier modal previo y resetear el estado
-    setIsModalOpen(false);
-    setTimeout(() => {
-      setFormData({
-        parentesco: beneficiario.PARENTESCO || "",
-        nombre: beneficiario.NOMBRE || "",
-        aPaterno: beneficiario.A_PATERNO || "",
-        aMaterno: beneficiario.A_MATERNO || "",
-        sexo: beneficiario.SEXO || "",
-        fNacimiento: formatFecha(beneficiario.F_NACIMIENTO) || "",
-        edad: calcularEdad(beneficiario.F_NACIMIENTO) || "",
-        alergias: beneficiario.ALERGIAS || "",
-        vigencia: formatFecha(beneficiario.VIGENCIA) || "",
-        sangre: beneficiario.SANGRE || "",
-        telEmergencia: beneficiario.TEL_EMERGENCIA || "",
-        nombreEmergencia: beneficiario.NOMBRE_EMERGENCIA || "",
-        activo: beneficiario.ACTIVO || "A",
-        curp: beneficiario.CURP || "",
-        domicilio: beneficiario.domicilio || "",
-        esEstudiante: beneficiario.ESESTUDIANTE || "No",
-        vigenciaEstudiosInicio:
-          formatFecha(beneficiario.VIGENCIA_ESTUDIOS_INICIO) || "",
-        vigenciaEstudiosFin:
-          formatFecha(beneficiario.VIGENCIA_ESTUDIOS_FIN) || "",
-        esDiscapacitado: beneficiario.ESDISCAPACITADO || "No",
-        imageUrl: beneficiario.FOTO_URL || "", // Cargar la imagen existente
-      });
-
-      setCurrentBeneficiaryId(beneficiario.ID_BENEFICIARIO);
-      setIsEditMode(true); // Activar modo edición
-      setIsModalOpen(true); // Reabrir el modal con datos cargados
-    }, 0); // Asegura un reseteo limpio antes de reabrir
+  
+    const edad = calculateAge(beneficiario.F_NACIMIENTO);
+  
+    // Determinar si se deben mostrar los checkboxes
+    updateCheckboxState(edad, beneficiario.PARENTESCO);
+  
+    setFormData({
+      parentesco: beneficiario.PARENTESCO || "",
+      nombre: beneficiario.NOMBRE || "",
+      aPaterno: beneficiario.A_PATERNO || "",
+      aMaterno: beneficiario.A_MATERNO || "",
+      sexo: beneficiario.SEXO || "",
+      fNacimiento: formatFecha(beneficiario.F_NACIMIENTO) || "",
+      edad,
+      alergias: beneficiario.ALERGIAS || "",
+      sangre: beneficiario.SANGRE || "",
+      telEmergencia: beneficiario.TEL_EMERGENCIA || "",
+      nombreEmergencia: beneficiario.NOMBRE_EMERGENCIA || "",
+      activo: beneficiario.ACTIVO || "A",
+      vigenciaEstudios: formatFecha(beneficiario.VIGENCIA_ESTUDIOS) || "",
+      imageUrl: beneficiario.FOTO_URL || "", // Imagen existente
+      esEstudiante: beneficiario.ESESTUDIANTE || 0,
+      esDiscapacitado: beneficiario.ESDISCAPACITADO || 0,
+    });
+  
+    setCurrentBeneficiaryId(beneficiario.ID_BENEFICIARIO);
+    setIsEditMode(true); // Modo edición
+    setIsModalOpen(true); // Abrir modal
   };
+  
 
   useEffect(() => {}, [formData]);
 
@@ -894,9 +906,6 @@ export default function RegistroBeneficiario() {
           isOpen={isModalOpen}
           onRequestClose={() => {
             setIsModalOpen(false);
-            setIsEditMode(false);
-
-            // Restablece solo si no estás editando
             setFormData({
               parentesco: "",
               nombre: "",
@@ -905,91 +914,69 @@ export default function RegistroBeneficiario() {
               sexo: "",
               fNacimiento: "",
               alergias: "",
-              sangre: "",
               telEmergencia: "",
               nombreEmergencia: "",
-              activo: "A",
-              vigencia: "",
-              curp: "",
-              domicilio: "",
-              esEstudiante: "No",
-              vigenciaEstudiosInicio: "",
-              vigenciaEstudiosFin: "",
-              esDiscapacitado: "No",
+              imageUrl: "", // Limpia la imagen previa al cerrar
+              esEstudiante: 0,
+              esDiscapacitado: 0,
+              vigenciaEstudios: "", // Limpia la vigencia de estudios
+              edad: "", // Limpia la edad
+              showCheckboxes: false, // Oculta los checkboxes dinámicos
             });
           }}
           overlayClassName={styles.modalOverlay}
           className={styles.modal}
         >
-          <form onSubmit={handleModalSubmit} className={styles.beneficiaryForm}>
-            <h2>
+          <form onSubmit={handleModalSubmit} className={styles.form}>
+            {async (e) => {
+              e.preventDefault();
+              console.log("Form Data:", formData);
+
+              if (formData.imageUrl) {
+                try {
+                  const response = await fetch("/api/uploadImage", {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ image: formData.imageUrl }),
+                  });
+
+                  if (!response.ok)
+                    throw new Error("Error al subir la imagen a Cloudinary.");
+
+                  const data = await response.json();
+                  console.log("Imagen subida:", data);
+
+                  // Actualiza el formulario con la URL de la imagen subida
+                  setFormData((prev) => ({
+                    ...prev,
+                    imageUrl: data.imageUrl,
+                  }));
+
+                  Swal.fire(
+                    "Éxito",
+                    "Beneficiario registrado correctamente.",
+                    "success"
+                  );
+                } catch (error) {
+                  console.error("Error al subir la imagen:", error);
+                  Swal.fire(
+                    "Error",
+                    "Hubo un problema al subir la imagen.",
+                    "error"
+                  );
+                }
+              }
+            }}
+            <h2 className={styles.title}>
               {isEditMode ? "Editar Beneficiario" : "Registrar Beneficiario"}
             </h2>
-            <button
-              type="button"
-              onClick={toggleStatus}
-              className={`${styles.statusButton} ${
-                formData.activo === "A" ? styles.active : styles.inactive
-              }`}
-            >
-              {formData.activo === "A" ? "Activo" : "Inactivo"}
-            </button>
-            <p></p>
-            {/* Fila 1: Foto con vista previa */}
-            <div className={styles.inputRow}>
-              <div className={styles.inputGroup}>
-                <label className={styles.inputLabel}>
-                  Foto:
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className={styles.inputField}
-                  />
-                </label>
-              </div>
+            <fieldset className={styles.fieldset}>
+              <legend>Personales</legend>
 
-              {/* Tarjeta de vista previa */}
-              {formData.imageUrl && (
-                <div className={styles.previewCard}>
-                  <img
-                    src={formData.imageUrl}
-                    alt="Vista previa"
-                    className={styles.previewImage}
-                  />
-                  <p className={styles.previewText}>
-                    Vista previa de la imagen
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {/* Fila 2: Parentesco y Nombre */}
-            <div className={styles.inputRow}>
-              <div className={styles.inputGroup}>
-                <label className={styles.inputLabel}>
-                  Parentesco:
-                  <select
-                    name="parentesco"
-                    value={formData.parentesco}
-                    onChange={handleInputChange}
-                    required
-                    className={styles.inputField}
-                  >
-                    <option value="">Selecciona</option>
-                    {parentescoOptions.map((option) => (
-                      <option
-                        key={option.ID_PARENTESCO}
-                        value={option.ID_PARENTESCO}
-                      >
-                        {option.PARENTESCO}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              </div>
-
-              <div className={styles.inputGroup}>
+              {/* Nombre */}
+              <div className={styles.inputRow}>
                 <label className={styles.inputLabel}>
                   Nombre:
                   <input
@@ -997,16 +984,14 @@ export default function RegistroBeneficiario() {
                     name="nombre"
                     value={formData.nombre}
                     onChange={handleInputChange}
-                    required
                     className={styles.inputField}
+                    required
                   />
                 </label>
               </div>
-            </div>
 
-            {/* Fila 3: Apellido Paterno y Apellido Materno */}
-            <div className={styles.inputRow}>
-              <div className={styles.inputGroup}>
+              {/* Apellido Paterno y Materno */}
+              <div className={styles.inputRow}>
                 <label className={styles.inputLabel}>
                   Apellido Paterno:
                   <input
@@ -1014,13 +999,11 @@ export default function RegistroBeneficiario() {
                     name="aPaterno"
                     value={formData.aPaterno}
                     onChange={handleInputChange}
-                    required
                     className={styles.inputField}
+                    required
                   />
                 </label>
-              </div>
 
-              <div className={styles.inputGroup}>
                 <label className={styles.inputLabel}>
                   Apellido Materno:
                   <input
@@ -1032,49 +1015,17 @@ export default function RegistroBeneficiario() {
                   />
                 </label>
               </div>
-            </div>
 
-            {/* Fila 4: Fecha de Nacimiento y Edad */}
-            <div className={styles.inputRow}>
-              <div className={styles.inputGroup}>
-                <label className={styles.inputLabel}>
-                  Fecha de Nacimiento:
-                  <input
-                    type="date"
-                    name="fNacimiento"
-                    value={formData.fNacimiento}
-                    onChange={handleInputChange}
-                    required
-                    className={styles.inputField}
-                  />
-                </label>
-              </div>
-
-              <div className={styles.inputGroup}>
-                <label className={styles.inputLabel}>
-                  Edad:
-                  <input
-                    type="number"
-                    name="edad"
-                    value={formData.edad}
-                    readOnly
-                    className={styles.inputField}
-                  />
-                </label>
-              </div>
-            </div>
-
-            {/* Fila 5: Sexo y Alergias */}
-            <div className={styles.inputRow}>
-              <div className={styles.inputGroup}>
+              {/* Sexo */}
+              <div className={styles.inputRow}>
                 <label className={styles.inputLabel}>
                   Sexo:
                   <select
                     name="sexo"
                     value={formData.sexo}
                     onChange={handleInputChange}
-                    required
                     className={styles.inputField}
+                    required
                   >
                     <option value="">Selecciona</option>
                     {sexoOptions.map((option) => (
@@ -1086,313 +1037,371 @@ export default function RegistroBeneficiario() {
                 </label>
               </div>
 
-              <div className={styles.inputGroup}>
+              {/* Fecha de Nacimiento */}
+              <div className={styles.inputRow}>
                 <label className={styles.inputLabel}>
-                  Alergias:
-                  <input
-                    type="text"
-                    name="alergias"
-                    value={formData.alergias}
-                    onChange={handleInputChange}
-                    className={styles.inputField}
-                  />
-                </label>
-              </div>
-            </div>
-
-            {/* Fila 6: Vigencia y Tipo de Sangre */}
-            <div className={styles.inputRow}>
-              <div className={styles.inputGroup}>
-                <label className={styles.inputLabel}>
-                  Vigencia:
+                  Fecha de Nacimiento:
                   <input
                     type="date"
-                    name="vigencia"
-                    value={formData.vigencia}
-                    onChange={handleInputChange}
-                    required
+                    name="fNacimiento"
+                    value={formData.fNacimiento}
+                    onChange={(e) => {
+                      handleInputChange(e);
+
+                      const birthDate = new Date(e.target.value);
+                      const today = new Date();
+                      let age = today.getFullYear() - birthDate.getFullYear();
+                      const monthDiff = today.getMonth() - birthDate.getMonth();
+
+                      if (
+                        monthDiff < 0 ||
+                        (monthDiff === 0 &&
+                          today.getDate() < birthDate.getDate())
+                      ) {
+                        age--;
+                      }
+
+                      setFormData((prev) => ({
+                        ...prev,
+                        edad: age,
+                      }));
+
+                      // Revalida las condiciones
+                      const isHijo = formData.parentesco === "Hijo(a)";
+                      const isMayorOIgual15 = age >= 15;
+
+                      setFormData((prev) => ({
+                        ...prev,
+                        showCheckboxes: isHijo && isMayorOIgual15,
+                        esEstudiante: 0,
+                        esDiscapacitado: 0,
+                      }));
+                    }}
                     className={styles.inputField}
+                    required
                   />
                 </label>
+                {formData.edad && (
+                  <span className={styles.ageDisplay}>
+                    Edad: {formData.edad} años
+                  </span>
+                )}
               </div>
 
-              <div className={styles.inputGroup}>
+              {/* Parentesco */}
+              <div className={styles.inputRow}>
                 <label className={styles.inputLabel}>
-                  Tipo de Sangre:
-                  <input
-                    type="text"
-                    name="sangre"
-                    value={formData.sangre}
-                    onChange={handleInputChange}
-                    required
-                    className={styles.inputField}
-                  />
-                </label>
-              </div>
-            </div>
-
-            {/* Fila 7: CURP */}
-            <div className={styles.inputRow}>
-              <div className={styles.inputGroup}>
-                <label className={styles.inputLabel}>
-                  CURP:
-                  <input
-                    type="text"
-                    name="curp"
-                    value={formData.curp} // Verifica que formData.curp tenga el valor correcto
-                    onChange={handleInputChange}
-                    required
-                    maxLength="18"
-                    className={styles.inputField}
-                  />
-                  {formData.curp.length > 0 && formData.curp.length !== 18 && (
-                    <span className={styles.errorText}>
-                      La CURP debe tener exactamente 18 caracteres.
-                    </span>
-                  )}
-                </label>
-              </div>
-            </div>
-
-            {/* Fila: Es Discapacitado */}
-            <div className={styles.inputRow}>
-              <div className={styles.inputGroup}>
-                <label className={styles.inputLabel}>
-                  ¿Es Discapacitado?
+                  Parentesco:
                   <select
-                    name="esDiscapacitado"
-                    value={formData.esDiscapacitado}
-                    onChange={handleInputChange}
+                    name="parentesco"
+                    value={formData.parentesco} // Aquí usamos el ID_PARENTESCO
+                    onChange={(e) => {
+                      const selectedId = e.target.value;
+
+                      // Encuentra el texto del parentesco según el ID seleccionado
+                      const selectedOption = parentescoOptions.find(
+                        (option) =>
+                          String(option.ID_PARENTESCO) === String(selectedId)
+                      );
+
+                      const selectedParentescoText = selectedOption
+                        ? selectedOption.PARENTESCO
+                        : "";
+
+                      // Determinar si es "Hijo(a)" y tiene edad >= 15
+                      const isHijo = selectedParentescoText === "Hijo(a)";
+                      const isMayorOIgual15 = formData.edad >= 15;
+
+                      // Actualizar formData con el ID_PARENTESCO y las condiciones dinámicas
+                      setFormData((prev) => ({
+                        ...prev,
+                        parentesco: selectedId, // Almacenar el ID_PARENTESCO
+                        showCheckboxes: isHijo && isMayorOIgual15,
+                        esEstudiante: 0, // Resetear el valor de esEstudiante
+                        esDiscapacitado: 0, // Resetear el valor de esDiscapacitado
+                      }));
+                    }}
                     className={styles.inputField}
+                    required
                   >
-                    <option value="No">No</option>
-                    <option value="Sí">Sí</option>
+                    <option value="">Selecciona</option>
+                    {parentescoOptions.map((option) => (
+                      <option
+                        key={option.ID_PARENTESCO}
+                        value={option.ID_PARENTESCO} // Usamos el ID_PARENTESCO como value
+                      >
+                        {option.PARENTESCO} {/* Mostramos el texto */}
+                      </option>
+                    ))}
                   </select>
                 </label>
               </div>
-              {/* Campo de Estudiante y Vigencia de Estudios */}
-              <label className={styles.inputLabel}>
-                ¿Es estudiante?
-                <select
-                  name="esEstudiante"
-                  value={formData.esEstudiante}
-                  onChange={handleInputChange}
-                  className={styles.inputField}
-                >
-                  <option value="No">No</option>
-                  <option value="Sí">Sí</option>
-                </select>
-              </label>
 
-              {formData.esEstudiante === "Sí" && (
+              {/* Checkboxes dinámicos */}
+              {formData.showCheckboxes && (
+                <div className={styles.inputRow}>
+                  <label className={styles.checkboxLabel}>
+                    <input
+                      type="checkbox"
+                      name="esEstudiante"
+                      checked={formData.esEstudiante === 1}
+                      onChange={(e) => {
+                        setFormData((prev) => ({
+                          ...prev,
+                          esEstudiante: e.target.checked ? 1 : 0,
+                          esDiscapacitado: 0, // Deselecciona el otro checkbox
+                          vigenciaEstudios: e.target.checked
+                            ? prev.vigenciaEstudios
+                            : "",
+                        }));
+                      }}
+                    />
+                    Es estudiante
+                  </label>
+
+                  <label className={styles.checkboxLabel}>
+                    <input
+                      type="checkbox"
+                      name="esDiscapacitado"
+                      checked={formData.esDiscapacitado === 1}
+                      onChange={(e) => {
+                        setFormData((prev) => ({
+                          ...prev,
+                          esDiscapacitado: e.target.checked ? 1 : 0,
+                          esEstudiante: 0, // Deselecciona el otro checkbox
+                          vigenciaEstudios: "", // Limpia vigencia si cambia a discapacitado
+                        }));
+                      }}
+                    />
+                    Es discapacitado
+                  </label>
+                </div>
+              )}
+
+              {/* Vigencia de Estudios */}
+              {formData.esEstudiante === 1 && (
                 <div className={styles.inputRow}>
                   <label className={styles.inputLabel}>
-                    Vigencia de Estudios (Inicio):
+                    Vigencia de Estudios:
                     <input
-                      type="date"
-                      name="vigenciaEstudiosInicio"
-                      value={formData.vigenciaEstudiosInicio}
+                      type="datetime-local"
+                      name="vigenciaEstudios"
+                      value={formData.vigenciaEstudios}
                       onChange={handleInputChange}
                       className={styles.inputField}
-                    />
-                  </label>
-                  <label className={styles.inputLabel}>
-                    Vigencia de Estudios (Fin):
-                    <input
-                      type="date"
-                      name="vigenciaEstudiosFin"
-                      value={formData.vigenciaEstudiosFin}
-                      onChange={handleInputChange}
-                      className={styles.inputField}
+                      required
                     />
                   </label>
                 </div>
               )}
-            </div>
-
-            {/* Fila 12: Nombre y Teléfono de Emergencia */}
+            </fieldset>
+            {/* Alergias */}
             <div className={styles.inputRow}>
-              <div className={styles.inputGroup}>
+              <label className={styles.inputLabel}>
+                Alergias:
+                <input
+                  type="text"
+                  name="alergias"
+                  value={formData.alergias}
+                  onChange={handleInputChange}
+                  className={styles.inputField}
+                />
+              </label>
+            </div>
+            {/* Subir foto */}
+            <div className={styles.inputRow}>
+              <label className={styles.inputLabel}>
+                Foto:
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload} // Asegúrate de que esta función se use
+                  className={styles.inputField}
+                />
+              </label>
+            </div>
+            {/* Vista previa de la foto */}
+            {formData.imageUrl && (
+              <div className={styles.imagePreview}>
+                <img
+                  src={formData.imageUrl}
+                  alt="Vista previa de la foto"
+                  className={styles.previewImage}
+                />
+              </div>
+            )}
+            <fieldset className={styles.fieldset}>
+              <legend>En caso de emergencia avisar a:</legend>
+
+              {/* Teléfono de Emergencia */}
+              <div className={styles.inputRow}>
                 <label className={styles.inputLabel}>
-                  Nombre de Emergencia:
+                  Teléfono:
+                  <input
+                    type="tel"
+                    name="telEmergencia"
+                    value={formData.telEmergencia}
+                    onChange={handleInputChange}
+                    className={styles.inputField}
+                    required
+                  />
+                </label>
+              </div>
+
+              {/* Nombre de Contacto */}
+              <div className={styles.inputRow}>
+                <label className={styles.inputLabel}>
+                  Nombre:
                   <input
                     type="text"
                     name="nombreEmergencia"
                     value={formData.nombreEmergencia}
                     onChange={handleInputChange}
-                    required
                     className={styles.inputField}
+                    required
                   />
                 </label>
               </div>
+            </fieldset>
+            {/* Botones */}
+            <div className={styles.buttonGroup}>
+              <button type="submit" className={styles.submitButton}>
+                {isEditMode ? "Actualizar" : "Guardar"}
+              </button>
 
-              <div className={styles.inputGroup}>
-                <label className={styles.inputLabel}>
-                  Teléfono de Emergencia:
-                  <input
-                    type="text"
-                    name="telEmergencia"
-                    value={formData.telEmergencia}
-                    onChange={handleInputChange}
-                    required
-                    className={styles.inputField}
-                  />
-                </label>
-              </div>
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(false)}
+                className={styles.cancelButton}
+              >
+                Cancelar
+              </button>
             </div>
-
-            <button type="submit" className={styles.submitButton}>
-              {isEditMode ? "Guardar Cambios" : "Guardar Beneficiario"}
-            </button>
           </form>
         </Modal>
+
         <Modal
-  isOpen={isViewModalOpen}
-  onRequestClose={() => setIsViewModalOpen(false)}
-  overlayClassName={styles.modalOverlay}
-  className={styles.modal}
->
-  {selectedBeneficiary && (
-    <div className={styles.modalContent}>
-      {/* Imagen del Beneficiario */}
-      <div className={styles.imageContainer}>
-        {selectedBeneficiary.FOTO_URL ? (
-          <Image
-            src={selectedBeneficiary.FOTO_URL}
-            alt={`${selectedBeneficiary.NOMBRE} ${selectedBeneficiary.A_PATERNO}`}
-            width={150}
-            height={150}
-            className={styles.beneficiaryImage}
-          />
-        ) : (
-          <p className={styles.noImageText}>Imagen no disponible</p>
-        )}
-      </div>
+          isOpen={isViewModalOpen}
+          onRequestClose={() => setIsViewModalOpen(false)}
+          overlayClassName={styles.modalOverlay}
+          className={styles.modal}
+        >
+          {selectedBeneficiary && (
+            <div className={styles.modalContent}>
+              {/* Imagen del Beneficiario */}
+              <div className={styles.imageContainer}>
+                {selectedBeneficiary.FOTO_URL ? (
+                  <Image
+                    src={selectedBeneficiary.FOTO_URL}
+                    alt={`${selectedBeneficiary.NOMBRE} ${selectedBeneficiary.A_PATERNO}`}
+                    width={150}
+                    height={150}
+                    className={styles.beneficiaryImage}
+                  />
+                ) : (
+                  <p className={styles.noImageText}>Imagen no disponible</p>
+                )}
+              </div>
 
-      {/* Primera Card: Información Personal */}
-      <div className={styles.card}>
-        <h3 className={styles.cardTitle}>Información Personal</h3>
-        <p>
-          <strong>ID:</strong> {selectedBeneficiary.ID_BENEFICIARIO}
-        </p>
-        <p>
-          <strong>Número de Nómina:</strong> {selectedBeneficiary.NO_NOMINA}
-        </p>
-        <p>
-          <strong>Nombre Completo:</strong>{" "}
-          {`${selectedBeneficiary.NOMBRE} ${selectedBeneficiary.A_PATERNO} ${selectedBeneficiary.A_MATERNO}`}
-        </p>
-        <p>
-          <strong>Sexo:</strong>{" "}
-          {sexoOptions.find(
-            (s) => String(s.idSexo) === String(selectedBeneficiary.SEXO)
-          )?.sexo || "Desconocido"}
-        </p>
-        <p>
-          <strong>Fecha de Nacimiento:</strong>{" "}
-          {new Date(selectedBeneficiary.F_NACIMIENTO).toLocaleDateString(
-            "es-ES",
-            { day: "2-digit", month: "2-digit", year: "numeric" }
+              {/* Primera Card: Información Personal */}
+              <div className={styles.card}>
+                <h3 className={styles.cardTitle}>Información Personal</h3>
+                <p>
+                  <strong>ID:</strong> {selectedBeneficiary.ID_BENEFICIARIO}
+                </p>
+                <p>
+                  <strong>Número de Nómina:</strong>{" "}
+                  {selectedBeneficiary.NO_NOMINA}
+                </p>
+                <p>
+                  <strong>Nombre Completo:</strong>{" "}
+                  {`${selectedBeneficiary.NOMBRE} ${selectedBeneficiary.A_PATERNO} ${selectedBeneficiary.A_MATERNO}`}
+                </p>
+                <p>
+                  <strong>Sexo:</strong>{" "}
+                  {sexoOptions.find(
+                    (s) => String(s.idSexo) === String(selectedBeneficiary.SEXO)
+                  )?.sexo || "Desconocido"}
+                </p>
+                <p>
+                  <strong>Fecha de Nacimiento:</strong>{" "}
+                  {new Date(
+                    selectedBeneficiary.F_NACIMIENTO
+                  ).toLocaleDateString("es-ES", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                  })}
+                </p>
+                <p>
+                  <strong>Edad:</strong>{" "}
+                  {calculateAge(new Date(selectedBeneficiary.F_NACIMIENTO))}
+                </p>
+
+                <p>
+                  <strong>Activo:</strong>{" "}
+                  {selectedBeneficiary.ACTIVO === "A" ? "Sí" : "No"}
+                </p>
+              </div>
+
+              {/* Segunda Card: Información Adicional */}
+              <div className={styles.card}>
+                <h3 className={styles.cardTitle}>Información Adicional</h3>
+                <p>
+                  <strong>Parentesco:</strong>{" "}
+                  {parentescoOptions.find(
+                    (p) => p.ID_PARENTESCO === selectedBeneficiary.PARENTESCO
+                  )?.PARENTESCO || "Desconocido"}
+                </p>
+                <p>
+                  <strong>Alergias:</strong>{" "}
+                  {selectedBeneficiary.ALERGIAS || "Ninguna"}
+                </p>
+                <p>
+                  <strong>Teléfono de Emergencia:</strong>{" "}
+                  {selectedBeneficiary.TEL_EMERGENCIA || "N/A"}
+                </p>
+                <p>
+                  <strong>Nombre de Contacto de Emergencia:</strong>{" "}
+                  {selectedBeneficiary.NOMBRE_EMERGENCIA || "N/A"}
+                </p>
+              </div>
+
+              {/* Botones */}
+              <div className={styles.buttonsContainer}>
+                <button
+                  onClick={() => handlePrintCredential(selectedBeneficiary)}
+                  className={styles.printButton}
+                >
+                  Imprimir Credencial
+                </button>
+                <button
+                  onClick={async () => {
+                    try {
+                      await handleGenerateCard(selectedBeneficiary);
+                    } catch (error) {
+                      console.error("Error al generar el carnet:", error);
+                      Swal.fire(
+                        "Error",
+                        "No se pudo generar el carnet. Intenta nuevamente.",
+                        "error"
+                      );
+                    }
+                  }}
+                  className={styles.printButton}
+                >
+                  Imprimir Carnet
+                </button>
+                <button
+                  onClick={() => setIsViewModalOpen(false)}
+                  className={styles.cancelButton}
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
           )}
-        </p>
-        <p>
-          <strong>Edad:</strong> {selectedBeneficiary.EDAD || "N/A"}
-        </p>
-        <p>
-          <strong>CURP:</strong> {selectedBeneficiary.CURP || "N/A"}
-        </p>
-        <p>
-          <strong>Activo:</strong>{" "}
-          {selectedBeneficiary.ACTIVO === "A" ? "Sí" : "No"}
-        </p>
-      </div>
-
-      {/* Segunda Card: Información Adicional */}
-      <div className={styles.card}>
-        <h3 className={styles.cardTitle}>Información Adicional</h3>
-        <p>
-          <strong>Parentesco:</strong>{" "}
-          {parentescoOptions.find(
-            (p) => p.ID_PARENTESCO === selectedBeneficiary.PARENTESCO
-          )?.PARENTESCO || "Desconocido"}
-        </p>
-        <p>
-          <strong>Alergias:</strong>{" "}
-          {selectedBeneficiary.ALERGIAS || "Ninguna"}
-        </p>
-        <p>
-          <strong>Tipo de Sangre:</strong>{" "}
-          {selectedBeneficiary.SANGRE || "N/A"}
-        </p>
-        <p>
-          <strong>Teléfono de Emergencia:</strong>{" "}
-          {selectedBeneficiary.TEL_EMERGENCIA || "N/A"}
-        </p>
-        <p>
-          <strong>Nombre de Contacto de Emergencia:</strong>{" "}
-          {selectedBeneficiary.NOMBRE_EMERGENCIA || "N/A"}
-        </p>
-        <p>
-          <strong>Vigencia de Estudios (Inicio):</strong>{" "}
-          {selectedBeneficiary.VIGENCIA_ESTUDIOS_INICIO
-            ? new Date(
-                selectedBeneficiary.VIGENCIA_ESTUDIOS_INICIO
-              ).toLocaleDateString("es-ES", {
-                day: "2-digit",
-                month: "2-digit",
-                year: "numeric",
-              })
-            : "N/A"}
-        </p>
-        <p>
-          <strong>Vigencia de Estudios (Fin):</strong>{" "}
-          {selectedBeneficiary.VIGENCIA_ESTUDIOS_FIN
-            ? new Date(
-                selectedBeneficiary.VIGENCIA_ESTUDIOS_FIN
-              ).toLocaleDateString("es-ES", {
-                day: "2-digit",
-                month: "2-digit",
-                year: "numeric",
-              })
-            : "N/A"}
-        </p>
-      </div>
-
-      {/* Botones */}
-      <div className={styles.buttonsContainer}>
-        <button
-          onClick={() => handlePrintCredential(selectedBeneficiary)}
-          className={styles.printButton}
-        >
-          Imprimir Credencial
-        </button>
-        <button
-          onClick={async () => {
-            try {
-              await handleGenerateCard(selectedBeneficiary);
-            } catch (error) {
-              console.error("Error al generar el carnet:", error);
-              Swal.fire(
-                "Error",
-                "No se pudo generar el carnet. Intenta nuevamente.",
-                "error"
-              );
-            }
-          }}
-          className={styles.printButton}
-        >
-          Imprimir Carnet
-        </button>
-        <button
-          onClick={() => setIsViewModalOpen(false)}
-          className={styles.cancelButton}
-        >
-          Cancelar
-        </button>
-      </div>
-    </div>
-  )}
-</Modal>
+        </Modal>
 
         {/* Tabla de beneficiarios, solo se muestra si el empleado es encontrado */}
         {empleado && beneficiarios.length > 0 && (

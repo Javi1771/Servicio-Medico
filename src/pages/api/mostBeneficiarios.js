@@ -22,16 +22,9 @@ export default async function handler(req, res) {
             F_NACIMIENTO, 
             ACTIVO, 
             ALERGIAS, 
-            VIGENCIA,
             SANGRE, 
             TEL_EMERGENCIA, 
             NOMBRE_EMERGENCIA,
-            CURP, 
-            domicilio,
-            ESESTUDIANTE,
-            VIGENCIA_ESTUDIOS_INICIO,
-            VIGENCIA_ESTUDIOS_FIN,
-            ESDISCAPACITADO,
             FOTO_URL
           FROM [PRESIDENCIA].[dbo].[BENEFICIARIO]
           WHERE NO_NOMINA = @num_nom
