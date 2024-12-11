@@ -40,33 +40,92 @@ export default function RegistroBeneficiario() {
   const [isEditMode, setIsEditMode] = useState(false);
   const [currentBeneficiaryId, setCurrentBeneficiaryId] = useState(null);
   const [isOtherEnabled, setIsOtherEnabled] = useState(false); // Nueva variable de estado
-  /*Const para validaciones de beneficiarios*/
-  const [showDisabilityInput, setShowDisabilityInput] = useState(false);
-  const [showBirthDateInput, setShowBirthDateInput] = useState(false);
-  const [showStudyValidityInput, setShowStudyValidityInput] = useState(false);
-  const [showNameFields, setShowNameFields] = useState(false);
-  const [showSaveButton, setShowSaveButton] = useState(false);
+  const router = useRouter(); // Define el router usando useRouter
+  const [isSaveDisabled, setIsSaveDisabled] = useState(false); // Estado para deshabilitar el botón de guardar
 
-  const resetDynamicFields = () => {
-    setShowDisabilityInput(false);
-    setShowBirthDateInput(false);
-    setShowStudyValidityInput(false);
-    setShowNameFields(false);
-    setShowSaveButton(false);
+  /**VIGENCIA DE ESTUDIOS VALIDACION */
+  const handleVigenciaChange = (e) => {
+    const { value } = e.target;
+    const selectedDate = new Date(value);
+    const currentDate = new Date();
+
+    // Verificar si "Es estudiante" está seleccionado
+    if (formData.esEstudiante) {
+      // Validar si la fecha es menor a la actual
+      if (selectedDate < currentDate) {
+        Swal.fire({
+          icon: "error",
+          title: "Vigencia de estudio vencida",
+          text: "Por favor, selecciona una fecha válida en el futuro.",
+          confirmButtonText: "Entendido",
+        });
+        setIsSaveDisabled(true); // Deshabilitar el botón de guardar
+      } else {
+        setIsSaveDisabled(false); // Habilitar el botón si la fecha es válida
+      }
+    }
+
+    // Actualizar el estado del formulario
+    setFormData((prev) => ({
+      ...prev,
+      vigenciaEstudios: value,
+    }));
   };
 
-  const router = useRouter(); // Define el router usando useRouter
+  const handleCheckboxChange = (e) => {
+    const { name, checked } = e.target;
+
+    if (name === "esEstudiante") {
+      // Si "Es estudiante" se selecciona, limpiar vigencia si se desmarca
+      setFormData((prev) => ({
+        ...prev,
+        esEstudiante: checked,
+        esDiscapacitado: !checked,
+        vigenciaEstudios: checked ? prev.vigenciaEstudios : "",
+      }));
+
+      // Si "Es estudiante" no está marcado, habilitar el botón de guardar
+      if (!checked) {
+        setIsSaveDisabled(false);
+      }
+    }
+
+    if (name === "esDiscapacitado") {
+      // Si "Es discapacitado" se selecciona, desmarcar "Es estudiante"
+      setFormData((prev) => ({
+        ...prev,
+        esDiscapacitado: checked,
+        esEstudiante: !checked,
+        vigenciaEstudios: "",
+      }));
+      setIsSaveDisabled(false); // Habilitar el botón si cambia a "Es discapacitado"
+    }
+  };
 
   // Calcula la edad basada en la fecha de nacimiento
   function calculateAge(birthDate) {
+    if (!birthDate) {
+      return 0; // Retornar 0 si no hay fecha de nacimiento
+    }
+
+    // Convertir birthDate a un objeto Date si no lo es
+    const birthDateObject =
+      birthDate instanceof Date ? birthDate : new Date(birthDate);
+
+    // Validar que la conversión sea exitosa
+    if (isNaN(birthDateObject.getTime())) {
+      console.error("Fecha de nacimiento no válida:", birthDate);
+      return 0; // Retornar 0 si la fecha no es válida
+    }
+
     const today = new Date();
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
+    let age = today.getFullYear() - birthDateObject.getFullYear();
+    const monthDiff = today.getMonth() - birthDateObject.getMonth();
 
     // Ajustar si el mes o día actual es antes que el mes/día de nacimiento
     if (
       monthDiff < 0 ||
-      (monthDiff === 0 && today.getDate() < birthDate.getDate())
+      (monthDiff === 0 && today.getDate() < birthDateObject.getDate())
     ) {
       age--;
     }
@@ -85,26 +144,21 @@ export default function RegistroBeneficiario() {
   };
 
   const handleGenerateCard = async (beneficiary) => {
+    // Verificar que el beneficiario esté activo
+    if (beneficiary.ACTIVO !== "A") {
+      Swal.fire("Error", "El beneficiario no está activo.", "error");
+      return;
+    }
+
     const {
       NO_NOMINA,
       PARENTESCO,
       NOMBRE,
       A_PATERNO,
       A_MATERNO,
-      EDAD,
-      VIGENCIA,
+      F_NACIMIENTO,
+      VIGENCIA_ESTUDIOS, // Cambiado de VIGENCIA
     } = beneficiary;
-
-    // Verificar si las opciones de parentesco están disponibles
-    if (!parentescoOptions || parentescoOptions.length === 0) {
-      console.error("Opciones de parentesco no disponibles.");
-      Swal.fire(
-        "Error",
-        "No se pudieron cargar las opciones de parentesco. Intenta nuevamente.",
-        "error"
-      );
-      return;
-    }
 
     // Función para obtener la descripción del parentesco
     const getParentescoDescripcion = (parentescoId) => {
@@ -114,9 +168,8 @@ export default function RegistroBeneficiario() {
       return parentesco ? parentesco.PARENTESCO : "Desconocido";
     };
 
-    // Interpretación del parentesco
     const parentescoDescripcion = getParentescoDescripcion(PARENTESCO);
-    const edadConAnios = `${EDAD || 0} años`;
+    const edadConAnios = `${calculateAge(F_NACIMIENTO)} años`; // Edad calculada
 
     try {
       // Consumir la API del web service para obtener datos del empleado
@@ -125,9 +178,7 @@ export default function RegistroBeneficiario() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          num_nom: NO_NOMINA,
-        }),
+        body: JSON.stringify({ num_nom: NO_NOMINA }),
       });
 
       if (!response.ok) throw new Error("Empleado no encontrado");
@@ -161,7 +212,7 @@ export default function RegistroBeneficiario() {
       doc.addImage(frontTemplate, "PNG", 0, 0, 29.7, 21);
 
       doc.setFont("helvetica", "bold");
-      doc.setTextColor("#19456a"); // Azul oscuro
+      doc.setTextColor("#19456a");
 
       // Colocar texto en el carnet
       doc.setFontSize(14);
@@ -172,20 +223,17 @@ export default function RegistroBeneficiario() {
       ); // Nombre del Beneficiario
       doc.text(parentescoDescripcion, 18.5, 7.5); // Parentesco
       doc.text(edadConAnios, 24, 7.6); // Edad
-      doc.text(formatFecha(VIGENCIA), 18.5, 8.8); // Vigencia
+      doc.text(formatFecha(VIGENCIA_ESTUDIOS), 18.5, 8.8); // Vigencia
 
       doc.text(EMPLEADO_NOMBRE, 18.5, 10.5); // Nombre del Empleado
       doc.text(NUM_NOMINA, 18.5, 11.6); // Número de Nómina
-      // Ajustar el texto del departamento en caso de que sea largo
-      const departamentoText = doc.splitTextToSize(DEPARTAMENTO, 10); // Ajusta el ancho máximo del texto
-      // Renderizar el texto en múltiples líneas
-      doc.text(departamentoText, 18.5, 12.8);
+      const departamentoText = doc.splitTextToSize(DEPARTAMENTO, 10);
+      doc.text(departamentoText, 18.5, 12.8); // Departamento
 
       // Página Trasera del Carnet
       doc.addPage();
       doc.addImage(backTemplate, "PNG", 0, 0, 29.7, 21);
 
-      // Guardar el archivo PDF
       doc.save(`Carnet_${NOMBRE}_${A_PATERNO}.pdf`);
     } catch (error) {
       console.error("Error al generar el carnet:", error.message);
@@ -197,35 +245,27 @@ export default function RegistroBeneficiario() {
     }
   };
 
-  /**FUNCION PARA IMPRIMIR LA CREDENCIAL */
   const handlePrintCredential = async (beneficiary) => {
+    // Verificar que el beneficiario esté activo
+    if (beneficiary.ACTIVO !== "A") {
+      Swal.fire("Error", "El beneficiario no está activo.", "error");
+      return;
+    }
+
     const {
       NO_NOMINA,
       PARENTESCO,
       NOMBRE,
       A_PATERNO,
       A_MATERNO,
-      EDAD,
-      DEPARTAMENTO,
-      VIGENCIA,
       F_NACIMIENTO,
+      VIGENCIA_ESTUDIOS, // Cambiado de VIGENCIA
       TEL_EMERGENCIA,
       NOMBRE_EMERGENCIA,
       FOTO_URL,
       SANGRE,
       ALERGIAS,
     } = beneficiary;
-
-    // Validar si las opciones de parentesco están disponibles
-    if (!parentescoOptions || parentescoOptions.length === 0) {
-      console.error("Parentesco options no disponibles.");
-      Swal.fire(
-        "Error",
-        "No se pudieron cargar las opciones de parentesco. Intenta nuevamente.",
-        "error"
-      );
-      return;
-    }
 
     // Función para obtener la descripción del parentesco
     const getParentescoDescripcion = (parentescoId) => {
@@ -236,85 +276,129 @@ export default function RegistroBeneficiario() {
     };
 
     const parentescoDescripcion = getParentescoDescripcion(PARENTESCO);
-    const edadConAnios = `${EDAD || 0}  AÑOS`;
+    const edadConAnios = `${calculateAge(F_NACIMIENTO)} años`; // Edad calculada
 
-    // Configuración para jsPDF
-    const doc = new jsPDF({
-      orientation: "landscape",
-      unit: "cm",
-      format: "a4",
-    });
+    try {
+      // Consumir la API del web service para obtener datos del empleado
+      const response = await fetch("/api/empleado", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ num_nom: NO_NOMINA }),
+      });
 
-    // Cargar las imágenes de la credencial
-    const frontTemplateUrl = `/CREDENCIAL_FRONTAL2.png`;
-    const backTemplateUrl = `/CREDENCIAL_TRASERA.png`;
+      if (!response.ok) throw new Error("Empleado no encontrado");
 
-    const frontTemplate = await loadImageBase64(frontTemplateUrl);
-    const backTemplate = await loadImageBase64(backTemplateUrl);
+      const employeeData = await response.json();
 
-    // Página Frontal
-    doc.addImage(frontTemplate, "PNG", 0, 0, 29.7, 21);
+      // Datos del empleado
+      const EMPLEADO_NOMBRE = employeeData?.nombre
+        ? `${employeeData.nombre} ${employeeData.a_paterno || ""} ${
+            employeeData.a_materno || ""
+          }`.trim()
+        : "N/A";
+      const NUM_NOMINA = employeeData?.num_nom || "N/A";
+      const DEPARTAMENTO = employeeData?.departamento || "N/A";
 
-    // Añadir la foto y el marco redondeado
-    if (FOTO_URL) {
-      try {
-        const photo = await loadImageBase64(FOTO_URL);
-        const photoX = 4.5;
-        const photoY = 10.9;
-        const photoWidth = 7.0;
-        const photoHeight = 8.4;
+      // Configuración para jsPDF
+      const doc = new jsPDF({
+        orientation: "landscape",
+        unit: "cm",
+        format: "a4",
+      });
 
-        // Añadir la foto
-        doc.addImage(photo, "JPEG", photoX, photoY, photoWidth, photoHeight);
+      // Cargar las imágenes de la credencial
+      const frontTemplateUrl = `/CREDENCIAL_FRONTAL2.png`;
+      const backTemplateUrl = `/CREDENCIAL_TRASERA.png`;
 
-        // Añadir un marco redondeado alrededor de la foto
-        doc.setLineWidth(0.25);
-        doc.setDrawColor(255, 255, 255); // Color del marco (blanco)
-        doc.roundedRect(photoX, photoY, photoWidth, photoHeight, 0.3, 0.3, "S");
-      } catch (error) {
-        console.error("Error al cargar la foto del beneficiario:", error);
+      const frontTemplate = await loadImageBase64(frontTemplateUrl);
+      const backTemplate = await loadImageBase64(backTemplateUrl);
+
+      // Página Frontal
+      doc.addImage(frontTemplate, "PNG", 0, 0, 29.7, 21);
+
+      // Añadir la foto y el marco redondeado
+      if (FOTO_URL) {
+        try {
+          const photo = await loadImageBase64(FOTO_URL);
+          const photoX = 4.5;
+          const photoY = 10.9;
+          const photoWidth = 7.0;
+          const photoHeight = 8.4;
+
+          // Añadir la foto
+          doc.addImage(photo, "JPEG", photoX, photoY, photoWidth, photoHeight);
+
+          // Añadir un marco redondeado alrededor de la foto
+          doc.setLineWidth(0.25);
+          doc.setDrawColor(255, 255, 255); // Color del marco (blanco)
+          doc.roundedRect(
+            photoX,
+            photoY,
+            photoWidth,
+            photoHeight,
+            0.3,
+            0.3,
+            "S"
+          );
+        } catch (error) {
+          console.error("Error al cargar la foto del beneficiario:", error);
+        }
       }
+
+      // Texto en la página frontal
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor("#19456a"); // Azul
+
+      doc.setFontSize(21);
+      doc.text(NO_NOMINA?.toString() || "", 18.3, 9.5);
+
+      doc.setFontSize(18);
+      doc.text(parentescoDescripcion, 19.8, 11.16);
+
+      doc.setFontSize(15);
+      doc.text(
+        `${NOMBRE || ""} ${A_PATERNO || ""} ${A_MATERNO || ""}`,
+        18.4,
+        12.6
+      );
+
+      doc.setFontSize(18);
+      doc.text(edadConAnios, 17.2, 14.3);
+
+      doc.setFontSize(14.5);
+      const departamentoText = doc.splitTextToSize(DEPARTAMENTO, 8.5); // Ajustar texto largo
+      let departamentoY = 15.4;
+      departamentoText.forEach((line) => {
+        doc.text(line, 21.3, departamentoY);
+        departamentoY += 0.6; // Ajustar el espaciado entre líneas
+      });
+
+      doc.setFontSize(18);
+      doc.text(formatFecha(VIGENCIA_ESTUDIOS), 18.8, 19.0);
+
+      // Página Trasera
+      doc.addPage();
+      doc.addImage(backTemplate, "PNG", 0, 0, 29.7, 21);
+
+      doc.setFontSize(18);
+      doc.text(formatFecha(F_NACIMIENTO), 12.5, 2.8);
+      doc.text(SANGRE || "", 9.8, 5.2);
+      doc.text(ALERGIAS || "", 7.0, 7.6);
+      doc.text(TEL_EMERGENCIA || "", 14, 9.8);
+      doc.text(NOMBRE_EMERGENCIA || "", 13.1, 12);
+
+      // Guardar como PDF
+      doc.save(`Credencial_${NOMBRE || ""}_${A_PATERNO || ""}.pdf`);
+    } catch (error) {
+      console.error("Error al generar la credencial:", error.message);
+      Swal.fire(
+        "Error",
+        "No se pudo generar la credencial. Intenta nuevamente.",
+        "error"
+      );
     }
-
-    // Texto en la página frontal
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor("#19456a"); // Azul
-
-    doc.setFontSize(21);
-    doc.text(NO_NOMINA?.toString() || "", 18.3, 9.5);
-
-    doc.setFontSize(18);
-    doc.text(parentescoDescripcion, 19.8, 11.16);
-
-    doc.setFontSize(15);
-    doc.text(
-      `${NOMBRE || ""} ${A_PATERNO || ""} ${A_MATERNO || ""}`,
-      18.4,
-      12.6
-    );
-
-    doc.setFontSize(18);
-    doc.text(edadConAnios, 17.2, 14.3);
-
-    doc.setFontSize(14.5);
-    doc.text(doc.splitTextToSize(DEPARTAMENTO || "", 8.5), 21.3, 15.4);
-
-    doc.setFontSize(18);
-    doc.text(formatFecha(VIGENCIA), 18.8, 19.0);
-
-    // Página Trasera
-    doc.addPage();
-    doc.addImage(backTemplate, "PNG", 0, 0, 29.7, 21);
-
-    doc.setFontSize(18);
-    doc.text(formatFecha(F_NACIMIENTO), 12.5, 2.8);
-    doc.text(SANGRE || "", 9.8, 5.2);
-    doc.text(ALERGIAS || "", 7.0, 7.6);
-    doc.text(TEL_EMERGENCIA || "", 14, 9.8);
-    doc.text(NOMBRE_EMERGENCIA || "", 13.1, 12);
-
-    // Guardar como PDF
-    doc.save(`Credencial_${NOMBRE || ""}_${A_PATERNO || ""}.pdf`);
   };
 
   // Función para cargar imágenes como base64
@@ -336,34 +420,33 @@ export default function RegistroBeneficiario() {
   // Dentro de handleInputChange para actualizar el estado cuando cambie la fecha de nacimiento
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-  
+
     setFormData((prevData) => {
       const updatedData = { ...prevData, [name]: value };
-  
+
       // Calcular la edad si cambia la fecha de nacimiento
       if (name === "fNacimiento") {
         const birthDate = new Date(value);
         const age = calculateAge(birthDate);
         updatedData.edad = age;
-  
+
         // Revalidar checkboxes basados en el nuevo valor de edad
         updateCheckboxState(age, updatedData.parentesco);
       }
-  
+
       // Revalidar checkboxes si cambia el parentesco
       if (name === "parentesco") {
         updateCheckboxState(updatedData.edad, value);
       }
-  
+
       return updatedData;
     });
   };
-  
 
   const updateCheckboxState = (edad, parentescoId) => {
     const isHijo = parentescoId === "2"; // "Hijo(a)" tiene ID 2
     const isMayorOIgual15 = edad >= 15;
-  
+
     setFormData((prev) => ({
       ...prev,
       showCheckboxes: isHijo && isMayorOIgual15,
@@ -371,10 +454,15 @@ export default function RegistroBeneficiario() {
       esDiscapacitado: 0, // Reinicia "esDiscapacitado"
     }));
   };
-  
 
   const handleViewBeneficiary = async (beneficiario) => {
+    setSelectedBeneficiary(null); // Limpia el estado anterior
     try {
+      if (beneficiario.ACTIVO !== "A") {
+        Swal.fire("Error", "El beneficiario no está activo.", "error");
+        return;
+      }
+
       const response = await fetch(
         `/api/getBeneficiary?idBeneficiario=${beneficiario.ID_BENEFICIARIO}`
       );
@@ -695,18 +783,25 @@ export default function RegistroBeneficiario() {
   // Función para editar beneficiario existente
   const handleEditBeneficiary = (beneficiario) => {
     console.log("Beneficiario recibido para edición:", beneficiario);
-  
+
+    // Formatea la fecha para un input de tipo `date`
     const formatFecha = (fecha) => {
       if (!fecha) return "";
       const date = new Date(fecha);
       return date.toISOString().split("T")[0]; // Formato YYYY-MM-DD
     };
-  
-    const edad = calculateAge(beneficiario.F_NACIMIENTO);
-  
-    // Determinar si se deben mostrar los checkboxes
-    updateCheckboxState(edad, beneficiario.PARENTESCO);
-  
+
+    // Formatea la fecha para un input de tipo `datetime-local`
+    const formatDateTimeLocal = (fecha) => {
+      if (!fecha) return "";
+      const date = new Date(fecha);
+      return date.toISOString().slice(0, 16); // Formato YYYY-MM-DDTHH:MM
+    };
+
+    // Calcula la edad a partir de la fecha de nacimiento
+    const edad = calculateAge(new Date(beneficiario.F_NACIMIENTO));
+
+    // Asignar los datos del beneficiario al formulario
     setFormData({
       parentesco: beneficiario.PARENTESCO || "",
       nombre: beneficiario.NOMBRE || "",
@@ -714,23 +809,28 @@ export default function RegistroBeneficiario() {
       aMaterno: beneficiario.A_MATERNO || "",
       sexo: beneficiario.SEXO || "",
       fNacimiento: formatFecha(beneficiario.F_NACIMIENTO) || "",
-      edad,
+      edad, // Edad calculada
       alergias: beneficiario.ALERGIAS || "",
       sangre: beneficiario.SANGRE || "",
       telEmergencia: beneficiario.TEL_EMERGENCIA || "",
       nombreEmergencia: beneficiario.NOMBRE_EMERGENCIA || "",
       activo: beneficiario.ACTIVO || "A",
-      vigenciaEstudios: formatFecha(beneficiario.VIGENCIA_ESTUDIOS) || "",
-      imageUrl: beneficiario.FOTO_URL || "", // Imagen existente
-      esEstudiante: beneficiario.ESESTUDIANTE || 0,
-      esDiscapacitado: beneficiario.ESDISCAPACITADO || 0,
+      vigenciaEstudios: beneficiario.VIGENCIA_ESTUDIOS
+        ? formatDateTimeLocal(beneficiario.VIGENCIA_ESTUDIOS)
+        : "", // Vigencia de estudios en formato `datetime-local`
+      imageUrl: beneficiario.FOTO_URL || "",
+      esEstudiante: Number(beneficiario.ESESTUDIANTE) === 1 ? true : false,
+      esDiscapacitado:
+        Number(beneficiario.ESDISCAPACITADO) === 1 ? true : false,
+      showCheckboxes: Number(beneficiario.PARENTESCO) === 2 && edad >= 15,
     });
-  
+
+    console.log("Estado final de formData:", formData);
+
     setCurrentBeneficiaryId(beneficiario.ID_BENEFICIARIO);
-    setIsEditMode(true); // Modo edición
+    setIsEditMode(true); // Activar modo edición
     setIsModalOpen(true); // Abrir modal
   };
-  
 
   useEffect(() => {}, [formData]);
 
@@ -901,7 +1001,6 @@ export default function RegistroBeneficiario() {
           <div className="modal-content"></div>
         </div>
 
-        {/* Modal para agregar beneficiario */}
         <Modal
           isOpen={isModalOpen}
           onRequestClose={() => {
@@ -916,66 +1015,25 @@ export default function RegistroBeneficiario() {
               alergias: "",
               telEmergencia: "",
               nombreEmergencia: "",
-              imageUrl: "", // Limpia la imagen previa al cerrar
+              imageUrl: "",
               esEstudiante: 0,
               esDiscapacitado: 0,
-              vigenciaEstudios: "", // Limpia la vigencia de estudios
-              edad: "", // Limpia la edad
-              showCheckboxes: false, // Oculta los checkboxes dinámicos
+              vigenciaEstudios: "",
+              edad: "",
+              showCheckboxes: false,
             });
           }}
           overlayClassName={styles.modalOverlay}
           className={styles.modal}
         >
           <form onSubmit={handleModalSubmit} className={styles.form}>
-            {async (e) => {
-              e.preventDefault();
-              console.log("Form Data:", formData);
-
-              if (formData.imageUrl) {
-                try {
-                  const response = await fetch("/api/uploadImage", {
-                    method: "POST",
-                    headers: {
-                      "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({ image: formData.imageUrl }),
-                  });
-
-                  if (!response.ok)
-                    throw new Error("Error al subir la imagen a Cloudinary.");
-
-                  const data = await response.json();
-                  console.log("Imagen subida:", data);
-
-                  // Actualiza el formulario con la URL de la imagen subida
-                  setFormData((prev) => ({
-                    ...prev,
-                    imageUrl: data.imageUrl,
-                  }));
-
-                  Swal.fire(
-                    "Éxito",
-                    "Beneficiario registrado correctamente.",
-                    "success"
-                  );
-                } catch (error) {
-                  console.error("Error al subir la imagen:", error);
-                  Swal.fire(
-                    "Error",
-                    "Hubo un problema al subir la imagen.",
-                    "error"
-                  );
-                }
-              }
-            }}
             <h2 className={styles.title}>
               {isEditMode ? "Editar Beneficiario" : "Registrar Beneficiario"}
             </h2>
-            <fieldset className={styles.fieldset}>
-              <legend>Personales</legend>
 
-              {/* Nombre */}
+            <fieldset className={styles.fieldset}>
+              <legend>Datos Personales</legend>
+              {/* Nombre y Apellido Paterno */}
               <div className={styles.inputRow}>
                 <label className={styles.inputLabel}>
                   Nombre:
@@ -988,10 +1046,6 @@ export default function RegistroBeneficiario() {
                     required
                   />
                 </label>
-              </div>
-
-              {/* Apellido Paterno y Materno */}
-              <div className={styles.inputRow}>
                 <label className={styles.inputLabel}>
                   Apellido Paterno:
                   <input
@@ -1003,7 +1057,10 @@ export default function RegistroBeneficiario() {
                     required
                   />
                 </label>
+              </div>
 
+              {/* Apellido Materno y Sexo */}
+              <div className={styles.inputRow}>
                 <label className={styles.inputLabel}>
                   Apellido Materno:
                   <input
@@ -1014,10 +1071,6 @@ export default function RegistroBeneficiario() {
                     className={styles.inputField}
                   />
                 </label>
-              </div>
-
-              {/* Sexo */}
-              <div className={styles.inputRow}>
                 <label className={styles.inputLabel}>
                   Sexo:
                   <select
@@ -1037,7 +1090,7 @@ export default function RegistroBeneficiario() {
                 </label>
               </div>
 
-              {/* Fecha de Nacimiento */}
+              {/* Fecha de Nacimiento y Parentesco */}
               <div className={styles.inputRow}>
                 <label className={styles.inputLabel}>
                   Fecha de Nacimiento:
@@ -1066,7 +1119,6 @@ export default function RegistroBeneficiario() {
                         edad: age,
                       }));
 
-                      // Revalida las condiciones
                       const isHijo = formData.parentesco === "Hijo(a)";
                       const isMayorOIgual15 = age >= 15;
 
@@ -1088,98 +1140,109 @@ export default function RegistroBeneficiario() {
                 )}
               </div>
 
-              {/* Parentesco */}
-              <div className={styles.inputRow}>
-                <label className={styles.inputLabel}>
-                  Parentesco:
-                  <select
-                    name="parentesco"
-                    value={formData.parentesco} // Aquí usamos el ID_PARENTESCO
-                    onChange={(e) => {
-                      const selectedId = e.target.value;
+              {/**ESTILOS INPUT SELCT PARENTESCO */}
+              <label className={styles.inputLabel}>
+                Parentesco:
+                <select
+                  name="parentesco"
+                  value={formData.parentesco}
+                  onChange={(e) => {
+                    const selectedId = e.target.value;
+                    const selectedOption = parentescoOptions.find(
+                      (option) =>
+                        String(option.ID_PARENTESCO) === String(selectedId)
+                    );
+                    const selectedParentescoText = selectedOption
+                      ? selectedOption.PARENTESCO
+                      : "";
 
-                      // Encuentra el texto del parentesco según el ID seleccionado
-                      const selectedOption = parentescoOptions.find(
-                        (option) =>
-                          String(option.ID_PARENTESCO) === String(selectedId)
-                      );
+                    const isHijo = selectedParentescoText === "Hijo(a)";
+                    const isMayorOIgual15 = formData.edad >= 15;
 
-                      const selectedParentescoText = selectedOption
-                        ? selectedOption.PARENTESCO
-                        : "";
-
-                      // Determinar si es "Hijo(a)" y tiene edad >= 15
-                      const isHijo = selectedParentescoText === "Hijo(a)";
-                      const isMayorOIgual15 = formData.edad >= 15;
-
-                      // Actualizar formData con el ID_PARENTESCO y las condiciones dinámicas
-                      setFormData((prev) => ({
-                        ...prev,
-                        parentesco: selectedId, // Almacenar el ID_PARENTESCO
-                        showCheckboxes: isHijo && isMayorOIgual15,
-                        esEstudiante: 0, // Resetear el valor de esEstudiante
-                        esDiscapacitado: 0, // Resetear el valor de esDiscapacitado
-                      }));
-                    }}
-                    className={styles.inputField}
-                    required
-                  >
-                    <option value="">Selecciona</option>
-                    {parentescoOptions.map((option) => (
-                      <option
-                        key={option.ID_PARENTESCO}
-                        value={option.ID_PARENTESCO} // Usamos el ID_PARENTESCO como value
-                      >
-                        {option.PARENTESCO} {/* Mostramos el texto */}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              </div>
+                    setFormData((prev) => ({
+                      ...prev,
+                      parentesco: selectedId,
+                      showCheckboxes: isHijo && isMayorOIgual15,
+                      esEstudiante: 0,
+                      esDiscapacitado: 0,
+                    }));
+                  }}
+                  className={styles.inputField}
+                  required
+                >
+                  <option value="">Selecciona</option>
+                  {parentescoOptions.map((option) => (
+                    <option
+                      key={option.ID_PARENTESCO}
+                      value={option.ID_PARENTESCO}
+                    >
+                      {option.PARENTESCO}
+                    </option>
+                  ))}
+                </select>
+              </label>
 
               {/* Checkboxes dinámicos */}
               {formData.showCheckboxes && (
                 <div className={styles.inputRow}>
-                  <label className={styles.checkboxLabel}>
+                  <label className={styles.checkboxWrapper}>
                     <input
                       type="checkbox"
                       name="esEstudiante"
-                      checked={formData.esEstudiante === 1}
+                      checked={formData.esEstudiante}
                       onChange={(e) => {
                         setFormData((prev) => ({
                           ...prev,
-                          esEstudiante: e.target.checked ? 1 : 0,
-                          esDiscapacitado: 0, // Deselecciona el otro checkbox
+                          esEstudiante: e.target.checked,
+                          esDiscapacitado: false,
                           vigenciaEstudios: e.target.checked
                             ? prev.vigenciaEstudios
                             : "",
                         }));
                       }}
                     />
-                    Es estudiante
+                    <span className={styles.checkmark}>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="currentColor"
+                        viewBox="0 0 16 16"
+                      >
+                        <path d="M10.854 5.146a.5.5 0 0 0-.708 0L7.5 7.793 6.354 6.646a.5.5 0 1 0-.708.708l1.5 1.5a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0 0-.708z" />
+                      </svg>
+                    </span>
+                    <span className={styles.label}>Es estudiante</span>
                   </label>
 
-                  <label className={styles.checkboxLabel}>
+                  <label className={styles.checkboxWrapper}>
                     <input
                       type="checkbox"
                       name="esDiscapacitado"
-                      checked={formData.esDiscapacitado === 1}
+                      checked={formData.esDiscapacitado}
                       onChange={(e) => {
                         setFormData((prev) => ({
                           ...prev,
-                          esDiscapacitado: e.target.checked ? 1 : 0,
-                          esEstudiante: 0, // Deselecciona el otro checkbox
-                          vigenciaEstudios: "", // Limpia vigencia si cambia a discapacitado
+                          esDiscapacitado: e.target.checked,
+                          esEstudiante: false,
+                          vigenciaEstudios: "",
                         }));
                       }}
                     />
-                    Es discapacitado
+                    <span className={styles.checkmark}>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="currentColor"
+                        viewBox="0 0 16 16"
+                      >
+                        <path d="M10.854 5.146a.5.5 0 0 0-.708 0L7.5 7.793 6.354 6.646a.5.5 0 1 0-.708.708l1.5 1.5a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0 0-.708z" />
+                      </svg>
+                    </span>
+                    <span className={styles.label}>Es discapacitado</span>
                   </label>
                 </div>
               )}
 
               {/* Vigencia de Estudios */}
-              {formData.esEstudiante === 1 && (
+              {formData.esEstudiante && (
                 <div className={styles.inputRow}>
                   <label className={styles.inputLabel}>
                     Vigencia de Estudios:
@@ -1187,7 +1250,7 @@ export default function RegistroBeneficiario() {
                       type="datetime-local"
                       name="vigenciaEstudios"
                       value={formData.vigenciaEstudios}
-                      onChange={handleInputChange}
+                      onChange={handleVigenciaChange} // Validación incluida aquí
                       className={styles.inputField}
                       required
                     />
@@ -1195,7 +1258,8 @@ export default function RegistroBeneficiario() {
                 </div>
               )}
             </fieldset>
-            {/* Alergias */}
+
+            {/* Alergias y Subir Foto */}
             <div className={styles.inputRow}>
               <label className={styles.inputLabel}>
                 Alergias:
@@ -1207,20 +1271,20 @@ export default function RegistroBeneficiario() {
                   className={styles.inputField}
                 />
               </label>
-            </div>
-            {/* Subir foto */}
-            <div className={styles.inputRow}>
-              <label className={styles.inputLabel}>
-                Foto:
+              <label className={styles.uploadLabel}>
+                <span className={styles.uploadButton}>
+                  <span className={styles.icon}>📷</span> Subir Foto
+                </span>
                 <input
                   type="file"
                   accept="image/*"
-                  onChange={handleImageUpload} // Asegúrate de que esta función se use
-                  className={styles.inputField}
+                  onChange={handleImageUpload}
+                  className={styles.hiddenInput}
                 />
               </label>
             </div>
-            {/* Vista previa de la foto */}
+
+            {/* Vista previa de la imagen */}
             {formData.imageUrl && (
               <div className={styles.imagePreview}>
                 <img
@@ -1230,10 +1294,9 @@ export default function RegistroBeneficiario() {
                 />
               </div>
             )}
+
             <fieldset className={styles.fieldset}>
               <legend>En caso de emergencia avisar a:</legend>
-
-              {/* Teléfono de Emergencia */}
               <div className={styles.inputRow}>
                 <label className={styles.inputLabel}>
                   Teléfono:
@@ -1246,10 +1309,6 @@ export default function RegistroBeneficiario() {
                     required
                   />
                 </label>
-              </div>
-
-              {/* Nombre de Contacto */}
-              <div className={styles.inputRow}>
                 <label className={styles.inputLabel}>
                   Nombre:
                   <input
@@ -1263,12 +1322,16 @@ export default function RegistroBeneficiario() {
                 </label>
               </div>
             </fieldset>
+
             {/* Botones */}
             <div className={styles.buttonGroup}>
-              <button type="submit" className={styles.submitButton}>
+              <button
+                type="submit"
+                className={styles.submitButton}
+                disabled={isSaveDisabled} // Botón deshabilitado si la fecha es inválida
+              >
                 {isEditMode ? "Actualizar" : "Guardar"}
               </button>
-
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
@@ -1404,88 +1467,92 @@ export default function RegistroBeneficiario() {
         </Modal>
 
         {/* Tabla de beneficiarios, solo se muestra si el empleado es encontrado */}
-        {empleado && beneficiarios.length > 0 && (
-          <div className={styles.tableContainer}>
-            <h2>Beneficiarios Registrados</h2>
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>No. Nómina</th>
-                  <th>Parentesco</th>
-                  <th>Nombre</th>
-                  <th>Apellido Paterno</th>
-                  <th>Apellido Materno</th>
-                  <th>Fecha de Nacimiento</th>
-                  <th>Estatus</th>
-                  <th>Alergias</th>
-                  <th>Tipo de Sangre</th>
-                  <th>Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {beneficiarios.map((beneficiario) => {
-                  // Encuentra el nombre de parentesco y sexo correspondiente usando find//
-                  const parentesco = parentescoOptions.find(
-                    (option) => option.ID_PARENTESCO === beneficiario.PARENTESCO
-                  );
+        {empleado &&
+          beneficiarios.filter((b) => b.ACTIVO === "A").length > 0 && (
+            <div className={styles.tableContainer}>
+              <h2>Beneficiarios Registrados</h2>
+              <table className={styles.table}>
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>No. Nómina</th>
+                    <th>Parentesco</th>
+                    <th>Nombre</th>
+                    <th>Apellido Paterno</th>
+                    <th>Apellido Materno</th>
+                    <th>Fecha de Nacimiento</th>
+                    <th>Estatus</th>
+                    <th>Alergias</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {beneficiarios
+                    .filter((beneficiario) => beneficiario.ACTIVO === "A") // Filtra solo beneficiarios activos
+                    .map((beneficiario) => {
+                      // Encuentra el nombre de parentesco correspondiente usando find
+                      const parentesco = parentescoOptions.find(
+                        (option) =>
+                          option.ID_PARENTESCO === beneficiario.PARENTESCO
+                      );
 
-                  return (
-                    <tr key={beneficiario.ID_BENEFICIARIO}>
-                      <td>{beneficiario.ID_BENEFICIARIO}</td>
-                      <td>{beneficiario.NO_NOMINA}</td>
-                      <td>{parentesco ? parentesco.PARENTESCO : "N/A"}</td>
-                      <td>{beneficiario.NOMBRE}</td>
-                      <td>{beneficiario.A_PATERNO}</td>
-                      <td>{beneficiario.A_MATERNO}</td>
-                      <td>{beneficiario.F_NACIMIENTO}</td>
-                      <td>
-                        {beneficiario.ACTIVO === "A" ? "Activo" : "Inactivo"}
-                      </td>
-                      <td>{beneficiario.ALERGIAS}</td>
-                      <td>{beneficiario.SANGRE}</td>
+                      return (
+                        <tr key={beneficiario.ID_BENEFICIARIO}>
+                          <td>{beneficiario.ID_BENEFICIARIO}</td>
+                          <td>{beneficiario.NO_NOMINA}</td>
+                          <td>{parentesco ? parentesco.PARENTESCO : "N/A"}</td>
+                          <td>{beneficiario.NOMBRE}</td>
+                          <td>{beneficiario.A_PATERNO}</td>
+                          <td>{beneficiario.A_MATERNO}</td>
+                          <td>{beneficiario.F_NACIMIENTO}</td>
+                          <td>Activo</td>{" "}
+                          {/* Solo se muestra "Activo" porque ya están filtrados */}
+                          <td>{beneficiario.ALERGIAS}</td>{" "}
+                          <td>
+                            <button
+                              onClick={() =>
+                                handleEditBeneficiary(beneficiario)
+                              }
+                              className={styles.editButton}
+                            >
+                              Editar
+                            </button>
 
-                      <td>
-                        <button
-                          onClick={() => handleEditBeneficiary(beneficiario)}
-                          className={styles.editButton}
-                        >
-                          Editar
-                        </button>
+                            <button
+                              onClick={() =>
+                                handleDeleteBeneficiary(
+                                  beneficiario.ID_BENEFICIARIO
+                                )
+                              }
+                              className={styles.deleteButton}
+                            >
+                              Eliminar
+                            </button>
 
-                        <button
-                          onClick={() =>
-                            handleDeleteBeneficiary(
-                              beneficiario.ID_BENEFICIARIO
-                            )
-                          }
-                          className={styles.deleteButton}
-                        >
-                          Eliminar
-                        </button>
-
-                        <button
-                          onClick={() => handleViewBeneficiary(beneficiario)}
-                          className={styles.viewButton}
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="16"
-                            height="16"
-                            fill="currentColor"
-                            viewBox="0 0 16 16"
-                          >
-                            <path d="M16 8s-3-5.333-8-5.333S0 8 0 8s3 5.333 8 5.333S16 8 16 8zm-8 4a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm0-1.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z" />
-                          </svg>
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
+                            <button
+                              onClick={() =>
+                                handleViewBeneficiary(beneficiario)
+                              }
+                              className={styles.viewButton}
+                            >
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="16"
+                                height="16"
+                                fill="currentColor"
+                                viewBox="0 0 16 16"
+                              >
+                                <path d="M16 8s-3-5.333-8-5.333S0 8 0 8s3 5.333 8 5.333S16 8 16 8zm-8 4a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm0-1.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z" />
+                              </svg>
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                </tbody>
+              </table>
+            </div>
+          )}
       </div>
     </div>
   );

@@ -15,7 +15,9 @@ export default async function handler(req, res) {
       // Obtener URL de la imagen
       const imageResult = await pool.request()
         .input('idBeneficiario', idBeneficiario)
-        .query('SELECT FOTO_URL FROM PRESIDENCIA.dbo.BENEFICIARIO WHERE ID_BENEFICIARIO = @idBeneficiario');
+        .query(
+          'SELECT FOTO_URL FROM PRESIDENCIA.dbo.BENEFICIARIO WHERE ID_BENEFICIARIO = @idBeneficiario'
+        );
 
       if (imageResult.recordset.length === 0) {
         return res.status(404).json({ error: 'Beneficiario no encontrado' });
@@ -30,19 +32,21 @@ export default async function handler(req, res) {
         console.log(`Imagen eliminada de Cloudinary: ${publicId}`);
       }
 
-      // Eliminar beneficiario de la base de datos
+      // Actualizar el campo ACTIVO en la base de datos
       const result = await pool.request()
         .input('idBeneficiario', idBeneficiario)
-        .query('DELETE FROM PRESIDENCIA.dbo.BENEFICIARIO WHERE ID_BENEFICIARIO = @idBeneficiario');
+        .query(
+          'UPDATE PRESIDENCIA.dbo.BENEFICIARIO SET ACTIVO = \'I\' WHERE ID_BENEFICIARIO = @idBeneficiario'
+        );
 
       if (result.rowsAffected[0] === 0) {
         return res.status(404).json({ error: 'Beneficiario no encontrado' });
       }
 
-      res.status(200).json({ message: 'Beneficiario e imagen eliminados correctamente' });
+      res.status(200).json({ message: 'Beneficiario marcado como inactivo y su imagen eliminada correctamente' });
     } catch (error) {
-      console.error('Error al eliminar el beneficiario:', error);
-      res.status(500).json({ error: 'Error al eliminar el beneficiario' });
+      console.error('Error al realizar el borrado lógico del beneficiario:', error);
+      res.status(500).json({ error: 'Error al realizar el borrado lógico del beneficiario' });
     }
   } else {
     res.status(405).json({ message: 'Método no permitido' });

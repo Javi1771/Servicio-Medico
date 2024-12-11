@@ -983,7 +983,7 @@ const EnfermedadesCronicas = ({ clavenomina, nombrePaciente }) => {
               >
                 <option value="">Selecciona una opción</option>
                 <option value="1">Sí</option>
-                <option value="0">No</option>
+                <option value="">No</option>
               </select>
             </label>
 

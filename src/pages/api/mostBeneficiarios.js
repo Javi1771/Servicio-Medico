@@ -25,7 +25,10 @@ export default async function handler(req, res) {
             SANGRE, 
             TEL_EMERGENCIA, 
             NOMBRE_EMERGENCIA,
-            FOTO_URL
+            FOTO_URL,
+            ESESTUDIANTE,
+            ESDISCAPACITADO,
+            VIGENCIA_ESTUDIOS
           FROM [PRESIDENCIA].[dbo].[BENEFICIARIO]
           WHERE NO_NOMINA = @num_nom
         `);

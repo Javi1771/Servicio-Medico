@@ -49,11 +49,21 @@ export default async function handler(req, res) {
       .json({ message: "El valor de 'activo' debe ser 'A' o 'I'" });
   }
 
+  // Validar formato de fechas
+  const isValidDate = (date) => !isNaN(new Date(date).getTime());
+  if (!isValidDate(fNacimiento) || (vigenciaEstudios && !isValidDate(vigenciaEstudios))) {
+    return res.status(400).json({ message: "Formato de fecha inválido" });
+  }
+
   try {
     const pool = await connectToDatabase();
     console.log("Conexión a la base de datos exitosa");
 
-    await pool
+    // Convertir valores booleanos
+    const estudianteValue = esEstudiante ? 1 : 0;
+    const discapacitadoValue = esDiscapacitado ? 1 : 0;
+
+    const result = await pool
       .request()
       .input("idBeneficiario", idBeneficiario)
       .input("noNomina", noNomina)
@@ -62,16 +72,16 @@ export default async function handler(req, res) {
       .input("aPaterno", aPaterno || null) // Puede ser null
       .input("aMaterno", aMaterno || null) // Puede ser null
       .input("sexo", sexo)
-      .input("fNacimiento", fNacimiento)
+      .input("fNacimiento", new Date(fNacimiento).toISOString()) // Convertir a ISO
       .input("escolaridad", escolaridad || null) // Puede ser null
       .input("activo", activo)
       .input("alergias", alergias || "")
       .input("sangre", sangre || "")
       .input("telEmergencia", telEmergencia)
       .input("nombreEmergencia", nombreEmergencia)
-      .input("esEstudiante", esEstudiante || 0) // 0 por defecto
-      .input("esDiscapacitado", esDiscapacitado || 0) // 0 por defecto
-      .input("vigenciaEstudios", vigenciaEstudios || null) // Puede ser null
+      .input("esEstudiante", estudianteValue) // Convertido a 1 o 0
+      .input("esDiscapacitado", discapacitadoValue) // Convertido a 1 o 0
+      .input("vigenciaEstudios", vigenciaEstudios ? new Date(vigenciaEstudios).toISOString() : null) // Convertir a ISO si no es null
       .input("imageUrl", imageUrl || null) // Puede ser null
       .query(`
         UPDATE BENEFICIARIO
@@ -95,6 +105,10 @@ export default async function handler(req, res) {
           FOTO_URL = @imageUrl
         WHERE ID_BENEFICIARIO = @idBeneficiario
       `);
+
+    if (result.rowsAffected[0] === 0) {
+      return res.status(404).json({ message: "Beneficiario no encontrado o sin cambios" });
+    }
 
     return res
       .status(200)

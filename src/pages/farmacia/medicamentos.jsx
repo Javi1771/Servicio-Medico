@@ -3,7 +3,7 @@ import { useMedicamentos } from "../../hooks/farmaciaHook/useMedicamentos";
 import { useMovimientos } from "../../hooks/farmaciaHook/useMovimientos";
 import FormMedicamento from "./components/formMedicamento";
 import MedicamentosTable from "./components/medicamentosTable";
-import MedicamentosChart from "./components/MedicamentosChart";
+import MedicamentosChart from "./components/MedicamentosChart"; // Correcto
 import MovimientosTable from "./components/movimientosTable";
 import SideMenu from "./components/sideMenu";
 import Banner from "./components/banner";
