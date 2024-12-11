@@ -1,5 +1,5 @@
 import { connectToDatabase } from "../connectToDatabase";
-import { pusher } from "../pusher"; 
+import { pusher } from "../pusher";
 import sql from "mssql";
 
 export default async function handler(req, res) {
@@ -7,12 +7,14 @@ export default async function handler(req, res) {
     return res.status(405).json({ message: "Método no permitido" });
   }
 
-  const { clavepaciente, clavenomina } = req.query;
+  const { claveConsulta, clavepaciente } = req.query;
 
-  if (!clavenomina && !clavepaciente) {
+  if (!claveConsulta && !clavepaciente) {
     return res
       .status(400)
-      .json({ message: "Faltan datos obligatorios: clavenomina o clavepaciente" });
+      .json({
+        message: "Faltan datos obligatorios: claveConsulta o clavepaciente",
+      });
   }
 
   try {
@@ -23,9 +25,7 @@ export default async function handler(req, res) {
         ISNULL(e.especialidad, 'Sin asignar') AS especialidad,
         d.prioridad,
         d.observaciones,
-        d.nombre_medico,
-        FORMAT(DATEADD(HOUR, -5, d.fecha_asignacion), 'yyyy-MM-dd HH:mm:ss') AS fecha_asignacion,
-        d.clavepaciente
+        FORMAT(DATEADD(HOUR, -5, d.fecha_asignacion), 'yyyy-MM-dd HH:mm:ss') AS fecha_asignacion
       FROM detalleEspecialidad d
       LEFT JOIN especialidades e ON d.claveespecialidad = e.claveespecialidad
       WHERE 1=1
@@ -33,16 +33,24 @@ export default async function handler(req, res) {
 
     const inputs = [];
 
-    // Filtro por clavenomina
-    if (clavenomina) {
-      query += ` AND d.clavenomina = @clavenomina`;
-      inputs.push({ name: "clavenomina", type: sql.NVarChar, value: clavenomina });
+    // Filtro por claveConsulta
+    if (claveConsulta) {
+      query += ` AND d.claveconsulta = @claveConsulta`;
+      inputs.push({
+        name: "claveConsulta",
+        type: sql.Int,
+        value: claveConsulta,
+      });
     }
 
     // Filtro adicional por clavepaciente
     if (clavepaciente) {
       query += ` AND d.clavepaciente = @clavepaciente`;
-      inputs.push({ name: "clavepaciente", type: sql.NVarChar, value: clavepaciente });
+      inputs.push({
+        name: "clavepaciente",
+        type: sql.Int,
+        value: clavepaciente,
+      });
     }
 
     query += ` ORDER BY d.fecha_asignacion DESC`;
