@@ -10,6 +10,9 @@ export default async function handler(req, res) {
       //* Conexión a la base de datos
       const pool = await connectToDatabase();
 
+      //* Si clavepaciente es nulo, usa clavenomina como valor predeterminado
+      const clavePaciente = consultaData.clavepaciente ?? consultaData.clavenomina;
+
       //* Inserción en la base de datos
       const result = await pool
         .request()
@@ -27,6 +30,7 @@ export default async function handler(req, res) {
         .input("clavestatus", sql.Int, consultaData.clavestatus)
         .input("elpacienteesempleado", sql.VarChar, consultaData.elpacienteesempleado)
         .input("parentesco", sql.Int, consultaData.parentesco)
+        .input("clavepaciente", sql.Int, clavePaciente) 
         .input("departamento", sql.VarChar, consultaData.departamento)
         .input("sindicato", sql.VarChar, consultaData.sindicato)
         .query(`
@@ -34,12 +38,12 @@ export default async function handler(req, res) {
             fechaconsulta, clavenomina, presionarterialpaciente, temperaturapaciente, 
             pulsosxminutopaciente, respiracionpaciente, estaturapaciente, pesopaciente, 
             glucosapaciente, nombrepaciente, edad, clavestatus, elpacienteesempleado, 
-            parentesco, departamento, sindicato
+            parentesco, clavepaciente, departamento, sindicato
           ) VALUES (
             @fechaconsulta, @clavenomina, @presionarterialpaciente, @temperaturapaciente, 
             @pulsosxminutopaciente, @respiracionpaciente, @estaturapaciente, @pesopaciente, 
             @glucosapaciente, @nombrepaciente, @edad, @clavestatus, @elpacienteesempleado, 
-            @parentesco, @departamento, @sindicato 
+            @parentesco, @clavepaciente, @departamento, @sindicato
           );
           SELECT SCOPE_IDENTITY() AS claveConsulta;
         `);

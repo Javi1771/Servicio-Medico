@@ -16,8 +16,9 @@ const PaseEspecialidad = ({
   setObservaciones,
   setFormularioCompleto,
   nombreMedico,
+  clavepaciente,
   nombrePaciente,
-  numeroDeNomina,
+  clavenomina,
 }) => {
   const [especialidades, setEspecialidades] = useState([]);
   const [prioridad, setPrioridad] = useState("");
@@ -46,13 +47,25 @@ const PaseEspecialidad = ({
   //* Cargar historial desde el backend
   useEffect(() => {
     const fetchHistorialEspecialidades = async () => {
+      if (!clavenomina && !clavepaciente) {
+        console.warn(
+          "Clavenomina y Clavepaciente no están definidos, evitando llamada a la API."
+        );
+        setHistorialEspecialidades([]);
+        setIsLoading(false);
+        return;
+      }
+
       setIsLoading(true); //* Comienza el proceso de carga
       try {
-        const response = await fetch(
-          `/api/especialidades/historial?noNomina=${numeroDeNomina}&nombrePaciente=${encodeURIComponent(
-            nombrePaciente
-          )}`
-        );
+        const params = new URLSearchParams();
+        if (clavenomina) params.append("clavenomina", clavenomina);
+        if (clavepaciente) params.append("clavepaciente", clavepaciente);
+
+        const url = `/api/especialidades/historial?${params.toString()}`;
+        console.log("URL que se está solicitando:", url);
+
+        const response = await fetch(url);
         if (!response.ok) {
           console.error("Error al cargar historial:", response.statusText);
           setHistorialEspecialidades([]); //! Si hay un error, inicializar como vacío
@@ -80,23 +93,24 @@ const PaseEspecialidad = ({
       }
     };
 
-    //* Llamada inicial para cargar historial
-    fetchHistorialEspecialidades();
+    //* Llamada inicial para cargar historial solo si clavenomina o clavepaciente están definidos
+    if (clavenomina || clavepaciente) {
+      fetchHistorialEspecialidades();
+    }
+  }, [clavenomina, clavepaciente]);
 
-    //* Configurar Pusher para escuchar eventos
+  useEffect(() => {
     const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY, {
       cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER,
-      encrypted: true, //* Asegura que la conexión esté cifrada
+      encrypted: true, // Asegúrate de habilitar encriptación
     });
 
-    const channel = pusher.subscribe("historial-channel");
-    channel.bind("historial-updated", (data) => {
-      console.log("Evento recibido desde Pusher:", data);
+    const channel = pusher.subscribe("especialidades-channel");
 
-      if (
-        data.noNomina === numeroDeNomina &&
-        data.nombrePaciente === nombrePaciente
-      ) {
+    channel.bind("especialidades-updated", (data) => {
+      console.log("Evento recibido de Pusher:", data);
+
+      if (data.clavepaciente === clavepaciente) {
         const historialFormateado = data.historial.map((item) => ({
           ...item,
           fecha_asignacion: new Date(item.fecha_asignacion).toLocaleDateString(
@@ -107,19 +121,27 @@ const PaseEspecialidad = ({
               year: "numeric",
             }
           ),
-          especialidad: item.especialidad || "Sin asignar",
-          nombre_medico: item.nombre_medico,
         }));
-        setHistorialEspecialidades(historialFormateado); //* Actualizar tabla
+
+        setHistorialEspecialidades(historialFormateado);
       }
     });
 
-    //* Limpiar suscripciones al desmontar el componente
     return () => {
       channel.unbind_all();
       channel.unsubscribe();
     };
-  }, [numeroDeNomina, nombrePaciente]);
+  }, [clavepaciente]);
+
+  // Agregar para depuración
+  Pusher.logToConsole = true;
+
+  useEffect(() => {
+    console.log(
+      "Tabla actualizada con historialEspecialidades:",
+      historialEspecialidades
+    );
+  }, [historialEspecialidades]);
 
   //* Verifica si el formulario está completo
   useEffect(() => {
@@ -137,7 +159,10 @@ const PaseEspecialidad = ({
   ]);
 
   const handleGuardarEspecialidad = async () => {
-    if (!especialidadSeleccionada || !observaciones || !prioridad) {
+    if (
+      pasarEspecialidad === "si" &&
+      (!especialidadSeleccionada || !observaciones || !prioridad)
+    ) {
       //! Mostrar alerta de advertencia
       MySwal.fire({
         icon: "warning",
@@ -158,12 +183,15 @@ const PaseEspecialidad = ({
 
     const datos = {
       claveConsulta,
-      claveEspecialidad: especialidadSeleccionada,
-      observaciones,
-      prioridad,
-      nombreMedico: nombreMedico,
-      numeroDeNomina: numeroDeNomina,
-      nombrePaciente: nombrePaciente,
+      seasignoaespecialidad: pasarEspecialidad === "si" ? "S" : "N",
+      claveEspecialidad:
+        pasarEspecialidad === "si" ? especialidadSeleccionada : null,
+      observaciones: pasarEspecialidad === "si" ? observaciones : null,
+      prioridad: pasarEspecialidad === "si" ? prioridad : null,
+      nombreMedico,
+      clavenomina,
+      clavepaciente,
+      nombrePaciente,
     };
 
     try {
@@ -201,7 +229,7 @@ const PaseEspecialidad = ({
         icon: "success",
         title:
           "<span style='color: #00e676; font-weight: bold; font-size: 1.5em;'>✔️ Especialidad guardada</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>La especialidad se ha guardado exitosamente en el historial.</p>",
+        html: "<p style='color: #fff; font-size: 1.1em;'>La decisión se ha guardado exitosamente.</p>",
         background: "linear-gradient(145deg, #004d40, #00251a)",
         confirmButtonColor: "#00e676",
         confirmButtonText:
@@ -212,14 +240,14 @@ const PaseEspecialidad = ({
         },
       });
     } catch (error) {
-      console.error("Error inesperado al guardar la especialidad:", error);
+      console.error("Error inesperado al guardar la decisión:", error);
 
       //! Mostrar alerta de error
       MySwal.fire({
         icon: "error",
         title:
           "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error inesperado</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>Hubo un error inesperado al intentar guardar la especialidad. Inténtalo nuevamente.</p>",
+        html: "<p style='color: #fff; font-size: 1.1em;'>Hubo un error inesperado al intentar guardar. Inténtalo nuevamente.</p>",
         background: "linear-gradient(145deg, #4a0000, #220000)",
         confirmButtonColor: "#ff1744",
         confirmButtonText:
@@ -264,6 +292,79 @@ const PaseEspecialidad = ({
           </button>
         </div>
       </div>
+
+      {/* Botón adicional cuando se selecciona "no" */}
+      {pasarEspecialidad === "no" && (
+        <div className="mt-6 mb-12">
+          <button
+            className="bg-gradient-to-r from-blue-600 to-purple-700 hover:from-blue-500 hover:to-purple-600 text-white font-bold py-2 px-6 rounded-lg shadow-lg transform hover:scale-105 transition duration-300"
+            onClick={async () => {
+              Swal.fire({
+                icon: "info",
+                title:
+                  "<span style='color: #00aaff; font-weight: bold; font-size: 1.5em;'>❗ Sin Especialidad Asignada</span>",
+                html: "<p style='color: #fff; font-size: 1.1em;'>Has confirmado que no se asignará una especialidad. Esta decisión será registrada.</p>",
+                background: "linear-gradient(145deg, #002f4b, #005582)",
+                confirmButtonColor: "#00aaff",
+                confirmButtonText:
+                  "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
+                customClass: {
+                  popup:
+                    "border border-blue-600 shadow-[0px_0px_20px_5px_rgba(0,170,255,0.8)] rounded-lg",
+                },
+              });
+
+              const datos = {
+                claveConsulta,
+                seasignoaespecialidad: "N",
+                claveEspecialidad: null,
+                observaciones: null,
+                prioridad: null,
+                nombreMedico,
+                clavenomina,
+                clavepaciente,
+                nombrePaciente,
+              };
+
+              try {
+                const response = await fetch(
+                  "/api/especialidades/guardarEspecialidad",
+                  {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(datos),
+                  }
+                );
+
+                if (!response.ok) {
+                  const errorData = await response.json();
+                  console.error("Error al guardar especialidad:", errorData);
+                  return;
+                }
+
+                Swal.fire({
+                  icon: "success",
+                  title:
+                    "<span style='color: #00e676; font-weight: bold; font-size: 1.5em;'>✔️ Especialidad No Asignada</span>",
+                  html: "<p style='color: #fff; font-size: 1.1em;'>La decisión ha sido registrada exitosamente.</p>",
+                  background: "linear-gradient(145deg, #004d40, #00251a)",
+                  confirmButtonColor: "#00e676",
+                  confirmButtonText:
+                    "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
+                  customClass: {
+                    popup:
+                      "border border-green-600 shadow-[0px_0px_20px_5px_rgba(0,230,118,0.9)] rounded-lg",
+                  },
+                });
+              } catch (error) {
+                console.error("Error al guardar la decisión:", error);
+              }
+            }}
+          >
+            Confirmar Sin Especialidad
+          </button>
+        </div>
+      )}
 
       {pasarEspecialidad === "si" && (
         <>
@@ -486,16 +587,20 @@ const PaseEspecialidad = ({
               </tr>
             </thead>
             <tbody>
+              {console.log(
+                "Datos que se renderizan en la tabla:",
+                historialEspecialidades
+              )}
               {isLoading ? (
                 <tr>
-                  <td colSpan="4" className="text-center py-4 text-gray-400">
+                  <td colSpan="6" className="text-center py-6 text-gray-400">
                     Cargando historial...
                   </td>
                 </tr>
               ) : historialEspecialidades.length > 0 ? (
-                historialEspecialidades.map((item, index) => (
+                historialEspecialidades.map((item) => (
                   <tr
-                    key={index}
+                    key={item.claveconsulta}
                     className="hover:bg-purple-600 hover:bg-opacity-50 transition-colors duration-300"
                   >
                     <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
@@ -517,7 +622,7 @@ const PaseEspecialidad = ({
                 ))
               ) : (
                 <tr>
-                  <td colSpan="4" className="text-center py-4 text-gray-400">
+                  <td colSpan="6" className="text-center py-6 text-gray-400">
                     No hay especialidades registradas para el paciente
                     seleccionado.
                   </td>

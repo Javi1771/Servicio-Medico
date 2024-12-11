@@ -5,10 +5,15 @@ export default async function handler(req, res) {
     return res.status(405).json({ message: "Método no permitido" });
   }
 
-  const { clavenomina, nombrePaciente, idRegistro } = req.query;
+  const { clavenomina, clavepaciente, idRegistro } = req.query;
 
+  //* Verifica que se proporcionen los parámetros necesarios
   if (!clavenomina && !idRegistro) {
-    return res.status(400).json({ message: "Faltan parámetros requeridos" });
+    return res.status(400).json({ message: "Faltan parámetros requeridos: clavenomina o idRegistro" });
+  }
+
+  if (clavenomina && !clavepaciente) {
+    return res.status(400).json({ message: "Falta clavepaciente para el filtro después de clavenomina" });
   }
 
   try {
@@ -22,6 +27,7 @@ export default async function handler(req, res) {
         SELECT 
           KPI.id_registro_kpi AS idRegistro,
           KPI.clavenomina,
+          KPI.clavepaciente,
           KPI.valor_actual,
           KPI.valor_objetivo,
           KPI.calificacion,
@@ -43,6 +49,7 @@ export default async function handler(req, res) {
         SELECT 
           KPI.id_registro_kpi AS idRegistro,
           KPI.clavenomina,
+          KPI.clavepaciente,
           KPI.valor_actual,
           KPI.valor_objetivo,
           KPI.calificacion,
@@ -57,25 +64,17 @@ export default async function handler(req, res) {
         FROM REGISTROS_KPIS KPI
         LEFT JOIN CRONICAS C ON KPI.id_enf_cronica = C.id_enf_cronica
         WHERE KPI.clavenomina = @clavenomina
-        ${nombrePaciente ? "AND CAST(KPI.nombre_paciente AS NVARCHAR(MAX)) = @nombrePaciente" : ""};
+          AND KPI.clavepaciente = @clavepaciente
+        ORDER BY KPI.fecha_registro DESC;
       `;
       inputParams.push({ name: "clavenomina", value: clavenomina.trim() });
-      if (nombrePaciente) {
-        inputParams.push({
-          name: "nombrePaciente",
-          value: nombrePaciente.trim(),
-        });
-      }
+      inputParams.push({ name: "clavepaciente", value: clavepaciente.trim() });
     }
 
     const request = pool.request();
     inputParams.forEach((param) => request.input(param.name, param.value));
 
     const result = await request.query(query);
-
-    console.log("Parámetros recibidos:", { clavenomina, nombrePaciente });
-    console.log("Consulta ejecutada:", query);
-    console.log("Resultado de la base de datos:", result.recordset);
 
     if (result.recordset.length === 0) {
       return res.status(404).json({ message: "No se encontraron datos" });

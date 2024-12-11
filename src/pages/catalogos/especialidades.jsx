@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useEffect, useState } from "react";
 import ReactDOM from "react-dom";
 import Swal from "sweetalert2";
@@ -72,7 +73,7 @@ export default function EspecialidadesTable() {
       });
   
       if (response.status === 409) {
-        // Manejo del error de clave duplicada con SweetAlert
+        //! Manejo del error de clave duplicada con SweetAlert
         Swal.fire({
           icon: "error",
           title: "Error",

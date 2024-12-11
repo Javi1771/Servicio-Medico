@@ -7,13 +7,18 @@ import withReactContent from "sweetalert2-react-content";
 
 const MySwal = withReactContent(Swal);
 
-const EnfermedadesCronicas = ({ clavenomina, nombrePaciente }) => {
+const EnfermedadesCronicas = ({
+  clavenomina,
+  nombrepaciente,
+  clavepaciente,
+}) => {
   const [historialKPI, setHistorialKPI] = useState([]);
   const [editKPIDetails, setEditKPIDetails] = useState(null);
   const [nombreEnfermedad, setNombreEnfermedad] = useState("");
   const [valorAlcanzado, setValorAlcanzado] = useState("");
   const [calificacion, setCalificacion] = useState("");
   const [observacionEvaluacion, setObservacionEvaluacion] = useState("");
+  const [catalogoKPIs, setCatalogoKPIs] = useState([]);
   const [mostrarVentanaKPI, setMostrarVentanaKPI] = useState(false);
 
   const [enfermedad, setEnfermedad] = useState("");
@@ -53,15 +58,23 @@ const EnfermedadesCronicas = ({ clavenomina, nombrePaciente }) => {
 
   const handleRowClick = async (kpi) => {
     try {
+      //* Construir la URL con los parámetros requeridos
+      const queryParams = new URLSearchParams({
+        idRegistro: kpi.idRegistro,
+        clavenomina: kpi.clavenomina, 
+        clavepaciente: kpi.clavepaciente || "", 
+      });
+
       const response = await fetch(
-        `/api/enfermedades-kpis/obtenerHistorialKPI?idRegistro=${kpi.idRegistro}`
+        `/api/enfermedades-kpis/obtenerHistorialKPI?${queryParams.toString()}`
       );
+
       if (!response.ok) throw new Error("Error al obtener detalles del KPI");
 
       const data = await response.json();
       console.log("Detalles del KPI seleccionados:", data);
 
-      //* Asegúrate de mapear idRegistro a id_registro_kpi
+      //* Buscar el detalle exacto basado en `idRegistro`
       const detalleSeleccionado = data.find(
         (item) => item.idRegistro === kpi.idRegistro
       );
@@ -79,6 +92,7 @@ const EnfermedadesCronicas = ({ clavenomina, nombrePaciente }) => {
 
       console.log("Detalle seleccionado con ID KPI:", detalleConIDKPI);
 
+      //* Actualizar el estado con los detalles seleccionados
       setEditKPIDetails(detalleConIDKPI);
       setMostrarVentanaKPI(true);
     } catch (error) {
@@ -88,17 +102,37 @@ const EnfermedadesCronicas = ({ clavenomina, nombrePaciente }) => {
 
   const fetchHistorialKPI = async () => {
     try {
-      const response = await fetch(
-        `/api/enfermedades-kpis/obtenerHistorialKPI?clavenomina=${clavenomina}&nombrePaciente=${encodeURIComponent(
-          nombrePaciente
-        )}`
-      );
-      if (!response.ok) {
-        throw new Error("Error al cargar el historial de KPIs");
+      if (!clavenomina && !clavepaciente) {
+        console.warn("Faltan clavenomina y clavepaciente para la consulta.");
+        setHistorialKPI([]);
+        return;
       }
+
+      const queryParams = new URLSearchParams({
+        clavenomina: clavenomina,
+        clavepaciente: clavepaciente,
+      }).toString();
+
+      const response = await fetch(
+        `/api/enfermedades-kpis/obtenerHistorialKPI?${queryParams}`
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          `Error al cargar el historial de KPIs: ${response.statusText}`
+        );
+      }
+
       const data = await response.json();
-      console.log("Datos recibidos del servidor:", data);
-      setHistorialKPI(data);
+
+      console.log("Datos recibidos del servidor:", data); 
+
+      if (!Array.isArray(data) || data.length === 0) {
+        console.warn("No se encontraron registros en el historial.");
+        setHistorialKPI([]);
+      } else {
+        setHistorialKPI(data);
+      }
     } catch (error) {
       console.error("Error al cargar el historial de KPIs:", error);
     }
@@ -106,13 +140,15 @@ const EnfermedadesCronicas = ({ clavenomina, nombrePaciente }) => {
 
   useEffect(() => {
     fetchHistorialKPI();
-  }, [clavenomina]);
+  }, [clavenomina, clavepaciente]);
 
   //* Cargar las enfermedades crónicas desde la base de datos
   useEffect(() => {
     async function fetchEnfermedades() {
       try {
-        const response = await fetch("/api/enfermedades-kpis/enfermedadesCronicas");
+        const response = await fetch(
+          "/api/enfermedades-kpis/enfermedadesCronicas"
+        );
         const data = await response.json();
         setCatalogoEnfermedades(data);
       } catch (error) {
@@ -163,7 +199,8 @@ const EnfermedadesCronicas = ({ clavenomina, nombrePaciente }) => {
     const kpiData = {
       id_enf_cronica: parseInt(nuevoKPI.id_enf_cronica, 10),
       clavenomina,
-      nombre_paciente: nombrePaciente || "Desconocido",
+      clavepaciente,
+      nombre_paciente: nombrepaciente,
       valor_actual: nuevoKPI.valorActual,
       valor_objetivo: nuevoKPI.valorObjetivo,
       calificacion: null,
@@ -271,11 +308,14 @@ const EnfermedadesCronicas = ({ clavenomina, nombrePaciente }) => {
     console.log("Enviando datos al backend para actualizar el KPI:", kpiData);
 
     try {
-      const response = await fetch("/api/enfermedades-kpis/actualizarKPIDetalles", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(kpiData),
-      });
+      const response = await fetch(
+        "/api/enfermedades-kpis/actualizarKPIDetalles",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(kpiData),
+        }
+      );
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -362,7 +402,7 @@ const EnfermedadesCronicas = ({ clavenomina, nombrePaciente }) => {
   const fetchPadecimientos = async () => {
     try {
       const response = await fetch(
-        `/api/enfermedades-kpis/padecimientosActuales?clavenomina=${clavenomina}&nombrePaciente=${nombrePaciente}`
+        `/api/enfermedades-kpis/padecimientosActuales?clavenomina=${clavenomina}&nombrePaciente=${nombrepaciente}`
       );
       const data = await response.json();
       setPadecimientos(Array.isArray(data) ? data : []);
@@ -393,7 +433,7 @@ const EnfermedadesCronicas = ({ clavenomina, nombrePaciente }) => {
 
   useEffect(() => {
     fetchPadecimientos();
-  }, [clavenomina, nombrePaciente]);
+  }, [clavenomina, nombrepaciente]);
 
   const handleGuardarMotivo = async () => {
     if (!motivo) {
@@ -446,19 +486,23 @@ const EnfermedadesCronicas = ({ clavenomina, nombrePaciente }) => {
     const datosEnviados = {
       id_enf_cronica: enfermedadSeleccionada.id_enf_cronica,
       clavenomina,
+      clavepaciente,
       observaciones_cronica: motivo,
       fecha_registro: fechaRegistro,
-      nombre_paciente: nombrePaciente,
+      nombre_paciente: nombrepaciente,
     };
 
     try {
-      const response = await fetch("/api/enfermedades-kpis/guardarEnfermedadCronica", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(datosEnviados),
-      });
+      const response = await fetch(
+        "/api/enfermedades-kpis/guardarEnfermedadCronica",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(datosEnviados),
+        }
+      );
 
       if (response.ok) {
         //* Actualizar los padecimientos después de guardar exitosamente
@@ -561,27 +605,36 @@ const EnfermedadesCronicas = ({ clavenomina, nombrePaciente }) => {
 
       {/* Motivo para la Enfermedad */}
       {mostrarMotivo && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-800 p-6 md:p-8 rounded-lg shadow-lg w-full max-w-md">
-            <h3 className="text-2xl md:text-3xl font-bold mb-4">
+        <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-4">
+          <div className="relative bg-gray-900 p-8 rounded-3xl shadow-[0_0_30px_rgba(255,0,255,0.7)] w-full max-w-md">
+            {/* Encabezado */}
+            <h3 className="text-3xl font-extrabold text-center text-white tracking-wide mb-6">
               Especificar Motivo
             </h3>
+
+            {/* Contenido */}
             <textarea
               value={motivo}
               onChange={(e) => setMotivo(e.target.value)}
-              className="w-full p-3 rounded-lg bg-gray-700 text-white mb-4"
+              className="w-full h-40 p-4 rounded-xl bg-gray-800 text-white outline-none focus:ring-4 focus:ring-blue-400 shadow-[0_0_20px_rgba(0,255,255,0.6)] placeholder-gray-500"
               placeholder="Escribe el motivo..."
             />
-            <div className="flex justify-between">
+
+            {/* Botones */}
+            <div className="flex justify-between items-center mt-6">
               <button
                 onClick={handleGuardarMotivo}
-                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-500"
+                className="bg-gradient-to-r from-green-800 to-teal-600 text-white font-bold px-6 py-2 rounded-xl transition-all duration-300 border-green-500 border-b-4 
+                     hover:brightness-125 hover:-translate-y-[2px] hover:border-b-6 hover:shadow-xl hover:shadow-green-300 
+                     active:translate-y-[2px] active:border-b-2 active:brightness-90 active:shadow-none"
               >
                 Guardar
               </button>
               <button
                 onClick={handleCancelarMotivo}
-                className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-500"
+                className="bg-gradient-to-r from-red-800 to-pink-600 text-white font-bold px-6 py-2 rounded-xl transition-all duration-300 border-pink-500 border-b-4 
+                     hover:brightness-125 hover:-translate-y-[2px] hover:border-b-6 hover:shadow-xl hover:shadow-pink-300 
+                     active:translate-y-[2px] active:border-b-2 active:brightness-90 active:shadow-none"
               >
                 Cancelar
               </button>
@@ -644,19 +697,31 @@ const EnfermedadesCronicas = ({ clavenomina, nombrePaciente }) => {
       <div className="bg-gray-800 p-4 md:p-6 rounded-lg shadow-lg mb-6">
         <h2 className="text-xl md:text-3xl font-bold mb-4">Registro de KPIs</h2>
 
-        {/* Verificación en consola */}
-        {console.log("Padecimientos actuales:", padecimientos)}
-
         <label className="block mb-4">
           <span className="text-lg md:text-xl font-semibold">Enfermedad:</span>
           <select
             value={nuevoKPI.id_enf_cronica || ""}
-            onChange={(e) => {
-              setNuevoKPI({ ...nuevoKPI, id_enf_cronica: e.target.value });
-              console.log(
-                "ID de enfermedad seleccionada para KPI:",
-                e.target.value
-              );
+            onChange={async (e) => {
+              const selectedId = e.target.value;
+              setNuevoKPI({ ...nuevoKPI, id_enf_cronica: selectedId });
+
+              if (selectedId) {
+                try {
+                  const response = await fetch(
+                    `/api/enfermedades-kpis/obtenerKPIs?id_enf_cronica=${selectedId}`
+                  );
+
+                  if (!response.ok)
+                    throw new Error("Error al obtener los KPIs");
+
+                  const data = await response.json();
+                  setCatalogoKPIs(data); // Actualiza el catálogo de KPIs para el menú desplegable
+                } catch (error) {
+                  console.error("Error al obtener los KPIs:", error);
+                }
+              } else {
+                setCatalogoKPIs([]); // Limpia el catálogo si no hay selección
+              }
             }}
             className="mt-2 p-2 md:p-3 rounded-lg bg-gray-700 text-white w-full"
           >
@@ -672,16 +737,23 @@ const EnfermedadesCronicas = ({ clavenomina, nombrePaciente }) => {
           </select>
         </label>
 
-        {/* Campo de entrada para el KPI */}
+        {/* Menú desplegable de KPI */}
         <label className="block mb-4">
-          <span className="text-lg md:text-xl font-semibold">KPI:</span>
-          <input
-            type="text"
-            value={nuevoKPI.kpi}
+          <span className="text-lg md:text-xl font-semibold">
+            KPI a Evaluar:
+          </span>
+          <select
+            value={nuevoKPI.kpi || ""}
             onChange={(e) => setNuevoKPI({ ...nuevoKPI, kpi: e.target.value })}
             className="mt-2 p-2 md:p-3 rounded-lg bg-gray-700 text-white w-full"
-            placeholder="Escribe el KPI..."
-          />
+          >
+            <option value="">Selecciona un KPI...</option>
+            {catalogoKPIs.map((kpi) => (
+              <option key={kpi.id_kpi} value={kpi.kpi}>
+                {kpi.kpi}
+              </option>
+            ))}
+          </select>
         </label>
 
         {/* Campo de entrada para Valor Actual */}
@@ -912,101 +984,135 @@ const EnfermedadesCronicas = ({ clavenomina, nombrePaciente }) => {
       </div>
 
       {mostrarVentanaKPI && editKPIDetails && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-800 p-6 md:p-8 rounded-lg shadow-lg w-full max-w-md">
-            <h3 className="text-2xl md:text-3xl font-bold mb-4">
+        <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-4">
+          <div className="relative bg-gray-900 p-8 rounded-3xl shadow-[0_0_30px_rgba(0,255,255,0.7)] w-full max-w-xl">
+            {/* Encabezado */}
+            <div className="absolute top-[-10px] left-[50%] transform -translate-x-[50%] w-24 h-2 bg-gradient-to-r from-purple-500 via-pink-500 to-yellow-500 rounded-full animate-pulse"></div>
+            <h3 className="text-4xl font-extrabold text-center text-white tracking-wide">
               Calificar KPI
             </h3>
+            <div className="h-1 w-24 bg-gradient-to-r from-green-400 to-blue-500 mx-auto mt-2 rounded-full animate-pulse"></div>
 
-            <div className="text-center text-lg font-semibold mb-4">
-              <span className="font-semibold">Enfermedad: </span>
-              {editKPIDetails.nombreEnfermedad || "Desconocido"}
+            {/* Detalles */}
+            <div className="bg-gradient-to-b from-gray-800 to-gray-900 p-6 rounded-2xl shadow-[0_0_15px_rgba(0,255,255,0.6)] mb-8 mt-4">
+              <div className="flex items-center text-lg font-semibold text-purple-400 mb-4">
+                Enfermedad:{" "}
+                <span className="text-white font-light ml-2">
+                  {editKPIDetails.nombreEnfermedad || "Desconocido"}
+                </span>
+              </div>
+              <hr className="border-gray-700 mb-4" />
+              <div className="flex items-center text-lg font-semibold text-purple-400 mb-4">
+                Fecha de Registro:{" "}
+                <span className="text-white font-light ml-2">
+                  {editKPIDetails.fechaRegistro &&
+                  !isNaN(Date.parse(editKPIDetails.fechaRegistro))
+                    ? new Date(editKPIDetails.fechaRegistro).toLocaleDateString(
+                        "es-ES",
+                        {
+                          year: "numeric",
+                          month: "2-digit",
+                          day: "2-digit",
+                        }
+                      )
+                    : "Sin fecha"}
+                </span>
+              </div>
+              <hr className="border-gray-700 mb-4" />
+              <div className="flex items-center text-lg font-semibold text-purple-400 mb-4">
+                Observaciones:{" "}
+                <span className="text-white font-light ml-2">
+                  {editKPIDetails.observaciones || "Sin observaciones"}
+                </span>
+              </div>
+              <hr className="border-gray-700 mb-4" />
+              <div className="flex items-center text-lg font-semibold text-purple-400">
+                Paciente:{" "}
+                <span className="text-white font-light ml-2">
+                  {editKPIDetails.paciente || "Sin paciente"}
+                </span>
+              </div>
             </div>
 
-            <div className="mb-4">
-              <span className="font-semibold">Fecha de Registro: </span>
-              {editKPIDetails.fechaRegistro &&
-              !isNaN(Date.parse(editKPIDetails.fechaRegistro))
-                ? new Date(editKPIDetails.fechaRegistro).toLocaleDateString(
-                    "es-ES",
-                    {
-                      year: "numeric",
-                      month: "2-digit",
-                      day: "2-digit",
-                    }
-                  )
-                : "Sin fecha"}
-            </div>
-
-            <div className="mb-4">
-              <span className="font-semibold">Observaciones: </span>
-              {editKPIDetails.observaciones || "Sin observaciones"}
-            </div>
-
-            <div className="mb-4">
-              <span className="font-semibold">Paciente: </span>
-              {editKPIDetails.paciente || "Sin paciente"}
-            </div>
-
-            {/* Mostrar valores actuales y objetivos */}
-            <div className="mb-4">
-              <span className="font-semibold">Valor Actual: </span>
-              {editKPIDetails?.valor_actual !== null
-                ? editKPIDetails.valor_actual
-                : "Sin valor disponible"}
-            </div>
-            <div className="mb-4">
-              <span className="font-semibold">Valor Objetivo: </span>
-              {editKPIDetails?.valor_objetivo !== null
-                ? editKPIDetails.valor_objetivo
-                : "Sin valor disponible"}
+            {/* Mostrar valores */}
+            <div className="bg-gradient-to-b from-gray-800 to-gray-900 p-6 rounded-2xl shadow-[0_0_15px_rgba(255,0,255,0.6)] mb-8">
+              <div className="text-lg font-semibold text-pink-400 mb-3">
+                Valor Actual:{" "}
+                <span className="text-white font-light">
+                  {editKPIDetails?.valor_actual !== null
+                    ? editKPIDetails.valor_actual
+                    : "Sin valor disponible"}
+                </span>
+              </div>
+              <div className="text-lg font-semibold text-pink-400">
+                Valor Objetivo:{" "}
+                <span className="text-white font-light">
+                  {editKPIDetails?.valor_objetivo !== null
+                    ? editKPIDetails.valor_objetivo
+                    : "Sin valor disponible"}
+                </span>
+              </div>
             </div>
 
             {/* Formularios */}
-            <h4 className="text-lg font-semibold mt-4">Calificación</h4>
-            <label className="block mb-2">
-              <span>Valor Alcanzado:</span>
-              <input
-                type="number"
-                value={valorAlcanzado}
-                onChange={(e) => setValorAlcanzado(e.target.value)}
-                className="w-full p-2 rounded bg-gray-700 text-white mt-1"
-              />
-            </label>
+            <div className="space-y-6">
+              <label className="block">
+                <span className="text-lg font-semibold text-yellow-400">
+                  Valor Alcanzado:
+                </span>
+                <input
+                  type="number"
+                  value={valorAlcanzado}
+                  onChange={(e) => setValorAlcanzado(e.target.value)}
+                  className="w-full mt-2 p-3 rounded-xl bg-gray-800 text-white outline-none focus:ring-4 focus:ring-yellow-500 shadow-[0_0_10px_rgba(255,255,0,0.8)]"
+                />
+              </label>
 
-            <label className="block mb-2">
-              <span>Se cumplió el objetivo:</span>
-              <select
-                value={calificacion}
-                onChange={(e) => setCalificacion(e.target.value)}
-                className="w-full p-2 rounded bg-gray-700 text-white mt-1"
-              >
-                <option value="">Selecciona una opción</option>
-                <option value="1">Sí</option>
-                <option value="0">No</option>
-              </select>
-            </label>
+              <label className="block">
+                <span className="text-lg font-semibold text-yellow-400">
+                  Se cumplió el objetivo:
+                </span>
+                <select
+                  value={calificacion}
+                  onChange={(e) => setCalificacion(e.target.value)}
+                  className="w-full mt-2 p-3 rounded-xl bg-gray-800 text-white outline-none focus:ring-4 focus:ring-yellow-500 shadow-[0_0_10px_rgba(255,255,0,0.8)]"
+                >
+                  <option value="">Selecciona una opción</option>
+                  <option value="1">Sí</option>
+                  <option value="0">No</option>
+                </select>
+              </label>
 
-            <label className="block mb-4">
-              <span>Observaciones:</span>
-              <textarea
-                value={observacionEvaluacion}
-                onChange={(e) => setObservacionEvaluacion(e.target.value)}
-                className="w-full p-2 rounded bg-gray-700 text-white mt-1"
-                placeholder="Escribe observaciones..."
-              />
-            </label>
+              <label className="block">
+                <span className="text-lg font-semibold text-yellow-400">
+                  Observaciones:
+                </span>
+                <textarea
+                  value={observacionEvaluacion}
+                  onChange={(e) => setObservacionEvaluacion(e.target.value)}
+                  className="w-full mt-2 p-3 rounded-xl bg-gray-800 text-white outline-none focus:ring-4 focus:ring-yellow-500 shadow-[0_0_10px_rgba(255,255,0,0.8)]"
+                  placeholder="Escribe observaciones..."
+                />
+              </label>
+            </div>
 
-            <div className="flex justify-between">
+            {/* Botones */}
+            <div className="flex justify-between items-center mt-8">
               <button
                 onClick={handleGuardarKPIDetalles}
-                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-500"
+                className="bg-gradient-to-r from-green-900 to-teal-700 text-white font-bold px-6 py-3 rounded-xl 
+               transition-all duration-300 border-green-500 border-b-4 
+               hover:brightness-125 hover:translate-y-[-2px] hover:border-b-6 hover:shadow-xl hover:shadow-teal-300 
+               active:translate-y-[2px] active:border-b-2 active:brightness-90 active:shadow-none"
               >
                 Guardar
               </button>
               <button
                 onClick={() => setMostrarVentanaKPI(false)}
-                className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-500"
+                className="bg-gradient-to-r from-red-900 to-pink-700 text-white font-bold px-6 py-3 rounded-xl 
+               transition-all duration-300 border-pink-500 border-b-4 
+               hover:brightness-125 hover:translate-y-[-2px] hover:border-b-6 hover:shadow-xl hover:shadow-pink-300 
+               active:translate-y-[2px] active:border-b-2 active:brightness-90 active:shadow-none"
               >
                 Cancelar
               </button>

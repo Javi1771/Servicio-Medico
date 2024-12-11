@@ -1,24 +1,93 @@
 import React, { useState, useEffect } from "react";
+import Swal from "sweetalert2";
+import withReactContent from "sweetalert2-react-content";
+import { FaCalendarAlt } from "react-icons/fa";
+import Calendar from "react-calendar";
+import "react-calendar/dist/Calendar.css";
+import Pusher from "pusher-js";
 
-const Antecedentes = ({ clavenomina, nombrePaciente }) => {
+const MySwal = withReactContent(Swal);
+
+const Antecedentes = ({ clavenomina, nombrePaciente, clavepaciente }) => {
   const [descripcion, setDescripcion] = useState("");
   const [tipoAntecedente, setTipoAntecedente] = useState("");
-  const [fechaInicioEnfermedad, setFechaInicioEnfermedad] = useState("");
+  const [fechaInicioEnfermedad, setFechaInicioEnfermedad] = useState(null);
   const [antecedentes, setAntecedentes] = useState([]);
+  const [isFechaInicioOpen, setIsFechaInicioOpen] = useState(false);
+
+  useEffect(() => {
+    const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY, {
+      cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER,
+      encrypted: true,
+    });
+
+    const channel = pusher.subscribe("antecedentes-channel");
+    channel.bind("antecedentes-updated", async (data) => {
+      if (
+        data.clavenomina === clavenomina &&
+        data.clavepaciente === clavepaciente
+      ) {
+        const queryParams = new URLSearchParams({
+          clavenomina: clavenomina,
+          clavepaciente: clavepaciente,
+        });
+
+        const response = await fetch(
+          `/api/antecedentes/obtenerAntecedentes?${queryParams.toString()}`
+        );
+        if (response.ok) {
+          const updatedData = await response.json();
+          setAntecedentes(updatedData);
+        }
+      }
+    });
+
+    return () => {
+      channel.unbind_all();
+      channel.unsubscribe();
+    };
+  }, [clavenomina, clavepaciente]);
 
   //* Cargar antecedentes desde la API
   useEffect(() => {
     const fetchAntecedentes = async () => {
-      try {
-        const response = await fetch(
-          `/api/antecedentes/obtenerAntecedentes?clavenomina=${clavenomina}`
+      if (!clavenomina || !clavepaciente) {
+        console.warn(
+          "Faltan parámetros requeridos (clavenomina o clavepaciente). Evitando llamada a la API."
         );
+        setAntecedentes([]);
+        return;
+      }
+
+      try {
+        const queryParams = new URLSearchParams({
+          clavenomina: clavenomina,
+          clavepaciente: clavepaciente,
+        });
+
+        const response = await fetch(
+          `/api/antecedentes/obtenerAntecedentes?${queryParams.toString()}`
+        );
+
         if (response.ok) {
           const data = await response.json();
-          console.log("Datos obtenidos de la API:", data);
           setAntecedentes(data);
         } else {
-          console.error("Error al obtener antecedentes:", await response.text());
+          const errorText = await response.text();
+          MySwal.fire({
+            icon: "error",
+            title:
+              "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error al obtener antecedentes</span>",
+            html: `<p style='color: #fff; font-size: 1.1em;'>${errorText}</p>`,
+            background: "linear-gradient(145deg, #4a0000, #220000)",
+            confirmButtonColor: "#ff1744",
+            confirmButtonText:
+              "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
+            customClass: {
+              popup:
+                "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
+            },
+          });
           setAntecedentes([]);
         }
       } catch (error) {
@@ -27,12 +96,25 @@ const Antecedentes = ({ clavenomina, nombrePaciente }) => {
     };
 
     fetchAntecedentes();
-  }, [clavenomina]);
+  }, [clavenomina, clavepaciente]);
 
   //* Guardar un nuevo antecedente
   const handleGuardarAntecedente = async () => {
     if (!descripcion || !tipoAntecedente || !fechaInicioEnfermedad) {
-      alert("Por favor, completa todos los campos.");
+      MySwal.fire({
+        icon: "warning",
+        title:
+          "<span style='color: #ffc107; font-weight: bold; font-size: 1.5em;'>⚠️ Campos incompletos</span>",
+        html: "<p style='color: #fff; font-size: 1.1em;'>Por favor, completa todos los campos.</p>",
+        background: "linear-gradient(145deg, #4a4a00, #222200)",
+        confirmButtonColor: "#ffc107",
+        confirmButtonText:
+          "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
+        customClass: {
+          popup:
+            "border border-yellow-600 shadow-[0px_0px_20px_5px_rgba(255,193,7,0.9)] rounded-lg",
+        },
+      });
       return;
     }
 
@@ -44,6 +126,7 @@ const Antecedentes = ({ clavenomina, nombrePaciente }) => {
           descripcion,
           clavenomina,
           nombrePaciente,
+          clavepaciente,
           tipoAntecedente,
           fechaInicioEnfermedad,
         }),
@@ -51,19 +134,44 @@ const Antecedentes = ({ clavenomina, nombrePaciente }) => {
 
       if (response.ok) {
         const newAntecedente = await response.json();
-        console.log("Nuevo antecedente guardado:", newAntecedente);
-        alert("Antecedente guardado correctamente.");
         setAntecedentes([...antecedentes, newAntecedente]);
         setDescripcion("");
         setTipoAntecedente("");
-        setFechaInicioEnfermedad("");
+        setFechaInicioEnfermedad(null);
+
+        MySwal.fire({
+          icon: "success",
+          title:
+            "<span style='color: #4caf50; font-weight: bold; font-size: 1.5em;'>✅ Guardado con éxito</span>",
+          html: "<p style='color: #fff; font-size: 1.1em;'>El antecedente fue guardado correctamente.</p>",
+          background: "linear-gradient(145deg, #004d40, #00251a)",
+          confirmButtonColor: "#4caf50",
+          confirmButtonText:
+            "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
+          customClass: {
+            popup:
+              "border border-green-600 shadow-[0px_0px_20px_5px_rgba(76,175,80,0.9)] rounded-lg",
+          },
+        });
       } else {
-        console.error("Error al guardar el antecedente:", await response.text());
-        alert("Error al guardar el antecedente.");
+        const errorText = await response.text();
+        MySwal.fire({
+          icon: "error",
+          title:
+            "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error al guardar</span>",
+          html: `<p style='color: #fff; font-size: 1.1em;'>${errorText}</p>`,
+          background: "linear-gradient(145deg, #4a0000, #220000)",
+          confirmButtonColor: "#ff1744",
+          confirmButtonText:
+            "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
+          customClass: {
+            popup:
+              "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
+          },
+        });
       }
     } catch (error) {
       console.error("Error en la solicitud:", error);
-      alert("Error en la solicitud.");
     }
   };
 
@@ -96,11 +204,8 @@ const Antecedentes = ({ clavenomina, nombrePaciente }) => {
             </thead>
             <tbody>
               {filteredAntecedentes.length > 0 ? (
-                filteredAntecedentes.map((ant, idx) => (
-                  <tr
-                    key={idx}
-                    className="hover:bg-purple-600 hover:bg-opacity-50 transition-colors duration-300"
-                  >
+                filteredAntecedentes.map((ant) => (
+                  <tr key={ant.id_antecedente}>
                     <td className="py-2 px-3 border-t border-gray-800 text-gray-300">
                       {new Date(ant.fecha_registro).toLocaleDateString()}
                     </td>
@@ -116,10 +221,7 @@ const Antecedentes = ({ clavenomina, nombrePaciente }) => {
                 ))
               ) : (
                 <tr>
-                  <td
-                    colSpan="3"
-                    className="text-center py-3 text-gray-400"
-                  >
+                  <td colSpan="3" className="text-center py-3 text-gray-400">
                     No se encontraron registros.
                   </td>
                 </tr>
@@ -145,9 +247,9 @@ const Antecedentes = ({ clavenomina, nombrePaciente }) => {
 
       {/* Formulario general para añadir antecedentes */}
       <div className="bg-gray-800 p-4 md:p-6 rounded-lg shadow-lg">
-        <h2 className="text-xl md:text-2xl font-bold mb-4">Añadir Antecedente</h2>
-        <div className="mb-4">
-        </div>
+        <h2 className="text-xl md:text-2xl font-bold mb-4">
+          Añadir Antecedente
+        </h2>
         <label className="block mb-4">
           <span className="text-lg font-semibold">Tipo de Antecedente:</span>
           <select
@@ -172,14 +274,53 @@ const Antecedentes = ({ clavenomina, nombrePaciente }) => {
           />
         </label>
         <label className="block mb-4">
-          <span className="text-lg font-semibold">Fecha Inicio de Tratamiento:</span>
-          <input
-            type="date"
-            value={fechaInicioEnfermedad}
-            onChange={(e) => setFechaInicioEnfermedad(e.target.value)}
-            className="mt-2 p-3 rounded-lg bg-gray-700 text-white w-full"
-          />
+          <span className="text-lg font-semibold mb-2 block">
+            Fecha Inicio de Tratamiento:
+          </span>
+          <div className="relative">
+            <div
+              className="flex items-center bg-gradient-to-r from-blue-900 via-purple-900 to-blue-900 rounded-full p-4 shadow-md cursor-pointer"
+              onClick={() => {
+                setIsFechaInicioOpen(!isFechaInicioOpen);
+              }}
+            >
+              <FaCalendarAlt className="text-cyan-400 mr-4" size={28} />
+              <span className="text-cyan-200 font-medium">
+                {fechaInicioEnfermedad
+                  ? fechaInicioEnfermedad.toLocaleDateString()
+                  : "📅 Selecciona una fecha"}
+              </span>
+            </div>
+            {isFechaInicioOpen && (
+              <div className="absolute top-16 left-0 z-50 bg-gradient-to-br from-gray-900 via-black to-gray-800 p-6 rounded-3xl shadow-lg ring-2 ring-cyan-500">
+                <Calendar
+                  onChange={(date) => {
+                    setFechaInicioEnfermedad(date);
+                    setIsFechaInicioOpen(false);
+                  }}
+                  value={fechaInicioEnfermedad}
+                  className="bg-gradient-to-br from-gray-900 via-black to-gray-800 rounded-lg text-cyan-300"
+                  tileClassName={() =>
+                    "text-gray-500 bg-gray-800 border border-gray-700 rounded-md"
+                  }
+                  navigationLabel={({ date }) => (
+                    <p className="text-lg font-bold text-cyan-400">
+                      {date.toLocaleString("default", {
+                        month: "long",
+                        year: "numeric",
+                      })}
+                    </p>
+                  )}
+                  nextLabel={<span className="text-cyan-400">→</span>}
+                  prevLabel={<span className="text-cyan-400">←</span>}
+                  next2Label={null}
+                  prev2Label={null}
+                />
+              </div>
+            )}
+          </div>
         </label>
+
         <div className="text-right">
           <button
             onClick={handleGuardarAntecedente}

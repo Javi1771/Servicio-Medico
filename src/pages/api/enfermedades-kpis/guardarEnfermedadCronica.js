@@ -11,6 +11,7 @@ export default async function handler(req, res) {
     observaciones_cronica,
     fecha_registro,
     nombre_paciente,
+    clavepaciente
   } = req.body;
 
   // Log para verificar los datos recibidos
@@ -20,6 +21,7 @@ export default async function handler(req, res) {
     observaciones_cronica,
     fecha_registro,
     nombre_paciente,
+    clavepaciente
   });
 
   // Validación de datos requeridos
@@ -31,8 +33,8 @@ export default async function handler(req, res) {
     const pool = await connectToDatabase();
     const query = `
       INSERT INTO Registro_Enfermedades_Cronicas 
-      (id_enf_cronica, clavenomina, observaciones_cronica, fecha_registro, nombre_paciente)
-      VALUES (@id_enf_cronica, @clavenomina, @observaciones_cronica, @fecha_registro, @nombre_paciente)
+      (id_enf_cronica, clavenomina, observaciones_cronica, fecha_registro, nombre_paciente, clavepaciente)
+      VALUES (@id_enf_cronica, @clavenomina, @observaciones_cronica, @fecha_registro, @nombre_paciente, @clavepaciente)
     `;
 
     await pool.request()
@@ -41,6 +43,7 @@ export default async function handler(req, res) {
       .input('observaciones_cronica', observaciones_cronica)
       .input('fecha_registro', fecha_registro)
       .input('nombre_paciente', nombre_paciente)
+      .input('clavepaciente', clavepaciente)
       .query(query);
 
     res.status(201).json({ message: 'Enfermedad crónica registrada exitosamente' });

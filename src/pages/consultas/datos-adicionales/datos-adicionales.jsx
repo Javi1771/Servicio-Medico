@@ -25,9 +25,14 @@ const DatosAdicionales = ({
   setObservaciones,
   numeroDeNomina,
   nombrePaciente,
+  clavepaciente,
   nombreMedico,
   claveEspecialidad,
 }) => {
+  console.log(
+    "Valor inicial de clavepaciente recibido en DatosAdicionales:",
+    clavepaciente
+  );
   const [diagnosticoTexto, setDiagnosticoTexto] = useState("");
   const [motivoConsultaTexto, setMotivoConsultaTexto] = useState("");
   const [formularioCompleto, setFormularioCompleto] = useState(false);
@@ -164,6 +169,7 @@ const DatosAdicionales = ({
           nombrePaciente={nombrePaciente}
           claveConsulta={claveConsulta}
           nombreMedico={nombreMedico}
+          clavepaciente={clavepaciente}
           claveEspecialidad={claveEspecialidad}
         />
       )}
@@ -180,14 +186,22 @@ const DatosAdicionales = ({
           setFormularioCompleto={setFormularioCompleto}
           nombreMedico={nombreMedico}
           nombrePaciente={nombrePaciente}
-          numeroDeNomina={numeroDeNomina}
+          clavenomina={numeroDeNomina}
+          clavepaciente={(() => {
+            console.log(
+              "clavepaciente pasado a PaseEspecialidad:",
+              clavepaciente
+            );
+            return clavepaciente;
+          })()} // Loguear el valor antes de pasarlo
         />
       )}
 
       {subPantalla === "Incapacidades" && (
         <Incapacidades
-          clavenomina={numeroDeNomina}
+        clavenomina={numeroDeNomina}
           nombrePaciente={nombrePaciente}
+          clavepaciente={clavepaciente}
           claveConsulta={claveConsulta}
           nombreMedico={nombreMedico}
         />
@@ -195,7 +209,8 @@ const DatosAdicionales = ({
 
       {subPantalla === "Historial de Consultas" && (
         <HistorialConsultas
-          numeroNomina={numeroDeNomina}
+          clavenomina={numeroDeNomina}
+          clavepaciente={clavepaciente} 
           nombrePaciente={nombrePaciente}
         />
       )}
@@ -203,12 +218,15 @@ const DatosAdicionales = ({
       {subPantalla === "Padecimientos Críticos" && (
         <EnfermedadesCronicas
           clavenomina={numeroDeNomina}
-          nombrePaciente={nombrePaciente}
+          nombrepaciente={nombrePaciente}
+          clavepaciente={clavepaciente}
         />
       )}
+
       {subPantalla === "Antecedentes" && (
         <Antecedentes
           clavenomina={numeroDeNomina}
+          clavepaciente={clavepaciente}
           nombrePaciente={nombrePaciente}
         />
       )}
