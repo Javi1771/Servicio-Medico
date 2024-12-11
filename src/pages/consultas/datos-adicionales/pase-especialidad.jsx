@@ -15,10 +15,7 @@ const PaseEspecialidad = ({
   observaciones,
   setObservaciones,
   setFormularioCompleto,
-  nombreMedico,
   clavepaciente,
-  nombrePaciente,
-  clavenomina,
 }) => {
   const [especialidades, setEspecialidades] = useState([]);
   const [prioridad, setPrioridad] = useState("");
@@ -47,9 +44,9 @@ const PaseEspecialidad = ({
   //* Cargar historial desde el backend
   useEffect(() => {
     const fetchHistorialEspecialidades = async () => {
-      if (!clavenomina && !clavepaciente) {
+      if (!claveConsulta && !clavepaciente) {
         console.warn(
-          "Clavenomina y Clavepaciente no están definidos, evitando llamada a la API."
+          "claveConsulta y Clavepaciente no están definidos, evitando llamada a la API."
         );
         setHistorialEspecialidades([]);
         setIsLoading(false);
@@ -59,7 +56,7 @@ const PaseEspecialidad = ({
       setIsLoading(true); //* Comienza el proceso de carga
       try {
         const params = new URLSearchParams();
-        if (clavenomina) params.append("clavenomina", clavenomina);
+        if (claveConsulta) params.append("claveConsulta", claveConsulta);
         if (clavepaciente) params.append("clavepaciente", clavepaciente);
 
         const url = `/api/especialidades/historial?${params.toString()}`;
@@ -93,11 +90,11 @@ const PaseEspecialidad = ({
       }
     };
 
-    //* Llamada inicial para cargar historial solo si clavenomina o clavepaciente están definidos
-    if (clavenomina || clavepaciente) {
+    //* Llamada inicial para cargar historial solo si claveConsulta o clavepaciente están definidos
+    if (claveConsulta || clavepaciente) {
       fetchHistorialEspecialidades();
     }
-  }, [clavenomina, clavepaciente]);
+  }, [claveConsulta, clavepaciente]);
 
   useEffect(() => {
     const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY, {
@@ -188,10 +185,7 @@ const PaseEspecialidad = ({
         pasarEspecialidad === "si" ? especialidadSeleccionada : null,
       observaciones: pasarEspecialidad === "si" ? observaciones : null,
       prioridad: pasarEspecialidad === "si" ? prioridad : null,
-      nombreMedico,
-      clavenomina,
       clavepaciente,
-      nombrePaciente,
     };
 
     try {
@@ -320,10 +314,7 @@ const PaseEspecialidad = ({
                 claveEspecialidad: null,
                 observaciones: null,
                 prioridad: null,
-                nombreMedico,
-                clavenomina,
                 clavepaciente,
-                nombrePaciente,
               };
 
               try {

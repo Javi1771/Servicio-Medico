@@ -184,16 +184,7 @@ const DatosAdicionales = ({
           observaciones={observaciones}
           setObservaciones={setObservaciones}
           setFormularioCompleto={setFormularioCompleto}
-          nombreMedico={nombreMedico}
-          nombrePaciente={nombrePaciente}
-          clavenomina={numeroDeNomina}
-          clavepaciente={(() => {
-            console.log(
-              "clavepaciente pasado a PaseEspecialidad:",
-              clavepaciente
-            );
-            return clavepaciente;
-          })()} // Loguear el valor antes de pasarlo
+          clavepaciente={clavepaciente} 
         />
       )}
 
