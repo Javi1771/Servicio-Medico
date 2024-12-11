@@ -313,6 +313,7 @@ const Diagnostico = () => {
   };
 
   const handlePacienteClick = async (paciente) => {
+    console.log("Datos del paciente seleccionado:", paciente); 
     setPacienteSeleccionado(paciente);
     setMostrarEmergente(true);
     setClaveConsulta(paciente.claveconsulta);
@@ -763,6 +764,7 @@ const Diagnostico = () => {
               observaciones={observaciones}
               setObservaciones={setObservaciones}
               numeroDeNomina={pacienteSeleccionado?.clavenomina}
+              clavepaciente={pacienteSeleccionado?.clavepaciente} 
               nombrePaciente={pacienteSeleccionado?.nombrepaciente}
               nombreMedico={nombreMedico}
               claveEspecialidad={claveEspecialidad}

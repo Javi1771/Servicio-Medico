@@ -20,6 +20,7 @@ const formatearFecha = (fecha) => {
 const Medicamentos = ({
   clavenomina,
   nombrePaciente,
+  clavepaciente,
   nombreMedico,
   claveConsulta,
   claveEspecialidad,
@@ -30,6 +31,26 @@ const Medicamentos = ({
   const [listaMedicamentos, setListaMedicamentos] = useState([]);
   const [historialMedicamentos, setHistorialMedicamentos] = useState([]);
   const [botonHabilitado, setBotonHabilitado] = useState(false);
+
+  useEffect(() => {
+    const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY, {
+      cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER,
+      encrypted: true,
+    });
+
+    const channel = pusher.subscribe("medicamentos-channel");
+    channel.bind("historial-updated", (data) => {
+      if (data.clavepaciente === clavepaciente) {
+        setHistorialMedicamentos(data.historial);
+        console.log("Historial actualizado vía Pusher:", data.historial);
+      }
+    });
+
+    return () => {
+      channel.unbind_all();
+      channel.unsubscribe();
+    };
+  }, [clavepaciente]);
 
   //* Cargar lista de medicamentos desde el backend
   useEffect(() => {
@@ -78,12 +99,15 @@ const Medicamentos = ({
 
   //* Agregar useEffect para cargar el historial al montar el componente
   useEffect(() => {
-    if (nombrePaciente) {
-      fetch(
-        `/api/medicamentos/historial?nombrePaciente=${encodeURIComponent(
-          nombrePaciente
-        )}`
-      )
+    if (clavenomina && clavepaciente) {
+      const url = `/api/medicamentos/historial?${new URLSearchParams({
+        clavepaciente,
+        clavenomina,
+      }).toString()}`;
+  
+      console.log("URL que se está solicitando:", url);
+  
+      fetch(url)
         .then((res) => res.json())
         .then((data) => {
           if (data.ok) {
@@ -95,7 +119,8 @@ const Medicamentos = ({
         })
         .catch((err) => console.error("Error al cargar historial:", err));
     }
-  }, [nombrePaciente]);
+  }, [clavenomina, clavepaciente]);
+  
 
   const guardarMedicamentoEnHistorial = async () => {
     try {
@@ -116,6 +141,7 @@ const Medicamentos = ({
             claveConsulta,
             fecha: fechaActual,
             nombreMedico,
+            clavepaciente,
             claveEspecialidad,
           };
 
@@ -155,10 +181,12 @@ const Medicamentos = ({
 
       //* Actualizar historial después de guardar en el servidor
       const historialResponse = await fetch(
-        `/api/medicamentos/historial?nombrePaciente=${encodeURIComponent(
-          nombrePaciente
-        )}`
+        `/api/medicamentos/historial?${new URLSearchParams({
+          clavepaciente: clavepaciente,
+          clavenomina: clavenomina,
+        }).toString()}`
       );
+      
       const historialData = await historialResponse.json();
 
       if (historialData.ok) {
@@ -227,7 +255,7 @@ const Medicamentos = ({
       <h3 className="text-2xl md:text-3xl font-bold mb-4 md:mb-6 text-white">
         Prescripción de Medicamentos
       </h3>
-  
+
       {medicamentos.map((med, index) => (
         <div
           key={index}
@@ -309,7 +337,7 @@ const Medicamentos = ({
           </div>
         </div>
       ))}
-  
+
       {/* Botón de Guardar Medicamento en Historial */}
       <div className="text-right mt-12 mb-12">
         <button
@@ -324,7 +352,7 @@ const Medicamentos = ({
           Guardar Medicamento en Historial
         </button>
       </div>
-  
+
       {/* Historial de Medicamentos Otorgados */}
       <div className="bg-gray-900 p-6 md:p-8 rounded-xl shadow-2xl mb-6">
         <h2 className="text-2xl md:text-4xl font-semibold mb-6 text-center text-purple-400">
@@ -415,7 +443,6 @@ const Medicamentos = ({
       </div>
     </div>
   );
-  
 };
 
 export default Medicamentos;

@@ -1,33 +1,77 @@
-import { connectToDatabase } from '../connectToDatabase';
+import { connectToDatabase } from "../connectToDatabase";
+import sql from "mssql";
 
 export default async function handler(req, res) {
-  const { num_nom } = req.query; 
+  console.log("Solicitud recibida en la ruta:", req.url);
+  console.log("Parámetros recibidos:", req.query);
+
+  const { clavepaciente, clavenomina } = req.query;
+
+  if (!clavenomina && !clavepaciente) {
+    console.error("Error: Faltan los parámetros clavenomina y clavepaciente.");
+    return res.status(400).json({
+      message: "Debe proporcionar al menos clavenomina o clavepaciente.",
+    });
+  }
 
   try {
     const pool = await connectToDatabase();
+    let consultas = [];
 
-    const query = `
-      SELECT 
-        c.fechaconsulta,
-        c.nombrepaciente,
-        c.motivoconsulta,
-        c.diagnostico,
-        c.seasignoaespecialidad,
-        e.especialidad AS especialidadinterconsulta
-      FROM consultas AS c
-      LEFT JOIN especialidades AS e 
-        ON c.especialidadinterconsulta = e.claveespecialidad
-      WHERE c.clavenomina = @num_nom
-      ORDER BY c.fechaconsulta DESC
-    `;
+    // Filtro por clavenomina
+    if (clavenomina) {
+      const queryNomina = `
+        SELECT 
+          c.fechaconsulta,
+          c.nombrepaciente,
+          c.motivoconsulta,
+          c.diagnostico,
+          c.seasignoaespecialidad,
+          e.especialidad AS especialidadinterconsulta,
+          c.clavepaciente
+        FROM consultas AS c
+        LEFT JOIN especialidades AS e 
+          ON c.especialidadinterconsulta = e.claveespecialidad
+        WHERE c.clavenomina = @clavenomina
+        ORDER BY c.fechaconsulta DESC
+      `;
 
-    const result = await pool.request()
-      .input('num_nom', num_nom) //* Número de nómina del paciente
-      .query(query);
+      console.log("Ejecutando consulta por clavenomina:", queryNomina);
 
-    res.status(200).json(result.recordset);
+      const resultNomina = await pool
+        .request()
+        .input("clavenomina", sql.NVarChar, clavenomina)
+        .query(queryNomina);
+
+      consultas = resultNomina.recordset;
+      console.log("Resultados por clavenomina:", consultas);
+    }
+
+    // Filtro adicional por clavepaciente
+    if (clavepaciente) {
+      consultas = consultas.filter(
+        (consulta) => consulta.clavepaciente === clavepaciente
+      );
+
+      console.log(
+        "Resultados filtrados por clavepaciente:",
+        consultas
+      );
+    }
+
+    // Formatear fechas para el frontend
+    const consultasFormateadas = consultas.map((consulta) => ({
+      ...consulta,
+      fechaconsulta: consulta.fechaconsulta
+        ? consulta.fechaconsulta.toISOString()
+        : null,
+    }));
+
+    console.log("Consultas formateadas para el frontend:", consultasFormateadas);
+
+    res.status(200).json(consultasFormateadas);
   } catch (error) {
-    console.error('Error al realizar la consulta:', error);
-    res.status(500).json({ message: 'Error al realizar la consulta', error });
+    console.error("Error al realizar la consulta:", error);
+    res.status(500).json({ message: "Error al realizar la consulta", error });
   }
 }

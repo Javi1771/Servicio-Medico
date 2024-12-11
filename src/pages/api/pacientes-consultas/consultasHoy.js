@@ -1,6 +1,6 @@
 import { connectToDatabase } from '../connectToDatabase';
 import sql from 'mssql';
-import { pusher } from '../pusher'; // Importa la configuración de Pusher
+import { pusher } from '../pusher'; 
 
 export default async function handler(req, res) {
   if (req.method !== "GET") {
@@ -30,10 +30,10 @@ export default async function handler(req, res) {
       999
     );
 
-    // Validar y convertir clavestatus
+    //* Validar y convertir clavestatus
     const clavestatus = req.query.clavestatus ? parseInt(req.query.clavestatus) : 1;
 
-    // Ejecutar la consulta SQL
+    //* Ejecutar la consulta SQL
     const result = await pool
       .request()
       .input("startOfDay", sql.DateTime, startOfDay)
@@ -54,7 +54,7 @@ export default async function handler(req, res) {
 
     const consultas = result.recordset;
 
-    // Llamar a Pusher para notificar cambios
+    //* Llamar a Pusher para notificar cambios
     try {
       await pusher.trigger("consultas-channel", "consultas-updated", {
         consultas,
@@ -64,11 +64,11 @@ export default async function handler(req, res) {
       console.error("Error al enviar evento a Pusher:", pusherError);
     }
 
-    // Responder con los resultados
+    //* Responder con los resultados
     res.status(200).json({ consultas });
     console.log("Número de consultas obtenidas:", consultas.length);
   } catch (error) {
-    // Manejo de errores
+    //! Manejo de errores
     console.error("Error al cargar consultas del día:", error);
     res.status(500).json({ message: "Error al cargar consultas del día" });
   }

@@ -105,7 +105,9 @@ const SignosVitales = () => {
         );
         setPacientes((prevPacientes) => {
           //? Solo actualiza si los datos son diferentes
-          if (JSON.stringify(prevPacientes) !== JSON.stringify(consultasOrdenadas)) {
+          if (
+            JSON.stringify(prevPacientes) !== JSON.stringify(consultasOrdenadas)
+          ) {
             console.log("Actualizando lista de pacientes...");
             return consultasOrdenadas;
           }
@@ -116,7 +118,6 @@ const SignosVitales = () => {
       console.error("Error al cargar consultas del día:", error);
     }
   };
-  
 
   const actualizarEstado = async (claveConsulta) => {
     try {
@@ -185,12 +186,6 @@ const SignosVitales = () => {
           popup:
             "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
         },
-        showClass: {
-          popup: "animate__animated animate__fadeInDown",
-        },
-        hideClass: {
-          popup: "animate__animated animate__fadeOutUp",
-        },
       });
       return;
     }
@@ -227,6 +222,10 @@ const SignosVitales = () => {
         consultaSeleccionada === "beneficiario" && selectedBeneficiary
           ? selectedBeneficiary.ID_PARENTESCO
           : 0,
+      clavepaciente:
+        consultaSeleccionada === "beneficiario" && selectedBeneficiary
+          ? selectedBeneficiary.ID_BENEFICIARIO
+          : null,
       departamento: patientData.department || "",
       sindicato:
         patientData.grupoNomina === "NS"
@@ -236,7 +235,7 @@ const SignosVitales = () => {
             ? "SITAM"
             : null
           : null,
-      clavestatus: 1, // Inicialmente en espera
+      clavestatus: 1, //* Inicialmente en espera
     };
 
     try {
