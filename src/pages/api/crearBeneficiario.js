@@ -1,13 +1,6 @@
 // /api/crearBeneficiario.js
 import { connectToDatabase } from "./connectToDatabase";
-import fetch from "node-fetch";
 
-const getSindicato = (grupoNomina, cuotaSindical) => {
-  if (grupoNomina === "NS") {
-    return cuotaSindical === "S" ? "SUTSMSJR" : cuotaSindical === "" ? "SITAM" : null;
-  }
-  return null;
-};
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {

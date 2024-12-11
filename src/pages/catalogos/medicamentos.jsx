@@ -15,7 +15,7 @@ export default function MedicamentosTable() {
     clasificacion: "",
     ean: "", // Nuevo campo para el código EAN
   });
-  const [selectedMedicamento, setSelectedMedicamento] = useState(null);
+  const [selectedMedicamento] = useState(null);
   const [clasificaciones, setClasificaciones] = useState({});
   const [selectedClasificacion, setSelectedClasificacion] = useState("");
 

@@ -1,7 +1,6 @@
 // /pages/api/enfermedadesCronicas/listarEnfermedades.js
 
 import { connectToDatabase } from '../../api/connectToDatabase'; // Ajusta la ruta según tu proyecto
-import sql from 'mssql';
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {

@@ -17,7 +17,7 @@ const SurtirMedicamentoModal = ({
   medicamentos,
   beneficiario,
 }) => {
-  const [medicamentoId, setMedicamentoId] = useState("");
+  const [setMedicamentoId] = useState("");
   const [cantidad, setCantidad] = useState("");
   const [observaciones, setObservaciones] = useState("");
   const [selectedMedicamento, setSelectedMedicamento] = useState(null);

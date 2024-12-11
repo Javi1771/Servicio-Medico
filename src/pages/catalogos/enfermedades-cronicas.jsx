@@ -1,4 +1,3 @@
-import React, { useState } from "react";
 import { useEnfermedadesCronicas } from "../../hooks/EnfermedadesCronic/useEnfermedadesCronicas"; // Ruta al hook
 import styles from "../css/catalogos/enfermedadesCronic.module.css";
 import { useRouter } from "next/router";
