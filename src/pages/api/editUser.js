@@ -17,10 +17,11 @@ export default async function handler(req, res) {
     celularusuario,
     cedulausuario,
     usuario,
-    password, // La nueva contraseña que puede ser proporcionada
+    password, // Nueva contraseña proporcionada opcionalmente
+    costoconsulta , // Nuevo campo de costo
   } = req.body;
 
-  // Validación de datos
+  // Validación de datos requeridos
   if (!claveespecialidad || !clavetipousuario || !usuario) {
     return res.status(400).json({ message: 'Faltan datos requeridos' });
   }
@@ -38,13 +39,15 @@ export default async function handler(req, res) {
       .input('cedulausuario', sql.VarChar, cedulausuario)
       .input('claveespecialidad', sql.Int, claveespecialidad)
       .input('clavetipousuario', sql.Int, clavetipousuario)
-      .input('usuario', sql.VarChar, usuario);
+      .input('usuario', sql.VarChar, usuario)
+      .input('costoconsulta', sql.Money, costoconsulta || 0.0); // Manejo del campo costo
+
 
     let query; // Variable para almacenar la consulta
 
-    // Si se proporciona una nueva contraseña, actualízala directamente
+    // Si se proporciona una nueva contraseña, inclúyela en la actualización
     if (password && password.trim() !== '') {
-      request.input('password', sql.VarChar, password); // Usar la nueva contraseña directamente
+      request.input('password', sql.VarChar, password); // Usar la nueva contraseña
 
       query = `UPDATE usuarios
                SET 
@@ -56,7 +59,8 @@ export default async function handler(req, res) {
                  cedulausuario = @cedulausuario,
                  claveespecialidad = @claveespecialidad,
                  clavetipousuario = @clavetipousuario,
-                 password = @password
+                 password = @password,
+                  costo = @costoconsulta
                WHERE usuario = @usuario`;
     } else {
       // Si no se proporciona una nueva contraseña, solo actualizar otros campos
@@ -69,7 +73,8 @@ export default async function handler(req, res) {
                  celularusuario = @celularusuario,
                  cedulausuario = @cedulausuario,
                  claveespecialidad = @claveespecialidad,
-                 clavetipousuario = @clavetipousuario
+                 clavetipousuario = @clavetipousuario,
+                 costo = @costo
                WHERE usuario = @usuario`;
     }
 
