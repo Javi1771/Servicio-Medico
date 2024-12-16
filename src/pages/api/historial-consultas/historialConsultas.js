@@ -7,57 +7,45 @@ export default async function handler(req, res) {
 
   const { clavepaciente, clavenomina } = req.query;
 
-  if (!clavenomina && !clavepaciente) {
-    console.error("Error: Faltan los parámetros clavenomina y clavepaciente.");
+  if (!clavenomina || !clavepaciente) {
+    console.error(
+      "Error: Ambos parámetros clavenomina y clavepaciente son obligatorios."
+    );
     return res.status(400).json({
-      message: "Debe proporcionar al menos clavenomina o clavepaciente.",
+      message:
+        "Debe proporcionar los parámetros clavenomina y clavepaciente obligatoriamente.",
     });
   }
 
   try {
     const pool = await connectToDatabase();
-    let consultas = [];
 
-    // Filtro por clavenomina
-    if (clavenomina) {
-      const queryNomina = `
-        SELECT 
-          c.fechaconsulta,
-          c.nombrepaciente,
-          c.motivoconsulta,
-          c.diagnostico,
-          c.seasignoaespecialidad,
-          e.especialidad AS especialidadinterconsulta,
-          c.clavepaciente
-        FROM consultas AS c
-        LEFT JOIN especialidades AS e 
-          ON c.especialidadinterconsulta = e.claveespecialidad
-        WHERE c.clavenomina = @clavenomina
-        ORDER BY c.fechaconsulta DESC
-      `;
+    const query = `
+      SELECT 
+        c.fechaconsulta,
+        c.nombrepaciente,
+        c.motivoconsulta,
+        c.diagnostico,
+        c.seasignoaespecialidad,
+        e.especialidad AS especialidadinterconsulta,
+        c.clavepaciente
+      FROM consultas AS c
+      LEFT JOIN especialidades AS e 
+        ON c.especialidadinterconsulta = e.claveespecialidad
+      WHERE c.clavenomina = @clavenomina
+        AND c.clavepaciente = @clavepaciente
+      ORDER BY c.fechaconsulta DESC
+    `;
 
-      console.log("Ejecutando consulta por clavenomina:", queryNomina);
+    console.log("Consulta SQL ejecutada:", query);
 
-      const resultNomina = await pool
-        .request()
-        .input("clavenomina", sql.NVarChar, clavenomina)
-        .query(queryNomina);
+    const result = await pool
+      .request()
+      .input("clavenomina", sql.NVarChar, clavenomina)
+      .input("clavepaciente", sql.NVarChar, clavepaciente)
+      .query(query);
 
-      consultas = resultNomina.recordset;
-      console.log("Resultados por clavenomina:", consultas);
-    }
-
-    // Filtro adicional por clavepaciente
-    if (clavepaciente) {
-      consultas = consultas.filter(
-        (consulta) => consulta.clavepaciente === clavepaciente
-      );
-
-      console.log(
-        "Resultados filtrados por clavepaciente:",
-        consultas
-      );
-    }
+    const consultas = result.recordset;
 
     // Formatear fechas para el frontend
     const consultasFormateadas = consultas.map((consulta) => ({
@@ -72,6 +60,8 @@ export default async function handler(req, res) {
     res.status(200).json(consultasFormateadas);
   } catch (error) {
     console.error("Error al realizar la consulta:", error);
-    res.status(500).json({ message: "Error al realizar la consulta", error });
+    res
+      .status(500)
+      .json({ message: "Error al realizar la consulta", error: error.message });
   }
 }

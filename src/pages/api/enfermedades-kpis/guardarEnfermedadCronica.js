@@ -10,7 +10,6 @@ export default async function handler(req, res) {
     clavenomina,
     observaciones_cronica,
     fecha_registro,
-    nombre_paciente,
     clavepaciente
   } = req.body;
 
@@ -20,12 +19,11 @@ export default async function handler(req, res) {
     clavenomina,
     observaciones_cronica,
     fecha_registro,
-    nombre_paciente,
     clavepaciente
   });
 
   // Validación de datos requeridos
-  if (!id_enf_cronica || !clavenomina || !observaciones_cronica || !fecha_registro || !nombre_paciente) {
+  if (!id_enf_cronica || !clavenomina || !observaciones_cronica || !fecha_registro) {
     return res.status(400).json({ message: 'Faltan datos obligatorios' });
   }
 
@@ -33,8 +31,8 @@ export default async function handler(req, res) {
     const pool = await connectToDatabase();
     const query = `
       INSERT INTO Registro_Enfermedades_Cronicas 
-      (id_enf_cronica, clavenomina, observaciones_cronica, fecha_registro, nombre_paciente, clavepaciente)
-      VALUES (@id_enf_cronica, @clavenomina, @observaciones_cronica, @fecha_registro, @nombre_paciente, @clavepaciente)
+      (id_enf_cronica, clavenomina, observaciones_cronica, fecha_registro, clavepaciente)
+      VALUES (@id_enf_cronica, @clavenomina, @observaciones_cronica, @fecha_registro, @clavepaciente)
     `;
 
     await pool.request()
@@ -42,7 +40,6 @@ export default async function handler(req, res) {
       .input('clavenomina', clavenomina)
       .input('observaciones_cronica', observaciones_cronica)
       .input('fecha_registro', fecha_registro)
-      .input('nombre_paciente', nombre_paciente)
       .input('clavepaciente', clavepaciente)
       .query(query);
 

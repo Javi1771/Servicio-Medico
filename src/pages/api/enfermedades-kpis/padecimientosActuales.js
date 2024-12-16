@@ -1,7 +1,7 @@
 import { connectToDatabase } from '../connectToDatabase';
 
 export default async function handler(req, res) {
-  const { clavenomina, nombrePaciente } = req.query;
+  const { clavenomina, clavepaciente } = req.query;
 
   try {
     const pool = await connectToDatabase();
@@ -20,12 +20,12 @@ export default async function handler(req, res) {
       WHERE 
         rec.clavenomina = @clavenomina 
       AND 
-        rec.nombre_paciente = @nombrePaciente
+        rec.clavepaciente = @clavepaciente
     `;
     
     const result = await pool.request()
       .input('clavenomina', clavenomina)
-      .input('nombrePaciente', nombrePaciente)
+      .input('clavepaciente', clavepaciente)
       .query(query);
 
     res.status(200).json(result.recordset);

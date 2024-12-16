@@ -16,9 +16,7 @@ export default async function handler(req, res) {
     piezas,
     indicaciones,
     tratamiento,
-    nombrePaciente,
     claveConsulta,
-    nombreMedico,
     claveEspecialidad,
     clavenomina,
     clavepaciente,
@@ -31,9 +29,7 @@ export default async function handler(req, res) {
     !piezas ||
     !indicaciones ||
     !tratamiento ||
-    !nombrePaciente ||
     !claveConsulta ||
-    !nombreMedico ||
     !claveEspecialidad ||
     !clavenomina ||
     !clavepaciente
@@ -51,9 +47,7 @@ export default async function handler(req, res) {
       piezas,
       indicaciones,
       tratamiento,
-      nombrePaciente,
       claveConsulta,
-      nombreMedico,
       claveEspecialidad,
       clavenomina,
       clavepaciente,
@@ -62,20 +56,18 @@ export default async function handler(req, res) {
     //* Insertar en la tabla de historial de medicamentos
     const queryInsertarHistorial = `
       INSERT INTO [PRESIDENCIA].[dbo].[MEDICAMENTO_PACIENTE] 
-      (ean, sustancia, nombre_paciente, piezas_otorgadas, indicaciones, tratamiento, claveconsulta, fecha_otorgacion, nombre_medico, id_especialidad, clave_nomina, clavepaciente) 
-      VALUES (@ean, @medicamento, @nombrePaciente, @piezas, @indicaciones, @tratamiento, @claveConsulta, GETDATE(), @nombreMedico, @claveEspecialidad, @clavenomina, @clavepaciente)
+      (ean, sustancia, piezas_otorgadas, indicaciones, tratamiento, claveconsulta, fecha_otorgacion, id_especialidad, clave_nomina, clavepaciente) 
+      VALUES (@ean, @medicamento, @piezas, @indicaciones, @tratamiento, @claveConsulta, GETDATE(), @claveEspecialidad, @clavenomina, @clavepaciente)
     `;
 
     await pool
       .request()
       .input("ean", sql.VarChar, ean)
       .input("medicamento", sql.VarChar, medicamento)
-      .input("nombrePaciente", sql.NVarChar, nombrePaciente)
       .input("piezas", sql.Int, piezas)
       .input("indicaciones", sql.NVarChar, indicaciones)
       .input("tratamiento", sql.NVarChar, tratamiento)
       .input("claveConsulta", sql.Int, claveConsulta)
-      .input("nombreMedico", sql.NVarChar, nombreMedico)
       .input("claveEspecialidad", sql.Int, claveEspecialidad)
       .input("clavenomina", sql.VarChar, clavenomina)
       .input("clavepaciente", sql.Int, clavepaciente)
@@ -98,7 +90,9 @@ export default async function handler(req, res) {
 
     if (resultadoStock.rowsAffected[0] === 0) {
       console.warn("No se actualizó el stock. EAN inexistente.");
-      return res.status(400).json({ error: "No se encontró el medicamento en la farmacia." });
+      return res
+        .status(400)
+        .json({ error: "No se encontró el medicamento en la farmacia." });
     }
 
     console.log("Stock del medicamento actualizado correctamente");
@@ -114,8 +108,7 @@ export default async function handler(req, res) {
         mp.clave_nomina AS clavenomina,
         mp.claveconsulta,
         mp.clavepaciente,
-        mp.id_especialidad AS claveespecialidad,
-        mp.nombre_medico
+        mp.id_especialidad AS claveespecialidad
       FROM [PRESIDENCIA].[dbo].[MEDICAMENTO_PACIENTE] mp
       WHERE mp.clavepaciente = @clavepaciente
       ORDER BY mp.fecha_otorgacion DESC
@@ -138,7 +131,8 @@ export default async function handler(req, res) {
     console.log("Evento Pusher emitido con éxito");
 
     res.status(200).json({
-      message: "Medicamento guardado, stock actualizado y evento emitido correctamente.",
+      message:
+        "Medicamento guardado, stock actualizado y evento emitido correctamente.",
     });
   } catch (error) {
     console.error("Error al guardar medicamento en la base de datos:", error);

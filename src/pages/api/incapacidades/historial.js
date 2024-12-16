@@ -12,19 +12,19 @@ export default async function handler(req, res) {
       fechaFinal,
       diagnostico,
       estatus,
-      nombreMedico,
     } = req.body;
 
-    if (!clavenomina || !clavepaciente || !claveConsulta) {
+    // Validar que ambos parámetros estén presentes
+    if (!clavenomina || !clavepaciente) {
       return res.status(400).json({
-        message: "Faltan datos obligatorios: clavenomina, clavepaciente o claveConsulta",
+        message: "Faltan datos obligatorios: clavenomina y clavepaciente",
       });
     }
 
     try {
       const pool = await connectToDatabase();
 
-      //* Insertando datos en la base de datos
+      // Insertar datos en la base de datos
       await pool
         .request()
         .input("clavenomina", sql.Int, clavenomina)
@@ -34,29 +34,29 @@ export default async function handler(req, res) {
         .input("fechaFinal", sql.DateTime, fechaFinal || null)
         .input("diagnostico", sql.NVarChar, diagnostico || null)
         .input("estatus", sql.Int, estatus)
-        .input("nombreMedico", sql.NVarChar, nombreMedico).query(`
-          INSERT INTO detalleIncapacidad 
-          (clavenomina, clavepaciente, claveConsulta, fechaInicial, fechaFinal, diagnostico, estatus, nombreMedico)
-          VALUES (@clavenomina, @clavepaciente, @claveConsulta, @fechaInicial, @fechaFinal, @diagnostico, @estatus, @nombreMedico)
+        .query(`
+          INSERT INTO detalleIncapacidad (
+            clavenomina, clavepaciente, claveConsulta,
+            fechaInicial, fechaFinal, diagnostico, estatus
+          )
+          VALUES (
+            @clavenomina, @clavepaciente, @claveConsulta,
+            @fechaInicial, @fechaFinal, @diagnostico, @estatus
+          )
         `);
 
-      //* Obteniendo historial actualizado
+      // Obtener historial actualizado
       const result = await pool
         .request()
         .input("clavenomina", sql.Int, clavenomina)
-        .input("clavepaciente", sql.Int, clavepaciente).query(`
+        .input("clavepaciente", sql.Int, clavepaciente)
+        .query(`
           SELECT 
             claveConsulta,
             idDetalleIncapacidad,
             ISNULL(diagnostico, 'Sin diagnóstico') AS diagnostico,
-            CASE 
-              WHEN fechaInicial IS NULL THEN NULL
-              ELSE fechaInicial
-            END AS fechaInicial,
-            CASE 
-              WHEN fechaFinal IS NULL THEN NULL
-              ELSE fechaFinal
-            END AS fechaFinal
+            fechaInicial,
+            fechaFinal
           FROM detalleIncapacidad
           WHERE clavenomina = @clavenomina
             AND clavepaciente = @clavepaciente
@@ -65,16 +65,11 @@ export default async function handler(req, res) {
 
       const historial = result.recordset;
 
-      //* Log para depuración
-      console.log("Datos enviados a Pusher:", historial);
-
-      //* Emitiendo evento de Pusher
+      // Emitir evento de Pusher
       await pusher.trigger("incapacidades-channel", "incapacidades-updated", {
         clavepaciente,
         historial: historial.map((item) => ({
           ...item,
-          claveConsulta: item.claveConsulta || "Sin clave",
-          diagnostico: item.diagnostico || "Sin diagnóstico",
           fechaInicial: item.fechaInicial ? item.fechaInicial.toISOString() : null,
           fechaFinal: item.fechaFinal ? item.fechaFinal.toISOString() : null,
         })),
@@ -94,19 +89,22 @@ export default async function handler(req, res) {
   } else if (req.method === "GET") {
     const { clavenomina, clavepaciente } = req.query;
 
+    // Validar que ambos parámetros estén presentes
     if (!clavenomina || !clavepaciente) {
       return res.status(400).json({
-        message: "Faltan datos obligatorios: clavenomina o clavepaciente",
+        message: "Faltan datos obligatorios: clavenomina y clavepaciente",
       });
     }
 
     try {
       const pool = await connectToDatabase();
 
+      // Consultar historial filtrado
       const result = await pool
         .request()
         .input("clavenomina", sql.Int, clavenomina)
-        .input("clavepaciente", sql.Int, clavepaciente).query(`
+        .input("clavepaciente", sql.Int, clavepaciente)
+        .query(`
           SELECT 
             claveConsulta,
             idDetalleIncapacidad,
@@ -121,10 +119,7 @@ export default async function handler(req, res) {
 
       const historial = result.recordset;
 
-      //* Log para depuración
-      console.log("Datos enviados a Pusher (GET):", historial);
-
-      //* Emitiendo evento de Pusher
+      // Emitir evento de Pusher
       await pusher.trigger("incapacidades-channel", "incapacidades-updated", {
         clavepaciente,
         historial,

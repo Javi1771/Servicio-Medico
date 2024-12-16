@@ -7,11 +7,7 @@ import withReactContent from "sweetalert2-react-content";
 
 const MySwal = withReactContent(Swal);
 
-const EnfermedadesCronicas = ({
-  clavenomina,
-  nombrepaciente,
-  clavepaciente,
-}) => {
+const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
   const [historialKPI, setHistorialKPI] = useState([]);
   const [editKPIDetails, setEditKPIDetails] = useState(null);
   const [nombreEnfermedad, setNombreEnfermedad] = useState("");
@@ -58,45 +54,70 @@ const EnfermedadesCronicas = ({
 
   const handleRowClick = async (kpi) => {
     try {
-      //* Construir la URL con los parámetros requeridos
+      // Construir la URL con los parámetros requeridos
       const queryParams = new URLSearchParams({
         idRegistro: kpi.idRegistro,
-        clavenomina: kpi.clavenomina, 
-        clavepaciente: kpi.clavepaciente || "", 
+        clavenomina: kpi.clavenomina,
+        clavepaciente: kpi.clavepaciente || "",
       });
 
       const response = await fetch(
         `/api/enfermedades-kpis/obtenerHistorialKPI?${queryParams.toString()}`
       );
 
-      if (!response.ok) throw new Error("Error al obtener detalles del KPI");
+      if (!response.ok) {
+        throw new Error(
+          `Error al obtener detalles del KPI: ${response.statusText}`
+        );
+      }
 
       const data = await response.json();
       console.log("Detalles del KPI seleccionados:", data);
 
-      //* Buscar el detalle exacto basado en `idRegistro`
+      // Validar que se obtuvieron datos
+      if (!Array.isArray(data) || data.length === 0) {
+        console.error("No se encontró detalle para el KPI seleccionado");
+        MySwal.fire({
+          icon: "error",
+          title: "❌ No se encontraron detalles",
+          text: "No se pudo cargar la información de este KPI. Verifica los datos.",
+        });
+        return;
+      }
+
+      // Buscar el detalle exacto basado en `idRegistro`
       const detalleSeleccionado = data.find(
         (item) => item.idRegistro === kpi.idRegistro
       );
 
       if (!detalleSeleccionado) {
         console.error("No se encontró detalle para el KPI seleccionado");
+        MySwal.fire({
+          icon: "error",
+          title: "❌ No se encontraron detalles",
+          text: "No se pudo cargar la información de este KPI. Verifica los datos.",
+        });
         return;
       }
 
-      //* Mapear idRegistro a id_registro_kpi si es necesario
+      // Asegurarse de mapear idRegistro a id_registro_kpi
       const detalleConIDKPI = {
-        detalleSeleccionado,
+        ...detalleSeleccionado,
         id_registro_kpi: detalleSeleccionado.idRegistro,
       };
 
       console.log("Detalle seleccionado con ID KPI:", detalleConIDKPI);
 
-      //* Actualizar el estado con los detalles seleccionados
+      // Actualizar el estado con los detalles seleccionados
       setEditKPIDetails(detalleConIDKPI);
       setMostrarVentanaKPI(true);
     } catch (error) {
       console.error("Error al cargar detalles del KPI:", error);
+      MySwal.fire({
+        icon: "error",
+        title: "❌ Error al cargar KPI",
+        text: "Hubo un problema al obtener los datos del KPI. Inténtalo nuevamente.",
+      });
     }
   };
 
@@ -125,7 +146,7 @@ const EnfermedadesCronicas = ({
 
       const data = await response.json();
 
-      console.log("Datos recibidos del servidor:", data); 
+      console.log("Datos recibidos del servidor:", data);
 
       if (!Array.isArray(data) || data.length === 0) {
         console.warn("No se encontraron registros en el historial.");
@@ -200,7 +221,6 @@ const EnfermedadesCronicas = ({
       id_enf_cronica: parseInt(nuevoKPI.id_enf_cronica, 10),
       clavenomina,
       clavepaciente,
-      nombre_paciente: nombrepaciente,
       valor_actual: nuevoKPI.valorActual,
       valor_objetivo: nuevoKPI.valorObjetivo,
       calificacion: null,
@@ -402,7 +422,7 @@ const EnfermedadesCronicas = ({
   const fetchPadecimientos = async () => {
     try {
       const response = await fetch(
-        `/api/enfermedades-kpis/padecimientosActuales?clavenomina=${clavenomina}&nombrePaciente=${nombrepaciente}`
+        `/api/enfermedades-kpis/padecimientosActuales?clavenomina=${clavenomina}&clavepaciente=${clavepaciente}`
       );
       const data = await response.json();
       setPadecimientos(Array.isArray(data) ? data : []);
@@ -433,7 +453,7 @@ const EnfermedadesCronicas = ({
 
   useEffect(() => {
     fetchPadecimientos();
-  }, [clavenomina, nombrepaciente]);
+  }, [clavenomina, clavepaciente]);
 
   const handleGuardarMotivo = async () => {
     if (!motivo) {
@@ -489,7 +509,6 @@ const EnfermedadesCronicas = ({
       clavepaciente,
       observaciones_cronica: motivo,
       fecha_registro: fechaRegistro,
-      nombre_paciente: nombrepaciente,
     };
 
     try {
@@ -1020,18 +1039,12 @@ const EnfermedadesCronicas = ({
               </div>
               <hr className="border-gray-700 mb-4" />
               <div className="flex items-center text-lg font-semibold text-purple-400 mb-4">
-                Observaciones:{" "}
+                KPI Que Se Está Evaluando:{" "}
                 <span className="text-white font-light ml-2">
                   {editKPIDetails.observaciones || "Sin observaciones"}
                 </span>
               </div>
               <hr className="border-gray-700 mb-4" />
-              <div className="flex items-center text-lg font-semibold text-purple-400">
-                Paciente:{" "}
-                <span className="text-white font-light ml-2">
-                  {editKPIDetails.paciente || "Sin paciente"}
-                </span>
-              </div>
             </div>
 
             {/* Mostrar valores */}

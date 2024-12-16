@@ -62,7 +62,7 @@ const Home = () => {
       <div className="flex flex-col md:flex-row justify-center space-x-0 md:space-x-4 space-y-4 md:space-y-0 w-full max-w-2xl mx-auto mt-8">
         <SidebarButton
           title="Consultas"
-          options={["Signos Vitales", "Diagnostico", "Recetas"]}
+          options={["Signos Vitales", "Diagnostico"]}
           isOpen={openMenu === "Consultas"}
           handleMouseEnter={() => handleMouseEnter("Consultas")}
           handleMouseLeave={handleMouseLeave}
@@ -94,7 +94,7 @@ const Home = () => {
         <SidebarButton
           title="Capturas"
           options={[
-            "Pase a Especialidad",
+            "Pases a Especialidades",
             "Surtimientos",
             "Orden de Estudio de Laboratorio",
             "Incapacidades",

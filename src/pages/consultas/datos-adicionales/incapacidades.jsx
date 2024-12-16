@@ -13,9 +13,7 @@ const MySwal = withReactContent(Swal);
 const Incapacidades = ({
   clavepaciente,
   claveConsulta,
-  nombreMedico,
   clavenomina,
-  nombrePaciente,
 }) => {
   const [autorizarIncapacidad, setAutorizarIncapacidad] = useState(null);
   const [fechaInicio, setFechaInicio] = useState("");
@@ -183,13 +181,11 @@ const Incapacidades = ({
         body: JSON.stringify({
           clavepaciente,
           claveConsulta,
-          noNomina: clavenomina,
+          clavenomina: clavenomina,
           fechaInicial: null,
           fechaFinal: null,
           diagnostico: "Sin diagnóstico",
           estatus: 1,
-          nombreMedico,
-          nombrePaciente,
         }),
       });
 
@@ -262,13 +258,11 @@ const Incapacidades = ({
     if (fechaInicio && fechaFin && diagnostico) {
       const nuevaIncapacidad = {
         claveConsulta,
-        noNomina: clavenomina,
+        clavenomina: clavenomina,
         fechaInicial: fechaInicio.toISOString(),
         fechaFinal: fechaFin.toISOString(),
         diagnostico,
         estatus: 1,
-        nombreMedico,
-        nombrePaciente,
         clavepaciente,
       };
 

@@ -175,22 +175,34 @@ const DatosAdicionales = ({
       )}
 
       {subPantalla === "Pase a Especialidad" && (
-        <PaseEspecialidad
-          claveConsulta={claveConsulta}
-          pasarEspecialidad={pasarEspecialidad}
-          setPasarEspecialidad={setPasarEspecialidad}
-          especialidadSeleccionada={especialidadSeleccionada}
-          setEspecialidadSeleccionada={setEspecialidadSeleccionada}
-          observaciones={observaciones}
-          setObservaciones={setObservaciones}
-          setFormularioCompleto={setFormularioCompleto}
-          clavepaciente={clavepaciente} 
-        />
+        <>
+          {console.log("Datos antes de enviar a PaseEspecialidad:", {
+            claveConsulta,
+            pasarEspecialidad,
+            especialidadSeleccionada,
+            observaciones,
+            clavepaciente,
+            clavenomina: numeroDeNomina,
+          })}
+
+          <PaseEspecialidad
+            claveConsulta={claveConsulta}
+            pasarEspecialidad={pasarEspecialidad}
+            setPasarEspecialidad={setPasarEspecialidad}
+            especialidadSeleccionada={especialidadSeleccionada}
+            setEspecialidadSeleccionada={setEspecialidadSeleccionada}
+            observaciones={observaciones}
+            setObservaciones={setObservaciones}
+            setFormularioCompleto={setFormularioCompleto}
+            clavepaciente={clavepaciente}
+            clavenomina={numeroDeNomina}
+          />
+        </>
       )}
 
       {subPantalla === "Incapacidades" && (
         <Incapacidades
-        clavenomina={numeroDeNomina}
+          clavenomina={numeroDeNomina}
           nombrePaciente={nombrePaciente}
           clavepaciente={clavepaciente}
           claveConsulta={claveConsulta}
@@ -201,7 +213,7 @@ const DatosAdicionales = ({
       {subPantalla === "Historial de Consultas" && (
         <HistorialConsultas
           clavenomina={numeroDeNomina}
-          clavepaciente={clavepaciente} 
+          clavepaciente={clavepaciente}
           nombrePaciente={nombrePaciente}
         />
       )}
@@ -209,7 +221,6 @@ const DatosAdicionales = ({
       {subPantalla === "Padecimientos Críticos" && (
         <EnfermedadesCronicas
           clavenomina={numeroDeNomina}
-          nombrepaciente={nombrePaciente}
           clavepaciente={clavepaciente}
         />
       )}

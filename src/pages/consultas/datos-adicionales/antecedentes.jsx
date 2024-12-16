@@ -8,7 +8,7 @@ import Pusher from "pusher-js";
 
 const MySwal = withReactContent(Swal);
 
-const Antecedentes = ({ clavenomina, nombrePaciente, clavepaciente }) => {
+const Antecedentes = ({ clavenomina, clavepaciente }) => {
   const [descripcion, setDescripcion] = useState("");
   const [tipoAntecedente, setTipoAntecedente] = useState("");
   const [fechaInicioEnfermedad, setFechaInicioEnfermedad] = useState(null);
@@ -125,7 +125,6 @@ const Antecedentes = ({ clavenomina, nombrePaciente, clavepaciente }) => {
         body: JSON.stringify({
           descripcion,
           clavenomina,
-          nombrePaciente,
           clavepaciente,
           tipoAntecedente,
           fechaInicioEnfermedad,

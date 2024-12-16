@@ -10,7 +10,6 @@ export default async function handler(req, res) {
   const {
     descripcion,
     clavenomina,
-    nombrePaciente,
     clavepaciente,
     tipoAntecedente,
     fechaInicioEnfermedad,
@@ -19,7 +18,6 @@ export default async function handler(req, res) {
   if (
     !descripcion ||
     !clavenomina ||
-    !nombrePaciente ||
     !clavepaciente ||
     !tipoAntecedente ||
     !fechaInicioEnfermedad
@@ -35,13 +33,12 @@ export default async function handler(req, res) {
       .request()
       .input("descripcion", sql.NVarChar(sql.MAX), descripcion)
       .input("clavenomina", sql.NVarChar(sql.MAX), clavenomina)
-      .input("nombre_paciente", sql.NVarChar(sql.MAX), nombrePaciente)
       .input("clavepaciente", sql.NVarChar(sql.MAX), clavepaciente)
       .input("tipo_antecedente", sql.NVarChar(sql.MAX), tipoAntecedente)
       .input("fecha_inicio_enfermedad", sql.DateTime, fechaInicioEnfermedad)
       .query(`
-        INSERT INTO antecedentes_clinicos (descripcion, clavenomina, clavepaciente, nombre_paciente, tipo_antecedente, fecha_inicio_enfermedad)
-        VALUES (@descripcion, @clavenomina, @clavepaciente, @nombre_paciente, @tipo_antecedente, @fecha_inicio_enfermedad)
+        INSERT INTO antecedentes_clinicos (descripcion, clavenomina, clavepaciente, tipo_antecedente, fecha_inicio_enfermedad)
+        VALUES (@descripcion, @clavenomina, @clavepaciente, @tipo_antecedente, @fecha_inicio_enfermedad)
       `);
 
     //* Obtener el historial actualizado
@@ -49,7 +46,7 @@ export default async function handler(req, res) {
       .request()
       .input("clavenomina", sql.NVarChar(sql.MAX), clavenomina)
       .input("clavepaciente", sql.NVarChar(sql.MAX), clavepaciente).query(`
-        SELECT id_antecedente, descripcion, clavenomina, nombre_paciente, tipo_antecedente, fecha_registro, fecha_inicio_enfermedad
+        SELECT id_antecedente, descripcion, clavenomina, tipo_antecedente, fecha_registro, fecha_inicio_enfermedad
         FROM antecedentes_clinicos
         WHERE clavenomina = @clavenomina
           AND clavepaciente = @clavepaciente

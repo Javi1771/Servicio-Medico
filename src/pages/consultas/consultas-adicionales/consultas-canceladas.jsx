@@ -30,7 +30,7 @@ const ConsultasCanceladas = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch("/api/pacientes-consultas/consultasHoy?clavestatus=3");
+      const response = await fetch("/api/pacientes-consultas/consultasHoy?clavestatus=0");
       const data = await response.json();
       if (response.ok) {
         actualizarPacientes(data.consultas || []);
