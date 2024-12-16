@@ -27,6 +27,7 @@ const Diagnostico = () => {
   const subPantallaRef = useRef(null);
   const [nombreMedico, setNombreMedico] = useState("Cargando...");
   const [claveEspecialidad, setClaveEspecialidad] = useState("");
+  const [claveusuario, setClaveusuario] = useState("");
   const [claveConsulta, setClaveConsulta] = useState("");
   const [fecha, setFecha] = useState("");
   const [diagnostico, setDiagnostico] = useState("");
@@ -74,6 +75,10 @@ const Diagnostico = () => {
     const especialidad = Cookies.get("claveespecialidad");
     console.log("Clave especialidad: ", especialidad);
     setClaveEspecialidad(especialidad || "No especificado");
+
+    const claveusuario = Cookies.get("claveusuario");
+    console.log("Clave claveusuario: ", claveusuario);
+    setClaveusuario(claveusuario || "No especificado");
   }, []);
 
   //* Verifica si todos los campos requeridos están completos
@@ -115,7 +120,7 @@ const Diagnostico = () => {
     cargarPacientesDelDia();
   }, []);
 
-  //* Actualiza clavestatus a 3 solo si la consulta no ha sido guardada al recargar o cerrar
+  //* Actualiza clavestatus a 0 solo si la consulta no ha sido guardada al recargar o cerrar
   useEffect(() => {
     const updateStatusOnUnload = () => {
       if (
@@ -125,7 +130,7 @@ const Diagnostico = () => {
         fetch("/api/pacientes-consultas/actualizarClavestatus", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ claveConsulta, clavestatus: 3 }),
+          body: JSON.stringify({ claveConsulta, clavestatus: 0 }), //! Cambiar de 3 a 0
         });
       }
     };
@@ -136,7 +141,7 @@ const Diagnostico = () => {
     };
   }, [claveConsulta]);
 
-  //* Actualiza clavestatus a 3 si el usuario regresa a una ventana anterior sin guardar, solo si no se ha guardado exitosamente
+  //* Actualiza clavestatus a 0 si el usuario regresa a una ventana anterior sin guardar, solo si no se ha guardado exitosamente
   useEffect(() => {
     const updateStatusIfNotSaved = async () => {
       if (pacienteSeleccionado && !guardadoExitoso) {
@@ -145,7 +150,7 @@ const Diagnostico = () => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             claveConsulta,
-            clavestatus: 3,
+            clavestatus: 0,
           }),
         });
       }
@@ -171,16 +176,15 @@ const Diagnostico = () => {
     });
 
     channel.bind("estatus-actualizado", (data) => {
-      console.log("[INFO] Estatus actualizado recibido de Pusher:", data);
       setPacientes((prevPacientes) => {
-        //* Filtra la consulta si está cancelada o finalizada
-        if (data.clavestatus === 3 || data.clavestatus === 4) {
+        //* Filtrar la consulta si está cancelada o finalizada
+        if (data.clavestatus === 0 || data.clavestatus === 2) {
           return prevPacientes.filter(
             (paciente) => paciente.claveconsulta !== data.claveConsulta
           );
         }
 
-        //* Actualiza la consulta si ya existe
+        //* Actualizar la consulta si ya existe
         const index = prevPacientes.findIndex(
           (paciente) => paciente.claveconsulta === data.claveConsulta
         );
@@ -313,7 +317,7 @@ const Diagnostico = () => {
   };
 
   const handlePacienteClick = async (paciente) => {
-    console.log("Datos del paciente seleccionado:", paciente); 
+    console.log("Datos del paciente seleccionado:", paciente);
     setPacienteSeleccionado(paciente);
     setMostrarEmergente(true);
     setClaveConsulta(paciente.claveconsulta);
@@ -354,58 +358,6 @@ const Diagnostico = () => {
     }
 
     await obtenerDatosEmpleado(paciente.clavenomina);
-
-    try {
-      const response = await fetch(
-        "/api/pacientes-consultas/actualizarClavestatus",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            claveConsulta: paciente.claveconsulta,
-            clavestatus: 2,
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Error al actualizar clavestatus.");
-      }
-
-      setPacientes((prevPacientes) =>
-        prevPacientes.map((p) =>
-          p.claveconsulta === paciente.claveconsulta
-            ? { ...p, clavestatus: 2 }
-            : p
-        )
-      );
-
-      //* Desplazarse suavemente hacia la subpantalla con animación elegante
-      subPantallaRef.current?.scrollIntoView({
-        behavior: "smooth", // Animación suave
-        block: "start", // Alineación al inicio de la subpantalla
-      });
-    } catch (error) {
-      console.error(
-        "Error al actualizar clavestatus al seleccionar paciente:",
-        error
-      );
-
-      MySwal.fire({
-        icon: "error",
-        title:
-          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error al seleccionar paciente</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>Ocurrió un problema al seleccionar el paciente. Inténtalo nuevamente.</p>",
-        background: "linear-gradient(145deg, #4a0000, #220000)",
-        confirmButtonColor: "#ff1744",
-        confirmButtonText:
-          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-        },
-      });
-    }
   };
 
   //* Función de guardado que actualiza clavestatus a 4 solo al guardar exitosamente
@@ -456,7 +408,7 @@ const Diagnostico = () => {
         }
       }
 
-      //* Actualizar el clavestatus a 4
+      //* Actualizar el clavestatus a 2
       const responseStatus = await fetch(
         "/api/pacientes-consultas/actualizarClavestatus",
         {
@@ -464,7 +416,7 @@ const Diagnostico = () => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             claveConsulta: datos.claveConsulta,
-            clavestatus: 4,
+            clavestatus: 2,
           }),
         }
       );
@@ -521,13 +473,13 @@ const Diagnostico = () => {
 
   const handleCancelar = async () => {
     try {
-      //* Actualiza en la base de datos clavestatus a 3 y limpia otros campos
+      //* Actualiza en la base de datos clavestatus a 0 y limpia otros campos
       await fetch("/api/pacientes-consultas/actualizarClavestatus", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           claveConsulta,
-          clavestatus: 3,
+          clavestatus: 0,
         }),
       });
 
@@ -764,7 +716,7 @@ const Diagnostico = () => {
               observaciones={observaciones}
               setObservaciones={setObservaciones}
               numeroDeNomina={pacienteSeleccionado?.clavenomina}
-              clavepaciente={pacienteSeleccionado?.clavepaciente} 
+              clavepaciente={pacienteSeleccionado?.clavepaciente}
               nombrePaciente={pacienteSeleccionado?.nombrepaciente}
               nombreMedico={nombreMedico}
               claveEspecialidad={claveEspecialidad}

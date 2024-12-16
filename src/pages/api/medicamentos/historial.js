@@ -26,7 +26,6 @@ export default async function handler(req, res) {
           mp.claveconsulta,
           mp.clavepaciente,
           mp.id_especialidad AS claveespecialidad,
-          mp.nombre_medico,
           c.diagnostico,
           c.motivoconsulta
         FROM [PRESIDENCIA].[dbo].[MEDICAMENTO_PACIENTE] mp

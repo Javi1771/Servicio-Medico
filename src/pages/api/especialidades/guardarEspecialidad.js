@@ -8,40 +8,74 @@ export default async function handler(req, res) {
       claveConsulta,
       claveEspecialidad,
       observaciones,
+      clavenomina,
       prioridad,
       clavepaciente,
     } = req.body;
 
-    if (!claveConsulta || !clavepaciente) {
+    console.log("Datos recibidos en la solicitud:", {
+      claveConsulta,
+      claveEspecialidad,
+      observaciones,
+      clavenomina,
+      prioridad,
+      clavepaciente,
+    });
+
+    //* Validar datos obligatorios
+    if (
+      !claveConsulta ||
+      !clavenomina ||
+      !clavepaciente
+    ) {
+      console.error("Datos incompletos:", {
+        claveConsulta,
+        claveEspecialidad,
+        observaciones,
+        clavenomina,
+        prioridad,
+        clavepaciente,
+      });
       return res.status(400).json({ message: "Datos incompletos." });
     }
 
     try {
       const pool = await connectToDatabase();
+
       const estatus = 1;
       const fechaRegistro = new Date().toISOString();
+
+      //* Convertir claveEspecialidad a null si no se asigna
       const claveEspecialidadFinal =
         claveEspecialidad === "N" ? null : claveEspecialidad;
 
+      console.log("Insertando en la tabla detalleEspecialidad...");
       await pool
         .request()
         .input("claveconsulta", sql.Int, claveConsulta)
-        .input("claveespecialidad", sql.Int, claveEspecialidadFinal)
-        .input("observaciones", sql.Text, observaciones || "Sin Observaciones")
+        .input("clavenomina", sql.NVarChar, clavenomina)
+        .input("claveespecialidad", sql.Int, claveEspecialidadFinal) //! NULL si no hay especialidad
+        .input(
+          "observaciones",
+          sql.Text,
+          observaciones ||
+            "Sin Observaciones, No Se Asignó Especialidad En Esta Consulta"
+        )
         .input("prioridad", sql.NVarChar, prioridad || "N/A")
         .input("estatus", sql.Int, estatus)
         .input("fecha_asignacion", sql.DateTime, fechaRegistro)
         .input("clavepaciente", sql.Int, clavepaciente).query(`
           INSERT INTO detalleEspecialidad 
-          (claveconsulta, claveespecialidad, observaciones, prioridad, estatus, fecha_asignacion, clavepaciente)
+          (claveconsulta, clavenomina, claveespecialidad, observaciones, prioridad, estatus, fecha_asignacion, clavepaciente)
           VALUES 
-          (@claveconsulta, @claveespecialidad, @observaciones, @prioridad, @estatus, @fecha_asignacion, @clavepaciente)
+          (@claveconsulta, @clavenomina, @claveespecialidad, @observaciones, @prioridad, @estatus, @fecha_asignacion, @clavepaciente)
         `);
 
+      console.log("Actualizando la tabla consultas...");
       await pool
         .request()
         .input("claveconsulta", sql.Int, claveConsulta)
-        .input("claveespecialidad", sql.Int, claveEspecialidadFinal)
+        .input("claveespecialidad", sql.Int, claveEspecialidadFinal) //! NULL si no hay especialidad
         .input(
           "seasignoaespecialidad",
           sql.NVarChar,
@@ -49,33 +83,39 @@ export default async function handler(req, res) {
         ).query(`
           UPDATE consultas
           SET 
-            seasignoaespecialidad = @seasignoaespecialidad,
-            especialidadinterconsulta = @claveespecialidad
+            seasignoaespecialidad = @seasignoaespecialidad
           WHERE claveconsulta = @claveconsulta;
         `);
 
+      console.log("Obteniendo historial actualizado...");
       const result = await pool
         .request()
-        .input("clavepaciente", sql.Int, clavepaciente).query(`
+        .input("clavenomina", sql.NVarChar, clavenomina).query(`
           SELECT 
             d.claveconsulta,
             ISNULL(e.especialidad, 'Sin asignar') AS especialidad,
             d.prioridad,
             d.observaciones,
-            FORMAT(DATEADD(HOUR, -5, d.fecha_asignacion), 'yyyy-MM-dd HH:mm:ss') AS fecha_asignacion
+            FORMAT(DATEADD(HOUR, -5, d.fecha_asignacion), 'yyyy-MM-dd HH:mm:ss') AS fecha_asignacion,
+            d.clavepaciente
           FROM detalleEspecialidad d
           LEFT JOIN especialidades e ON d.claveespecialidad = e.claveespecialidad
           WHERE 
-            d.clavepaciente = @clavepaciente
+            d.clavenomina = @clavenomina
+            AND d.fecha_asignacion >= DATEADD(MONTH, -1, GETDATE()) 
           ORDER BY d.fecha_asignacion DESC
         `);
 
       const historial = result.recordset;
 
+      console.log("Historial filtrado al último mes:", historial);
+
+      console.log("Disparando evento Pusher...");
       await pusher.trigger("especialidades-channel", "especialidades-updated", {
         clavepaciente,
-        historial,
+        historial, // Asegúrate de que este objeto esté completo
       });
+      
 
       res.status(200).json({
         message: "Especialidad guardada correctamente y evento emitido.",

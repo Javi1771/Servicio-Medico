@@ -16,6 +16,7 @@ const PaseEspecialidad = ({
   setObservaciones,
   setFormularioCompleto,
   clavepaciente,
+  clavenomina,
 }) => {
   const [especialidades, setEspecialidades] = useState([]);
   const [prioridad, setPrioridad] = useState("");
@@ -44,9 +45,9 @@ const PaseEspecialidad = ({
   //* Cargar historial desde el backend
   useEffect(() => {
     const fetchHistorialEspecialidades = async () => {
-      if (!claveConsulta && !clavepaciente) {
+      if (!clavenomina && !clavepaciente) {
         console.warn(
-          "claveConsulta y Clavepaciente no están definidos, evitando llamada a la API."
+          "Clavenomina y Clavepaciente no están definidos, evitando llamada a la API."
         );
         setHistorialEspecialidades([]);
         setIsLoading(false);
@@ -56,7 +57,7 @@ const PaseEspecialidad = ({
       setIsLoading(true); //* Comienza el proceso de carga
       try {
         const params = new URLSearchParams();
-        if (claveConsulta) params.append("claveConsulta", claveConsulta);
+        if (clavenomina) params.append("clavenomina", clavenomina);
         if (clavepaciente) params.append("clavepaciente", clavepaciente);
 
         const url = `/api/especialidades/historial?${params.toString()}`;
@@ -78,7 +79,6 @@ const PaseEspecialidad = ({
               year: "numeric",
             }),
             especialidad: item.especialidad || "Sin asignar",
-            nombre_medico: item.nombre_medico,
           }));
           setHistorialEspecialidades(historialFormateado); //* Actualiza el estado con los datos formateados
         }
@@ -90,11 +90,11 @@ const PaseEspecialidad = ({
       }
     };
 
-    //* Llamada inicial para cargar historial solo si claveConsulta o clavepaciente están definidos
-    if (claveConsulta || clavepaciente) {
+    //* Llamada inicial para cargar historial solo si clavenomina o clavepaciente están definidos
+    if (clavenomina || clavepaciente) {
       fetchHistorialEspecialidades();
     }
-  }, [claveConsulta, clavepaciente]);
+  }, [clavenomina, clavepaciente]);
 
   useEffect(() => {
     const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY, {
@@ -185,6 +185,7 @@ const PaseEspecialidad = ({
         pasarEspecialidad === "si" ? especialidadSeleccionada : null,
       observaciones: pasarEspecialidad === "si" ? observaciones : null,
       prioridad: pasarEspecialidad === "si" ? prioridad : null,
+      clavenomina,
       clavepaciente,
     };
 
@@ -314,6 +315,7 @@ const PaseEspecialidad = ({
                 claveEspecialidad: null,
                 observaciones: null,
                 prioridad: null,
+                clavenomina,
                 clavepaciente,
               };
 
@@ -572,9 +574,6 @@ const PaseEspecialidad = ({
                 <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
                   Fecha de Asignación
                 </th>
-                <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
-                  Nombre del Médico que Asignó la Especialidad
-                </th>
               </tr>
             </thead>
             <tbody>
@@ -605,9 +604,6 @@ const PaseEspecialidad = ({
                     </td>
                     <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
                       {item.fecha_asignacion}
-                    </td>
-                    <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
-                      {item.nombre_medico}
                     </td>
                   </tr>
                 ))

@@ -19,9 +19,7 @@ const formatearFecha = (fecha) => {
 
 const Medicamentos = ({
   clavenomina,
-  nombrePaciente,
   clavepaciente,
-  nombreMedico,
   claveConsulta,
   claveEspecialidad,
 }) => {
@@ -136,11 +134,9 @@ const Medicamentos = ({
         ) {
           const datos = {
             ...med,
-            nombrePaciente,
             clavenomina,
             claveConsulta,
             fecha: fechaActual,
-            nombreMedico,
             clavepaciente,
             claveEspecialidad,
           };
@@ -385,9 +381,6 @@ const Medicamentos = ({
                 <th className="p-4 text-sm font-semibold text-left">
                   Especialidad del Médico
                 </th>
-                <th className="p-4 text-sm font-semibold text-left">
-                  Nombre del Médico
-                </th>
               </tr>
             </thead>
             <tbody>
@@ -421,9 +414,6 @@ const Medicamentos = ({
                     </td>
                     <td className="p-4 border-t border-gray-800">
                       {h.nombre_especialidad || "No asignado"}
-                    </td>
-                    <td className="p-4 border-t border-gray-800">
-                      {h.nombre_medico || "N/A"}
                     </td>
                   </tr>
                 ))

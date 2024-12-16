@@ -11,27 +11,16 @@ export default async function handler(req, res) {
 
   const {
     claveConsulta,
-    noNomina,
+    clavenomina,
     fechaInicial,
     fechaFinal,
     diagnostico,
-    nombreMedico,
-    nombrePaciente,
     clavepaciente,
   } = req.body;
 
-  if (
-    !claveConsulta ||
-    !noNomina ||
-    !nombreMedico ||
-    !nombrePaciente ||
-    !clavepaciente
-  ) {
+  if ( !clavenomina || !clavepaciente) {
     const datosFaltantes = [];
-    if (!claveConsulta) datosFaltantes.push("claveConsulta");
-    if (!noNomina) datosFaltantes.push("noNomina");
-    if (!nombreMedico) datosFaltantes.push("nombreMedico");
-    if (!nombrePaciente) datosFaltantes.push("nombrePaciente");
+    if (!clavenomina) datosFaltantes.push("clavenomina");
     if (!clavepaciente) datosFaltantes.push("clavepaciente");
 
     console.error("Faltan datos obligatorios:", datosFaltantes);
@@ -49,57 +38,50 @@ export default async function handler(req, res) {
   try {
     const pool = await connectToDatabase();
 
-    const medicoResult = await pool
-      .request()
-      .input("nombreMedico", sql.NVarChar, nombreMedico).query(`
-        SELECT claveusuario 
-        FROM USUARIOS 
-        WHERE nombreusuario = @nombreMedico
-      `);
-
-    if (medicoResult.recordset.length === 0) {
-      return res.status(404).json({ message: "Médico no encontrado." });
-    }
-
-    const claveMedico = medicoResult.recordset[0].claveusuario;
-
+    // Inserción de la incapacidad
+    const insertQuery = `
+      INSERT INTO detalleIncapacidad 
+      (claveConsulta, clavenomina, fechaInicial, fechaFinal, diagnostico, estatus, clavepaciente)
+      VALUES (@claveConsulta, @clavenomina, @fechaInicial, @fechaFinal, @diagnostico, @estatus, @clavepaciente)
+    `;
     await pool
       .request()
       .input("claveConsulta", sql.Int, claveConsulta)
-      .input("noNomina", sql.NVarChar, noNomina)
+      .input("clavenomina", sql.NVarChar, clavenomina)
       .input("fechaInicial", sql.DateTime, fechaInicialFinal)
       .input("fechaFinal", sql.DateTime, fechaFinalFinal)
       .input("diagnostico", sql.Text, diagnosticoFinal)
-      .input("estatus", sql.Int, 1)
-      .input("claveMedico", sql.Int, claveMedico)
-      .input("nombrePaciente", sql.NText, nombrePaciente)
-      .input("clavepaciente", sql.Int, clavepaciente).query(`
-        INSERT INTO detalleIncapacidad 
-        (claveConsulta, noNomina, fechaInicial, fechaFinal, diagnostico, estatus, claveMedico, nombrePaciente, clavepaciente)
-        VALUES (@claveConsulta, @noNomina, @fechaInicial, @fechaFinal, @diagnostico, @estatus, @claveMedico, @nombrePaciente, @clavepaciente)
-      `);
+      .input("estatus", sql.Int, 1) // 1: Activo
+      .input("clavepaciente", sql.Int, clavepaciente)
+      .query(insertQuery);
 
-    console.log("Obteniendo historial actualizado...");
+    console.log("Incapacidad guardada exitosamente en la base de datos");
+
+    // Obtener el historial actualizado
+    const queryHistorial = `
+      SELECT 
+        idDetalleIncapacidad,
+        claveConsulta,
+        fechaInicial,
+        fechaFinal,
+        diagnostico,
+        clavepaciente
+      FROM detalleIncapacidad
+      WHERE clavenomina = @clavenomina
+        AND clavepaciente = @clavepaciente
+      ORDER BY idDetalleIncapacidad DESC
+    `;
     const result = await pool
       .request()
-      .input("clavepaciente", sql.Int, clavepaciente).query(`
-        SELECT 
-          idDetalleIncapacidad,
-          claveConsulta,
-          fechaInicial,
-          fechaFinal,
-          diagnostico,
-          nombrePaciente,
-          clavepaciente
-        FROM detalleIncapacidad
-        WHERE clavepaciente = @clavepaciente
-        ORDER BY idDetalleIncapacidad DESC
-      `);
+      .input("clavenomina", sql.NVarChar, clavenomina)
+      .input("clavepaciente", sql.Int, clavepaciente)
+      .query(queryHistorial);
 
     const historial = result.recordset;
 
     console.log("Historial actualizado:", historial);
 
+    // Emitir evento Pusher
     console.log("Disparando evento Pusher...");
     await pusher.trigger("incapacidades-channel", "incapacidades-updated", {
       clavepaciente,
@@ -107,7 +89,9 @@ export default async function handler(req, res) {
         ...item,
         claveConsulta: item.claveConsulta || "Sin clave",
         diagnostico: item.diagnostico || "Sin diagnóstico",
-        fechaInicial: item.fechaInicial ? item.fechaInicial.toISOString() : null,
+        fechaInicial: item.fechaInicial
+          ? item.fechaInicial.toISOString()
+          : null,
         fechaFinal: item.fechaFinal ? item.fechaFinal.toISOString() : null,
       })),
     });

@@ -6,7 +6,7 @@ import Pusher from "pusher-js";
 import { AiOutlineUserAdd } from "react-icons/ai";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
-import AtendiendoActualmente from "./consultas-adicionales/atendiendo-actualmente";
+//import AtendiendoActualmente from "./consultas-adicionales/atendiendo-actualmente";
 import ConsultasCanceladas from "./consultas-adicionales/consultas-canceladas";
 import ConsultasAtendidas from "./consultas-adicionales/consultas-atendidas";
 
@@ -126,7 +126,7 @@ const SignosVitales = () => {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ claveConsulta, clavestatus: 4 }),
+          body: JSON.stringify({ claveConsulta, clavestatus: 1 }),
         }
       );
 
@@ -134,7 +134,7 @@ const SignosVitales = () => {
         throw new Error("Error al actualizar el estatus");
       }
 
-      console.log("Clave de estatus actualizada correctamente a 4");
+      console.log("Clave de estatus actualizada correctamente a 2");
       MySwal.fire({
         icon: "success",
         title:
@@ -499,8 +499,7 @@ const SignosVitales = () => {
       setPacientes((prevPacientes) => {
         // Filtrar si la consulta cambia de estado y ya no pertenece a la lista de espera
         if (
-          data.clavestatus === 3 ||
-          data.clavestatus === 4 ||
+          data.clavestatus === 0 ||
           data.clavestatus === 2
         ) {
           return prevPacientes.filter(
@@ -609,9 +608,9 @@ const SignosVitales = () => {
         </div>
 
         {/* Renderizar cada tabla de estado específico con el mismo ancho y espaciado */}
-        <div className="w-full overflow-x-auto p-6 bg-gradient-to-b from-gray-900 to-gray-800 rounded-xl shadow-lg mb-8">
+        {/* <div className="w-full overflow-x-auto p-6 bg-gradient-to-b from-gray-900 to-gray-800 rounded-xl shadow-lg mb-8">
           <AtendiendoActualmente data={atendiendoActualmente} />
-        </div>
+        </div> */}
         <div className="w-full overflow-x-auto p-6 bg-gradient-to-b from-gray-900 to-gray-800 rounded-xl shadow-lg mb-8">
           <ConsultasCanceladas data={consultasCanceladas} />
         </div>

@@ -9,7 +9,6 @@ export default async function handler(req, res) {
     id_enf_cronica,
     clavenomina,
     clavepaciente,
-    nombre_paciente,
     valor_actual,
     valor_objetivo,
     calificacion,
@@ -22,7 +21,6 @@ export default async function handler(req, res) {
   console.log("id_enf_cronica:", id_enf_cronica);
   console.log("clavenomina:", clavenomina);
   console.log("clavepaciente:", clavepaciente);
-  console.log("nombre_paciente:", nombre_paciente);  
   console.log("valor_actual:", valor_actual);
   console.log("valor_objetivo:", valor_objetivo);
   console.log("calificacion:", calificacion);
@@ -34,7 +32,6 @@ export default async function handler(req, res) {
     !id_enf_cronica ||
     !clavenomina ||
     !clavepaciente ||
-    !nombre_paciente ||  
     valor_actual === undefined ||
     valor_objetivo === undefined
   ) {
@@ -42,7 +39,6 @@ export default async function handler(req, res) {
       id_enf_cronica,
       clavenomina,
       clavepaciente,
-      nombre_paciente,
       valor_actual,
       valor_objetivo,
     });
@@ -52,14 +48,13 @@ export default async function handler(req, res) {
   try {
     const pool = await connectToDatabase();
     const query = `
-      INSERT INTO REGISTROS_KPIS (clavenomina, nombre_paciente, valor_actual, valor_objetivo, calificacion, fecha_registro, observaciones, id_enf_cronica, valor_alcanzado, clavepaciente)
-      VALUES (@clavenomina, @nombre_paciente, @valor_actual, @valor_objetivo, @calificacion, GETDATE(), @observaciones, @id_enf_cronica, @valor_alcanzado, @clavepaciente)
+      INSERT INTO REGISTROS_KPIS (clavenomina, valor_actual, valor_objetivo, calificacion, fecha_registro, observaciones, id_enf_cronica, valor_alcanzado, clavepaciente)
+      VALUES (@clavenomina, @valor_actual, @valor_objetivo, @calificacion, GETDATE(), @observaciones, @id_enf_cronica, @valor_alcanzado, @clavepaciente)
     `;
 
     await pool
       .request()
       .input("id_enf_cronica", id_enf_cronica)
-      .input("nombre_paciente", nombre_paciente)
       .input("clavenomina", clavenomina)
       .input("clavepaciente", clavepaciente)
       .input("valor_actual", valor_actual)

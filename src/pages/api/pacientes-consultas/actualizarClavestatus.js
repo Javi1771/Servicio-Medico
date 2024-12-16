@@ -11,8 +11,16 @@ export default async function handler(req, res) {
 
   const { claveConsulta, clavestatus } = req.body;
 
-  if (!claveConsulta || !clavestatus) {
+  // Validar que los datos estén completos
+  if (!claveConsulta || clavestatus === undefined) {
     return res.status(400).json({ message: "Datos incompletos." });
+  }
+
+  // Validar valores permitidos para clavestatus
+  if (![0, 1, 2].includes(clavestatus)) {
+    return res.status(400).json({
+      message: "El valor de clavestatus no es válido. Solo se permiten 0, 1 y 2.",
+    });
   }
 
   const requestKey = `${claveConsulta}-${clavestatus}`;
@@ -25,7 +33,7 @@ export default async function handler(req, res) {
   try {
     const pool = await connectToDatabase();
 
-    //* Obtener todos los datos relevantes
+    // Obtener la consulta actual desde la base de datos
     const consultaActual = await pool
       .request()
       .input("claveconsulta", sql.Int, claveConsulta)
@@ -41,13 +49,14 @@ export default async function handler(req, res) {
 
     const estadoActual = consultaActual.recordset[0];
 
-    //! Evitar actualizaciones inválidas
-    if (estadoActual.clavestatus === 4 && clavestatus === 3) {
+    // Evitar actualizaciones inválidas
+    if (estadoActual.clavestatus === 2 && clavestatus === 0) {
       return res.status(400).json({
         message: "No se puede cambiar de atendida a cancelada.",
       });
     }
 
+    // Actualizar el clavestatus en la base de datos
     await pool
       .request()
       .input("claveconsulta", sql.Int, claveConsulta)
@@ -58,7 +67,7 @@ export default async function handler(req, res) {
         WHERE claveconsulta = @claveconsulta
       `);
 
-    //* Construir el payload completo para Pusher
+    // Construir el payload para Pusher
     const payload = {
       claveConsulta,
       clavestatus,
@@ -71,6 +80,7 @@ export default async function handler(req, res) {
 
     const pusherUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/pusher`;
 
+    // Enviar el evento a Pusher
     await axios.post(pusherUrl, {
       channel: "consultas",
       event: "estatus-actualizado",
