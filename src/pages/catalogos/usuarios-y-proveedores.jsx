@@ -6,7 +6,6 @@ import Swal from "sweetalert2";
 import Image from "next/image"; // Asegúrate de importar Image desde next/image
 import { useRouter } from "next/router";
 import { arrayAsString } from "pdf-lib";
-import Cookies from "js-cookie"; // Asegúrate de tener instalada esta librería
 
 export default function UsuariosTable() {
   const [usuarios, setUsuarios] = useState([]);
@@ -16,10 +15,7 @@ export default function UsuariosTable() {
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [showModal, setShowModal] = useState(false);
-
-  // Declara los estados
-  const [nombreMedico, setNombreMedico] = useState("");
-  const [claveEspecialidad, setClaveEspecialidad] = useState("");
+  
 
   const [showPassword, setShowPassword] = useState(false); // Estado para el ojo de visibilidad
   const togglePasswordVisibility = () => {
@@ -37,12 +33,10 @@ export default function UsuariosTable() {
     usuario: "",
     password: "",
     clavetipousuario: "",
-    costoconsulta: "", // Añadido aquí
   });
 
   const [selectedUsuario, setSelectedUsuario] = useState(null); // Estado para el usuario seleccionado
 
-  // useEffect para cargar datos desde la API
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -67,25 +61,13 @@ export default function UsuariosTable() {
         setTiposUsuarios(
           Array.isArray(tiposUsuariosData) ? tiposUsuariosData : []
         ); // Validar que sea un arreglo
-      } catch (error) {
-        console.error("Error al cargar los datos", error);
+      } catch {
         setError("Error al cargar los datos");
       }
     };
 
     fetchData();
-  }, []); // Este efecto se ejecutará solo una vez, al montar el componente
-
-  // useEffect para leer cookies
-  useEffect(() => {
-    const nombre = Cookies.get("nombreusuario"); // Leer cookie de nombre de usuario
-    console.log("Nombre del médico desde cookies:", nombre);
-    setNombreMedico(nombre || "No especificado");
-
-    const especialidad = Cookies.get("claveespecialidad"); // Leer cookie de especialidad
-    console.log("Clave especialidad:", especialidad);
-    setClaveEspecialidad(especialidad || "No especificado");
-  }, []); // Este efecto también se ejecutará solo una vez
+  }, []);
 
   const handleDeleteUser = async (usuario) => {
     const confirmDelete = await Swal.fire({
@@ -97,22 +79,22 @@ export default function UsuariosTable() {
       cancelButtonColor: "#d33",
       confirmButtonText: "Sí, desactivar",
     });
-
+  
     if (confirmDelete.isConfirmed) {
       try {
         const response = await fetch(`/api/eliminarUser?usuario=${usuario}`, {
           method: "PUT",
         });
-
+  
         if (!response.ok) {
           throw new Error("Error al desactivar el usuario");
         }
-
+  
         // Actualizar la lista de usuarios
         const usuariosResponse = await fetch("/api/usuario");
         const usuariosData = await usuariosResponse.json();
         setUsuarios(usuariosData);
-
+  
         Swal.fire("Desactivado", "El usuario ha sido desactivado.", "success");
       } catch (error) {
         console.error("Error al desactivar el usuario:", error);
@@ -120,15 +102,17 @@ export default function UsuariosTable() {
       }
     }
   };
+  
 
   const filteredUsuarios = Array.isArray(usuarios)
-    ? usuarios.filter(
-        (usuario) =>
-          usuario.activo === "S" && // Solo incluir usuarios activos
-          usuario.nombreusuario &&
-          usuario.nombreusuario.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    : [];
+  ? usuarios.filter(
+      (usuario) =>
+        usuario.activo === "S" && // Solo incluir usuarios activos
+        usuario.nombreusuario &&
+        usuario.nombreusuario.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+  : [];
+
 
   const getEspecialidadNombre = (clave) => {
     if (!Array.isArray(especialidades) || especialidades.length === 0) {
@@ -154,7 +138,6 @@ export default function UsuariosTable() {
         usuario: "",
         password: "",
         clavetipousuario: "",
-        costo: "", // Añadido aquí
       });
       setShowPassword(false); // Reinicia la visibilidad de la contraseña
       setSelectedUsuario(null); // Limpiar el usuario seleccionado al cerrar el modal
@@ -163,14 +146,11 @@ export default function UsuariosTable() {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-
     setNewUsuario({
       ...newUsuario,
       [name]:
         name === "claveespecialidad" || name === "clavetipousuario"
           ? parseInt(value, 10)
-          : name === "costoconsulta"
-          ? parseFloat(value) || "" // Convertir a número
           : value,
     });
   };
@@ -181,13 +161,7 @@ export default function UsuariosTable() {
       // Asume que tienes un endpoint que devuelve la contraseña desencriptada
       const response = await fetch(`/api/desencryptar/${usuario.usuario}`);
       const data = await response.json();
-      setNewUsuario({
-        ...usuario,
-        password: data.passwordDesencriptada, // Pone la contraseña desencriptada
-        costoconsulta: usuario.costoconsulta
-          ? parseFloat(usuario.costoconsulta)
-          : 0, // Asegurar valor numérico
-      }); // Pone la contraseña desencriptada
+      setNewUsuario({ ...usuario, password: data.passwordDesencriptada }); // Pone la contraseña desencriptada
     } catch (error) {
       console.error("Error al obtener la contraseña desencriptada", error);
     }
@@ -321,10 +295,10 @@ export default function UsuariosTable() {
         <Image
           src="/baner_sjr.png" // Asegúrate de que esta imagen esté en la carpeta public
           alt="Banner"
-          layout="responsive"
-          width={1920}
-          height={1080}
-          className={styles.banner}
+          layout="responsive" // Mantiene la relación de aspecto
+          width={1920} // Ancho de la imagen
+          height={1080} // Alto de la imagen
+          className={styles.banner} // Clase CSS para la imagena la imagen
         />
         <button onClick={handleBack} className={styles.backButton}>
           Atrás
@@ -336,6 +310,7 @@ export default function UsuariosTable() {
             <p>Usuario agregado o actualizado correctamente</p>
           </div>
         )}
+
         <div className={styles.searchContainer}>
           <input
             type="text"
@@ -350,6 +325,7 @@ export default function UsuariosTable() {
             Agregar Usuario
           </button>
         </div>
+
         <table className={styles.table}>
           <thead>
             <tr>
@@ -407,6 +383,7 @@ export default function UsuariosTable() {
             ))}
           </tbody>
         </table>
+
         {showModal &&
           ReactDOM.createPortal(
             <div className={styles.modalOverlay}>
@@ -459,6 +436,7 @@ export default function UsuariosTable() {
                     onChange={handleInputChange}
                     value={newUsuario.cedulausuario}
                   />
+
                   <label htmlFor="claveespecialidad">Especialidad</label>
                   <select
                     name="claveespecialidad"
@@ -545,20 +523,6 @@ export default function UsuariosTable() {
                       </option>
                     ))}
                   </select>
-
-                  {/* Nueva sección: Costo de consulta */}
-                  <div className={styles.inputContainer}>
-                    <label htmlFor="costoconsulta">Costo de Consulta</label>
-                    <input
-                      type="number"
-                      name="costoconsulta"
-                      placeholder="Ingrese el costo"
-                      onChange={handleInputChange}
-                      value={newUsuario.costoconsulta || ""} // Manejo de valores nulos
-                      min="0"
-                      step="0.01" // Permitir decimales
-                    />
-                  </div>
 
                   <button type="submit" className={styles.formSubmitBtn}>
                     {selectedUsuario ? "Actualizar Usuario" : "Agregar Usuario"}

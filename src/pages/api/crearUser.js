@@ -1,6 +1,8 @@
-import { connectToDatabase } from './connectToDatabase';
+// pages/api/usuario.js
+
+import { connectToDatabase } from './connectToDatabase'; // Asegúrate de que la ruta sea correcta
 import sql from 'mssql';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcrypt'; // Importar bcrypt
 
 export default async function handler(req, res) {
   if (req.method === 'POST') {
@@ -14,17 +16,16 @@ export default async function handler(req, res) {
       claveespecialidad,
       usuario,
       password,
-      clavetipousuario,
-      costoconsulta // Asegúrate de que este campo venga del front-end
+      clavetipousuario 
     } = req.body;
 
     try {
-      const pool = await connectToDatabase();
+      const pool = await connectToDatabase(); // Conectar a la base de datos
 
-      // Encriptar la contraseña
+      // Encriptar la contraseña antes de almacenarla
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      // Inserción de datos con el parámetro corregido
+      // Realizar la inserción con el campo activo por defecto como 'S'
       await pool.request()
         .input('nombreusuario', sql.VarChar, nombreusuario)
         .input('direcciousuario', sql.VarChar, direcciousuario)
@@ -32,17 +33,16 @@ export default async function handler(req, res) {
         .input('telefonousuario', sql.VarChar, telefonousuario)
         .input('celularusuario', sql.VarChar, celularusuario)
         .input('cedulausuario', sql.VarChar, cedulausuario)
-        .input('claveespecialidad', sql.Int, claveespecialidad)
+        .input('claveespecialidad', sql.Int, claveespecialidad) // Asegúrate de que esté en formato entero
         .input('usuario', sql.VarChar, usuario)
-        .input('password', sql.VarChar, hashedPassword)
-        .input('clavetipousuario', sql.Int, clavetipousuario)
-        .input('costo', sql.Money, costoconsulta || 0.0) // Corregido aquí
-        .input('activo', sql.VarChar, 'S')
+        .input('password', sql.VarChar, hashedPassword) // Guardar la contraseña encriptada
+        .input('clavetipousuario', sql.Int, clavetipousuario) // Asegúrate de que esté en formato entero
+        .input('activo', sql.VarChar, 'S') // Establecer el campo activo como 'S'
         .query(`
           INSERT INTO USUARIOS 
-          (nombreusuario, direcciousuario, coloniausuario, telefonousuario, celularusuario, cedulausuario, claveespecialidad, usuario, password, clavetipousuario, costo, activo)
+            (nombreusuario, direcciousuario, coloniausuario, telefonousuario, celularusuario, cedulausuario, claveespecialidad, usuario, password, clavetipousuario, activo)
           VALUES 
-          (@nombreusuario, @direcciousuario, @coloniausuario, @telefonousuario, @celularusuario, @cedulausuario, @claveespecialidad, @usuario, @password, @clavetipousuario, @costo, @activo)
+            (@nombreusuario, @direcciousuario, @coloniausuario, @telefonousuario, @celularusuario, @cedulausuario, @claveespecialidad, @usuario, @password, @clavetipousuario, @activo)
         `);
 
       res.status(201).json({ message: 'Usuario agregado exitosamente' });

@@ -311,94 +311,106 @@
 }
 
 /* Mantener el estilo original del modalContent */
-/* Contenedor general del modal */
 .modalContent {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  position: relative;
   background-color: #2b2f3a;
-  padding: 40px;
+  padding: 20px;
   border-radius: 10px;
-  max-width: 900px;
-  width: 100%;
+  max-width: 800px;
+  width: 90%;
   color: #e1e4eb;
-  display: flex
-;
+  display: flex;
   flex-direction: column;
-  align-items: stretch;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 0 80px rgba(0, 247, 255, 0.155), -46px 42px 79px rgba(0, 166, 255, 0.153), 14px -35px 35px rgba(115, 0, 255, 0.183), 47px 5px 35px rgba(102, 0, 255, 0.146);
+
+  /* Glow Effect */
+  /* Glow Effect */
+  box-shadow: 0 0 80px rgba(0, 247, 255, 0.155),
+    -46px 42px 79px rgba(0, 166, 255, 0.153),
+    14px -35px 35px rgba(115, 0, 255, 0.183), 47px 5px 35px rgba(102, 0, 255, 0.146);
 }
 
-/* Título del modal */
+/* Encabezado del modal */
 .modalHeader {
-  margin-bottom: 15px;
-  font-size: 24px;
+  margin-bottom: 10px;
+  font-size: 1.6em;
   font-weight: bold;
   color: #ffffff;
-  text-align: center;
 }
 
-/* Formulario */
+/* Estilo para el formulario del modal en grid */
 .modalForm {
   display: grid;
-  grid-template-columns: 1fr 1fr; /* Dos columnas iguales */
-  gap: 15px; /* Espaciado entre los elementos */
+  grid-template-columns: 1fr 1fr; /* Dos columnas */
+  gap: 15px; /* Espacio entre inputs */
 }
 
-.modalForm input,
-.modalForm select {
-  width: 100%; /* Ajustar el ancho */
+/* Inputs en la estructura de grid */
+.modalForm input {
+  width: 741px;
   padding: 10px;
-  font-size: 16px;
   border: 1px solid #3c3f51;
   border-radius: 6px;
-  background-color: #323643a8;
-  color: #e1e4eb;
+  background: #3c3f51;
+  color: #ffffff;
+  caret-color: #b3b3b3;
+  outline: none;
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
-.modalForm input:focus,
-.modalForm select:focus {
-  border-color: #00bcd4;
-  background-color: #2b2f3a;
+/* Selector de especialidad y tipo de usuario */
+.modalForm select {
+  width: 100%;
+    padding: 10px;
+    margin: 0;
+    border: 1px solid #2b2f3a;
+    border-radius: 6px;
+    background: #3c3f51;
+    color: #f1f1f1;
+    outline: none;
+    transition: background 0.3s ease, border-color 0.3s ease;
 }
 
-/* Botones del formulario */
+/* Efecto al enfocar los inputs */
+.modalForm input:focus, .modalForm select:focus {
+  border-color: #00bcd4; /* Borde cian al enfocar */
+  background: #333333; /* Fondo ligeramente más oscuro */
+}
+
+/* Hacer que el botón de envío ocupe toda la fila */
 .formSubmitBtn {
-  grid-column: span 2; /* Botón a lo largo de las dos columnas */
+  grid-column: span 2; /* Botón a lo largo de dos columnas */
   padding: 12px;
-  background-color: #28a745; /* Verde */
-  color: white;
+  background-color: #006f1d;
+  color: #fff;
   border: none;
-  border-radius: 6px;
-  font-weight: bold;
+  border-radius: 5px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.3s;
 }
 
 .formSubmitBtn:hover {
-  background-color: #218838;
+  background-color: #0056b3;
 }
 
+/* Estilo para el botón de cerrar */
 .closeButton {
-  grid-column: span 2;
-  padding: 10px;
-  background-color: #dc3545; /* Rojo */
+  grid-column: span 2; /* Cierra modal en fila completa */
+  background-color: #f44336;
   color: white;
+  padding: 10px;
   border: none;
   border-radius: 6px;
-  font-weight: bold;
   cursor: pointer;
+  font-weight: bold;
   margin-top: 15px;
-  transition: background-color 0.3s ease;
+  transition: background 0.3s ease;
 }
 
 .closeButton:hover {
-  background-color: #c82333;
+  background-color: #d32f2f;
 }
-
 
 
 /** ESTILOS MODAL SUCCES USUARIO **/
@@ -834,31 +846,4 @@
   .input[type="text"]:focus {
     max-width: 80%;
   }
-}
-
-
-
-
-
-
-
-.medicoInfo {
-  background-color: #00000025; /* Fondo suave */
-  border: 1px solid #00000025; /* Borde claro */
-  border-radius: 8px;
-  padding: 16px;
-  margin-bottom: 20px;
-  text-align: left;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra ligera */
-}
-
-.medicoInfo p {
-  font-size: 16px;
-  color: #555;
-  margin: 8px 0;
-}
-
-.medicoInfo p span {
-  font-weight: bold;
-  color: #007bff; /* Azul para resaltar los nombres */
 }
