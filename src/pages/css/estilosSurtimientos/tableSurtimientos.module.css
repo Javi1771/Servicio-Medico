@@ -10,7 +10,7 @@
   margin-top: 34px;
   color: #fff;
   text-align: left;
-  background: linear-gradient(to right, rgba(43, 39, 58, 0.59), rgb(30, 30, 45));
+  background:#1e1e2e;
   transition: transform 0.3s ease, box-shadow 0.3s ease; /* Transiciones */
 }
 

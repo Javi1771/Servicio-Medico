@@ -25,6 +25,7 @@ export default function Surtimientos() {
   const { empleadoData, fetchEmpleado } = useFetchEmpleado();
 
   // Manejar la búsqueda del folio de consulta
+  // Función principal para manejar la búsqueda
   const handleSearch = async () => {
     if (!folioConsulta.trim()) {
       alert("Por favor, ingresa un folio de consulta.");
@@ -32,33 +33,18 @@ export default function Surtimientos() {
     }
 
     try {
-      // Paso 1: Obtener el FOLIO_SURTIMIMIENTO
-      const response = await fetch(
-        `/api/surtimientos/getFolioSurtimiento?folioPase=${folioConsulta}`
-      );
-
-      if (!response.ok) {
-        throw new Error("No se pudo obtener el FOLIO_SURTIMIMIENTO.");
-      }
-
-      const { folioSurtimiento } = await response.json();
-      console.log("FOLIO_SURTIMIMIENTO obtenido:", folioSurtimiento);
-
-      // Obtener detalles del surtimiento
+      // 1. Obtener detalles de la receta
       const detallesResponse = await fetch(
-        `/api/surtimientos/getDetallesSurtimiento?folioSurtimiento=${folioSurtimiento}`
+        `/api/surtimientos/getDetallesReceta?folioReceta=${folioConsulta}`
       );
-
       if (!detallesResponse.ok) {
-        throw new Error("No se pudieron obtener los detalles del surtimiento.");
+        throw new Error("No se pudieron obtener los detalles de la receta.");
       }
-
       const detallesData = await detallesResponse.json();
       console.log("Detalles obtenidos:", detallesData);
+      setDetalles(detallesData);
 
-      setDetalles(detallesData); // Actualiza la tabla con los detalles
-
-      // Paso 2: Obtener datos del folio de consulta
+      // 2. Obtener información adicional usando tu hook existente
       const consultaData = await fetchConsulta(folioConsulta);
       if (consultaData) {
         setClaveNomina(consultaData.clavenomina);
@@ -67,10 +53,10 @@ export default function Surtimientos() {
           nombre: consultaData.medico,
           especialidad: consultaData.especialidad,
         });
-        setEspecialidad(consultaData.especialidad);
+        setClaveEspecialidad(consultaData.especialidad);
       }
     } catch (error) {
-      console.error("Error al buscar detalles:", error.message);
+      console.error("Error al buscar información:", error.message);
     }
   };
 
@@ -132,25 +118,28 @@ export default function Surtimientos() {
       <div className={styles.container}>
         <h1 className={styles.title}>Surtimientos</h1>
         {/* Header */}
-        <div className={styles.header}>
-          <div className={styles.searchSection}>
+        <div className={styles.customHeader}>
+          <div className={styles.customSearchSection}>
             <input
               type="text"
               id="folioConsulta"
               value={folioConsulta}
               onChange={(e) => setFolioConsulta(e.target.value)}
               placeholder="Folio de consulta"
-              className={styles.input}
+              className={styles.customInput}
             />
-            <button onClick={handleSearch} className={styles.searchButton}>
+            <button
+              onClick={handleSearch}
+              className={styles.customSearchButton}
+            >
               Buscar
             </button>
           </div>
-          <span className={styles.date}>
+          <span className={styles.customDate}>
             Fecha Actual: {new Date().toLocaleDateString("es-ES")}
           </span>
 
-          <div className={styles.medicoInfo}>
+          <div className={styles.customMedicoInfo}>
             <p>
               <span>Nombre del Médico:</span> {nombreMedico}
             </p>
@@ -194,7 +183,7 @@ export default function Surtimientos() {
               <div className={styles.row}>
                 {/* Información del paciente */}
                 {empleadoData && (
-                  <div className={`${styles.cardContainer} ${styles.card}`}>
+                  <div className={`${styles.cardContainer} ${styles.cardt}`}>
                     <h3 className={styles.cardSubtitle}>
                       Información del Paciente
                     </h3>
@@ -218,18 +207,20 @@ export default function Surtimientos() {
                 )}
 
                 {/* Información de sindicato */}
-                {sindicato && (
-                  <div className={`${styles.sindicatoCard} ${styles.card}`}>
-                    <h3 className={styles.cardSubtitle}>Sindicato</h3>
-                    <p>
-                      <strong>Estado:</strong>{" "}
-                      {sindicato ? "Sindicalizado" : "No Sindicalizado"}
-                    </p>
-                    <p>
-                      <strong>Tipo:</strong> {sindicato || "No registrado"}
-                    </p>
-                  </div>
-                )}
+                <div
+                  className={`${styles.sindicatoCard} ${styles.cardt} ${
+                    sindicato ? styles.sindicalizado : styles.noSindicalizado
+                  }`}
+                >
+                  <h3 className={styles.cardSubtitle}>Sindicato</h3>
+                  <p>
+                    <strong>Estado:</strong>{" "}
+                    {sindicato ? "Sindicalizado" : "No Sindicalizado"}
+                  </p>
+                  <p>
+                    <strong>Tipo:</strong> {sindicato || "No registrado"}
+                  </p>
+                </div>
               </div>
             </div>
           )}
@@ -247,7 +238,8 @@ export default function Surtimientos() {
                   <p>
                     <strong>Nombre:</strong> {medico.nombre || "No disponible"}
                   </p>
-                  <strong>Especialidad:</strong> {especialidadNombre || "No registrada"}
+                  <strong>Especialidad:</strong>{" "}
+                  {especialidadNombre || "No registrada"}
                 </div>
 
                 <div className={styles.diagnosticoField}>
@@ -270,11 +262,10 @@ export default function Surtimientos() {
         {(data || medico) && <MedicamentosForm />}
 
         {/* Tabla de Resultados */}
-        {detalles.length > 0 && (
-          <div>
-            <h2 className={styles.sectionTitle2}>Información de surtimiento</h2>
-            <TablaResultados data={detalles} />
-          </div>
+        {detalles.length > 0 ? (
+          <TablaResultados data={detalles} />
+        ) : (
+          <p>No hay detalles disponibles. Introduce un folio y busca.</p>
         )}
       </div>
     </div>
