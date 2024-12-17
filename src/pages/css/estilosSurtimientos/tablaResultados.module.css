@@ -1,0 +1,111 @@
+/* Contenedor de la tabla */
+.tableContainer {
+  margin: 1rem auto;
+  padding: 1.5rem;
+  background-color: #1e1e2e; /* Fondo oscuro */
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  overflow-x: auto; /* Permite desplazamiento horizontal */
+}
+
+/* Título de la tabla */
+.title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  text-align: center;
+  color: #cdd6f4;
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Estilos generales de la tabla */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  color: #cdd6f4; /* Color del texto */
+  font-size: 0.95rem;
+}
+
+/* Encabezados de la tabla */
+.table thead tr {
+  background-color: #313244;
+  text-align: left;
+}
+
+.table thead th {
+  padding: 0.8rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  color: #f5e0dc;
+  border-bottom: 2px solid #45475a;
+}
+
+/* Filas de la tabla */
+.table tbody tr {
+  background-color: #24273a;
+  transition: background-color 0.3s ease;
+}
+
+.table tbody tr:nth-child(even) {
+  background-color: #303446; /* Color alternado */
+}
+
+.table tbody tr:hover {
+  background-color: #45475a; /* Hover en filas */
+}
+
+/* Celdas de la tabla */
+.table tbody td {
+  padding: 0.8rem;
+  border-bottom: 1px solid #45475a;
+  color: #cdd6f4;
+}
+
+/* Estatus: estilos condicionales */
+.table tbody td:last-child {
+  font-weight: bold;
+  text-align: center;
+}
+
+.table tbody td:last-child::before {
+  content: "✔";
+  color: #a6e3a1; /* Verde */
+  margin-right: 4px;
+}
+
+/* Responsividad */
+@media (max-width: 768px) {
+  .table thead {
+    display: none; /* Ocultar encabezado en pantallas pequeñas */
+  }
+
+  .table,
+  .table tbody,
+  .table tr,
+  .table td {
+    display: block;
+    width: 100%;
+  }
+
+  .table tr {
+    margin-bottom: 0.8rem;
+    border: 1px solid #45475a;
+    border-radius: 8px;
+  }
+
+  .table td {
+    text-align: right;
+    padding-left: 50%;
+    position: relative;
+    border: none;
+  }
+
+  .table td::before {
+    content: attr(data-label);
+    position: absolute;
+    left: 1rem;
+    font-weight: bold;
+    color: #f5e0dc;
+  }
+}

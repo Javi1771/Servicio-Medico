@@ -1,7 +1,6 @@
 
 // pages/api/medicamentos.js
 import { connectToDatabase } from "../connectToDatabase";
-import sql from "mssql";
 
 export default async function handler(req, res) {
   if (req.method === "GET") {

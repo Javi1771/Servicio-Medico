@@ -1,7 +1,4 @@
-
 import { connectToDatabase } from '../connectToDatabase';
-import sql from 'mssql';
-
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ message: 'Método no permitido' });
