@@ -208,3 +208,44 @@
   box-shadow: none; /* Sin sombra */
   transform: none; /* Sin movimiento */
 }
+
+
+/* Contenedor del select y botón */
+.inputWithButton {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* Espaciado entre el select y el botón */
+  max-width: 400px; /* Limita el ancho del contenedor */
+}
+
+/* Ajusta el ancho máximo del select */
+.select {
+  flex: 1; /* Permite al select ocupar el espacio disponible */
+  max-width: 1045px; /* Establece un ancho máximo razonable */
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #2d2d44; /* Color de fondo */
+  color: white; /* Color del texto */
+  font-size: 14px;
+}
+
+/* Compactar el botón de agregar */
+.addButtonCompact {
+  background-color: #00b894;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 10px; /* Botón más pequeño */
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  min-width: 40px; /* Tamaño cuadrado mínimo */
+}
+
+.addButtonCompact:hover {
+  background-color: #019874; /* Color más oscuro al pasar el cursor */
+}
