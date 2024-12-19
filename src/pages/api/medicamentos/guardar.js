@@ -7,7 +7,6 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Método no permitido" });
   }
 
-  //* Log de los datos recibidos
   console.log("Datos recibidos en el backend:", req.body);
 
   const {
@@ -22,7 +21,6 @@ export default async function handler(req, res) {
     clavepaciente,
   } = req.body;
 
-  //* Validación de datos obligatorios
   if (
     !ean ||
     !medicamento ||
@@ -53,7 +51,12 @@ export default async function handler(req, res) {
       clavepaciente,
     });
 
-    //* Insertar en la tabla de historial de medicamentos
+    // Aquí asumimos que:
+    // - claveConsulta es un número en la base de datos (INT)
+    // - claveEspecialidad es numérico (INT)
+    // - clavenomina y clavepaciente pueden contener letras, así que deben ser VARCHAR
+    // - ean es un texto largo, asegúrate que la columna en la BD sea lo suficientemente grande (por ejemplo, VARCHAR(50))
+
     const queryInsertarHistorial = `
       INSERT INTO [PRESIDENCIA].[dbo].[MEDICAMENTO_PACIENTE] 
       (ean, sustancia, piezas_otorgadas, indicaciones, tratamiento, claveconsulta, fecha_otorgacion, id_especialidad, clave_nomina, clavepaciente) 
@@ -62,20 +65,19 @@ export default async function handler(req, res) {
 
     await pool
       .request()
-      .input("ean", sql.VarChar, ean)
-      .input("medicamento", sql.VarChar, medicamento)
-      .input("piezas", sql.Int, piezas)
-      .input("indicaciones", sql.NVarChar, indicaciones)
-      .input("tratamiento", sql.NVarChar, tratamiento)
-      .input("claveConsulta", sql.Int, claveConsulta)
-      .input("claveEspecialidad", sql.Int, claveEspecialidad)
-      .input("clavenomina", sql.VarChar, clavenomina)
-      .input("clavepaciente", sql.Int, clavepaciente)
+      .input("ean", sql.VarChar, ean)  // ean es texto
+      .input("medicamento", sql.VarChar, medicamento) // medicamento es texto
+      .input("piezas", sql.Int, parseInt(piezas, 10)) // piezas es numérico
+      .input("indicaciones", sql.NVarChar, indicaciones) // indicaciones es texto
+      .input("tratamiento", sql.NVarChar, tratamiento) // tratamiento es texto
+      .input("claveConsulta", sql.Int, parseInt(claveConsulta, 10)) // claveConsulta es numérico
+      .input("claveEspecialidad", sql.Int, parseInt(claveEspecialidad, 10)) // claveEspecialidad es numérico
+      .input("clavenomina", sql.VarChar, clavenomina) // clavenomina es texto (tiene letras)
+      .input("clavepaciente", sql.VarChar, clavepaciente) // clavepaciente es texto (tiene letras)
       .query(queryInsertarHistorial);
 
     console.log("Medicamento guardado exitosamente en la base de datos");
 
-    //* Actualizar el stock del medicamento en la tabla MEDICAMENTOS_FARMACIA
     const queryActualizarStock = `
       UPDATE [PRESIDENCIA].[dbo].[MEDICAMENTOS_FARMACIA]
       SET piezas = piezas - @piezas
@@ -85,7 +87,7 @@ export default async function handler(req, res) {
     const resultadoStock = await pool
       .request()
       .input("ean", sql.VarChar, ean)
-      .input("piezas", sql.Int, piezas)
+      .input("piezas", sql.Int, parseInt(piezas, 10))
       .query(queryActualizarStock);
 
     if (resultadoStock.rowsAffected[0] === 0) {
@@ -97,7 +99,6 @@ export default async function handler(req, res) {
 
     console.log("Stock del medicamento actualizado correctamente");
 
-    //* Obtener historial actualizado
     const queryHistorial = `
       SELECT 
         mp.fecha_otorgacion AS fecha,
@@ -116,12 +117,11 @@ export default async function handler(req, res) {
 
     const historialResult = await pool
       .request()
-      .input("clavepaciente", sql.Int, clavepaciente)
+      .input("clavepaciente", sql.VarChar, clavepaciente)
       .query(queryHistorial);
 
     const historial = historialResult.recordset;
 
-    //* Emitir evento Pusher
     console.log("Enviando evento Pusher...");
     await pusher.trigger("medicamentos-channel", "historial-updated", {
       clavepaciente,

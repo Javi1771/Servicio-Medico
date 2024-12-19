@@ -19,7 +19,7 @@ export default async function handler(req, res) {
     const result = await pool.request()
       .input('usuario', sql.VarChar, usuario)
       .query(
-        "SELECT clavetipousuario, password, nombreusuario, claveespecialidad, claveusuario FROM USUARIOS WHERE usuario = @usuario"
+        "SELECT clavetipousuario, password, nombreusuario, claveespecialidad, claveusuario, costo FROM USUARIOS WHERE usuario = @usuario"
       );
 
     const user = result.recordset[0];
@@ -57,6 +57,7 @@ export default async function handler(req, res) {
         `nombreusuario=${encodeURIComponent(user.nombreusuario)}; Path=/; SameSite=Lax`,
         `claveespecialidad=${user.claveespecialidad}; Path=/; SameSite=Lax`,
         `claveusuario=${user.claveusuario}; Path=/; SameSite=Lax`,
+        `costo=${user.costo}; Path=/; SameSite=Lax`,
       ]);
 
       // Devuelve la respuesta con éxito
@@ -65,8 +66,9 @@ export default async function handler(req, res) {
         message: "Login exitoso",
         rol: user.clavetipousuario,
         nombreusuario: user.nombreusuario,
-        claveespecialidad: user.claveespecialidad || '',
-        claveusuario: user.claveusuario || '',
+        claveespecialidad: user.claveespecialidad,
+        claveusuario: user.claveusuario,
+        costo: user.costo,
       });
     } else {
       return res

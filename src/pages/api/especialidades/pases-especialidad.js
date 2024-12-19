@@ -16,14 +16,15 @@ export default async function handler(req, res) {
           FORMAT(c.fechaconsulta, 'yyyy-MM-dd HH:mm:ss') AS fecha,
           c.clavenomina AS nomina,
           CASE 
-            WHEN de.estatus = 1 THEN 'ACTIVA' 
-            WHEN de.estatus = 2 THEN 'ATENDIDA' 
+            WHEN c.clavestatus = 2 THEN 'EN ESPERA' 
             ELSE 'SIN ESTATUS' 
           END AS estatus
         FROM consultas c
         LEFT JOIN detalleEspecialidad de ON c.claveconsulta = de.claveconsulta
         LEFT JOIN especialidades e ON de.claveespecialidad = e.claveespecialidad
-        WHERE c.fechaconsulta >= @sevenDaysAgo AND de.claveespecialidad IS NOT NULL
+        WHERE c.fechaconsulta >= @sevenDaysAgo
+          AND de.claveespecialidad IS NOT NULL
+          AND c.clavestatus <> 0
         ORDER BY c.claveconsulta DESC
       `;
 

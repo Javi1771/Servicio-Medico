@@ -23,11 +23,7 @@ export default async function handler(req, res) {
     });
 
     //* Validar datos obligatorios
-    if (
-      !claveConsulta ||
-      !clavenomina ||
-      !clavepaciente
-    ) {
+    if (!claveConsulta || !clavenomina || !clavepaciente) {
       console.error("Datos incompletos:", {
         claveConsulta,
         claveEspecialidad,
@@ -42,29 +38,40 @@ export default async function handler(req, res) {
     try {
       const pool = await connectToDatabase();
 
-      const estatus = 1;
       const fechaRegistro = new Date().toISOString();
-
-      //* Convertir claveEspecialidad a null si no se asigna
       const claveEspecialidadFinal =
         claveEspecialidad === "N" ? null : claveEspecialidad;
+
+      //* Determinar el valor real de observaciones
+      const observacionesFinal =
+        observaciones ||
+        "Sin Observaciones, No Se Asignó Especialidad En Esta Consulta";
+
+      //* Lógica para determinar el estatus
+      //! Si no se asigna especialidad (N => claveEspecialidadFinal = null)
+      //! y las observaciones son las por defecto (o no se dan), estatus = 0
+      //! Si no, estatus = 1
+      let estatus = 1;
+      if (!claveEspecialidadFinal && observacionesFinal === "Sin Observaciones, No Se Asignó Especialidad En Esta Consulta") {
+        estatus = 0;
+      }
 
       console.log("Insertando en la tabla detalleEspecialidad...");
       await pool
         .request()
-        .input("claveconsulta", sql.Int, claveConsulta)
-        .input("clavenomina", sql.NVarChar, clavenomina)
-        .input("claveespecialidad", sql.Int, claveEspecialidadFinal) //! NULL si no hay especialidad
+        .input("claveconsulta", sql.Int, parseInt(claveConsulta, 10))  
+        .input("clavenomina", sql.VarChar, clavenomina)                
         .input(
-          "observaciones",
-          sql.Text,
-          observaciones ||
-            "Sin Observaciones, No Se Asignó Especialidad En Esta Consulta"
+          "claveespecialidad",
+          sql.Int,
+          claveEspecialidadFinal ? parseInt(claveEspecialidadFinal, 10) : null
         )
-        .input("prioridad", sql.NVarChar, prioridad || "N/A")
+        .input("observaciones", sql.NVarChar, observacionesFinal)
+        .input("prioridad", sql.VarChar, prioridad || "N/A")
         .input("estatus", sql.Int, estatus)
         .input("fecha_asignacion", sql.DateTime, fechaRegistro)
-        .input("clavepaciente", sql.Int, clavepaciente).query(`
+        .input("clavepaciente", sql.VarChar, clavepaciente)
+        .query(`
           INSERT INTO detalleEspecialidad 
           (claveconsulta, clavenomina, claveespecialidad, observaciones, prioridad, estatus, fecha_asignacion, clavepaciente)
           VALUES 
@@ -74,13 +81,18 @@ export default async function handler(req, res) {
       console.log("Actualizando la tabla consultas...");
       await pool
         .request()
-        .input("claveconsulta", sql.Int, claveConsulta)
-        .input("claveespecialidad", sql.Int, claveEspecialidadFinal) //! NULL si no hay especialidad
+        .input("claveconsulta", sql.Int, parseInt(claveConsulta, 10)) 
+        .input(
+          "claveespecialidad",
+          sql.Int,
+          claveEspecialidadFinal ? parseInt(claveEspecialidadFinal, 10) : null
+        )
         .input(
           "seasignoaespecialidad",
-          sql.NVarChar,
+          sql.VarChar,
           claveEspecialidadFinal ? "S" : "N"
-        ).query(`
+        )
+        .query(`
           UPDATE consultas
           SET 
             seasignoaespecialidad = @seasignoaespecialidad
@@ -90,7 +102,8 @@ export default async function handler(req, res) {
       console.log("Obteniendo historial actualizado...");
       const result = await pool
         .request()
-        .input("clavenomina", sql.NVarChar, clavenomina).query(`
+        .input("clavenomina", sql.VarChar, clavenomina)
+        .query(`
           SELECT 
             d.claveconsulta,
             ISNULL(e.especialidad, 'Sin asignar') AS especialidad,
@@ -113,9 +126,8 @@ export default async function handler(req, res) {
       console.log("Disparando evento Pusher...");
       await pusher.trigger("especialidades-channel", "especialidades-updated", {
         clavepaciente,
-        historial, // Asegúrate de que este objeto esté completo
+        historial,
       });
-      
 
       res.status(200).json({
         message: "Especialidad guardada correctamente y evento emitido.",
