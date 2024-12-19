@@ -30,8 +30,13 @@ export default async function handler(req, res) {
   try {
     const pool = await connectToDatabase();
 
-    // Modificar la consulta para incluir solo especialidades activas (estatus = 1)
-    const query = 'SELECT * FROM especialidades WHERE estatus = 1';
+    // Consulta modificada para incluir el orden alfabético por el campo 'especialidad'
+    const query = `
+      SELECT * 
+      FROM especialidades 
+      WHERE estatus = 1 
+      ORDER BY especialidad ASC
+    `;
 
     const result = await queryWithRetries(pool, query);
 

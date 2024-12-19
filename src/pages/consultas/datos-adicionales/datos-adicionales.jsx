@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Medicamentos from "./medicamentos";
 import PaseEspecialidad from "./pase-especialidad";
 import Incapacidades from "./incapacidades";
@@ -8,8 +8,23 @@ import EnfermedadesCronicas from "./enfermedades-cronicas";
 import Antecedentes from "./antecedentes";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
+import Cookies from "js-cookie";
 
 const MySwal = withReactContent(Swal);
+
+const formatearFecha = (fecha) => {
+  if (!fecha) return "N/A";
+
+  const opciones = {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  };
+
+  const fechaLocal = new Date(fecha);
+
+  return fechaLocal.toLocaleString("es-MX", opciones);
+};
 
 const DatosAdicionales = ({
   subPantalla,
@@ -51,6 +66,16 @@ const DatosAdicionales = ({
 
   //* Función para guardar datos
   const handleGuardar = async () => {
+    // Obtener claveusuario desde la cookie y convertirla a número
+    const claveUsuarioCookie = Cookies.get("claveusuario");
+    const claveusuarioNum = claveUsuarioCookie ? parseInt(claveUsuarioCookie, 10) : null;
+
+    console.log("=== LOGS ANTES DE GUARDAR ===");
+    console.log("claveConsulta:", claveConsulta, "tipo:", typeof claveConsulta);
+    console.log("diagnosticoTexto:", diagnosticoTexto, "tipo:", typeof diagnosticoTexto);
+    console.log("motivoConsultaTexto:", motivoConsultaTexto, "tipo:", typeof motivoConsultaTexto);
+    console.log("claveusuarioNum:", claveusuarioNum, "tipo:", typeof claveusuarioNum);
+
     try {
       const response = await fetch(
         "/api/pacientes-consultas/diagnostico_observaciones",
@@ -61,9 +86,12 @@ const DatosAdicionales = ({
             claveConsulta,
             diagnostico: diagnosticoTexto,
             motivoconsulta: motivoConsultaTexto,
+            claveusuario: claveusuarioNum,
           }),
         }
       );
+
+      console.log("Respuesta de diagnostico_observaciones:", response.status, response.statusText);
 
       if (!response.ok) {
         const error = await response.json();
@@ -76,7 +104,7 @@ const DatosAdicionales = ({
         icon: "success",
         title:
           "<span style='color: #00e676; font-weight: bold; font-size: 1.5em;'>✔️ Datos guardados correctamente</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>El diagnóstico y motivo de consulta han sido guardados exitosamente.</p>",
+        html: "<p style='color: #fff; font-size: 1.1em;'>El diagnóstico, motivo de consulta y claveusuario han sido guardados exitosamente.</p>",
         background: "linear-gradient(145deg, #004d40, #00251a)",
         confirmButtonColor: "#00e676",
         confirmButtonText:

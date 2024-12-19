@@ -18,7 +18,7 @@ export default async function handler(req, res) {
     clavepaciente,
   } = req.body;
 
-  if ( !clavenomina || !clavepaciente) {
+  if (!clavenomina || !clavepaciente) {
     const datosFaltantes = [];
     if (!clavenomina) datosFaltantes.push("clavenomina");
     if (!clavepaciente) datosFaltantes.push("clavepaciente");
@@ -46,13 +46,13 @@ export default async function handler(req, res) {
     `;
     await pool
       .request()
-      .input("claveConsulta", sql.Int, claveConsulta)
-      .input("clavenomina", sql.NVarChar, clavenomina)
+      .input("claveConsulta", sql.Int, claveConsulta)     // claveConsulta asume que es numérico en la BD
+      .input("clavenomina", sql.VarChar, clavenomina)     // clavenomina alfanumérico -> VarChar
       .input("fechaInicial", sql.DateTime, fechaInicialFinal)
       .input("fechaFinal", sql.DateTime, fechaFinalFinal)
       .input("diagnostico", sql.Text, diagnosticoFinal)
       .input("estatus", sql.Int, 1) // 1: Activo
-      .input("clavepaciente", sql.Int, clavepaciente)
+      .input("clavepaciente", sql.VarChar, clavepaciente) // clavepaciente alfanumérico -> VarChar
       .query(insertQuery);
 
     console.log("Incapacidad guardada exitosamente en la base de datos");
@@ -73,8 +73,8 @@ export default async function handler(req, res) {
     `;
     const result = await pool
       .request()
-      .input("clavenomina", sql.NVarChar, clavenomina)
-      .input("clavepaciente", sql.Int, clavepaciente)
+      .input("clavenomina", sql.VarChar, clavenomina)
+      .input("clavepaciente", sql.VarChar, clavepaciente)
       .query(queryHistorial);
 
     const historial = result.recordset;

@@ -12,12 +12,20 @@ async function queryWithRetries(pool, query, retries = MAX_RETRIES) {
     return result.recordset;
   } catch (error) {
     if (error.code === 'ECONNCLOSED' && retries > 1) {
-      console.warn(`Conexión cerrada. Intentando reconectar y reintentar la consulta en ${RETRY_DELAY_MS / 1000} segundos...`);
+      console.warn(
+        `Conexión cerrada. Intentando reconectar y reintentar la consulta en ${
+          RETRY_DELAY_MS / 1000
+        } segundos...`
+      );
       await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
       const newPool = await connectToDatabase(); // Intentar reconectar
       return queryWithRetries(newPool, query, retries - 1);
     } else if (retries > 1) {
-      console.warn(`Consulta fallida. Reintentando en ${RETRY_DELAY_MS / 1000} segundos...`);
+      console.warn(
+        `Consulta fallida. Reintentando en ${
+          RETRY_DELAY_MS / 1000
+        } segundos...`
+      );
       await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
       return queryWithRetries(pool, query, retries - 1);
     } else {
@@ -35,22 +43,33 @@ export default async function handler(req, res) {
   try {
     const { claveEspecialidad } = req.body;
 
-    if (!claveEspecialidad) {
-      res.status(400).json({ message: 'Falta el parámetro claveEspecialidad.' });
+    // Validar que claveEspecialidad sea un número
+    if (!claveEspecialidad || isNaN(Number(claveEspecialidad))) {
+      res.status(400).json({
+        message: 'La claveEspecialidad debe ser un número válido.',
+      });
       return;
     }
 
     const pool = await connectToDatabase();
 
     // Consulta para obtener los proveedores según la clave de especialidad
-    const query = `SELECT id, nombreproveedor FROM proveedores WHERE claveespecialidad = ${claveEspecialidad}`;
+    const query = `
+      SELECT 
+        claveproveedor, 
+        nombreproveedor 
+      FROM 
+        proveedores 
+      WHERE 
+        claveespecialidad = ${claveEspecialidad}
+        ORDER BY nombreproveedor ASC;`
 
     const result = await queryWithRetries(pool, query);
 
-    console.log('Resultados de la consulta:', result);
-
     if (result.length === 0) {
-      res.status(404).json({ message: 'No se encontraron proveedores para la especialidad proporcionada.' });
+      res.status(404).json({
+        message: 'No se encontraron proveedores para la especialidad proporcionada.',
+      });
       return;
     }
 

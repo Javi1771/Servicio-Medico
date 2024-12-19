@@ -17,7 +17,7 @@ export default async function handler(req, res) {
       const result = await pool
         .request()
         .input("fechaconsulta", sql.VarChar, consultaData.fechaconsulta)
-        .input("clavenomina", sql.Int, consultaData.clavenomina)
+        .input("clavenomina", sql.VarChar, consultaData.clavenomina)
         .input("presionarterialpaciente", sql.VarChar, consultaData.presionarterialpaciente)
         .input("temperaturapaciente", sql.Decimal, consultaData.temperaturapaciente)
         .input("pulsosxminutopaciente", sql.Int, consultaData.pulsosxminutopaciente)
@@ -30,7 +30,7 @@ export default async function handler(req, res) {
         .input("clavestatus", sql.Int, consultaData.clavestatus)
         .input("elpacienteesempleado", sql.VarChar, consultaData.elpacienteesempleado)
         .input("parentesco", sql.Int, consultaData.parentesco)
-        .input("clavepaciente", sql.Int, clavePaciente) 
+        .input("clavepaciente", sql.VarChar, clavePaciente) 
         .input("departamento", sql.VarChar, consultaData.departamento)
         .input("sindicato", sql.VarChar, consultaData.sindicato)
         .query(`

@@ -28,6 +28,7 @@ const Diagnostico = () => {
   const [nombreMedico, setNombreMedico] = useState("Cargando...");
   const [claveEspecialidad, setClaveEspecialidad] = useState("");
   const [claveusuario, setClaveusuario] = useState("");
+  const [costo, setCosto] = useState("");
   const [claveConsulta, setClaveConsulta] = useState("");
   const [fecha, setFecha] = useState("");
   const [diagnostico, setDiagnostico] = useState("");
@@ -75,6 +76,10 @@ const Diagnostico = () => {
     const especialidad = Cookies.get("claveespecialidad");
     console.log("Clave especialidad: ", especialidad);
     setClaveEspecialidad(especialidad || "No especificado");
+
+    const costo = Cookies.get("costo");
+    console.log("Costo: ", costo);
+    setCosto(costo || "No especificado");
 
     const claveusuario = Cookies.get("claveusuario");
     console.log("Clave claveusuario: ", claveusuario);
@@ -150,7 +155,7 @@ const Diagnostico = () => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             claveConsulta,
-            clavestatus: 0,
+            clavestatus: 1,
           }),
         });
       }
@@ -276,6 +281,7 @@ const Diagnostico = () => {
         setEmpleadoData({
           nombreCompleto: `${data.nombre} ${data.a_paterno} ${data.a_materno}`,
           departamento: data.departamento,
+          puesto: data.puesto,
         });
       } else {
         console.error(
@@ -360,193 +366,194 @@ const Diagnostico = () => {
     await obtenerDatosEmpleado(paciente.clavenomina);
   };
 
-  //* Función de guardado que actualiza clavestatus a 4 solo al guardar exitosamente
-  const handleGuardar = async () => {
-    const datos = recolectarDatos();
+  // //* Función de guardado que actualiza clavestatus a 4 solo al guardar exitosamente
+  // const handleGuardar = async () => {
+  //   const datos = recolectarDatos();
 
-    try {
-      //* Guardar diagnóstico y observaciones
-      const responseDiagnostico = await fetch(
-        "/api/pacientes-consultas/diagnostico_observaciones",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            claveConsulta: datos.claveConsulta,
-            diagnostico: datos.diagnostico,
-            motivoconsulta: datos.motivoConsulta,
-            observaciones: datos.observaciones,
-          }),
-        }
-      );
+  //   try {
+  //     //* Guardar diagnóstico y observaciones
+  //     const responseDiagnostico = await fetch(
+  //       "/api/pacientes-consultas/diagnostico_observaciones",
+  //       {
+  //         method: "POST",
+  //         headers: { "Content-Type": "application/json" },
+  //         body: JSON.stringify({
+  //           claveConsulta: datos.claveConsulta,
+  //           diagnostico: datos.diagnostico,
+  //           motivoconsulta: datos.motivoConsulta,
+  //           observaciones: datos.observaciones,
+  //         }),
+  //       }
+  //     );
 
-      if (!responseDiagnostico.ok) {
-        const error = await responseDiagnostico.json();
-        console.error("Error al guardar diagnóstico:", error);
-        throw new Error("Error al guardar diagnóstico.");
-      }
+  //     if (!responseDiagnostico.ok) {
+  //       const error = await responseDiagnostico.json();
+  //       console.error("Error al guardar diagnóstico:", error);
+  //       throw new Error("Error al guardar diagnóstico.");
+  //     }
 
-      //* Guardar pase a especialidad si es necesario
-      if (datos.pasarEspecialidad === "si") {
-        const responseEspecialidad = await fetch(
-          "/api/especialidades/guardarEspecialidad",
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              claveConsulta: datos.claveConsulta,
-              claveEspecialidad: datos.especialidadSeleccionada,
-              observaciones: datos.observaciones,
-            }),
-          }
-        );
+  //     //* Guardar pase a especialidad si es necesario
+  //     if (datos.pasarEspecialidad === "si") {
+  //       const responseEspecialidad = await fetch(
+  //         "/api/especialidades/guardarEspecialidad",
+  //         {
+  //           method: "POST",
+  //           headers: { "Content-Type": "application/json" },
+  //           body: JSON.stringify({
+  //             claveConsulta: datos.claveConsulta,
+  //             claveusuario,
+  //             claveEspecialidad: datos.especialidadSeleccionada,
+  //             observaciones: datos.observaciones,
+  //           }),
+  //         }
+  //       );
 
-        if (!responseEspecialidad.ok) {
-          const error = await responseEspecialidad.json();
-          console.error("Error al guardar especialidad:", error);
-          throw new Error("Error al guardar especialidad.");
-        }
-      }
+  //       if (!responseEspecialidad.ok) {
+  //         const error = await responseEspecialidad.json();
+  //         console.error("Error al guardar especialidad:", error);
+  //         throw new Error("Error al guardar especialidad.");
+  //       }
+  //     }
 
-      //* Actualizar el clavestatus a 2
-      const responseStatus = await fetch(
-        "/api/pacientes-consultas/actualizarClavestatus",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            claveConsulta: datos.claveConsulta,
-            clavestatus: 2,
-          }),
-        }
-      );
+  //     //* Actualizar el clavestatus a 2
+  //     const responseStatus = await fetch(
+  //       "/api/pacientes-consultas/actualizarClavestatus",
+  //       {
+  //         method: "POST",
+  //         headers: { "Content-Type": "application/json" },
+  //         body: JSON.stringify({
+  //           claveConsulta: datos.claveConsulta,
+  //           clavestatus: 2,
+  //         }),
+  //       }
+  //     );
 
-      if (!responseStatus.ok) {
-        const error = await responseStatus.json();
-        console.error("Error al actualizar clavestatus:", error);
-        throw new Error("Error al actualizar clavestatus.");
-      }
+  //     if (!responseStatus.ok) {
+  //       const error = await responseStatus.json();
+  //       console.error("Error al actualizar clavestatus:", error);
+  //       throw new Error("Error al actualizar clavestatus.");
+  //     }
 
-      //* Confirmar éxito en localStorage y recargar lista de pacientes
-      localStorage.setItem("consultaGuardada", datos.claveConsulta);
-      setGuardadoExitoso(true); //* Establece guardado exitoso antes de recargar
-      await cargarPacientesDelDia();
+  //     //* Confirmar éxito en localStorage y recargar lista de pacientes
+  //     localStorage.setItem("consultaGuardada", datos.claveConsulta);
+  //     setGuardadoExitoso(true); //* Establece guardado exitoso antes de recargar
+  //     await cargarPacientesDelDia();
 
-      //* Mostrar alerta de éxito
-      await MySwal.fire({
-        icon: "success",
-        title:
-          "<span style='color: #00e676; font-weight: bold; font-size: 1.5em;'>✔️ Guardado exitoso</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>La consulta se ha guardado exitosamente.</p>",
-        background: "linear-gradient(145deg, #004d40, #00251a)",
-        confirmButtonColor: "#00e676",
-        confirmButtonText:
-          "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-green-600 shadow-[0px_0px_20px_5px_rgba(0,230,118,0.9)] rounded-lg",
-        },
-      });
+  //     //* Mostrar alerta de éxito
+  //     await MySwal.fire({
+  //       icon: "success",
+  //       title:
+  //         "<span style='color: #00e676; font-weight: bold; font-size: 1.5em;'>✔️ Guardado exitoso</span>",
+  //       html: "<p style='color: #fff; font-size: 1.1em;'>La consulta se ha guardado exitosamente.</p>",
+  //       background: "linear-gradient(145deg, #004d40, #00251a)",
+  //       confirmButtonColor: "#00e676",
+  //       confirmButtonText:
+  //         "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
+  //       customClass: {
+  //         popup:
+  //           "border border-green-600 shadow-[0px_0px_20px_5px_rgba(0,230,118,0.9)] rounded-lg",
+  //       },
+  //     });
 
-      //! Resetear estados después de mostrar éxito
-      setPacienteSeleccionado(null);
-    } catch (error) {
-      console.error("Error en la solicitud de guardado:", error);
+  //     //! Resetear estados después de mostrar éxito
+  //     setPacienteSeleccionado(null);
+  //   } catch (error) {
+  //     console.error("Error en la solicitud de guardado:", error);
 
-      //! Mostrar alerta de error
-      await MySwal.fire({
-        icon: "error",
-        title:
-          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error al guardar</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>Hubo un problema al guardar la consulta. Inténtalo nuevamente.</p>",
-        background: "linear-gradient(145deg, #4a0000, #220000)",
-        confirmButtonColor: "#ff1744",
-        confirmButtonText:
-          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-        },
-      });
-    }
-  };
+  //     //! Mostrar alerta de error
+  //     await MySwal.fire({
+  //       icon: "error",
+  //       title:
+  //         "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error al guardar</span>",
+  //       html: "<p style='color: #fff; font-size: 1.1em;'>Hubo un problema al guardar la consulta. Inténtalo nuevamente.</p>",
+  //       background: "linear-gradient(145deg, #4a0000, #220000)",
+  //       confirmButtonColor: "#ff1744",
+  //       confirmButtonText:
+  //         "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
+  //       customClass: {
+  //         popup:
+  //           "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
+  //       },
+  //     });
+  //   }
+  // };
 
-  const handleCancelar = async () => {
-    try {
-      //* Actualiza en la base de datos clavestatus a 0 y limpia otros campos
-      await fetch("/api/pacientes-consultas/actualizarClavestatus", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          claveConsulta,
-          clavestatus: 0,
-        }),
-      });
+  // const handleCancelar = async () => {
+  //   try {
+  //     //* Actualiza en la base de datos clavestatus a 0 y limpia otros campos
+  //     await fetch("/api/pacientes-consultas/actualizarClavestatus", {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify({
+  //         claveConsulta,
+  //         clavestatus: 0,
+  //       }),
+  //     });
 
-      //* Limpiar los datos de la consulta en el frontend
-      setDiagnostico("");
-      setMotivoConsulta("");
-      setSignosVitales({
-        ta: "",
-        temperatura: "",
-        fc: "",
-        oxigenacion: "",
-        altura: "",
-        peso: "",
-        glucosa: "",
-      });
-      setAlergias("");
-      setObservaciones("");
-      setEspecialidadSeleccionada("");
-      setPasarEspecialidad(null);
-      setEmpleadoData(null);
-      setDatosEditados({
-        signosVitales: {},
-        alergias: "",
-      });
+  //     //* Limpiar los datos de la consulta en el frontend
+  //     setDiagnostico("");
+  //     setMotivoConsulta("");
+  //     setSignosVitales({
+  //       ta: "",
+  //       temperatura: "",
+  //       fc: "",
+  //       oxigenacion: "",
+  //       altura: "",
+  //       peso: "",
+  //       glucosa: "",
+  //     });
+  //     setAlergias("");
+  //     setObservaciones("");
+  //     setEspecialidadSeleccionada("");
+  //     setPasarEspecialidad(null);
+  //     setEmpleadoData(null);
+  //     setDatosEditados({
+  //       signosVitales: {},
+  //       alergias: "",
+  //     });
 
-      //* Cierra el formulario emergente y muestra solo la tabla
-      setPacienteSeleccionado(null);
-      setMostrarEmergente(false);
+  //     //* Cierra el formulario emergente y muestra solo la tabla
+  //     setPacienteSeleccionado(null);
+  //     setMostrarEmergente(false);
 
-      //* Refresca la lista de pacientes después de cerrar el formulario
-      await cargarPacientesDelDia();
+  //     //* Refresca la lista de pacientes después de cerrar el formulario
+  //     await cargarPacientesDelDia();
 
-      //* Alerta de éxito
-      MySwal.fire({
-        icon: "info",
-        title:
-          "<span style='color: #00bcd4; font-weight: bold; font-size: 1.5em;'>ℹ️ Consulta cancelada</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>Consulta cancelada y datos borrados correctamente.</p>",
-        background: "linear-gradient(145deg, #004d40, #00251a)",
-        confirmButtonColor: "#00bcd4",
-        confirmButtonText:
-          "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-blue-600 shadow-[0px_0px_20px_5px_rgba(0,188,212,0.9)] rounded-lg",
-        },
-      });
-    } catch (error) {
-      console.error("Error al cancelar y borrar datos de la consulta:", error);
+  //     //* Alerta de éxito
+  //     MySwal.fire({
+  //       icon: "info",
+  //       title:
+  //         "<span style='color: #00bcd4; font-weight: bold; font-size: 1.5em;'>ℹ️ Consulta cancelada</span>",
+  //       html: "<p style='color: #fff; font-size: 1.1em;'>Consulta cancelada y datos borrados correctamente.</p>",
+  //       background: "linear-gradient(145deg, #004d40, #00251a)",
+  //       confirmButtonColor: "#00bcd4",
+  //       confirmButtonText:
+  //         "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
+  //       customClass: {
+  //         popup:
+  //           "border border-blue-600 shadow-[0px_0px_20px_5px_rgba(0,188,212,0.9)] rounded-lg",
+  //       },
+  //     });
+  //   } catch (error) {
+  //     console.error("Error al cancelar y borrar datos de la consulta:", error);
 
-      //* Alerta de error
-      MySwal.fire({
-        icon: "error",
-        title:
-          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error al cancelar</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>Hubo un error al cancelar la consulta. Inténtalo nuevamente.</p>",
-        background: "linear-gradient(145deg, #4a0000, #220000)",
-        confirmButtonColor: "#ff1744",
-        confirmButtonText:
-          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-        },
-      });
-    }
-  };
+  //     //* Alerta de error
+  //     MySwal.fire({
+  //       icon: "error",
+  //       title:
+  //         "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error al cancelar</span>",
+  //       html: "<p style='color: #fff; font-size: 1.1em;'>Hubo un error al cancelar la consulta. Inténtalo nuevamente.</p>",
+  //       background: "linear-gradient(145deg, #4a0000, #220000)",
+  //       confirmButtonColor: "#ff1744",
+  //       confirmButtonText:
+  //         "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
+  //       customClass: {
+  //         popup:
+  //           "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
+  //       },
+  //     });
+  //   }
+  // };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-900 to-black text-white px-4 py-8 md:px-12">
@@ -666,6 +673,9 @@ const Diagnostico = () => {
                     ? selectedBeneficiary.PARENTESCO_DESC
                     : "Empleado(a)"}
                 </p>
+                <p>
+                  Puesto: {empleadoData?.puesto || "No asignado"}
+                </p>
               </div>
               <div className="bg-gray-700 p-4 rounded-lg flex-1 shadow-lg transition duration-300 hover:shadow-xl">
                 <h2 className="text-md md:text-lg font-bold mb-2">
@@ -722,10 +732,10 @@ const Diagnostico = () => {
               claveEspecialidad={claveEspecialidad}
             />
 
-            <div className="flex space-x-2 md:space-x-4 mt-4">
+            {/* <div className="flex space-x-2 md:space-x-4 mt-4">
               <button
                 onClick={handleGuardar}
-                disabled={!formularioCompleto}
+                //disabled={!formularioCompleto}
                 className={`px-4 py-2 md:px-6 md:py-3 rounded-lg font-semibold tracking-wide transition duration-300 ease-in-out transform ${
                   formularioCompleto
                     ? "bg-green-500 hover:bg-green-600 hover:scale-105 text-white shadow-lg"
@@ -740,7 +750,7 @@ const Diagnostico = () => {
               >
                 Cancelar
               </button>
-            </div>
+            </div> */}
           </div>
         </div>
       )}
