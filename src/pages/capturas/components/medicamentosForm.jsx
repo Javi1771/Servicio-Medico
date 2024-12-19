@@ -3,6 +3,7 @@ import React, { useEffect, useState, useCallback } from "react"; // Asegúrate d
 import styles from "../../css/estilosSurtimientos/tableSurtimientos.module.css";
 import { MdWarningAmber } from "react-icons/md";
 import ModalRegistrarMedicamento from "../components/modalRegistrarMedicamento";
+import useAddMedicamento from "../../../hooks/surtimientosHook/useAddMedicamento";
 import Swal from "sweetalert2";
 import { MdAdd } from "react-icons/md";
 
