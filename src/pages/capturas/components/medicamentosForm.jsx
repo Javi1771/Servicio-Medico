@@ -1,8 +1,9 @@
 /* eslint-disable @next/next/no-img-element */
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react"; // Asegúrate de incluir useCallback
 import styles from "../../css/estilosSurtimientos/tableSurtimientos.module.css";
 import { MdWarningAmber } from "react-icons/md";
 import Swal from "sweetalert2";
+
 
 
 const MedicamentosForm = ({
