@@ -5,13 +5,17 @@ import styles from "../css/estilosSurtimientos/surtimientos.module.css";
 import MedicamentosForm from "./components/medicamentosForm";
 import TablaResultados from "./components/TablaResultados";
 import Cookies from "js-cookie"; // Asegúrate de tener instalada esta librería
+import Swal from "sweetalert2";
+import { FiInfo } from "react-icons/fi";
+import Image from "next/image";
+
+
 
 export default function Surtimientos() {
   const [folioConsulta, setFolioConsulta] = useState("");
   const [claveNomina, setClaveNomina] = useState(null);
   const [sindicato, setSindicato] = useState("");
   const [medico, setMedico] = useState(null); // Información del médico
-  const [setEspecialidad] = useState(null); // Especialidad del médico
 
   // Declara los estados
   const [detalles, setDetalles] = useState([]); // Estado para detalles
@@ -24,28 +28,59 @@ export default function Surtimientos() {
   const { data, error, loading, fetchConsulta } = useFetchConsulta();
   const { empleadoData, fetchEmpleado } = useFetchEmpleado();
 
+  const [diagnosticoEditable, setDiagnosticoEditable] = useState("");
+
+  const [isSearchAttempted, setIsSearchAttempted] = useState(false);
+
   // Manejar la búsqueda del folio de consulta
-  // Función principal para manejar la búsqueda
   const handleSearch = async () => {
+    setIsSearchAttempted(true); // Marcar que se hizo un intento de búsqueda
+
     if (!folioConsulta.trim()) {
-      alert("Por favor, ingresa un folio de consulta.");
+      Swal.fire({
+        title: "Campo Vacío",
+        text: "Por favor, ingresa un folio de consulta.",
+        icon: "warning",
+        confirmButtonText: "Aceptar",
+      });
       return;
     }
-
     try {
+      // Mostrar SweetAlert de carga
+      Swal.fire({
+        title: "Cargando...",
+        text: "Por favor, espera mientras se carga la consulta.",
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        },
+      });
+
+      // Simular espera de 1.5 segundos antes de proceder
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
       // 1. Obtener detalles de la receta
       const detallesResponse = await fetch(
         `/api/surtimientos/getDetallesReceta?folioReceta=${folioConsulta}`
       );
+
       if (!detallesResponse.ok) {
-        throw new Error("No se pudieron obtener los detalles de la receta.");
+        Swal.fire({
+          title: "Error al Cargar Detalles",
+          text: "No se pudieron obtener los detalles de la receta.",
+          icon: "error",
+          confirmButtonText: "Aceptar",
+        });
+        return; // Salimos de la función si falla la petición
       }
+
       const detallesData = await detallesResponse.json();
       console.log("Detalles obtenidos:", detallesData);
       setDetalles(detallesData);
 
       // 2. Obtener información adicional usando tu hook existente
       const consultaData = await fetchConsulta(folioConsulta);
+
       if (consultaData) {
         setClaveNomina(consultaData.clavenomina);
         setSindicato(consultaData.sindicato);
@@ -54,9 +89,32 @@ export default function Surtimientos() {
           especialidad: consultaData.especialidad,
         });
         setClaveEspecialidad(consultaData.especialidad);
+
+        // Inicializar el diagnóstico editable si no existe
+        setDiagnosticoEditable(consultaData.diagnostico || "");
       }
+
+      // Cerrar SweetAlert cuando todo se completa correctamente
+      Swal.close();
     } catch (error) {
       console.error("Error al buscar información:", error.message);
+
+      // Simular espera de 1.5 segundos antes de mostrar el error
+      setTimeout(() => {
+        Swal.fire({
+          title: "Error al Buscar Información",
+          text: "Ocurrió un problema al buscar el folio. Por favor, intenta de nuevo.",
+          icon: "error",
+          confirmButtonText: "Aceptar",
+        });
+      }, 500);
+      // Limpiar los estados cuando hay un error
+      setClaveNomina(null);
+      setEmpleadoData(null);
+      setSindicato("");
+      setMedico(null);
+      setDetalles([]);
+      setDiagnosticoEditable("");
     }
   };
 
@@ -113,9 +171,46 @@ export default function Surtimientos() {
     console.log("Estado detalles actualizado:", detalles);
   }, [detalles]);
 
+  useEffect(() => {
+    // Muestra SweetAlert en caso de error
+    if (error) {
+      Swal.fire({
+        title: "Error",
+        text: `Ocurrió un problema: ${error}`,
+        icon: "error",
+        confirmButtonText: "Aceptar",
+      });
+    }
+  }, [error]);
+
+  useEffect(() => {
+    // Muestra SweetAlert mientras está cargando
+    if (loading) {
+      Swal.fire({
+        title: "Cargando...",
+        text: "Por favor, espera mientras se carga la consulta.",
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        },
+      });
+    }
+  }, [loading]);
+
   return (
     <div className={styles.bodyContainer}>
       <div className={styles.container}>
+         {/* Banner en la parte superior */}
+    <div className={styles.bannerContainer}>
+      <Image
+        src="/baner_sjr.png" // Ruta de tu imagen
+        alt="Banner Superior"
+        width={1920} // Ajusta según el ancho del contenedor
+        height={200} // Ajusta la altura
+        priority // Carga la imagen de forma prioritaria
+        className={styles.bannerImage}
+      />
+    </div>
         <h1 className={styles.title}>Surtimientos</h1>
         {/* Header */}
         <div className={styles.customHeader}>
@@ -149,124 +244,153 @@ export default function Surtimientos() {
           </div>
         </div>
 
-        {/* Resultados */}
-        <div className={styles.results}>
-          {loading && <p>Cargando consulta...</p>}
-          {error && <p className={styles.error}>Error: {error}</p>}
-
-          {/* Información del empleado */}
-          {empleadoData && (
+        {/* Renderizar solo si se ha intentado buscar */}
+        {isSearchAttempted &&
+          (empleadoData || sindicato || detalles.length > 0 ? (
             <>
-              <h2 className={styles.employeeTitle}>Información del Empleado</h2>
-              <div className={styles.employeeCard}>
-                <p>
-                  <strong>Número de Nómina:</strong>{" "}
-                  {claveNomina || "No disponible"}
-                </p>
-                <p>
-                  <strong>Nombre:</strong>{" "}
-                  {`${empleadoData.nombre || "No disponible"} ${
-                    empleadoData.a_paterno || ""
-                  } ${empleadoData.a_materno || ""}`}
-                </p>
-              </div>
-            </>
-          )}
-
-          {/* Sección del Paciente y Sindicato */}
-          {(empleadoData || sindicato) && (
-            <div className={styles.section}>
-              <h2 className={styles.sectionTitle}>
-                Información del Paciente y Sindicato
-              </h2>
-
-              <div className={styles.row}>
-                {/* Información del paciente */}
-                {empleadoData && (
-                  <div className={`${styles.cardContainer} ${styles.cardt}`}>
-                    <h3 className={styles.cardSubtitle}>
-                      Información del Paciente
-                    </h3>
+              {/* Información del empleado */}
+              {empleadoData && (
+                <>
+                  <h2 className={styles.employeeTitle}>
+                    Información del Empleado
+                  </h2>
+                  <div className={styles.employeeCard}>
                     <p>
-                      <strong>Paciente:</strong>{" "}
-                      {data?.nombrepaciente || "No disponible"}
+                      <strong>Número de Nómina:</strong>{" "}
+                      {claveNomina || "No disponible"}
                     </p>
                     <p>
-                      <strong>Edad:</strong>{" "}
-                      {empleadoData?.edad || "No disponible"} años
-                    </p>
-                    <p>
-                      <strong>Departamento:</strong>{" "}
-                      {empleadoData?.departamento || "No disponible"}
-                    </p>
-                    <p>
-                      <strong>Parentesco:</strong>{" "}
-                      {data?.parentesco || "No disponible"}
+                      <strong>Nombre:</strong>{" "}
+                      {`${empleadoData.nombre || "No disponible"} ${
+                        empleadoData.a_paterno || ""
+                      } ${empleadoData.a_materno || ""}`}
                     </p>
                   </div>
-                )}
+                </>
+              )}
 
-                {/* Información de sindicato */}
-                <div
-                  className={`${styles.sindicatoCard} ${styles.cardt} ${
-                    sindicato ? styles.sindicalizado : styles.noSindicalizado
-                  }`}
-                >
-                  <h3 className={styles.cardSubtitle}>Sindicato</h3>
-                  <p>
-                    <strong>Estado:</strong>{" "}
-                    {sindicato ? "Sindicalizado" : "No Sindicalizado"}
-                  </p>
-                  <p>
-                    <strong>Tipo:</strong> {sindicato || "No registrado"}
-                  </p>
+              {/* Sección del Paciente y Sindicato */}
+              {(empleadoData || sindicato) && (
+                <div className={styles.section}>
+                  <h2 className={styles.sectionTitle}>
+                    Información del Paciente y Sindicato
+                  </h2>
+
+                  <div className={styles.row}>
+                    {/* Información del paciente */}
+                    {empleadoData && (
+                      <div
+                        className={`${styles.cardContainer} ${styles.cardt}`}
+                      >
+                        <h3 className={styles.cardSubtitle}>
+                          Información del Paciente
+                        </h3>
+                        <p>
+                          <strong>Paciente:</strong>{" "}
+                          {data?.nombrepaciente || "No disponible"}
+                        </p>
+                        <p>
+                          <strong>Edad:</strong>{" "}
+                          {empleadoData?.edad || "No disponible"} años
+                        </p>
+                        <p>
+                          <strong>Departamento:</strong>{" "}
+                          {empleadoData?.departamento || "No disponible"}
+                        </p>
+                        <p>
+                          <strong>Parentesco:</strong>{" "}
+                          {data?.parentesco || "No disponible"}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Información de sindicato */}
+                    <div
+                      className={`${styles.sindicatoCard} ${styles.cardt} ${
+                        sindicato
+                          ? styles.sindicalizado
+                          : styles.noSindicalizado
+                      }`}
+                    >
+                      <h3 className={styles.cardSubtitle}>Sindicato</h3>
+                      <p>
+                        <strong>Estado:</strong>{" "}
+                        {sindicato ? "Sindicalizado" : "No Sindicalizado"}
+                      </p>
+                      <p>
+                        <strong>Tipo:</strong> {sindicato || "No registrado"}
+                      </p>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          )}
-        </div>
-        {/* Información del médico especialista */}
-        {medico && (
-          <div className={styles.section}>
-            <h2 className={styles.sectionTitle2}>
-              Información del Especialista
-            </h2>
-            <div className={styles.medicoCard}>
-              <h3>Médico Especialista</h3>
-              <div className={styles.medicoInfo}>
-                <div className={styles.medicoDetails}>
-                  <p>
-                    <strong>Nombre:</strong> {medico.nombre || "No disponible"}
-                  </p>
-                  <strong>Especialidad:</strong>{" "}
-                  {especialidadNombre || "No registrada"}
+              )}
+
+              {/* Información del médico especialista */}
+              {medico && (
+                <div className={styles.section}>
+                  <h2 className={styles.sectionTitle2}>
+                    Información del Especialista
+                  </h2>
+                  <div className={styles.medicoCard}>
+                    <h3>Médico Especialista</h3>
+                    <div className={styles.medicoInfo}>
+                      <div className={styles.medicoDetails}>
+                        <p>
+                          <strong>Nombre:</strong>{" "}
+                          {medico.nombre || "No disponible"}
+                        </p>
+                        <p>
+                          <strong>Especialidad:</strong>{" "}
+                          {especialidadNombre || "No registrada"}
+                        </p>
+                      </div>
+
+                      <div className={styles.diagnosticoField}>
+                        <label htmlFor="diagnostico">
+                          <strong>Diagnóstico:</strong>
+                        </label>
+                        <textarea
+                          id="diagnostico"
+                          className={styles.diagnosticoTextarea}
+                          value={diagnosticoEditable}
+                          onChange={(e) =>
+                            setDiagnosticoEditable(e.target.value)
+                          } // Actualiza el estado
+                          placeholder="Escribe el diagnóstico..."
+                        />
+
+                        <p className={styles.infoMessage}>
+                          <FiInfo className={styles.infoIcon} />
+                          {data?.diagnostico
+                            ? "El diagnóstico ya existe y no puede ser modificado."
+                            : ""}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
+              )}
 
-                <div className={styles.diagnosticoField}>
-                  <label htmlFor="diagnostico">
-                    <strong>Diagnóstico:</strong>
-                  </label>
-                  <textarea
-                    id="diagnostico"
-                    className={styles.diagnosticoTextarea}
-                    value={data?.diagnostico || ""} // Muestra el diagnóstico desde la consulta
-                    readOnly // El campo será de solo lectura
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+              {/* Formulario */}
+              {medico && (
+                <MedicamentosForm
+                  folioConsulta={folioConsulta}
+                  diagnostico={diagnosticoEditable}
+                  onFormSubmitted={handleSearch}
+                  detalles={detalles}
+                />
+              )}
 
-        {/* Formulario */}
-        {(data || medico) && <MedicamentosForm />}
-
-        {/* Tabla de Resultados */}
-        {detalles.length > 0 ? (
-          <TablaResultados data={detalles} />
-        ) : (
-          <p>No hay detalles disponibles. Introduce un folio y busca.</p>
-        )}
+              {/* Tabla de Resultados */}
+              {detalles.length > 0 && <TablaResultados 
+              data={detalles} onEstatusUpdated={handleSearch} />}
+            </>
+          ) : (
+            // Mostrar el mensaje si no hay datos
+            <p className={styles.noDataMessage}>
+              No hay información disponible. Introduce un folio válido y busca.
+            </p>
+          ))}
       </div>
     </div>
   );

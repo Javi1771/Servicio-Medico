@@ -1,46 +1,57 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import useUpdateEstatus from "../../../hooks/surtimientosHook/useUpdateEstatus";
 import styles from "../../css/estilosSurtimientos/tablaResultados.module.css";
 
-export default function TablaResultados({ data }) {
-  const [medicamentosMap, setMedicamentosMap] = useState({}); // Mapeo clave -> medicamento
+export default function TablaResultados({ data, onEstatusUpdated }) {
+  const [medicamentosMap, setMedicamentosMap] = useState({});
+  const { updateEstatus, loading, error } = useUpdateEstatus();
 
-  // Función para obtener el nombre del medicamento por clave
   const fetchMedicamentoByClave = async (claveMedicamento) => {
     try {
       const response = await fetch(
         `/api/surtimientos/getMedicamentoByClave?claveMedicamento=${claveMedicamento}`
       );
-      if (!response.ok) {
-        throw new Error("No se pudo obtener el medicamento.");
-      }
+      if (!response.ok) throw new Error("No se pudo obtener el medicamento.");
       const result = await response.json();
-      return result.medicamento; // Devuelve el nombre del medicamento
-    } catch (error) {
-      console.error(`Error al obtener el medicamento ${claveMedicamento}:`, error.message);
+      return result.medicamento;
+    } catch {
       return "No disponible";
     }
   };
 
-  // Cargar medicamentos al montar el componente
-  useEffect(() => {
-    const loadMedicamentos = async () => {
-      const newMedicamentosMap = { ...medicamentosMap };
-
-      for (const detalle of data) {
-        const clave = detalle.descMedicamento; // Clave del medicamento en los datos
-        if (!newMedicamentosMap[clave]) {
-          const medicamentoNombre = await fetchMedicamentoByClave(clave);
-          newMedicamentosMap[clave] = medicamentoNombre; // Mapea clave -> nombre
-        }
+  // Memoizar la función loadMedicamentos
+  const loadMedicamentos = useCallback(async () => {
+    const newMedicamentosMap = { ...medicamentosMap };
+    for (const detalle of data) {
+      const clave = detalle.descMedicamento;
+      if (!newMedicamentosMap[clave]) {
+        const medicamentoNombre = await fetchMedicamentoByClave(clave);
+        newMedicamentosMap[clave] = medicamentoNombre;
       }
+    }
+    setMedicamentosMap(newMedicamentosMap);
+  }, [data, medicamentosMap]);
 
-      setMedicamentosMap(newMedicamentosMap);
-    };
-
+  useEffect(() => {
     if (data && data.length > 0) {
       loadMedicamentos();
     }
-  }, [data]);
+  }, [data, loadMedicamentos]);
+
+  const handleDelete = async (idDetalleReceta) => {
+    const confirmed = confirm(
+      "¿Estás seguro de que deseas quitar este medicamento?"
+    );
+    if (!confirmed) return;
+
+    const result = await updateEstatus(idDetalleReceta, 0);
+    if (result.success) {
+      alert("Registro marcado como inactivo.");
+      onEstatusUpdated(); // Llamar a la función para refrescar los datos
+    } else {
+      alert("No se pudo actualizar el registro.");
+    }
+  };
 
   if (!data || data.length === 0) {
     return <p>No hay detalles disponibles.</p>;
@@ -53,34 +64,39 @@ export default function TablaResultados({ data }) {
         <thead>
           <tr>
             <th>ID</th>
-            <th>Clave Medicamento</th>
             <th>Nombre del Medicamento</th>
             <th>Indicaciones</th>
             <th>Cantidad</th>
             <th>Estatus</th>
+            <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
-          {data.map((detalle) => (
-            <tr key={detalle.idDetalleReceta}>
-              <td data-label="ID">{detalle.idDetalleReceta}</td>
-              <td data-label="Clave Medicamento">{detalle.descMedicamento}</td>
-              <td data-label="Nombre del Medicamento">
-                {medicamentosMap[detalle.descMedicamento] || "Cargando..."}
-              </td>
-              <td data-label="Indicaciones">{detalle.indicaciones}</td>
-              <td data-label="Cantidad">{detalle.cantidad}</td>
-              <td data-label="Estatus">
-                {detalle.estatus === 1 ? (
+          {data
+            .filter((detalle) => detalle.estatus === 1) // Filtrar solo los registros activos
+            .map((detalle) => (
+              <tr key={detalle.idDetalleReceta}>
+                <td>{detalle.idDetalleReceta}</td>
+                <td>{detalle.descMedicamento}</td>
+                <td>{detalle.indicaciones}</td>
+                <td>{detalle.cantidad}</td>
+                <td>
                   <span style={{ color: "limegreen" }}>✔ Activo</span>
-                ) : (
-                  <span style={{ color: "red" }}>✘ Inactivo</span>
-                )}
-              </td>
-            </tr>
-          ))}
+                </td>
+                <td>
+                  <button
+                    className={styles.deleteButton}
+                    onClick={() => handleDelete(detalle.idDetalleReceta)}
+                    disabled={loading}
+                  >
+                    {loading ? "Quitando..." : "Quitar"}
+                  </button>
+                </td>
+              </tr>
+            ))}
         </tbody>
       </table>
+      {error && <p className={styles.errorMessage}>Error: {error}</p>}
     </div>
   );
 }

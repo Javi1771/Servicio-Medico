@@ -109,3 +109,19 @@
     color: #f5e0dc;
   }
 }
+
+/*ESTILOS BOTON QUITAR*/
+.deleteButton {
+  background-color: #ff4d4f; /* Rojo suave */
+  color: #fff;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+}
+
+.deleteButton:hover {
+  background-color: #d9363e; /* Rojo más oscuro */
+}

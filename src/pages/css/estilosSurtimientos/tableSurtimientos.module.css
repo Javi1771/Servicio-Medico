@@ -25,58 +25,67 @@
   color: #ffffff;
 }
 
-/* Estilo para los campos de formulario */
+/* Estilo base para el contenedor */
 .formGroup {
-  margin-bottom: 15px;
-}
-
-.label {
-  display: block;
-  margin-bottom: 5px;
-  font-size: 1rem;
-  color: #ffffff;
-}
-
-/* Select personalizado */
-.select {
-  position: relative;
   display: flex;
-  width: 100%;
-  height: 3em;
-  border-radius: 0.25em;
-  overflow: hidden;
-  background-color:#1e1e2d;
+  flex-direction: column;
+  margin-bottom: 1.5rem;
+  position: relative;
 }
 
-.select select {
-  appearance: none;
-  outline: none;
-  border: 0;
-  flex: 1;
-  padding: 0 1em;
+/* Estilo para la etiqueta */
+.label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #e0e0e0;
+  margin-bottom: 0.5rem;
+}
+
+/* Estilo para el select */
+.select {
+  appearance: none; /* Elimina los estilos predeterminados del navegador */
+  background-color: #2c2f36;
   color: #ffffff;
-  background-color:#1e1e2d;
   font-size: 1rem;
+  padding: 0.7rem 1rem;
+  border: 1px solid #444854;
+  border-radius: 8px;
+  outline: none;
   cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: border-color 0.3s, box-shadow 0.3s;
 }
 
-.select select::-ms-expand {
-  display: none;
-}
-
+/* Icono personalizado de flecha (con pseudo-elemento) */
 .select::after {
-  content: "\25BC";
+  content: "▼";
   position: absolute;
-  top: 0;
-  right: 0;
-  padding: 1em;
-  background-color: #34495e;
-  transition: 0.25s all ease;
+  right: 1.5rem;
+  top: 50%;
+  transform: translateY(-50%);
   pointer-events: none;
+  color: #ccc;
 }
 
-.select:hover::after {
-  color: #f39c12;
+/* Estilo al enfocar el select */
+.select:focus {
+  border-color: #7ed6df;
+  box-shadow: 0 0 5px #7ed6df;
+}
+
+/* Estilo cuando está deshabilitado */
+.select:disabled {
+  background-color: #3a3d44;
+  color: #888;
+  cursor: not-allowed;
+}
+
+/* Estilo para las opciones del select */
+.select option {
+  background-color: #2c2f36;
+  color: #ffffff;
+  padding: 0.5rem;
+  font-size: 0.9rem;
 }
 
 /* Textareas para Indicaciones y Tratamiento */
@@ -135,26 +144,67 @@
   gap: 10px; /* Espaciado entre el select y el botón */
 }
 
-/* Botón verde con el ícono "+" */
-.addButton {
-  background-color: #28a745; /* Verde */
-  color: #fff; /* Texto blanco */
-  border: none;
-  border-radius: 5px;
-  font-size: 18px;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  justify-content: center;
+
+/*ESTILOS AVISO */
+/* Aviso de advertencia moderno */
+.warningMessage {
+  background-color: #fffbe6; /* Fondo amarillo claro */
+  color: #8a6d3b; /* Marrón dorado oscuro para el texto */
+  border-left: 5px solid #f0ad4e; /* Borde amarillo dorado */
+  border-radius: 6px; /* Bordes redondeados */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra sutil */
+  padding: 12px 15px; /* Espaciado interno */
+  margin: 15px 0; /* Espaciado externo */
+  display: flex; /* Alinear ícono y texto */
   align-items: center;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
+  font-size: 0.95rem; /* Tamaño de fuente moderado */
+  font-weight: 500; /* Fuente semi-negrita */
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
+/* Ícono de advertencia */
+.warningIcon {
+  margin-right: 10px; /* Espacio entre ícono y texto */
+  color: #f0ad4e; /* Color amarillo dorado */
+  font-size: 1.3rem; /* Tamaño del ícono */
+}
+
+
+/* Botón principal estilizado */
+.addButton {
+  background-color: #4caf50; /* Verde profesional */
+  color: #ffffff; /* Texto en blanco */
+  border: none; /* Sin borde */
+  padding: 12px 20px; /* Espaciado interno */
+  border-radius: 6px; /* Bordes redondeados */
+  font-size: 1rem; /* Tamaño de fuente */
+  font-weight: 600; /* Fuente semi-negrita */
+  text-transform: uppercase; /* Texto en mayúsculas */
+  cursor: pointer; /* Cursor tipo botón */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Sombra sutil */
+  transition: all 0.3s ease; /* Transición suave */
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Efecto hover */
 .addButton:hover {
-  background-color: #218838; /* Verde más oscuro en hover */
+  background-color: #45a049; /* Verde más oscuro */
+  box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15); /* Sombra ligeramente más intensa */
+  transform: translateY(-2px); /* Efecto de elevación */
 }
 
+/* Efecto al presionar */
 .addButton:active {
-  background-color: #1e7e34; /* Verde más intenso en click */
+  background-color: #3e8e41; /* Verde aún más oscuro */
+  transform: translateY(0); /* Botón vuelve a su posición original */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Botón deshabilitado */
+.addButton:disabled {
+  background-color: #bdbdbd; /* Gris claro */
+  color: #f5f5f5; /* Texto en gris claro */
+  cursor: not-allowed; /* Cursor prohibido */
+  box-shadow: none; /* Sin sombra */
+  transform: none; /* Sin movimiento */
 }
