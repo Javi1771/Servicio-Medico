@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback } from "react";
 import useUpdateEstatus from "../../../hooks/surtimientosHook/useUpdateEstatus";
 import styles from "../../css/estilosSurtimientos/tablaResultados.module.css";
+import Swal from "sweetalert2";
+
 
 export default function TablaResultados({ data, onEstatusUpdated }) {
   const [medicamentosMap, setMedicamentosMap] = useState({});
@@ -39,19 +41,43 @@ export default function TablaResultados({ data, onEstatusUpdated }) {
   }, [data, loadMedicamentos]);
 
   const handleDelete = async (idDetalleReceta) => {
-    const confirmed = confirm(
-      "¿Estás seguro de que deseas quitar este medicamento?"
-    );
-    if (!confirmed) return;
-
-    const result = await updateEstatus(idDetalleReceta, 0);
-    if (result.success) {
-      alert("Registro marcado como inactivo.");
-      onEstatusUpdated(); // Llamar a la función para refrescar los datos
-    } else {
-      alert("No se pudo actualizar el registro.");
+    const result = await Swal.fire({
+      title: "¿Estás seguro?",
+      text: "Este medicamento será marcado como inactivo.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar",
+      confirmButtonColor: "#d63031",
+      cancelButtonColor: "#6c5ce7",
+    });
+  
+    if (!result.isConfirmed) return;
+  
+    try {
+      const updateResult = await updateEstatus(idDetalleReceta, 0);
+      if (updateResult.success) {
+        Swal.fire({
+          title: "Eliminado",
+          text: "El medicamento ha sido marcado como inactivo.",
+          icon: "success",
+          confirmButtonColor: "#6c5ce7",
+        });
+        onEstatusUpdated(); // Llamar a la función para refrescar los datos
+      } else {
+        throw new Error("No se pudo actualizar el registro.");
+      }
+    } catch (error) {
+      console.error("Error al eliminar el medicamento:", error.message);
+      Swal.fire({
+        title: "Error",
+        text: "No se pudo actualizar el registro.",
+        icon: "error",
+        confirmButtonColor: "#d63031",
+      });
     }
   };
+  
 
   if (!data || data.length === 0) {
     return <p>No hay detalles disponibles.</p>;

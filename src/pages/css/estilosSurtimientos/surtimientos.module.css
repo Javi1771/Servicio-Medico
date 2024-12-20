@@ -586,3 +586,12 @@
   height: auto; /* Altura automática */
   max-height: 200px; /* Altura máxima */
 }
+
+
+.successMessage {
+  color: rgb(17, 199, 17);
+}
+
+.errorMessage {
+  color: rgb(255, 208, 0);
+}

@@ -9,8 +9,6 @@ import Swal from "sweetalert2";
 import { FiInfo } from "react-icons/fi";
 import Image from "next/image";
 
-
-
 export default function Surtimientos() {
   const [folioConsulta, setFolioConsulta] = useState("");
   const [claveNomina, setClaveNomina] = useState(null);
@@ -31,6 +29,8 @@ export default function Surtimientos() {
   const [diagnosticoEditable, setDiagnosticoEditable] = useState("");
 
   const [isSearchAttempted, setIsSearchAttempted] = useState(false);
+
+  const [isDiagnosticoEditable, setIsDiagnosticoEditable] = useState(true);
 
   // Manejar la búsqueda del folio de consulta
   const handleSearch = async () => {
@@ -92,6 +92,9 @@ export default function Surtimientos() {
 
         // Inicializar el diagnóstico editable si no existe
         setDiagnosticoEditable(consultaData.diagnostico || "");
+
+        // Validar si el diagnóstico ya existe
+        setIsDiagnosticoEditable(!consultaData.diagnostico); // No editable si ya tiene valor
       }
 
       // Cerrar SweetAlert cuando todo se completa correctamente
@@ -200,17 +203,17 @@ export default function Surtimientos() {
   return (
     <div className={styles.bodyContainer}>
       <div className={styles.container}>
-         {/* Banner en la parte superior */}
-    <div className={styles.bannerContainer}>
-      <Image
-        src="/baner_sjr.png" // Ruta de tu imagen
-        alt="Banner Superior"
-        width={1920} // Ajusta según el ancho del contenedor
-        height={200} // Ajusta la altura
-        priority // Carga la imagen de forma prioritaria
-        className={styles.bannerImage}
-      />
-    </div>
+        {/* Banner en la parte superior */}
+        <div className={styles.bannerContainer}>
+          <Image
+            src="/baner_sjr.png" // Ruta de tu imagen
+            alt="Banner Superior"
+            width={1920} // Ajusta según el ancho del contenedor
+            height={200} // Ajusta la altura
+            priority // Carga la imagen de forma prioritaria
+            className={styles.bannerImage}
+          />
+        </div>
         <h1 className={styles.title}>Surtimientos</h1>
         {/* Header */}
         <div className={styles.customHeader}>
@@ -355,15 +358,22 @@ export default function Surtimientos() {
                           value={diagnosticoEditable}
                           onChange={(e) =>
                             setDiagnosticoEditable(e.target.value)
-                          } // Actualiza el estado
+                          }
                           placeholder="Escribe el diagnóstico..."
+                          disabled={!isDiagnosticoEditable} // Deshabilitado si ya existe diagnóstico
                         />
 
-                        <p className={styles.infoMessage}>
+                        <p
+                          className={`${styles.infoMessage} ${
+                            isDiagnosticoEditable
+                              ? styles.successMessage
+                              : styles.errorMessage
+                          }`}
+                        >
                           <FiInfo className={styles.infoIcon} />
-                          {data?.diagnostico
+                          {!isDiagnosticoEditable
                             ? "El diagnóstico ya existe y no puede ser modificado."
-                            : ""}
+                            : "Puedes escribir un diagnóstico."}
                         </p>
                       </div>
                     </div>
@@ -382,8 +392,12 @@ export default function Surtimientos() {
               )}
 
               {/* Tabla de Resultados */}
-              {detalles.length > 0 && <TablaResultados 
-              data={detalles} onEstatusUpdated={handleSearch} />}
+              {detalles.length > 0 && (
+                <TablaResultados
+                  data={detalles}
+                  onEstatusUpdated={handleSearch}
+                />
+              )}
             </>
           ) : (
             // Mostrar el mensaje si no hay datos
