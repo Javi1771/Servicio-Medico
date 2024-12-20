@@ -242,7 +242,6 @@ const MedicamentosForm = ({
       setIsGuardadoHabilitado(data.habilitado);
     } catch (error) {
       console.error("Error al validar especialidad:", error.message);
-      setIsGuardadoHabilitado(false);
     }
   }, [folioConsulta]); // eslint-disable-line react-hooks/exhaustive-deps
   
