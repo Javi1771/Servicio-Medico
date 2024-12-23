@@ -1,67 +1,19 @@
-/* Contenedor de la tabla */
 .tableContainer {
-  position: relative;
   margin: 20px 0;
   padding: 20px;
-  background-color: #1e1e2e;
+  background-color: #1e1e2f;
   border-radius: 12px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.titleContainer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .title {
   font-size: 1.8em;
-  color: #333;
-  font-weight: 600;
-}
-
-.historialButton {
-  background-color: #00a181;
-  border: none;
+  margin-bottom: 20px;
+  margin-top: -40px;
   color: #ffffff;
-  padding: 10px 20px;
-  font-size: 1em;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.historialButton:hover {
-  background-color: #00cc99;
-}
-
-.slideContainer {
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 0.5s ease-out;
-}
-
-.slideContainer.show {
-  max-height: 1000px; /* Ajusta este valor según sea necesario */
-  transform: translateY(0);
-}
-
-.slideContainer.hide {
-  transform: translateY(-100%);
-}
-
-
-/* Título de la tabla */
-.title {
-  font-size: 1.5rem;
-  font-weight: 600;
   text-align: center;
-  color: #cdd6f4;
-  margin-bottom: 1rem;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  padding: 10px;
-  
+  font-weight: 600;
+  text-shadow: 0 0 5px #00ffcc;
 }
 
 /* Estilos generales de la tabla */
@@ -109,14 +61,6 @@
   color: #cdd6f4;
 }
 
-/* Estatus: estilos condicionales */
-.table tbody td:last-child {
-  font-weight: bold;
-  text-align: center;
-}
-
-
-
 /* Responsividad */
 @media (max-width: 768px) {
   .table thead {
@@ -152,19 +96,14 @@
     color: #f5e0dc;
   }
 }
-
-/*ESTILOS BOTON QUITAR*/
-.deleteButton {
-  background-color: #ff4d4f; /* Rojo suave */
-  color: #fff;
-  border: none;
-  padding: 5px 10px;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.3s ease;
+.warning {
+  color: #ffcc00;
+  text-align: center;
+  font-weight: bold;
 }
 
-.deleteButton:hover {
-  background-color: #d9363e; /* Rojo más oscuro */
+.error {
+  color: #ff3333;
+  text-align: center;
+  font-weight: bold;
 }

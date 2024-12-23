@@ -1,12 +1,15 @@
 import React, { useState, useEffect, useCallback } from "react";
 import useUpdateEstatus from "../../../hooks/surtimientosHook/useUpdateEstatus";
+import useHistorialByFolio from "../../../hooks/surtimientosHook/useHistorialSurtimientos";
+import HistorialSurtimientos from "./historialSurtimientos";
 import styles from "../../css/estilosSurtimientos/tablaResultados.module.css";
 import Swal from "sweetalert2";
 
-
-export default function TablaResultados({ data, onEstatusUpdated }) {
+export default function TablaResultados({ data, folioPase, onEstatusUpdated }) {
+  const [showHistorial, setShowHistorial] = useState(false); // Maneja el estado del historial
   const [medicamentosMap, setMedicamentosMap] = useState({});
   const { updateEstatus, loading, error } = useUpdateEstatus();
+  const { surtimientos, loading: loadingSurtimientos, error: errorSurtimientos } = useHistorialByFolio(folioPase);
 
   const fetchMedicamentoByClave = async (claveMedicamento) => {
     try {
@@ -21,24 +24,33 @@ export default function TablaResultados({ data, onEstatusUpdated }) {
     }
   };
 
-  // Memoizar la función loadMedicamentos
   const loadMedicamentos = useCallback(async () => {
     const newMedicamentosMap = { ...medicamentosMap };
+    let updated = false;
+
     for (const detalle of data) {
       const clave = detalle.descMedicamento;
       if (!newMedicamentosMap[clave]) {
         const medicamentoNombre = await fetchMedicamentoByClave(clave);
         newMedicamentosMap[clave] = medicamentoNombre;
+        updated = true;
       }
     }
-    setMedicamentosMap(newMedicamentosMap);
-  }, [data, medicamentosMap]);
+
+    // Solo actualizar el estado si hubo cambios
+    if (updated) {
+      setMedicamentosMap(newMedicamentosMap);
+    }
+  }, [data]);
+
+  const handleToggleHistorial = () => {
+    console.log("Botón de historial clickeado");
+    setShowHistorial(!showHistorial);
+  };
 
   useEffect(() => {
-    if (data && data.length > 0) {
-      loadMedicamentos();
-    }
-  }, [data, loadMedicamentos]);
+    loadMedicamentos();
+  }, [loadMedicamentos]);
 
   const handleDelete = async (idDetalleReceta) => {
     const result = await Swal.fire({
@@ -51,9 +63,9 @@ export default function TablaResultados({ data, onEstatusUpdated }) {
       confirmButtonColor: "#d63031",
       cancelButtonColor: "#6c5ce7",
     });
-  
+
     if (!result.isConfirmed) return;
-  
+
     try {
       const updateResult = await updateEstatus(idDetalleReceta, 0);
       if (updateResult.success) {
@@ -77,7 +89,6 @@ export default function TablaResultados({ data, onEstatusUpdated }) {
       });
     }
   };
-  
 
   if (!data || data.length === 0) {
     return <p>No hay detalles disponibles.</p>;
@@ -85,43 +96,53 @@ export default function TablaResultados({ data, onEstatusUpdated }) {
 
   return (
     <div className={styles.tableContainer}>
-      <h2 className={styles.title}>Detalles del Surtimiento</h2>
-      <table className={styles.table}>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Nombre del Medicamento</th>
-            <th>Indicaciones</th>
-            <th>Cantidad</th>
-            <th>Estatus</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data
-            .filter((detalle) => detalle.estatus === 1) // Filtrar solo los registros activos
-            .map((detalle) => (
-              <tr key={detalle.idDetalleReceta}>
-                <td>{detalle.idDetalleReceta}</td>
-                <td>{detalle.descMedicamento}</td>
-                <td>{detalle.indicaciones}</td>
-                <td>{detalle.cantidad}</td>
-                <td>
-                  <span style={{ color: "limegreen" }}>✔ Activo</span>
-                </td>
-                <td>
-                  <button
-                    className={styles.deleteButton}
-                    onClick={() => handleDelete(detalle.idDetalleReceta)}
-                    disabled={loading}
-                  >
-                    {loading ? "Quitando..." : "Quitar"}
-                  </button>
-                </td>
-              </tr>
-            ))}
-        </tbody>
-      </table>
+      <div className={`${styles.titleContainer} ${showHistorial ? styles.hide : ""}`}>
+        <h2 className={styles.title}>Detalles del Surtimiento</h2>
+        <button className={styles.historialButton} onClick={handleToggleHistorial}>
+          {showHistorial ? "Volver a Surtimientos" : "Ver Historial de Surtimientos"}
+        </button>
+      </div>
+      <div className={`${styles.slideContainer} ${showHistorial ? styles.show : ""}`}>
+        <HistorialSurtimientos folioPase={folioPase} />
+      </div>
+      <div className={`${styles.slideContainer} ${!showHistorial ? styles.show : ""}`}>
+        <table className={styles.table}>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nombre del Medicamento</th>
+              <th>Indicaciones</th>
+              <th>Cantidad</th>
+              <th>Estatus</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data
+              .filter((detalle) => detalle.estatus === 1) // Filtrar solo los registros activos
+              .map((detalle) => (
+                <tr key={detalle.idDetalleReceta}>
+                  <td>{detalle.idDetalleReceta}</td>
+                  <td>{medicamentosMap[detalle.descMedicamento] || "Cargando..."}</td>
+                  <td>{detalle.indicaciones}</td>
+                  <td>{detalle.cantidad}</td>
+                  <td>
+                    <span style={{ color: "limegreen" }}>✔ Activo</span>
+                  </td>
+                  <td>
+                    <button
+                      className={styles.deleteButton}
+                      onClick={() => handleDelete(detalle.idDetalleReceta)}
+                      disabled={loading}
+                    >
+                      {loading ? "Quitando..." : "Quitar"}
+                    </button>
+                  </td>
+                </tr>
+              ))}
+          </tbody>
+        </table>
+      </div>
       {error && <p className={styles.errorMessage}>Error: {error}</p>}
     </div>
   );

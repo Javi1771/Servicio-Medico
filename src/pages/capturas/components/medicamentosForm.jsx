@@ -18,6 +18,8 @@ const MedicamentosForm = ({
   const [indicaciones, setIndicaciones] = useState("");
   const [cantidad, setCantidad] = useState("");
 
+  const [isGuardadoHabilitado, setIsGuardadoHabilitado] = useState(false);
+
   const [temporalMedicamentos, setTemporalMedicamentos] = useState([]); // Temporal storage
   // Nueva validación: deshabilitar botón si ya existe al menos un medicamento
 
@@ -233,18 +235,17 @@ const MedicamentosForm = ({
       const response = await fetch(
         `/api/surtimientos/validateEspecialidadintercosulta?claveconsulta=${folioConsulta}`
       );
-  
+
       if (!response.ok) {
         throw new Error("No se pudo validar la consulta.");
       }
-  
+
       const data = await response.json();
       setIsGuardadoHabilitado(data.habilitado);
     } catch (error) {
       console.error("Error al validar especialidad:", error.message);
     }
   }, [folioConsulta]); // eslint-disable-line react-hooks/exhaustive-deps
-  
 
   // Fetch para obtener la lista de medicamentos
   const fetchMedicamentos = async () => {
@@ -275,8 +276,6 @@ const MedicamentosForm = ({
     fetchMedicamentos();
     validarEspecialidad();
   }, [folioConsulta, validarEspecialidad]);
-
-
 
   // Nueva validación: deshabilitar botón si ya existe al menos un medicamento
   const tieneMedicamentos = detalles?.length > 0;
@@ -393,38 +392,40 @@ const MedicamentosForm = ({
           )}
         </div>
 
-        <div className={styles.temporalList}>
-          <h3 className={styles.temporalTitle}>Medicamentos Añadidos</h3>
-          {temporalMedicamentos.length > 0 ? (
-            <div className={styles.temporalContainer}>
-              {temporalMedicamentos.map((med) => (
-                <div key={med.id} className={styles.medicamentoCard}>
-                  <div className={styles.medicamentoDetails}>
-                    <p>
-                      <strong>Medicamento:</strong> {med.medicamento}
-                    </p>
-                    <p>
-                      <strong>Indicaciones:</strong> {med.indicaciones}
-                    </p>
-                    <p>
-                      <strong>Cantidad:</strong> {med.cantidad}
-                    </p>
+        {!tieneMedicamentos && (
+          <div className={styles.temporalList}>
+            <h3 className={styles.temporalTitle}>Medicamentos Añadidos</h3>
+            {temporalMedicamentos.length > 0 ? (
+              <div className={styles.temporalContainer}>
+                {temporalMedicamentos.map((med) => (
+                  <div key={med.id} className={styles.medicamentoCard}>
+                    <div className={styles.medicamentoDetails}>
+                      <p>
+                        <strong>Medicamento:</strong> {med.medicamento}
+                      </p>
+                      <p>
+                        <strong>Indicaciones:</strong> {med.indicaciones}
+                      </p>
+                      <p>
+                        <strong>Cantidad:</strong> {med.cantidad}
+                      </p>
+                    </div>
+                    <button
+                      className={styles.removeButton}
+                      onClick={(event) => handleRemoveFromReceta(med.id, event)} // Pasa el evento como segundo argumento
+                    >
+                      Eliminar
+                    </button>
                   </div>
-                  <button
-                    className={styles.removeButton}
-                    onClick={(event) => handleRemoveFromReceta(med.id, event)} // Pasa el evento como segundo argumento
-                  >
-                    Eliminar
-                  </button>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className={styles.noMedicamentosMessage}>
-              No se han añadido medicamentos aún.
-            </p>
-          )}
-        </div>
+                ))}
+              </div>
+            ) : (
+              <p className={styles.noMedicamentosMessage}>
+                No se han añadido medicamentos aún.
+              </p>
+            )}
+          </div>
+        )}
       </form>
 
       <ModalRegistrarMedicamento

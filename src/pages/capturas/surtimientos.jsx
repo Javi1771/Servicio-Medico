@@ -393,10 +393,12 @@ export default function Surtimientos() {
 
               {/* Tabla de Resultados */}
               {detalles.length > 0 && (
-                <TablaResultados
-                  data={detalles}
-                  onEstatusUpdated={handleSearch}
-                />
+              <TablaResultados
+              folioPase={folioConsulta} // Se asegura de pasar el folio correcto
+              data={detalles}
+              onEstatusUpdated={handleSearch}
+            />
+            
               )}
             </>
           ) : (
