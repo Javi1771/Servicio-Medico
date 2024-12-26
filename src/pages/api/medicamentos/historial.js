@@ -15,11 +15,13 @@ export default async function handler(req, res) {
     try {
       const pool = await connectToDatabase();
 
-      // Buscar claveconsulta en la tabla consultas
+      // Buscar claveconsulta en la tabla consultas, limitado al último mes
       const queryConsultas = `
         SELECT claveconsulta
         FROM [PRESIDENCIA].[dbo].[consultas]
-        WHERE clavepaciente = @clavepaciente AND clavenomina = @clavenomina
+        WHERE clavepaciente = @clavepaciente 
+          AND clavenomina = @clavenomina
+          AND fechaconsulta >= DATEADD(MONTH, -1, GETDATE())
       `;
 
       const consultasResult = await pool
@@ -45,11 +47,10 @@ export default async function handler(req, res) {
           descMedicamento
         FROM [PRESIDENCIA].[dbo].[detalleReceta]
         WHERE folioReceta IN (${claveConsultas.join(",")})
+        ORDER BY idDetalleReceta DESC
       `;
 
-      const detalleRecetaResult = await pool
-        .request()
-        .query(queryDetalleReceta);
+      const detalleRecetaResult = await pool.request().query(queryDetalleReceta);
 
       const detalleRecetas = detalleRecetaResult.recordset;
 
@@ -73,9 +74,7 @@ export default async function handler(req, res) {
           WHERE CLAVEMEDICAMENTO IN (${descMedicamentoIds.join(",")})
         `;
 
-        const medicamentosResult = await pool
-          .request()
-          .query(queryMedicamentos);
+        const medicamentosResult = await pool.request().query(queryMedicamentos);
 
         const medicamentos = medicamentosResult.recordset;
 

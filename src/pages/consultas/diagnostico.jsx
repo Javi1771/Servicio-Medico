@@ -55,6 +55,8 @@ const Diagnostico = () => {
   const [selectedBeneficiary, setSelectedBeneficiary] = useState(null);
   const [consultaSeleccionada, setConsultaSeleccionada] = useState("empleado");
   const [pasarEspecialidad, setPasarEspecialidad] = useState(null);
+  const [formularioCompleto, setFormularioCompleto] = useState(false);
+
   const [especialidadSeleccionada, setEspecialidadSeleccionada] = useState("");
   const [observaciones, setObservaciones] = useState("");
   const [medicamentos, setMedicamentos] = useState("");
@@ -308,170 +310,6 @@ const Diagnostico = () => {
     await obtenerDatosEmpleado(paciente.clavenomina);
   };
 
-  const handleCancelar = async () => {
-    try {
-      console.log("📤 Enviando solicitud para cancelar la consulta...");
-
-      //* Actualiza en la base de datos clavestatus a 0
-      const response = await fetch(
-        "/api/pacientes-consultas/actualizarClavestatus",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            claveConsulta,
-            clavestatus: 0, // Establecer clavestatus a 0 para cancelar
-          }),
-        }
-      );
-
-      const data = await response.json();
-      if (!response.ok) {
-        console.error("❌ Error al cancelar la consulta:", data.message);
-        throw new Error(data.message);
-      }
-
-      console.log("✅ Consulta cancelada exitosamente:", data.message);
-
-      //* Limpiar los datos de la consulta en el frontend
-      setDiagnostico("");
-      setMotivoConsulta("");
-      setSignosVitales({
-        ta: "",
-        temperatura: "",
-        fc: "",
-        oxigenacion: "",
-        altura: "",
-        peso: "",
-        glucosa: "",
-      });
-      setAlergias("");
-      setObservaciones("");
-      setEspecialidadSeleccionada("");
-      setPasarEspecialidad(null);
-      setEmpleadoData(null);
-      setDatosEditados({
-        signosVitales: {},
-        alergias: "",
-      });
-
-      limpiarFormulario();
-      resetValidationState(); // Restablecer el estado de validación
-
-      //* Cierra el formulario emergente y muestra solo la tabla
-      setPacienteSeleccionado(null);
-      setMostrarEmergente(false);
-
-      //* Refresca la lista de pacientes después de cerrar el formulario
-      await cargarPacientesDelDia();
-
-      //* Alerta de éxito
-      MySwal.fire({
-        icon: "info",
-        title:
-          "<span style='color: #00bcd4; font-weight: bold; font-size: 1.5em;'>ℹ️ Consulta cancelada</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>Consulta cancelada y datos borrados correctamente.</p>",
-        background: "linear-gradient(145deg, #004d40, #00251a)",
-        confirmButtonColor: "#00bcd4",
-        confirmButtonText:
-          "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-blue-600 shadow-[0px_0px_20px_5px_rgba(0,188,212,0.9)] rounded-lg",
-        },
-      });
-    } catch (error) {
-      console.error("Error al cancelar y borrar datos de la consulta:", error);
-
-      //* Alerta de error
-      MySwal.fire({
-        icon: "error",
-        title:
-          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error al cancelar</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>Hubo un error al cancelar la consulta. Inténtalo nuevamente.</p>",
-        background: "linear-gradient(145deg, #4a0000, #220000)",
-        confirmButtonColor: "#ff1744",
-        confirmButtonText:
-          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-        },
-      });
-    }
-  };
-
-  const handleGuardar = async () => {
-    try {
-      console.log("📤 Actualizando clavestatus a 2...");
-
-      //* Actualizar el estado de clavestatus de 1 a 2
-      const responseActualizar = await fetch(
-        "/api/pacientes-consultas/actualizarClavestatus",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ claveConsulta, clavestatus: 2 }),
-        }
-      );
-
-      const dataActualizar = await responseActualizar.json();
-
-      if (!responseActualizar.ok) {
-        console.error(
-          "❌ Error al actualizar clavestatus:",
-          dataActualizar.message
-        );
-        throw new Error(dataActualizar.message);
-      }
-
-      console.log(
-        "✅ Clavestatus actualizado exitosamente a 2:",
-        dataActualizar.message
-      );
-
-      //* Alerta de éxito
-      MySwal.fire({
-        icon: "success",
-        title:
-          "<span style='color: #4caf50; font-weight: bold; font-size: 1.5em;'>✅ Consulta Guardada</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>Consulta guardada correctamente y estado actualizado.</p>",
-        background: "linear-gradient(145deg, #004d40, #00251a)",
-        confirmButtonColor: "#4caf50",
-        confirmButtonText:
-          "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-green-600 shadow-[0px_0px_20px_5px_rgba(76,175,80,0.9)] rounded-lg",
-        },
-      });
-
-      //* Limpiar los datos del formulario como al cancelar
-      limpiarFormulario();
-
-      //* Refresca la lista de pacientes después de guardar
-      await cargarPacientesDelDia();
-    } catch (error) {
-      console.error("❌ Error al actualizar clavestatus:", error);
-
-      //! Alerta de error
-      MySwal.fire({
-        icon: "error",
-        title:
-          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>No se pudo actualizar el estado. Inténtalo nuevamente.</p>",
-        background: "linear-gradient(145deg, #4a0000, #220000)",
-        confirmButtonColor: "#ff1744",
-        confirmButtonText:
-          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-        },
-      });
-    }
-  };
-
   const limpiarFormulario = () => {
     //* Limpiar los datos del formulario
     setDiagnostico("");
@@ -499,6 +337,35 @@ const Diagnostico = () => {
     setPacienteSeleccionado(null);
     setMostrarEmergente(false);
   };
+
+  //* Verifica si todos los campos requeridos están completos
+  useEffect(() => {
+    const verificarFormularioCompleto = () => {
+      const camposRequeridosLlenos =
+        claveConsulta &&
+        diagnostico &&
+        motivoConsulta &&
+        signosVitales.ta &&
+        signosVitales.temperatura;
+      const paseEspecialidadCompleto =
+        pasarEspecialidad === "no" ||
+        (pasarEspecialidad === "si" &&
+          especialidadSeleccionada &&
+          observaciones);
+
+      setFormularioCompleto(camposRequeridosLlenos && paseEspecialidadCompleto);
+    };
+
+    verificarFormularioCompleto();
+  }, [
+    claveConsulta,
+    diagnostico,
+    motivoConsulta,
+    signosVitales,
+    pasarEspecialidad,
+    especialidadSeleccionada,
+    observaciones,
+  ]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-900 to-black text-white px-4 py-8 md:px-12">
