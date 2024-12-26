@@ -9,6 +9,7 @@ import Swal from "sweetalert2";
 import { FiInfo } from "react-icons/fi";
 import Image from "next/image";
 
+
 export default function Surtimientos() {
   const [folioConsulta, setFolioConsulta] = useState("");
   const [claveNomina, setClaveNomina] = useState(null);
@@ -31,6 +32,10 @@ export default function Surtimientos() {
   const [isSearchAttempted, setIsSearchAttempted] = useState(false);
 
   const [isDiagnosticoEditable, setIsDiagnosticoEditable] = useState(true);
+
+    const [costo, setCosto] = useState("");
+    const [claveusuario, setClaveusuario] = useState("");
+  
 
   // Manejar la búsqueda del folio de consulta
   const handleSearch = async () => {
@@ -135,6 +140,14 @@ export default function Surtimientos() {
     console.log("Clave Especialidad desde cookies:", clave);
     setNombreMedico(nombre || "No especificado");
     setClaveEspecialidad(clave || "No especificado");
+
+    const costo = Cookies.get("costo");
+    console.log("Costo: ", costo);
+    setCosto(costo || "No especificado");
+
+    const claveusuario = Cookies.get("claveusuario");
+    console.log("Clave claveusuario: ", claveusuario);
+    setClaveusuario(claveusuario || "No especificado");
   }, []);
 
   // Fetch para obtener especialidades
@@ -199,6 +212,7 @@ export default function Surtimientos() {
       });
     }
   }, [loading]);
+
 
   return (
     <div className={styles.bodyContainer}>
