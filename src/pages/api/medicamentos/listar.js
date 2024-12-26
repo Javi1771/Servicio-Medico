@@ -5,9 +5,10 @@ export default async function handler(req, res) {
     try {
       const pool = await connectToDatabase();
       const query = `
-        SELECT ean, sustancia, piezas 
-        FROM [PRESIDENCIA].[dbo].[MEDICAMENTOS_FARMACIA] 
-        WHERE piezas > 0 AND activo = 1
+        SELECT CLAVEMEDICAMENTO, MEDICAMENTO
+        FROM [PRESIDENCIA].[dbo].[MEDICAMENTOS]
+        WHERE ESTATUS = 1
+        ORDER BY MEDICAMENTO ASC
       `;
       const result = await pool.request().query(query);
 

@@ -1,141 +1,92 @@
 import { connectToDatabase } from "../connectToDatabase";
-import { pusher } from "../pusher";
 import sql from "mssql";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
+    console.error("Método no permitido. Solo se acepta POST.");
     return res.status(405).json({ error: "Método no permitido" });
   }
 
   console.log("Datos recibidos en el backend:", req.body);
 
-  const {
-    ean,
-    medicamento,
-    piezas,
-    indicaciones,
-    tratamiento,
-    claveConsulta,
-    claveEspecialidad,
-    clavenomina,
-    clavepaciente,
-  } = req.body;
+  const { folioReceta, descMedicamento, indicaciones, cantidad } = req.body;
 
-  if (
-    !ean ||
-    !medicamento ||
-    !piezas ||
-    !indicaciones ||
-    !tratamiento ||
-    !claveConsulta ||
-    !claveEspecialidad ||
-    !clavenomina ||
-    !clavepaciente
-  ) {
-    console.error("Faltan datos en la solicitud:", req.body);
-    return res.status(400).json({ error: "Faltan datos en la solicitud" });
+  //* Validación de datos obligatorios
+  if (!folioReceta || !descMedicamento || !indicaciones || !cantidad) {
+    console.error("Faltan datos obligatorios en la solicitud:", req.body);
+    return res.status(400).json({ error: "Faltan datos obligatorios en la solicitud" });
   }
 
   try {
     const pool = await connectToDatabase();
 
     console.log("Preparando datos para la base de datos:", {
-      ean,
-      medicamento,
-      piezas,
+      folioReceta,
+      descMedicamento,
       indicaciones,
-      tratamiento,
-      claveConsulta,
-      claveEspecialidad,
-      clavenomina,
-      clavepaciente,
+      cantidad,
     });
 
-    // Aquí asumimos que:
-    // - claveConsulta es un número en la base de datos (INT)
-    // - claveEspecialidad es numérico (INT)
-    // - clavenomina y clavepaciente pueden contener letras, así que deben ser VARCHAR
-    // - ean es un texto largo, asegúrate que la columna en la BD sea lo suficientemente grande (por ejemplo, VARCHAR(50))
+    //* Validación adicional de tipo de datos
+    const folio = parseInt(folioReceta, 10);
+    const medicamentoId = parseInt(descMedicamento, 10);
 
-    const queryInsertarHistorial = `
-      INSERT INTO [PRESIDENCIA].[dbo].[MEDICAMENTO_PACIENTE] 
-      (ean, sustancia, piezas_otorgadas, indicaciones, tratamiento, claveconsulta, fecha_otorgacion, id_especialidad, clave_nomina, clavepaciente) 
-      VALUES (@ean, @medicamento, @piezas, @indicaciones, @tratamiento, @claveConsulta, GETDATE(), @claveEspecialidad, @clavenomina, @clavepaciente)
-    `;
-
-    await pool
-      .request()
-      .input("ean", sql.VarChar, ean)  // ean es texto
-      .input("medicamento", sql.VarChar, medicamento) // medicamento es texto
-      .input("piezas", sql.Int, parseInt(piezas, 10)) // piezas es numérico
-      .input("indicaciones", sql.NVarChar, indicaciones) // indicaciones es texto
-      .input("tratamiento", sql.NVarChar, tratamiento) // tratamiento es texto
-      .input("claveConsulta", sql.Int, parseInt(claveConsulta, 10)) // claveConsulta es numérico
-      .input("claveEspecialidad", sql.Int, parseInt(claveEspecialidad, 10)) // claveEspecialidad es numérico
-      .input("clavenomina", sql.VarChar, clavenomina) // clavenomina es texto (tiene letras)
-      .input("clavepaciente", sql.VarChar, clavepaciente) // clavepaciente es texto (tiene letras)
-      .query(queryInsertarHistorial);
-
-    console.log("Medicamento guardado exitosamente en la base de datos");
-
-    const queryActualizarStock = `
-      UPDATE [PRESIDENCIA].[dbo].[MEDICAMENTOS_FARMACIA]
-      SET piezas = piezas - @piezas
-      WHERE ean = @ean
-    `;
-
-    const resultadoStock = await pool
-      .request()
-      .input("ean", sql.VarChar, ean)
-      .input("piezas", sql.Int, parseInt(piezas, 10))
-      .query(queryActualizarStock);
-
-    if (resultadoStock.rowsAffected[0] === 0) {
-      console.warn("No se actualizó el stock. EAN inexistente.");
-      return res
-        .status(400)
-        .json({ error: "No se encontró el medicamento en la farmacia." });
+    if (isNaN(folio) || isNaN(medicamentoId)) {
+      console.error("Los datos proporcionados no son válidos:", {
+        folio,
+        medicamentoId,
+        cantidad,
+      });
+      return res.status(400).json({ error: "Los datos proporcionados no son válidos" });
     }
 
-    console.log("Stock del medicamento actualizado correctamente");
-
-    const queryHistorial = `
-      SELECT 
-        mp.fecha_otorgacion AS fecha,
-        mp.sustancia AS medicamento,
-        mp.piezas_otorgadas AS piezas,
-        mp.indicaciones,
-        mp.tratamiento,
-        mp.clave_nomina AS clavenomina,
-        mp.claveconsulta,
-        mp.clavepaciente,
-        mp.id_especialidad AS claveespecialidad
-      FROM [PRESIDENCIA].[dbo].[MEDICAMENTO_PACIENTE] mp
-      WHERE mp.clavepaciente = @clavepaciente
-      ORDER BY mp.fecha_otorgacion DESC
+    //* Consulta para obtener el nombre del medicamento
+    const queryObtenerMedicamento = `
+      SELECT MEDICAMENTO
+      FROM [PRESIDENCIA].[dbo].[MEDICAMENTOS]
+      WHERE CLAVEMEDICAMENTO = @medicamentoId
     `;
 
-    const historialResult = await pool
+    console.log("Ejecutando query para obtener el nombre del medicamento...");
+    const medicamentoResult = await pool
       .request()
-      .input("clavepaciente", sql.VarChar, clavepaciente)
-      .query(queryHistorial);
+      .input("medicamentoId", sql.Int, medicamentoId)
+      .query(queryObtenerMedicamento);
 
-    const historial = historialResult.recordset;
+    if (medicamentoResult.recordset.length === 0) {
+      console.error("El medicamento no fue encontrado en la base de datos.");
+      return res.status(404).json({ error: "Medicamento no encontrado" });
+    }
 
-    console.log("Enviando evento Pusher...");
-    await pusher.trigger("medicamentos-channel", "historial-updated", {
-      clavepaciente,
-      historial,
-    });
+    const medicamentoNombre = medicamentoResult.recordset[0].MEDICAMENTO;
+    console.log("Medicamento encontrado:", medicamentoNombre);
 
-    console.log("Evento Pusher emitido con éxito");
+    //* Query para insertar en la tabla `detalleReceta`
+    const queryInsertarReceta = `
+      INSERT INTO [PRESIDENCIA].[dbo].[detalleReceta]
+      (folioReceta, descMedicamento, indicaciones, estatus, cantidad)
+      VALUES (@folioReceta, @medicamentoNombre, @indicaciones, @estatus, @cantidad)
+    `;
+
+    console.log("Ejecutando query para insertar en detalleReceta...");
+    await pool
+      .request()
+      .input("folioReceta", sql.Int, folio)
+      .input("medicamentoNombre", sql.NVarChar, medicamentoNombre) //* Guardar el nombre del medicamento
+      .input("indicaciones", sql.NVarChar, indicaciones)
+      .input("estatus", sql.Int, 1) //* Estatus fijo como 1
+      .input("cantidad", sql.NVarChar, cantidad) //* Guardar cantidad como texto
+      .query(queryInsertarReceta);
+
+    console.log("Detalle de receta guardado exitosamente en la base de datos.");
 
     res.status(200).json({
-      message:
-        "Medicamento guardado, stock actualizado y evento emitido correctamente.",
+      message: "Receta guardada correctamente.",
     });
   } catch (error) {
-    console.error("Error al guardar medicamento en la base de datos:", error);
-    res.status(500).json({ error: "Error al guardar medicamento" });
+    console.error("Error al guardar detalle de receta en la base de datos:", error);
+
+    //* Manejo de errores específicos
+    res.status(500).json({ error: "Error inesperado en el servidor" });
   }
 }

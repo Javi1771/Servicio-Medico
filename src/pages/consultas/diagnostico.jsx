@@ -1,11 +1,13 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import React, { useState, useEffect, useRef } from "react";
 import Swal from "sweetalert2";
 import Image from "next/image";
 import Pusher from "pusher-js";
 import withReactContent from "sweetalert2-react-content";
 import DatosAdicionales from "./datos-adicionales/datos-adicionales";
 import Cookies from "js-cookie";
+import React, { useState, useEffect, useRef, useContext } from "react";
+import { FormularioContext } from "/src/context/FormularioContext";
+import AccionesConsulta from "./AccionesConsulta";
 
 const MySwal = withReactContent(Swal);
 
@@ -24,6 +26,7 @@ const formatearFecha = (fecha) => {
 };
 
 const Diagnostico = () => {
+  const { formCompleto } = useContext(FormularioContext);
   const subPantallaRef = useRef(null);
   const [nombreMedico, setNombreMedico] = useState("Cargando...");
   const [claveEspecialidad, setClaveEspecialidad] = useState("");
@@ -65,7 +68,12 @@ const Diagnostico = () => {
   });
 
   const [guardadoExitoso, setGuardadoExitoso] = useState(false);
-  const [formularioCompleto, setFormularioCompleto] = useState(false);
+  const [historialMedicamentos, setHistorialMedicamentos] = useState([]);
+  const [historialEspecialidades, setHistorialEspecialidades] = useState([]);
+  const [historialIncapacidades, setHistorialIncapacidades] = useState([]);
+  const [medicamentosRecibidos, setMedicamentosRecibidos] = useState(false);
+  const [especialidadesRecibidas, setEspecialidadesRecibidas] = useState(false);
+  const [incapacidadesRecibidas, setIncapacidadesRecibidas] = useState(false);
 
   //* Leer nombre del médico desde las cookies
   useEffect(() => {
@@ -86,35 +94,6 @@ const Diagnostico = () => {
     setClaveusuario(claveusuario || "No especificado");
   }, []);
 
-  //* Verifica si todos los campos requeridos están completos
-  useEffect(() => {
-    const verificarFormularioCompleto = () => {
-      const camposRequeridosLlenos =
-        claveConsulta &&
-        diagnostico &&
-        motivoConsulta &&
-        signosVitales.ta &&
-        signosVitales.temperatura;
-      const paseEspecialidadCompleto =
-        pasarEspecialidad === "no" ||
-        (pasarEspecialidad === "si" &&
-          especialidadSeleccionada &&
-          observaciones);
-
-      setFormularioCompleto(camposRequeridosLlenos && paseEspecialidadCompleto);
-    };
-
-    verificarFormularioCompleto();
-  }, [
-    claveConsulta,
-    diagnostico,
-    motivoConsulta,
-    signosVitales,
-    pasarEspecialidad,
-    especialidadSeleccionada,
-    observaciones,
-  ]);
-
   //* Recarga la lista de pacientes al cargar la página o al actualizar datos
   useEffect(() => {
     const today = new Date();
@@ -125,46 +104,9 @@ const Diagnostico = () => {
     cargarPacientesDelDia();
   }, []);
 
-  //* Actualiza clavestatus a 0 solo si la consulta no ha sido guardada al recargar o cerrar
   useEffect(() => {
-    const updateStatusOnUnload = () => {
-      if (
-        claveConsulta &&
-        localStorage.getItem("consultaGuardada") !== claveConsulta
-      ) {
-        fetch("/api/pacientes-consultas/actualizarClavestatus", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ claveConsulta, clavestatus: 0 }), //! Cambiar de 3 a 0
-        });
-      }
-    };
-
-    window.addEventListener("beforeunload", updateStatusOnUnload);
-    return () => {
-      window.removeEventListener("beforeunload", updateStatusOnUnload);
-    };
-  }, [claveConsulta]);
-
-  //* Actualiza clavestatus a 0 si el usuario regresa a una ventana anterior sin guardar, solo si no se ha guardado exitosamente
-  useEffect(() => {
-    const updateStatusIfNotSaved = async () => {
-      if (pacienteSeleccionado && !guardadoExitoso) {
-        await fetch("/api/pacientes-consultas/actualizarClavestatus", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            claveConsulta,
-            clavestatus: 1,
-          }),
-        });
-      }
-    };
-
-    return () => {
-      updateStatusIfNotSaved();
-    };
-  }, [pacienteSeleccionado, guardadoExitoso, claveConsulta]);
+    console.log("Estado de validación del formulario:", formCompleto);
+  }, [formCompleto]); // Observa cambios en `formCompleto`
 
   useEffect(() => {
     const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY, {
@@ -366,194 +308,197 @@ const Diagnostico = () => {
     await obtenerDatosEmpleado(paciente.clavenomina);
   };
 
-  // //* Función de guardado que actualiza clavestatus a 4 solo al guardar exitosamente
-  // const handleGuardar = async () => {
-  //   const datos = recolectarDatos();
+  const handleCancelar = async () => {
+    try {
+      console.log("📤 Enviando solicitud para cancelar la consulta...");
 
-  //   try {
-  //     //* Guardar diagnóstico y observaciones
-  //     const responseDiagnostico = await fetch(
-  //       "/api/pacientes-consultas/diagnostico_observaciones",
-  //       {
-  //         method: "POST",
-  //         headers: { "Content-Type": "application/json" },
-  //         body: JSON.stringify({
-  //           claveConsulta: datos.claveConsulta,
-  //           diagnostico: datos.diagnostico,
-  //           motivoconsulta: datos.motivoConsulta,
-  //           observaciones: datos.observaciones,
-  //         }),
-  //       }
-  //     );
+      //* Actualiza en la base de datos clavestatus a 0
+      const response = await fetch(
+        "/api/pacientes-consultas/actualizarClavestatus",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            claveConsulta,
+            clavestatus: 0, // Establecer clavestatus a 0 para cancelar
+          }),
+        }
+      );
 
-  //     if (!responseDiagnostico.ok) {
-  //       const error = await responseDiagnostico.json();
-  //       console.error("Error al guardar diagnóstico:", error);
-  //       throw new Error("Error al guardar diagnóstico.");
-  //     }
+      const data = await response.json();
+      if (!response.ok) {
+        console.error("❌ Error al cancelar la consulta:", data.message);
+        throw new Error(data.message);
+      }
 
-  //     //* Guardar pase a especialidad si es necesario
-  //     if (datos.pasarEspecialidad === "si") {
-  //       const responseEspecialidad = await fetch(
-  //         "/api/especialidades/guardarEspecialidad",
-  //         {
-  //           method: "POST",
-  //           headers: { "Content-Type": "application/json" },
-  //           body: JSON.stringify({
-  //             claveConsulta: datos.claveConsulta,
-  //             claveusuario,
-  //             claveEspecialidad: datos.especialidadSeleccionada,
-  //             observaciones: datos.observaciones,
-  //           }),
-  //         }
-  //       );
+      console.log("✅ Consulta cancelada exitosamente:", data.message);
 
-  //       if (!responseEspecialidad.ok) {
-  //         const error = await responseEspecialidad.json();
-  //         console.error("Error al guardar especialidad:", error);
-  //         throw new Error("Error al guardar especialidad.");
-  //       }
-  //     }
+      //* Limpiar los datos de la consulta en el frontend
+      setDiagnostico("");
+      setMotivoConsulta("");
+      setSignosVitales({
+        ta: "",
+        temperatura: "",
+        fc: "",
+        oxigenacion: "",
+        altura: "",
+        peso: "",
+        glucosa: "",
+      });
+      setAlergias("");
+      setObservaciones("");
+      setEspecialidadSeleccionada("");
+      setPasarEspecialidad(null);
+      setEmpleadoData(null);
+      setDatosEditados({
+        signosVitales: {},
+        alergias: "",
+      });
 
-  //     //* Actualizar el clavestatus a 2
-  //     const responseStatus = await fetch(
-  //       "/api/pacientes-consultas/actualizarClavestatus",
-  //       {
-  //         method: "POST",
-  //         headers: { "Content-Type": "application/json" },
-  //         body: JSON.stringify({
-  //           claveConsulta: datos.claveConsulta,
-  //           clavestatus: 2,
-  //         }),
-  //       }
-  //     );
+      limpiarFormulario();
+      resetValidationState(); // Restablecer el estado de validación
 
-  //     if (!responseStatus.ok) {
-  //       const error = await responseStatus.json();
-  //       console.error("Error al actualizar clavestatus:", error);
-  //       throw new Error("Error al actualizar clavestatus.");
-  //     }
+      //* Cierra el formulario emergente y muestra solo la tabla
+      setPacienteSeleccionado(null);
+      setMostrarEmergente(false);
 
-  //     //* Confirmar éxito en localStorage y recargar lista de pacientes
-  //     localStorage.setItem("consultaGuardada", datos.claveConsulta);
-  //     setGuardadoExitoso(true); //* Establece guardado exitoso antes de recargar
-  //     await cargarPacientesDelDia();
+      //* Refresca la lista de pacientes después de cerrar el formulario
+      await cargarPacientesDelDia();
 
-  //     //* Mostrar alerta de éxito
-  //     await MySwal.fire({
-  //       icon: "success",
-  //       title:
-  //         "<span style='color: #00e676; font-weight: bold; font-size: 1.5em;'>✔️ Guardado exitoso</span>",
-  //       html: "<p style='color: #fff; font-size: 1.1em;'>La consulta se ha guardado exitosamente.</p>",
-  //       background: "linear-gradient(145deg, #004d40, #00251a)",
-  //       confirmButtonColor: "#00e676",
-  //       confirmButtonText:
-  //         "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
-  //       customClass: {
-  //         popup:
-  //           "border border-green-600 shadow-[0px_0px_20px_5px_rgba(0,230,118,0.9)] rounded-lg",
-  //       },
-  //     });
+      //* Alerta de éxito
+      MySwal.fire({
+        icon: "info",
+        title:
+          "<span style='color: #00bcd4; font-weight: bold; font-size: 1.5em;'>ℹ️ Consulta cancelada</span>",
+        html: "<p style='color: #fff; font-size: 1.1em;'>Consulta cancelada y datos borrados correctamente.</p>",
+        background: "linear-gradient(145deg, #004d40, #00251a)",
+        confirmButtonColor: "#00bcd4",
+        confirmButtonText:
+          "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
+        customClass: {
+          popup:
+            "border border-blue-600 shadow-[0px_0px_20px_5px_rgba(0,188,212,0.9)] rounded-lg",
+        },
+      });
+    } catch (error) {
+      console.error("Error al cancelar y borrar datos de la consulta:", error);
 
-  //     //! Resetear estados después de mostrar éxito
-  //     setPacienteSeleccionado(null);
-  //   } catch (error) {
-  //     console.error("Error en la solicitud de guardado:", error);
+      //* Alerta de error
+      MySwal.fire({
+        icon: "error",
+        title:
+          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error al cancelar</span>",
+        html: "<p style='color: #fff; font-size: 1.1em;'>Hubo un error al cancelar la consulta. Inténtalo nuevamente.</p>",
+        background: "linear-gradient(145deg, #4a0000, #220000)",
+        confirmButtonColor: "#ff1744",
+        confirmButtonText:
+          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
+        customClass: {
+          popup:
+            "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
+        },
+      });
+    }
+  };
 
-  //     //! Mostrar alerta de error
-  //     await MySwal.fire({
-  //       icon: "error",
-  //       title:
-  //         "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error al guardar</span>",
-  //       html: "<p style='color: #fff; font-size: 1.1em;'>Hubo un problema al guardar la consulta. Inténtalo nuevamente.</p>",
-  //       background: "linear-gradient(145deg, #4a0000, #220000)",
-  //       confirmButtonColor: "#ff1744",
-  //       confirmButtonText:
-  //         "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-  //       customClass: {
-  //         popup:
-  //           "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-  //       },
-  //     });
-  //   }
-  // };
+  const handleGuardar = async () => {
+    try {
+      console.log("📤 Actualizando clavestatus a 2...");
 
-  // const handleCancelar = async () => {
-  //   try {
-  //     //* Actualiza en la base de datos clavestatus a 0 y limpia otros campos
-  //     await fetch("/api/pacientes-consultas/actualizarClavestatus", {
-  //       method: "POST",
-  //       headers: { "Content-Type": "application/json" },
-  //       body: JSON.stringify({
-  //         claveConsulta,
-  //         clavestatus: 0,
-  //       }),
-  //     });
+      //* Actualizar el estado de clavestatus de 1 a 2
+      const responseActualizar = await fetch(
+        "/api/pacientes-consultas/actualizarClavestatus",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ claveConsulta, clavestatus: 2 }),
+        }
+      );
 
-  //     //* Limpiar los datos de la consulta en el frontend
-  //     setDiagnostico("");
-  //     setMotivoConsulta("");
-  //     setSignosVitales({
-  //       ta: "",
-  //       temperatura: "",
-  //       fc: "",
-  //       oxigenacion: "",
-  //       altura: "",
-  //       peso: "",
-  //       glucosa: "",
-  //     });
-  //     setAlergias("");
-  //     setObservaciones("");
-  //     setEspecialidadSeleccionada("");
-  //     setPasarEspecialidad(null);
-  //     setEmpleadoData(null);
-  //     setDatosEditados({
-  //       signosVitales: {},
-  //       alergias: "",
-  //     });
+      const dataActualizar = await responseActualizar.json();
 
-  //     //* Cierra el formulario emergente y muestra solo la tabla
-  //     setPacienteSeleccionado(null);
-  //     setMostrarEmergente(false);
+      if (!responseActualizar.ok) {
+        console.error(
+          "❌ Error al actualizar clavestatus:",
+          dataActualizar.message
+        );
+        throw new Error(dataActualizar.message);
+      }
 
-  //     //* Refresca la lista de pacientes después de cerrar el formulario
-  //     await cargarPacientesDelDia();
+      console.log(
+        "✅ Clavestatus actualizado exitosamente a 2:",
+        dataActualizar.message
+      );
 
-  //     //* Alerta de éxito
-  //     MySwal.fire({
-  //       icon: "info",
-  //       title:
-  //         "<span style='color: #00bcd4; font-weight: bold; font-size: 1.5em;'>ℹ️ Consulta cancelada</span>",
-  //       html: "<p style='color: #fff; font-size: 1.1em;'>Consulta cancelada y datos borrados correctamente.</p>",
-  //       background: "linear-gradient(145deg, #004d40, #00251a)",
-  //       confirmButtonColor: "#00bcd4",
-  //       confirmButtonText:
-  //         "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
-  //       customClass: {
-  //         popup:
-  //           "border border-blue-600 shadow-[0px_0px_20px_5px_rgba(0,188,212,0.9)] rounded-lg",
-  //       },
-  //     });
-  //   } catch (error) {
-  //     console.error("Error al cancelar y borrar datos de la consulta:", error);
+      //* Alerta de éxito
+      MySwal.fire({
+        icon: "success",
+        title:
+          "<span style='color: #4caf50; font-weight: bold; font-size: 1.5em;'>✅ Consulta Guardada</span>",
+        html: "<p style='color: #fff; font-size: 1.1em;'>Consulta guardada correctamente y estado actualizado.</p>",
+        background: "linear-gradient(145deg, #004d40, #00251a)",
+        confirmButtonColor: "#4caf50",
+        confirmButtonText:
+          "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
+        customClass: {
+          popup:
+            "border border-green-600 shadow-[0px_0px_20px_5px_rgba(76,175,80,0.9)] rounded-lg",
+        },
+      });
 
-  //     //* Alerta de error
-  //     MySwal.fire({
-  //       icon: "error",
-  //       title:
-  //         "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error al cancelar</span>",
-  //       html: "<p style='color: #fff; font-size: 1.1em;'>Hubo un error al cancelar la consulta. Inténtalo nuevamente.</p>",
-  //       background: "linear-gradient(145deg, #4a0000, #220000)",
-  //       confirmButtonColor: "#ff1744",
-  //       confirmButtonText:
-  //         "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-  //       customClass: {
-  //         popup:
-  //           "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-  //       },
-  //     });
-  //   }
-  // };
+      //* Limpiar los datos del formulario como al cancelar
+      limpiarFormulario();
+
+      //* Refresca la lista de pacientes después de guardar
+      await cargarPacientesDelDia();
+    } catch (error) {
+      console.error("❌ Error al actualizar clavestatus:", error);
+
+      //! Alerta de error
+      MySwal.fire({
+        icon: "error",
+        title:
+          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error</span>",
+        html: "<p style='color: #fff; font-size: 1.1em;'>No se pudo actualizar el estado. Inténtalo nuevamente.</p>",
+        background: "linear-gradient(145deg, #4a0000, #220000)",
+        confirmButtonColor: "#ff1744",
+        confirmButtonText:
+          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
+        customClass: {
+          popup:
+            "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
+        },
+      });
+    }
+  };
+
+  const limpiarFormulario = () => {
+    //* Limpiar los datos del formulario
+    setDiagnostico("");
+    setMotivoConsulta("");
+    setSignosVitales({
+      ta: "",
+      temperatura: "",
+      fc: "",
+      oxigenacion: "",
+      altura: "",
+      peso: "",
+      glucosa: "",
+    });
+    setAlergias("");
+    setObservaciones("");
+    setEspecialidadSeleccionada("");
+    setPasarEspecialidad(null);
+    setEmpleadoData(null);
+    setDatosEditados({
+      signosVitales: {},
+      alergias: "",
+    });
+
+    //* Cierra el formulario emergente y muestra solo la tabla
+    setPacienteSeleccionado(null);
+    setMostrarEmergente(false);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-900 to-black text-white px-4 py-8 md:px-12">
@@ -673,9 +618,6 @@ const Diagnostico = () => {
                     ? selectedBeneficiary.PARENTESCO_DESC
                     : "Empleado(a)"}
                 </p>
-                <p>
-                  Puesto: {empleadoData?.puesto || "No asignado"}
-                </p>
               </div>
               <div className="bg-gray-700 p-4 rounded-lg flex-1 shadow-lg transition duration-300 hover:shadow-xl">
                 <h2 className="text-md md:text-lg font-bold mb-2">
@@ -690,6 +632,7 @@ const Diagnostico = () => {
                 <p>
                   Departamento: {empleadoData?.departamento || "No asignado"}
                 </p>
+                <p>Puesto: {empleadoData?.puesto || "No asignado"}</p>
               </div>
             </div>
 
@@ -732,25 +675,11 @@ const Diagnostico = () => {
               claveEspecialidad={claveEspecialidad}
             />
 
-            {/* <div className="flex space-x-2 md:space-x-4 mt-4">
-              <button
-                onClick={handleGuardar}
-                //disabled={!formularioCompleto}
-                className={`px-4 py-2 md:px-6 md:py-3 rounded-lg font-semibold tracking-wide transition duration-300 ease-in-out transform ${
-                  formularioCompleto
-                    ? "bg-green-500 hover:bg-green-600 hover:scale-105 text-white shadow-lg"
-                    : "bg-gray-400 text-gray-300 cursor-not-allowed"
-                }`}
-              >
-                Guardar
-              </button>
-              <button
-                onClick={handleCancelar}
-                className="px-4 py-2 md:px-6 md:py-3 bg-red-500 text-white rounded-lg font-semibold tracking-wide hover:bg-red-600 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg"
-              >
-                Cancelar
-              </button>
-            </div> */}
+            <AccionesConsulta
+              formCompleto={formCompleto}
+              limpiarFormulario={limpiarFormulario}
+              claveConsulta={claveConsulta}
+            />
           </div>
         </div>
       )}

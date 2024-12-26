@@ -14,7 +14,6 @@ export default async function handler(req, res) {
       estatus,
     } = req.body;
 
-    // Validar que ambos parámetros estén presentes
     if (!clavenomina || !clavepaciente) {
       return res.status(400).json({
         message: "Faltan datos obligatorios: clavenomina y clavepaciente",
@@ -27,8 +26,8 @@ export default async function handler(req, res) {
       // Insertar datos en la base de datos
       await pool
         .request()
-        .input("clavenomina", sql.Int, clavenomina)
-        .input("clavepaciente", sql.Int, clavepaciente)
+        .input("clavenomina", sql.NVarChar, clavenomina)
+        .input("clavepaciente", sql.NVarChar, clavepaciente)
         .input("claveConsulta", sql.Int, claveConsulta)
         .input("fechaInicial", sql.DateTime, fechaInicial || null)
         .input("fechaFinal", sql.DateTime, fechaFinal || null)
@@ -48,8 +47,8 @@ export default async function handler(req, res) {
       // Obtener historial actualizado
       const result = await pool
         .request()
-        .input("clavenomina", sql.Int, clavenomina)
-        .input("clavepaciente", sql.Int, clavepaciente)
+        .input("clavenomina", sql.NVarChar, clavenomina)
+        .input("clavepaciente", sql.NVarChar, clavepaciente)
         .query(`
           SELECT 
             claveConsulta,
@@ -65,14 +64,9 @@ export default async function handler(req, res) {
 
       const historial = result.recordset;
 
-      // Emitir evento de Pusher
       await pusher.trigger("incapacidades-channel", "incapacidades-updated", {
         clavepaciente,
-        historial: historial.map((item) => ({
-          ...item,
-          fechaInicial: item.fechaInicial ? item.fechaInicial.toISOString() : null,
-          fechaFinal: item.fechaFinal ? item.fechaFinal.toISOString() : null,
-        })),
+        historial,
       });
 
       return res.status(200).json({
@@ -89,7 +83,6 @@ export default async function handler(req, res) {
   } else if (req.method === "GET") {
     const { clavenomina, clavepaciente } = req.query;
 
-    // Validar que ambos parámetros estén presentes
     if (!clavenomina || !clavepaciente) {
       return res.status(400).json({
         message: "Faltan datos obligatorios: clavenomina y clavepaciente",
@@ -102,8 +95,8 @@ export default async function handler(req, res) {
       // Consultar historial filtrado
       const result = await pool
         .request()
-        .input("clavenomina", sql.Int, clavenomina)
-        .input("clavepaciente", sql.Int, clavepaciente)
+        .input("clavenomina", sql.NVarChar, clavenomina) // Cambiado a NVarChar
+        .input("clavepaciente", sql.NVarChar, clavepaciente) // Cambiado a NVarChar
         .query(`
           SELECT 
             claveConsulta,
@@ -119,7 +112,6 @@ export default async function handler(req, res) {
 
       const historial = result.recordset;
 
-      // Emitir evento de Pusher
       await pusher.trigger("incapacidades-channel", "incapacidades-updated", {
         clavepaciente,
         historial,

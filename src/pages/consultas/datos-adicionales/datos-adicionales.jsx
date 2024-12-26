@@ -1,139 +1,65 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useCallback, useContext } from "react";
 import Medicamentos from "./medicamentos";
 import PaseEspecialidad from "./pase-especialidad";
 import Incapacidades from "./incapacidades";
 import HistorialConsultas from "./historial-consultas";
 import EnfermedadesCronicas from "./enfermedades-cronicas";
 import Antecedentes from "./antecedentes";
-import Swal from "sweetalert2";
-import withReactContent from "sweetalert2-react-content";
-import Cookies from "js-cookie";
-
-const MySwal = withReactContent(Swal);
-
-const formatearFecha = (fecha) => {
-  if (!fecha) return "N/A";
-
-  const opciones = {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  };
-
-  const fechaLocal = new Date(fecha);
-
-  return fechaLocal.toLocaleString("es-MX", opciones);
-};
+import { FormularioContext } from "/src/context/FormularioContext";
 
 const DatosAdicionales = ({
   subPantalla,
   handleSubPantallaChange,
-  setDiagnostico,
-  setMotivoConsulta,
   claveConsulta,
-  pasarEspecialidad,
-  setPasarEspecialidad,
-  especialidadSeleccionada,
-  setEspecialidadSeleccionada,
-  observaciones,
-  setObservaciones,
+  limpiarFormularioGlobal,
   numeroDeNomina,
   nombrePaciente,
   clavepaciente,
   nombreMedico,
   claveEspecialidad,
 }) => {
-  console.log(
-    "Valor inicial de clavepaciente recibido en DatosAdicionales:",
-    clavepaciente
-  );
+  const { formulariosCompletos, updateFormulario } = useContext(FormularioContext);
   const [diagnosticoTexto, setDiagnosticoTexto] = useState("");
   const [motivoConsultaTexto, setMotivoConsultaTexto] = useState("");
-  const [formularioCompleto, setFormularioCompleto] = useState(false);
 
-  const handleDiagnosticoChange = (e) => {
+  // Inicializar datos solo si están en `localStorage` (para evitar valores persistentes no deseados)
+  useEffect(() => {
+    const diagnostico = localStorage.getItem("diagnosticoTexto") || "";
+    const motivoConsulta = localStorage.getItem("motivoConsultaTexto") || "";
+    setDiagnosticoTexto(diagnostico);
+    setMotivoConsultaTexto(motivoConsulta);
+  }, [claveConsulta]);
+
+  const limpiarFormulario = useCallback(() => {
+    setDiagnosticoTexto("");
+    setMotivoConsultaTexto("");
+    localStorage.removeItem("diagnosticoTexto");
+    localStorage.removeItem("motivoConsultaTexto");
+    if (limpiarFormularioGlobal) limpiarFormularioGlobal();
+  }, [limpiarFormularioGlobal]);
+
+  // Actualizar estado cuando cambien los textos
+  const handleDiagnosticoChange = useCallback((e) => {
     const value = e.target.value;
     setDiagnosticoTexto(value);
-    setDiagnostico(value); //* Actualiza en el componente principal
-  };
+    localStorage.setItem("diagnosticoTexto", value);
+  }, []);
 
-  const handleMotivoConsultaChange = (e) => {
+  const handleMotivoConsultaChange = useCallback((e) => {
     const value = e.target.value;
     setMotivoConsultaTexto(value);
-    setMotivoConsulta(value); //* Actualiza en el componente principal
-  };
+    localStorage.setItem("motivoConsultaTexto", value);
+  }, []);
 
-  //* Función para guardar datos
-  const handleGuardar = async () => {
-    // Obtener claveusuario desde la cookie y convertirla a número
-    const claveUsuarioCookie = Cookies.get("claveusuario");
-    const claveusuarioNum = claveUsuarioCookie ? parseInt(claveUsuarioCookie, 10) : null;
-
-    console.log("=== LOGS ANTES DE GUARDAR ===");
-    console.log("claveConsulta:", claveConsulta, "tipo:", typeof claveConsulta);
-    console.log("diagnosticoTexto:", diagnosticoTexto, "tipo:", typeof diagnosticoTexto);
-    console.log("motivoConsultaTexto:", motivoConsultaTexto, "tipo:", typeof motivoConsultaTexto);
-    console.log("claveusuarioNum:", claveusuarioNum, "tipo:", typeof claveusuarioNum);
-
-    try {
-      const response = await fetch(
-        "/api/pacientes-consultas/diagnostico_observaciones",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            claveConsulta,
-            diagnostico: diagnosticoTexto,
-            motivoconsulta: motivoConsultaTexto,
-            claveusuario: claveusuarioNum,
-          }),
-        }
-      );
-
-      console.log("Respuesta de diagnostico_observaciones:", response.status, response.statusText);
-
-      if (!response.ok) {
-        const error = await response.json();
-        console.error("Error al guardar:", error);
-        throw new Error("Error al guardar datos.");
-      }
-
-      //* Mostrar alerta de éxito
-      MySwal.fire({
-        icon: "success",
-        title:
-          "<span style='color: #00e676; font-weight: bold; font-size: 1.5em;'>✔️ Datos guardados correctamente</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>El diagnóstico, motivo de consulta y claveusuario han sido guardados exitosamente.</p>",
-        background: "linear-gradient(145deg, #004d40, #00251a)",
-        confirmButtonColor: "#00e676",
-        confirmButtonText:
-          "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-green-600 shadow-[0px_0px_20px_5px_rgba(0,230,118,0.9)] rounded-lg",
-        },
-      });
-    } catch (error) {
-      console.error("Error en la solicitud de guardado:", error);
-
-      //! Mostrar alerta de error
-      MySwal.fire({
-        icon: "error",
-        title:
-          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error al guardar</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>Hubo un problema al guardar los datos. Por favor, inténtalo nuevamente.</p>",
-        background: "linear-gradient(145deg, #4a0000, #220000)",
-        confirmButtonColor: "#ff1744",
-        confirmButtonText:
-          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-        },
-      });
+  useEffect(() => {
+    const esCompleto =
+      diagnosticoTexto.trim().length > 0 && motivoConsultaTexto.trim().length > 0;
+    if (formulariosCompletos["DatosAdicionales"] !== esCompleto) {
+      updateFormulario("DatosAdicionales", esCompleto);
     }
-  };
+  }, [diagnosticoTexto, motivoConsultaTexto, formulariosCompletos, updateFormulario]);
 
   return (
     <div className="bg-gray-900 p-4 md:p-6 rounded-lg shadow-lg">
@@ -172,7 +98,6 @@ const DatosAdicionales = ({
             value={motivoConsultaTexto}
             onChange={handleMotivoConsultaChange}
           />
-          <br />
           <h3 className="text-2xl md:text-3xl font-bold mb-4 md:mb-6 text-white">
             Diagnóstico
           </h3>
@@ -182,12 +107,6 @@ const DatosAdicionales = ({
             value={diagnosticoTexto}
             onChange={handleDiagnosticoChange}
           />
-          <button
-            className="mt-4 bg-blue-600 hover:bg-blue-800 text-white font-bold py-2 px-4 rounded"
-            onClick={handleGuardar}
-          >
-            Guardar
-          </button>
         </div>
       )}
 
@@ -203,29 +122,10 @@ const DatosAdicionales = ({
       )}
 
       {subPantalla === "Pase a Especialidad" && (
-        <>
-          {console.log("Datos antes de enviar a PaseEspecialidad:", {
-            claveConsulta,
-            pasarEspecialidad,
-            especialidadSeleccionada,
-            observaciones,
-            clavepaciente,
-            clavenomina: numeroDeNomina,
-          })}
-
-          <PaseEspecialidad
-            claveConsulta={claveConsulta}
-            pasarEspecialidad={pasarEspecialidad}
-            setPasarEspecialidad={setPasarEspecialidad}
-            especialidadSeleccionada={especialidadSeleccionada}
-            setEspecialidadSeleccionada={setEspecialidadSeleccionada}
-            observaciones={observaciones}
-            setObservaciones={setObservaciones}
-            setFormularioCompleto={setFormularioCompleto}
-            clavepaciente={clavepaciente}
-            clavenomina={numeroDeNomina}
-          />
-        </>
+        <PaseEspecialidad
+          claveConsulta={claveConsulta}
+          observaciones=""
+        />
       )}
 
       {subPantalla === "Incapacidades" && (

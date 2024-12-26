@@ -176,7 +176,7 @@ const CrearPaseNuevo = () => {
       );
 
       const beneficiaries = await beneficiariesResponse.json();
-      // Aquí no mostramos la alerta, la mostraremos solo cuando el usuario dé clic en Beneficiario
+      //* Aquí no mostramos la alerta, la mostraremos solo cuando el usuario dé clic en Beneficiario
       setBeneficiaryData(beneficiaries.beneficiarios || []);
     } catch (error) {
       console.error("Error al buscar empleado o beneficiarios:", error);
@@ -225,7 +225,7 @@ const CrearPaseNuevo = () => {
   }, []);
 
   useEffect(() => {
-    // Obtener cookies
+    //* Obtener cookies
     const allCookies = document.cookie.split(";");
     let userClaveUsuario = "";
     let userCosto = "";
@@ -248,7 +248,7 @@ const CrearPaseNuevo = () => {
 
   const handlePersonaChange = async (persona) => {
     if (persona === "beneficiario") {
-      // Al dar clic en Beneficiario, si no hay beneficiarios, mostrar alerta y regresar a Empleado
+      //* Al dar clic en Beneficiario, si no hay beneficiarios, mostrar alerta y regresar a Empleado
       if (beneficiaryData.length === 0) {
         showInfoAlert(
           "ℹ️ Sin beneficiarios",
@@ -269,7 +269,7 @@ const CrearPaseNuevo = () => {
   };
 
   const obtenerSindicato = (grupoNomina, cuotaSindical) => {
-    // Mostrar solo si es NS y S (SUTSMSJR) o "" (SITAM)
+    //! Mostrar solo si es NS y S (SUTSMSJR) o "" (SITAM)
     if (grupoNomina === "NS") {
       if (cuotaSindical === "S") return "SUTSMSJR";
       if (cuotaSindical === "") return "SITAM";
@@ -278,6 +278,22 @@ const CrearPaseNuevo = () => {
   };
 
   const handleSave = async () => {
+    //* Validación: verificar que todos los campos requeridos estén llenos
+    if (!selectedEspecialidad) {
+      showErrorAlert("Error", "Por favor selecciona una especialidad.");
+      return;
+    }
+
+    if (!selectedProveedor) {
+      showErrorAlert("Error", "Por favor selecciona un especialista.");
+      return;
+    }
+
+    if (!fechaCita) {
+      showErrorAlert("Error", "Por favor selecciona una fecha para la cita.");
+      return;
+    }
+
     try {
       const fechaActual = new Date();
       const fechaconsulta = fechaActual.toISOString().split("T")[0];
@@ -287,25 +303,30 @@ const CrearPaseNuevo = () => {
       let clavepaciente = "";
       let nombrepaciente = "";
       let edad = "";
-      let clavestatus = 1;
+      let clavestatus = 2;
       let elpacienteesempleado = "";
       let parentescoValor = 0;
       let departamento = employeeData.department;
       let especialidadinterconsulta = selectedEspecialidad;
       let fechacitaFormatted = "";
+
       const sindicato = obtenerSindicato(
         employeeData.grupoNomina,
         employeeData.cuotaSindical
       );
 
       if (fechaCita) {
-        const year = fechaCita.getFullYear();
-        const month = String(fechaCita.getMonth() + 1).padStart(2, "0");
-        const day = String(fechaCita.getDate()).padStart(2, "0");
-        const hours = String(fechaCita.getHours()).padStart(2, "0");
-        const minutes = String(fechaCita.getMinutes()).padStart(2, "0");
-        const seconds = "00";
-        fechacitaFormatted = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+        const fechaAjustada = new Date(
+          fechaCita.getTime() - fechaCita.getTimezoneOffset() * 60000
+        );
+        fechacitaFormatted = `${fechaAjustada.getFullYear()}-${String(
+          fechaAjustada.getMonth() + 1
+        ).padStart(2, "0")}-${String(fechaAjustada.getDate()).padStart(
+          2,
+          "0"
+        )} ${String(fechaAjustada.getHours()).padStart(2, "0")}:${String(
+          fechaAjustada.getMinutes()
+        ).padStart(2, "0")}:00`;
       }
 
       let costoValor = costo;
@@ -342,7 +363,7 @@ const CrearPaseNuevo = () => {
         especialidadinterconsulta,
         costo: costoValor,
         fechacita: fechacitaFormatted,
-        sindicato, // Se asigna solo si es SUTSMSJR o SITAM, si es null no pasa nada
+        sindicato, 
       };
 
       const response1 = await fetch("/api/especialidades/guardarPaseNuevo", {
@@ -356,13 +377,13 @@ const CrearPaseNuevo = () => {
         return;
       }
 
-      // Mostrar éxito y restablecer formulario
+      //* Mostrar éxito y restablecer formulario
       showSuccessAlert(
         "Éxito",
         "La información se guardó correctamente en la base de datos."
       );
 
-      // Restablecer el formulario
+      //* Restablecer el formulario
       setNomina("");
       resetState();
       setFechaCita(null);

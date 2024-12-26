@@ -48,19 +48,20 @@ export default async function handler(req, res) {
         "Sin Observaciones, No Se Asignó Especialidad En Esta Consulta";
 
       //* Lógica para determinar el estatus
-      //! Si no se asigna especialidad (N => claveEspecialidadFinal = null)
-      //! y las observaciones son las por defecto (o no se dan), estatus = 0
-      //! Si no, estatus = 1
       let estatus = 1;
-      if (!claveEspecialidadFinal && observacionesFinal === "Sin Observaciones, No Se Asignó Especialidad En Esta Consulta") {
+      if (
+        !claveEspecialidadFinal &&
+        observacionesFinal ===
+          "Sin Observaciones, No Se Asignó Especialidad En Esta Consulta"
+      ) {
         estatus = 0;
       }
 
       console.log("Insertando en la tabla detalleEspecialidad...");
       await pool
         .request()
-        .input("claveconsulta", sql.Int, parseInt(claveConsulta, 10))  
-        .input("clavenomina", sql.VarChar, clavenomina)                
+        .input("claveconsulta", sql.Int, parseInt(claveConsulta, 10))
+        .input("clavenomina", sql.VarChar, clavenomina)
         .input(
           "claveespecialidad",
           sql.Int,
@@ -81,7 +82,7 @@ export default async function handler(req, res) {
       console.log("Actualizando la tabla consultas...");
       await pool
         .request()
-        .input("claveconsulta", sql.Int, parseInt(claveConsulta, 10)) 
+        .input("claveconsulta", sql.Int, parseInt(claveConsulta, 10))
         .input(
           "claveespecialidad",
           sql.Int,

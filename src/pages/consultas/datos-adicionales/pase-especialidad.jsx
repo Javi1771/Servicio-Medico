@@ -99,13 +99,14 @@ const PaseEspecialidad = ({
   useEffect(() => {
     const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY, {
       cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER,
-      encrypted: true, // Asegúrate de habilitar encriptación
+      encrypted: true,
     });
 
     const channel = pusher.subscribe("especialidades-channel");
 
+    //* Manejar actualizaciones en tiempo real
     channel.bind("especialidades-updated", (data) => {
-      console.log("Evento recibido de Pusher:", data);
+      console.log("Evento recibido de Pusher: especialidades-updated", data);
 
       if (data.clavepaciente === clavepaciente) {
         const historialFormateado = data.historial.map((item) => ({
@@ -124,13 +125,77 @@ const PaseEspecialidad = ({
       }
     });
 
+    //* Manejar evento cache-especialidades
+    channel.bind("cache-especialidades", (data) => {
+      console.log("Evento recibido de Pusher: cache-especialidades", data);
+
+      if (data.clavepaciente === clavepaciente) {
+        //* Guardar temporalmente el historial en localStorage o estado
+        localStorage.setItem(
+          `especialidades:${data.claveConsulta}`,
+          JSON.stringify(data)
+        );
+        console.log(
+          `Datos de especialidades guardados temporalmente en caché para consulta ${data.claveConsulta}`
+        );
+      }
+    });
+
+    //? Manejar evento consulta-finalizada
+    channel.bind("consulta-finalizada", async (data) => {
+      console.log("Evento recibido de Pusher: consulta-finalizada", data);
+
+      const cacheKey = `especialidades:${data.claveConsulta}`;
+      const cachedData = localStorage.getItem(cacheKey);
+
+      if (cachedData) {
+        const parsedData = JSON.parse(cachedData);
+
+        try {
+          //* Enviar los datos al servidor para guardar en la base de datos
+          const response = await fetch("/api/especialidades/guardar", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(parsedData),
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            console.error(
+              "Error en el servidor al guardar especialidades:",
+              errorData
+            );
+            throw new Error("Error al guardar en el servidor");
+          }
+
+          console.log(
+            `Especialidades guardadas exitosamente en el servidor:`,
+            parsedData
+          );
+          localStorage.removeItem(cacheKey); 
+        } catch (error) {
+          console.error("Error al guardar especialidades:", error);
+        }
+      }
+    });
+
+    //! Manejar evento consulta-cancelada
+    channel.bind("consulta-cancelada", (data) => {
+      console.log("Evento recibido de Pusher: consulta-cancelada", data);
+
+      const cacheKey = `especialidades:${data.claveConsulta}`;
+      localStorage.removeItem(cacheKey); //* Limpiar el caché si existe
+      setHistorialEspecialidades([]); //* Limpiar el historial en la interfaz
+      console.log(`Caché eliminado para consulta ${data.claveConsulta}`);
+    });
+
     return () => {
       channel.unbind_all();
       channel.unsubscribe();
     };
   }, [clavepaciente]);
 
-  // Agregar para depuración
+  //* Agregar para depuración
   Pusher.logToConsole = true;
 
   useEffect(() => {

@@ -7,7 +7,7 @@ import withReactContent from "sweetalert2-react-content";
 
 const MySwal = withReactContent(Swal);
 
-// Función reutilizable para mostrar alertas
+//* Función reutilizable para mostrar alertas
 const showAlert = (type, title, message) => {
   const colors = {
     error: {
@@ -78,7 +78,7 @@ const PasesAEspecialidad = () => {
     fetchData();
   }, []);
 
-  // Filtrado de datos solo por nómina
+  //* Filtrado de datos solo por nómina
   const datosFiltrados = datos.filter((item) =>
     item.nomina.toLowerCase().includes(busqueda.toLowerCase())
   );

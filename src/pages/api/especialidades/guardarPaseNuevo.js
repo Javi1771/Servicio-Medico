@@ -8,21 +8,6 @@ export default async function handler(req, res) {
 
     console.log("=== DUMP DE DATOS ANTES DE GUARDAR ===");
     console.log("consultaData:", consultaData);
-    console.log("Tipo de fechaconsulta:", typeof consultaData.fechaconsulta, "Valor:", consultaData.fechaconsulta);
-    console.log("Tipo de claveproveedor:", typeof consultaData.claveproveedor, "Valor:", consultaData.claveproveedor);
-    console.log("Tipo de clavenomina:", typeof consultaData.clavenomina, "Valor:", consultaData.clavenomina);
-    console.log("Tipo de clavepaciente:", typeof consultaData.clavepaciente, "Valor:", consultaData.clavepaciente);
-    console.log("Tipo de nombrepaciente:", typeof consultaData.nombrepaciente, "Valor:", consultaData.nombrepaciente);
-    console.log("Tipo de edad:", typeof consultaData.edad, "Valor:", consultaData.edad);
-    console.log("Tipo de clavestatus:", typeof consultaData.clavestatus, "Valor:", consultaData.clavestatus);
-    console.log("Tipo de elpacienteesempleado:", typeof consultaData.elpacienteesempleado, "Valor:", consultaData.elpacienteesempleado);
-    console.log("Tipo de parentesco:", typeof consultaData.parentesco, "Valor:", consultaData.parentesco);
-    console.log("Tipo de claveusuario:", typeof consultaData.claveusuario, "Valor:", consultaData.claveusuario);
-    console.log("Tipo de departamento:", typeof consultaData.departamento, "Valor:", consultaData.departamento);
-    console.log("Tipo de especialidadinterconsulta:", typeof consultaData.especialidadinterconsulta, "Valor:", consultaData.especialidadinterconsulta);
-    console.log("Tipo de costo:", typeof consultaData.costo, "Valor:", consultaData.costo);
-    console.log("Tipo de fechacita:", typeof consultaData.fechacita, "Valor:", consultaData.fechacita);
-    console.log("Tipo de sindicato:", typeof consultaData.sindicato, "Valor:", consultaData.sindicato);
 
     try {
       //* Conexión a la base de datos
@@ -40,49 +25,27 @@ export default async function handler(req, res) {
         .input("edad", sql.NVarChar(50), consultaData.edad ? String(consultaData.edad) : null)
         .input("clavestatus", sql.Int, consultaData.clavestatus || null)
         .input("elpacienteesempleado", sql.NVarChar(1), consultaData.elpacienteesempleado ? String(consultaData.elpacienteesempleado) : null)
-        .input("parentesco", sql.NVarChar(50), consultaData.parentesco ? String(consultaData.parentesco) : null)
+        .input(
+          "parentesco", 
+          sql.Int, 
+          consultaData.parentesco !== undefined && consultaData.parentesco !== null ? consultaData.parentesco : null
+        ) // Aseguramos que 0 no sea sobrescrito como null
         .input("claveusuario", sql.Int, consultaData.claveusuario || null)
         .input("departamento", sql.NChar(200), consultaData.departamento ? String(consultaData.departamento) : null)
         .input("especialidadinterconsulta", sql.Int, consultaData.especialidadinterconsulta || null)
         .input("costo", sql.Money, consultaData.costo || 0)
-        .input("fechacita", sql.DateTime, consultaData.fechacita || null)
+        .input("fechacita", sql.DateTime, consultaData.fechacita ? new Date(consultaData.fechacita) : null)
         .input("sindicato", sql.NVarChar(10), consultaData.sindicato ? String(consultaData.sindicato) : null)
         .input("seasignoaespecialidad", sql.NVarChar(1), "S") // Agregamos esta línea para insertar "S"
         .query(`
           INSERT INTO consultas (
-            fechaconsulta,
-            claveproveedor,
-            clavenomina,
-            clavepaciente,
-            nombrepaciente,
-            edad,
-            clavestatus,
-            elpacienteesempleado,
-            parentesco,
-            claveusuario,
-            departamento,
-            especialidadinterconsulta,
-            costo,
-            fechacita,
-            sindicato,
-            seasignoaespecialidad
+            fechaconsulta, claveproveedor, clavenomina, clavepaciente, nombrepaciente, edad,
+            clavestatus, elpacienteesempleado, parentesco, claveusuario, departamento, especialidadinterconsulta,
+            costo, fechacita, sindicato, seasignoaespecialidad
           ) VALUES (
-            @fechaconsulta,
-            @claveproveedor,
-            @clavenomina,
-            @clavepaciente,
-            @nombrepaciente,
-            @edad,
-            @clavestatus,
-            @elpacienteesempleado,
-            @parentesco,
-            @claveusuario,
-            @departamento,
-            @especialidadinterconsulta,
-            @costo,
-            @fechacita,
-            @sindicato,
-            @seasignoaespecialidad
+            @fechaconsulta, @claveproveedor, @clavenomina, @clavepaciente, @nombrepaciente, @edad,
+            @clavestatus, @elpacienteesempleado, @parentesco, @claveusuario, @departamento, @especialidadinterconsulta,
+            @costo, @fechacita, @sindicato, @seasignoaespecialidad
           );
           SELECT SCOPE_IDENTITY() AS claveConsulta;
         `);

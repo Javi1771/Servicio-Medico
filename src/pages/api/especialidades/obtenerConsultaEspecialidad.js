@@ -5,10 +5,10 @@ export default async function handler(req, res) {
   const { folio } = req.query;
 
   console.log("🔍 Endpoint - obtenerConsultaEspecialidad");
-  console.log("📌 Parámetro recibido - Folio:", folio); // LOG
+  console.log("📌 Parámetro recibido - Folio:", folio); 
 
   if (req.method !== "GET") {
-    console.log("❌ Método no permitido:", req.method); // LOG
+    console.log("❌ Método no permitido:", req.method); 
     return res.status(405).json({ error: "Método no permitido" });
   }
 
@@ -24,10 +24,10 @@ export default async function handler(req, res) {
     const pool = await connectToDatabase();
     console.log("✅ Conexión exitosa a la base de datos");
 
-    // 1. Obtener datos de "consultas"
+    //? 1. Obtener datos de "consultas"
     console.log("📄 Ejecutando consulta a 'consultas'");
     const consultaQuery = `
-        SELECT claveconsulta, nombrepaciente, edad, parentesco, sindicato, clavenomina
+        SELECT claveconsulta, nombrepaciente, edad, parentesco, sindicato, clavenomina, clavepaciente, elpacienteesempleado, departamento
         FROM consultas
         WHERE claveconsulta = @folio
     `;
@@ -35,6 +35,7 @@ export default async function handler(req, res) {
       .request()
       .input("folio", sql.Int, folioInt)
       .query(consultaQuery);
+
     console.log("📊 Resultado de 'consultas':", consultaResult.recordset);
 
     if (consultaResult.recordset.length === 0) {
@@ -42,9 +43,18 @@ export default async function handler(req, res) {
       return res.status(404).json({ error: "Consulta no encontrada" });
     }
 
+    //* Extraemos los datos de la primera fila (debe haber una sola fila para este folio)
     const consulta = consultaResult.recordset[0];
 
-    // 2. Obtener parentesco
+    //* Validamos que el campo parentesco sea un valor único
+    if (Array.isArray(consulta.parentesco)) {
+      console.warn("⚠️ El campo 'parentesco' se recibió como un arreglo. Corrigiendo...");
+      consulta.parentesco = consulta.parentesco[0]; // Tomar el primer valor del arreglo
+    }
+
+    console.log("📋 Consulta después de procesar el parentesco:", consulta);
+
+    //? 2. Obtener parentesco (nombre o etiqueta)
     console.log("🔍 Determinando parentesco");
     let parentescoNombre = "EMPLEADO"; // Valor por defecto si es empleado
 
@@ -60,7 +70,7 @@ export default async function handler(req, res) {
         SELECT PARENTESCO
         FROM PARENTESCO
         WHERE ID_PARENTESCO = @parentescoId
-    `;
+      `;
       const parentescoResult = await pool
         .request()
         .input("parentescoId", sql.Int, consulta.parentesco)
@@ -77,9 +87,9 @@ export default async function handler(req, res) {
       console.log("⚠️ Valor inesperado en parentesco:", consulta.parentesco);
     }
 
-    // 3. Obtener especialidad
+    //? 3. Obtener especialidad
     console.log(
-      "📄 Ejecutando consulta a 'detalleEspecialidad' y 'especialidades'"
+      "📄 Ejecutando consulta a 'detalleEspecialidad' y 'especialidades'..."
     );
     const especialidadQuery = `
       SELECT e.especialidad, e.claveespecialidad
@@ -107,7 +117,7 @@ export default async function handler(req, res) {
 
     const especialidad = especialidadResult.recordset[0];
 
-    // 4. Obtener especialistas
+    //? 4. Obtener especialistas
     console.log(
       "🔍 Buscando especialistas con claveEspecialidad:",
       especialidad.claveespecialidad

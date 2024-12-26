@@ -1,5 +1,4 @@
 import { connectToDatabase } from "../connectToDatabase";
-import { pusher } from "../pusher";
 import sql from "mssql";
 
 export default async function handler(req, res) {
@@ -38,70 +37,29 @@ export default async function handler(req, res) {
   try {
     const pool = await connectToDatabase();
 
-    // Inserción de la incapacidad
-    const insertQuery = `
-      INSERT INTO detalleIncapacidad 
-      (claveConsulta, clavenomina, fechaInicial, fechaFinal, diagnostico, estatus, clavepaciente)
-      VALUES (@claveConsulta, @clavenomina, @fechaInicial, @fechaFinal, @diagnostico, @estatus, @clavepaciente)
-    `;
+    //* Guardar en la base de datos
     await pool
       .request()
-      .input("claveConsulta", sql.Int, claveConsulta)     // claveConsulta asume que es numérico en la BD
-      .input("clavenomina", sql.VarChar, clavenomina)     // clavenomina alfanumérico -> VarChar
+      .input("claveConsulta", sql.Int, claveConsulta)
+      .input("clavenomina", sql.VarChar, clavenomina)
       .input("fechaInicial", sql.DateTime, fechaInicialFinal)
       .input("fechaFinal", sql.DateTime, fechaFinalFinal)
       .input("diagnostico", sql.Text, diagnosticoFinal)
       .input("estatus", sql.Int, 1) // 1: Activo
-      .input("clavepaciente", sql.VarChar, clavepaciente) // clavepaciente alfanumérico -> VarChar
-      .query(insertQuery);
-
-    console.log("Incapacidad guardada exitosamente en la base de datos");
-
-    // Obtener el historial actualizado
-    const queryHistorial = `
-      SELECT 
-        idDetalleIncapacidad,
-        claveConsulta,
-        fechaInicial,
-        fechaFinal,
-        diagnostico,
-        clavepaciente
-      FROM detalleIncapacidad
-      WHERE clavenomina = @clavenomina
-        AND clavepaciente = @clavepaciente
-      ORDER BY idDetalleIncapacidad DESC
-    `;
-    const result = await pool
-      .request()
-      .input("clavenomina", sql.VarChar, clavenomina)
       .input("clavepaciente", sql.VarChar, clavepaciente)
-      .query(queryHistorial);
+      .query(`
+        INSERT INTO detalleIncapacidad 
+        (claveConsulta, clavenomina, fechaInicial, fechaFinal, diagnostico, estatus, clavepaciente)
+        VALUES (@claveConsulta, @clavenomina, @fechaInicial, @fechaFinal, @diagnostico, @estatus, @clavepaciente)
+      `);
 
-    const historial = result.recordset;
-
-    console.log("Historial actualizado:", historial);
-
-    // Emitir evento Pusher
-    console.log("Disparando evento Pusher...");
-    await pusher.trigger("incapacidades-channel", "incapacidades-updated", {
-      clavepaciente,
-      historial: historial.map((item) => ({
-        ...item,
-        claveConsulta: item.claveConsulta || "Sin clave",
-        diagnostico: item.diagnostico || "Sin diagnóstico",
-        fechaInicial: item.fechaInicial
-          ? item.fechaInicial.toISOString()
-          : null,
-        fechaFinal: item.fechaFinal ? item.fechaFinal.toISOString() : null,
-      })),
-    });
+    console.log("Incapacidad guardada exitosamente en la base de datos.");
 
     res.status(200).json({
-      message: "Incapacidad guardada correctamente y evento emitido.",
-      historial,
+      message: "Datos guardados correctamente.",
     });
   } catch (error) {
-    console.error("Error al guardar la incapacidad:", error);
-    res.status(500).json({ message: "Error al guardar la incapacidad." });
+    console.error("Error al guardar los datos:", error);
+    res.status(500).json({ message: "Error al guardar los datos." });
   }
 }
