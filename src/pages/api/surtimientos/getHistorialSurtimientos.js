@@ -9,7 +9,9 @@ export default async function handler(req, res) {
   const { folioPase } = req.query;
 
   if (!folioPase) {
-    return res.status(400).json({ message: "El folioPase es obligatorio." });
+    return res
+      .status(400)
+      .json({ message: "El folioPase es obligatorio." });
   }
 
   try {
@@ -22,6 +24,7 @@ export default async function handler(req, res) {
         .json({ message: "No se pudo conectar a la base de datos." });
     }
 
+    // Consulta al historial de surtimientos
     const query = `
       SELECT 
         FOLIO_SURTIMIENTO,
@@ -48,9 +51,13 @@ export default async function handler(req, res) {
 
     res.status(200).json({ success: true, data: result.recordset });
   } catch (error) {
-    console.error("Error al obtener el historial de surtimientos:", error);
-    res
-      .status(500)
-      .json({ message: "Error interno del servidor", error: error.message });
+    console.error(
+      "Error al obtener el historial de surtimientos:",
+      error.message
+    );
+    res.status(500).json({
+      message: "Error interno del servidor",
+      error: error.message,
+    });
   }
 }

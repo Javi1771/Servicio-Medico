@@ -8,8 +8,11 @@ export default async function handler(req, res) {
 
   const { folioReceta, descMedicamento, indicaciones, cantidad } = req.body;
 
+  // Validar que todos los campos sean proporcionados
   if (!folioReceta || !descMedicamento || !indicaciones || !cantidad) {
-    return res.status(400).json({ message: "Todos los campos son obligatorios" });
+    return res
+      .status(400)
+      .json({ message: "Todos los campos son obligatorios" });
   }
 
   try {
@@ -24,7 +27,7 @@ export default async function handler(req, res) {
     await pool
       .request()
       .input("folioReceta", sql.Int, folioReceta)
-      .input("descMedicamento", sql.NVarChar(80), descMedicamento)
+      .input("descMedicamento", sql.NVarChar(15), descMedicamento) // Asegúrate de que el tamaño sea correcto
       .input("indicaciones", sql.NVarChar(sql.MAX), indicaciones)
       .input("cantidad", sql.NVarChar(50), cantidad)
       .query(query);
@@ -35,4 +38,3 @@ export default async function handler(req, res) {
     res.status(500).json({ message: "Error al insertar en la base de datos." });
   }
 }
-    

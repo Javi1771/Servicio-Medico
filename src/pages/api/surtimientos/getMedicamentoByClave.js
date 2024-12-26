@@ -2,10 +2,6 @@ import { connectToDatabase } from "../connectToDatabase";
 import sql from "mssql";
 
 export default async function handler(req, res) {
-  if (req.method !== "GET") {
-    return res.status(405).json({ message: "Método no permitido" });
-  }
-
   const { claveMedicamento } = req.query;
 
   if (!claveMedicamento) {
@@ -14,17 +10,14 @@ export default async function handler(req, res) {
 
   try {
     const pool = await connectToDatabase();
-
-    // Consulta a la tabla MEDICAMENTOS
     const query = `
       SELECT MEDICAMENTO
       FROM [PRESIDENCIA].[dbo].[MEDICAMENTOS]
       WHERE CLAVEMEDICAMENTO = @claveMedicamento
     `;
-
     const result = await pool
       .request()
-      .input("claveMedicamento", sql.Int, claveMedicamento)
+      .input("claveMedicamento", sql.VarChar, claveMedicamento)
       .query(query);
 
     if (result.recordset.length === 0) {

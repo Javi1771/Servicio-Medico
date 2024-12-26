@@ -1,0 +1,161 @@
+/* Fondo del modal: cubre toda la pantalla */
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(20, 20, 20, 0.9); /* Fondo oscuro con opacidad */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1050; /* Más alto para superponer todo */
+    animation: fadeIn 0.3s ease-in-out;
+  }
+  
+  /* Animación para aparecer */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  
+  /* Contenedor principal del modal */
+  .modalContent {
+    background-color: #1e1e2e;
+    padding: 30px;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 900px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+    position: relative;
+    animation: slideDown 0.3s ease-out;
+  }
+  
+  /* Animación para deslizar */
+  @keyframes slideDown {
+    from {
+      transform: translateY(-50%);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+  
+  /* Botón de cerrar */
+  .closeButton {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: none;
+    border: none;
+    font-size: 2rem;
+    color: #f5e0dc;
+    cursor: pointer;
+    transition: transform 0.3s ease, color 0.3s ease;
+  }
+  
+  .closeButton:hover {
+    color: #ff6e6e;
+    transform: scale(1.1);
+  }
+  
+  /* Título del modal */
+  .title {
+    font-size: 1.8em;
+    margin-bottom: 20px;
+    color: #a6e3a1; /* Verde brillante */
+    text-align: center;
+    font-weight: 700;
+  }
+  
+  /* Tabla */
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  }
+  
+  /* Encabezados de la tabla */
+  .table thead tr {
+    background-color: #313244;
+    text-align: left;
+  }
+  
+  .table thead th {
+    padding: 0.8rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: #f5e0dc;
+    border-bottom: 2px solid #45475a;
+  }
+  
+  /* Filas de la tabla */
+  .table tbody tr {
+    background-color: #24273a;
+    transition: background-color 0.3s ease;
+  }
+  
+  .table tbody tr:nth-child(even) {
+    background-color: #303446;
+  }
+  
+  .table tbody tr:hover {
+    background-color: #45475a;
+  }
+  
+  /* Celdas */
+  .table td {
+    padding: 0.8rem;
+    border-bottom: 1px solid #45475a;
+    color: #cdd6f4;
+  }
+  
+  /* Responsividad */
+  @media (max-width: 768px) {
+    .modalContent {
+      width: 95%;
+    }
+  
+    .table thead {
+      display: none;
+    }
+  
+    .table,
+    .table tbody,
+    .table tr,
+    .table td {
+      display: block;
+      width: 100%;
+    }
+  
+    .table tr {
+      margin-bottom: 10px;
+      border: 1px solid #45475a;
+      border-radius: 8px;
+    }
+  
+    .table td {
+      text-align: right;
+      padding-left: 50%;
+      position: relative;
+      border: none;
+    }
+  
+    .table td::before {
+      content: attr(data-label);
+      position: absolute;
+      left: 1rem;
+      font-weight: bold;
+      color: #f5e0dc;
+    }
+  }
+  

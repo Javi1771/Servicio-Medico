@@ -1,18 +1,27 @@
-import React from "react";
+import React, { useState } from "react";
 import useHistorialSurtimientos from "../../../hooks/surtimientosHook/useHistorialSurtimientos";
+import useDetalleSurtimientos from "../../../hooks/surtimientosHook/useDetalleSurtimientos";
+import DetalleSurtimientosModal from "./detallesSurtimientos";
 import styles from "../../css/estilosSurtimientos/historialSurtimientos.module.css";
 
-const HistorialSurtimientos = React.memo(({ folioPase }) => {
-  console.log("Prop folioPase recibida en HistorialSurtimientos:", folioPase);
-
-  // Hook para cargar el historial
+const HistorialSurtimientos = ({ folioPase }) => {
   const { historial, loading, error } = useHistorialSurtimientos(folioPase);
+  const [selectedFolio, setSelectedFolio] = useState(null);
+  const { detalles, loading: loadingDetalles, error: errorDetalles } = useDetalleSurtimientos(selectedFolio);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Manejo de estados
+  const handleRowClick = (folioSurtimiento) => {
+    setSelectedFolio(folioSurtimiento);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedFolio(null);
+  };
+
   if (loading) {
-    return (
-      <p className={styles.warning}>Cargando historial de surtimientos...</p>
-    );
+    return <p className={styles.warning}>Cargando historial de surtimientos...</p>;
   }
 
   if (error) {
@@ -20,38 +29,41 @@ const HistorialSurtimientos = React.memo(({ folioPase }) => {
   }
 
   if (historial.length === 0) {
-    return (
-      <p className={styles.warning}>
-        No se encontraron registros para el folio {folioPase}.
-      </p>
-    );
+    return <p className={styles.warning}>No hay surtimientos registrados.</p>;
   }
 
   return (
-    <div className={styles.tableContainer}>
-      <h2 className={styles.title}>Historial de Surtimientos</h2>
-      <table className={styles.table}>
-        <thead>
-          <tr>
-            <th>Folio Surtimiento</th>
-            <th>Fecha Emisión</th>
-            <th>Nombre del Paciente</th>
-            <th>Diagnóstico</th>
-          </tr>
-        </thead>
-        <tbody>
-          {historial.map((surtimiento) => (
-            <tr key={surtimiento.FOLIO_SURTIMIENTO}>
-              <td>{surtimiento.FOLIO_SURTIMIENTO}</td>
-              <td>{new Date(surtimiento.FECHA_EMISION).toLocaleString()}</td>
-              <td>{surtimiento.NOMBRE_PACIENTE}</td>
-              <td>{surtimiento.DIAGNOSTICO}</td>
+    <>
+      <div className={styles.tableContainer}>
+        <h2 className={styles.title}>Historial de Surtimientos</h2>
+        <table className={styles.table}>
+          <thead>
+            <tr>
+              <th>Folio Surtimiento</th>
+              <th>Fecha Emisión</th>
+              <th>Nombre del Paciente</th>
+              <th>Diagnóstico</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody>
+            {historial.map((surtimiento) => (
+              <tr key={surtimiento.FOLIO_SURTIMIENTO} onClick={() => handleRowClick(surtimiento.FOLIO_SURTIMIENTO)}>
+                <td>{surtimiento.FOLIO_SURTIMIENTO}</td>
+                <td>{new Date(surtimiento.FECHA_EMISION).toLocaleString()}</td>
+                <td>{surtimiento.NOMBRE_PACIENTE}</td>
+                <td>{surtimiento.DIAGNOSTICO}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <DetalleSurtimientosModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        detalles={detalles}
+      />
+    </>
   );
-});
+};
 
 export default HistorialSurtimientos;

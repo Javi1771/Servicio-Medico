@@ -1,16 +1,13 @@
-
-// pages/api/medicamentos.js
 import { connectToDatabase } from "../connectToDatabase";
 
 export default async function handler(req, res) {
   if (req.method === "GET") {
     try {
-      // Conexión a la base de datos
       const pool = await connectToDatabase();
 
-      // Consulta SQL para obtener los medicamentos
       const query = `
         SELECT 
+          CLAVEMEDICAMENTO, 
           MEDICAMENTO 
         FROM [PRESIDENCIA].[dbo].[MEDICAMENTOS] 
         WHERE CLAVEMEDICAMENTO > 0
@@ -18,16 +15,16 @@ export default async function handler(req, res) {
 
       const result = await pool.request().query(query);
 
-      // Retornar los medicamentos en formato JSON
+      if (result.recordset.length === 0) {
+        return res.status(404).json({ message: "No se encontraron medicamentos." });
+      }
+
       res.status(200).json(result.recordset);
     } catch (error) {
       console.error("Error al obtener medicamentos:", error);
-      res
-        .status(500)
-        .json({ message: "Ocurrió un error al obtener los medicamentos." });
+      res.status(500).json({ message: "Error al obtener medicamentos." });
     }
   } else {
-    // Método no permitido
     res.status(405).json({ message: "Método no permitido" });
   }
 }

@@ -6,12 +6,10 @@ import ModalRegistrarMedicamento from "../components/modalRegistrarMedicamento";
 import Swal from "sweetalert2";
 import { MdAdd } from "react-icons/md";
 
-const MedicamentosForm = ({
-  folioConsulta,
-  diagnostico,
-  onFormSubmitted,
-  detalles,
+const MedicamentosForm = ({folioConsulta,diagnostico,onFormSubmitted,detalles,
 }) => {
+  const [medicamentoMap, setMedicamentoMap] = useState({}); // Mapeo de claveMedicamento -> descripción
+
   const [isModalOpen, setIsModalOpen] = useState(false); // Estado del modal
   const [medicamentos, setMedicamentos] = useState([]);
   const [selectedMedicamento, setSelectedMedicamento] = useState("");
@@ -22,6 +20,31 @@ const MedicamentosForm = ({
 
   const [temporalMedicamentos, setTemporalMedicamentos] = useState([]); // Temporal storage
   // Nueva validación: deshabilitar botón si ya existe al menos un medicamento
+
+
+  // Función para obtener el medicamento por clave
+  const fetchMedicamentoDescripcion = async (claveMedicamento) => {
+    if (medicamentoMap[claveMedicamento]) {
+      return medicamentoMap[claveMedicamento]; // Retorna si ya está en el mapeo
+    }
+
+    try {
+      const response = await fetch(
+        `/api/surtimientos/getMedicamentoByClave?claveMedicamento=${claveMedicamento}`
+      );
+      if (!response.ok) throw new Error("No se pudo obtener el medicamento.");
+      const data = await response.json();
+      setMedicamentoMap((prev) => ({
+        ...prev,
+        [claveMedicamento]: data.medicamento, // Agrega al mapeo
+      }));
+      return data.medicamento;
+    } catch (error) {
+      console.error("Error al obtener medicamento:", error.message);
+      return "Descripción no disponible";
+    }
+  };
+
 
   const handleRemoveFromReceta = (id, event) => {
     event.preventDefault(); // Evita el refresco de la página
@@ -52,6 +75,7 @@ const MedicamentosForm = ({
   };
 
   const handleAddToReceta = () => {
+    console.log("Medicamento seleccionado:", selectedMedicamento); // Aquí debe ser la clave
     if (!selectedMedicamento || !indicaciones || !cantidad) {
       Swal.fire({
         title: "Campos incompletos",
@@ -67,7 +91,6 @@ const MedicamentosForm = ({
     const medicamentoExistente = temporalMedicamentos.some(
       (med) => med.medicamento === selectedMedicamento
     );
-
     if (medicamentoExistente) {
       Swal.fire({
         title: "Medicamento duplicado",
@@ -78,11 +101,10 @@ const MedicamentosForm = ({
       });
       return;
     }
-
     // Agregar el medicamento al estado temporal
     const nuevoMedicamento = {
-      id: temporalMedicamentos.length + 1, // Generar un ID temporal
-      medicamento: selectedMedicamento,
+      id: temporalMedicamentos.length + 1,
+      medicamento: selectedMedicamento, // Aquí debe ser la clave
       indicaciones,
       cantidad,
     };
@@ -129,16 +151,21 @@ const MedicamentosForm = ({
     }
 
     try {
-      // Iterar sobre los medicamentos temporales y enviarlos al servidor
       for (const med of temporalMedicamentos) {
+        // Validar que descMedicamento sea un número
+        if (isNaN(med.medicamento)) {
+          throw new Error(
+            `El medicamento ${med.medicamento} no tiene un ID válido.`
+          );
+        }
+
         const response = await fetch("/api/surtimientos/addDetalleReceta", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             folioReceta: folioConsulta,
-            descMedicamento: med.medicamento,
+            descMedicamento: med.medicamento, // Enviar ID del medicamento
             indicaciones: med.indicaciones,
-            estatus: 1,
             cantidad: med.cantidad,
           }),
         });
@@ -251,14 +278,17 @@ const MedicamentosForm = ({
   const fetchMedicamentos = async () => {
     try {
       const response = await fetch("/api/surtimientos/getMedicamentos");
-      if (!response.ok)
+      if (!response.ok) {
         throw new Error("Error al obtener la lista de medicamentos.");
-
+      }
+  
       const data = await response.json();
+      console.log("Medicamentos obtenidos:", data); // Verifica el resultado aquí
+  
       setMedicamentos(
         data.map((item) => ({
-          id: item.CLAVEMEDICAMENTO,
-          name: item.MEDICAMENTO,
+          CLAVEMEDICAMENTO: item.CLAVEMEDICAMENTO,
+          MEDICAMENTO: item.MEDICAMENTO,
         }))
       );
     } catch (error) {
@@ -271,6 +301,18 @@ const MedicamentosForm = ({
       });
     }
   };
+
+    // Al renderizar, llena el mapa de medicamentos dinámicamente
+    useEffect(() => {
+      const fetchDescripciones = async () => {
+        const clavesUnicas = [...new Set(temporalMedicamentos.map((med) => med.medicamento))];
+        for (const clave of clavesUnicas) {
+          await fetchMedicamentoDescripcion(clave);
+        }
+      };
+      fetchDescripciones();
+    }, [temporalMedicamentos]);
+  
 
   useEffect(() => {
     fetchMedicamentos();
@@ -294,17 +336,20 @@ const MedicamentosForm = ({
               value={selectedMedicamento}
               onChange={(e) => setSelectedMedicamento(e.target.value)}
               className={styles.select}
-              disabled={tieneMedicamentos} // Agregado
             >
               <option value="" disabled>
                 -- Selecciona un medicamento --
               </option>
               {medicamentos.map((medicamento) => (
-                <option key={medicamento.id} value={medicamento.name}>
-                  {medicamento.name}
+                <option
+                  key={medicamento.CLAVEMEDICAMENTO}
+                  value={medicamento.CLAVEMEDICAMENTO}
+                >
+                  {medicamento.MEDICAMENTO}
                 </option>
               ))}
             </select>
+
             <button
               type="button"
               className={styles.addButtonCompact}
@@ -393,39 +438,40 @@ const MedicamentosForm = ({
         </div>
 
         {!tieneMedicamentos && (
-          <div className={styles.temporalList}>
-            <h3 className={styles.temporalTitle}>Medicamentos Añadidos</h3>
-            {temporalMedicamentos.length > 0 ? (
-              <div className={styles.temporalContainer}>
-                {temporalMedicamentos.map((med) => (
-                  <div key={med.id} className={styles.medicamentoCard}>
-                    <div className={styles.medicamentoDetails}>
-                      <p>
-                        <strong>Medicamento:</strong> {med.medicamento}
-                      </p>
-                      <p>
-                        <strong>Indicaciones:</strong> {med.indicaciones}
-                      </p>
-                      <p>
-                        <strong>Cantidad:</strong> {med.cantidad}
-                      </p>
-                    </div>
-                    <button
-                      className={styles.removeButton}
-                      onClick={(event) => handleRemoveFromReceta(med.id, event)} // Pasa el evento como segundo argumento
-                    >
-                      Eliminar
-                    </button>
-                  </div>
-                ))}
+        <div className={styles.temporalList}>
+        <h3 className={styles.temporalTitle}>Medicamentos Añadidos</h3>
+        {temporalMedicamentos.length > 0 ? (
+          <div className={styles.temporalContainer}>
+            {temporalMedicamentos.map((med) => (
+              <div key={med.id} className={styles.medicamentoCard}>
+                <div className={styles.medicamentoDetails}>
+                  <p>
+                    <strong>Medicamento:</strong>{" "}
+                    {medicamentoMap[med.medicamento] || "Cargando..."}
+                  </p>
+                  <p>
+                    <strong>Indicaciones:</strong> {med.indicaciones}
+                  </p>
+                  <p>
+                    <strong>Cantidad:</strong> {med.cantidad}
+                  </p>
+                </div>
+                <button
+                  className={styles.removeButton}
+                  onClick={(event) => handleRemoveFromReceta(med.id, event)}
+                >
+                  Eliminar
+                </button>
               </div>
-            ) : (
-              <p className={styles.noMedicamentosMessage}>
-                No se han añadido medicamentos aún.
-              </p>
-            )}
+            ))}
           </div>
+        ) : (
+          <p className={styles.noMedicamentosMessage}>
+            No se han añadido medicamentos aún.
+          </p>
         )}
+      </div>
+      )}
       </form>
 
       <ModalRegistrarMedicamento
