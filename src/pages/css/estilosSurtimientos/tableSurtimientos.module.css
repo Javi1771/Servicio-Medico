@@ -1,82 +1,205 @@
 
-/* Contenedor general */
+/* estilosSurtimientos/medicamentosForm.module.css */
+
+/* Contenedor principal del formulario */
 .formContainer {
-  border-radius: 10px;
-  box-shadow: 0 4px 10px rgba(255, 255, 255, 0.3); /* Sombra inicial */
   padding: 20px;
-  width: 130%;
-  max-width: 1137px;
-  margin: 20px 3px;
-  margin-top: 34px;
-  color: #fff;
-  text-align: left;
-  background:#1e1e2e;
-  transition: transform 0.3s ease, box-shadow 0.3s ease; /* Transiciones */
+  background-color: #1e1e2e;
+  border-radius: 10px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
 }
 
-.formContainer:hover {
-  transform: scale(1.02); /* Efecto de hover */
-  box-shadow: 0px 6px 15px rgba(0, 0, 0, 0.35); /* Sombra más pronunciada */
-}
-
+/* Título principal */
 .title {
-  margin-bottom: 10px;
-  font-size: 1.5rem;
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 20px;
   color: #ffffff;
+  text-align: center;
 }
 
-/* Estilo para los campos de formulario */
+/* Grupo de formularios */
 .formGroup {
-  margin-bottom: 15px;
+  margin-bottom: 20px;
 }
 
 .label {
   display: block;
+  font-weight: bold;
   margin-bottom: 5px;
-  font-size: 1rem;
   color: #ffffff;
 }
 
-/* Select personalizado */
-.select {
-  position: relative;
-  display: flex;
+.select,
+.textarea,
+.input {
   width: 100%;
-  height: 3em;
-  border-radius: 0.25em;
-  overflow: hidden;
-  background-color:#1e1e2d;
+  padding: 10px;
+  border: 1px solid #dfe6e9;
+  border-radius: 5px;
+  font-size: 14px;
+  color: #2d3436;
 }
 
-.select select {
-  appearance: none;
+.select:focus,
+.textarea:focus,
+.input:focus {
+  border-color: #6c5ce7;
   outline: none;
-  border: 0;
-  flex: 1;
-  padding: 0 1em;
-  color: #ffffff;
-  background-color:#1e1e2d;
-  font-size: 1rem;
+  box-shadow: 0px 0px 5px rgba(108, 92, 231, 0.5);
+}
+
+/* Botones */
+.addButton,
+.saveButton {
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: bold;
+  border: none;
+  border-radius: 5px;
   cursor: pointer;
+  transition: all 0.3s ease;
 }
 
-.select select::-ms-expand {
-  display: none;
+.addButton {
+  background-color: #00b894;
+  color: #fff;
 }
 
+.addButton:hover {
+  background-color: #019875;
+}
+
+.saveButton {
+  background-color: #6c5ce7;
+  color: #fff;
+  margin-left: 10px;
+}
+
+.saveButton:hover {
+  background-color: #5a4bd3;
+}
+
+.temporalList {
+  background-color: #ffffff05;
+  border-radius: 10px;
+  padding: 20px;
+  margin-top: 20px;
+  box-shadow: 0px 4px 6px rgb(0 255 216);
+}
+
+.temporalTitle {
+  font-size: 18px;
+  font-weight: bold;
+  color: #ffffff;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.temporalContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.medicamentoCard {
+  display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #1e1e2e;
+      border: 1px solid #ffffff21;
+      border-radius: 8px;
+      padding: 15px;
+      transition: box-shadow 0.3s ease, transform 0.2s ease;
+}
+
+.medicamentoCard:hover {
+  box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.15);
+  transform: scale(1.02);
+}
+
+.medicamentoDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.medicamentoDetails p {
+  margin: 0;
+  color: #ffffff;
+}
+
+.medicamentoDetails strong {
+  color: #00b894;
+}
+
+.removeButton {
+  background-color: #d63031;
+  border: none;
+  color: #ffffff;
+  padding: 10px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-weight: bold;
+}
+
+.removeButton:hover {
+  background-color: #c0392b;
+}
+
+.noMedicamentosMessage {
+  text-align: center;
+  font-size: 16px;
+  color: #777;
+}
+
+
+/* Estilo para el select */
+.select {
+  appearance: none; /* Elimina los estilos predeterminados del navegador */
+  background-color: #2c2f36;
+  color: #ffffff;
+  font-size: 1rem;
+  padding: 0.7rem 1rem;
+  border: 1px solid #444854;
+  border-radius: 8px;
+  outline: none;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+/* Icono personalizado de flecha (con pseudo-elemento) */
 .select::after {
-  content: "\25BC";
+  content: "▼";
   position: absolute;
-  top: 0;
-  right: 0;
-  padding: 1em;
-  background-color: #34495e;
-  transition: 0.25s all ease;
+  right: 1.5rem;
+  top: 50%;
+  transform: translateY(-50%);
   pointer-events: none;
+  color: #ccc;
 }
 
-.select:hover::after {
-  color: #f39c12;
+/* Estilo al enfocar el select */
+.select:focus {
+  border-color: #7ed6df;
+  box-shadow: 0 0 5px #7ed6df;
+}
+
+/* Estilo cuando está deshabilitado */
+.select:disabled {
+  background-color: #3a3d44;
+  color: #888;
+  cursor: not-allowed;
+}
+
+/* Estilo para las opciones del select */
+.select option {
+  background-color: #2c2f36;
+  color: #ffffff;
+  padding: 0.5rem;
+  font-size: 0.9rem;
 }
 
 /* Textareas para Indicaciones y Tratamiento */
@@ -135,26 +258,123 @@
   gap: 10px; /* Espaciado entre el select y el botón */
 }
 
-/* Botón verde con el ícono "+" */
-.addButton {
-  background-color: #28a745; /* Verde */
-  color: #fff; /* Texto blanco */
-  border: none;
-  border-radius: 5px;
-  font-size: 18px;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  justify-content: center;
+
+/*ESTILOS AVISO */
+/* Aviso de advertencia moderno */
+.warningMessage {
+  background-color: #fffbe6; /* Fondo amarillo claro */
+  color: #8a6d3b; /* Marrón dorado oscuro para el texto */
+  border-left: 5px solid #f0ad4e; /* Borde amarillo dorado */
+  border-radius: 6px; /* Bordes redondeados */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra sutil */
+  padding: 12px 15px; /* Espaciado interno */
+  margin: 15px 0; /* Espaciado externo */
+  display: flex; /* Alinear ícono y texto */
   align-items: center;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
+  font-size: 0.95rem; /* Tamaño de fuente moderado */
+  font-weight: 500; /* Fuente semi-negrita */
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
+/* Ícono de advertencia */
+.warningIcon {
+  margin-right: 10px; /* Espacio entre ícono y texto */
+  color: #f0ad4e; /* Color amarillo dorado */
+  font-size: 1.3rem; /* Tamaño del ícono */
+}
+
+
+/* Botón principal estilizado */
+.addButton {
+  background-color: #4caf50; /* Verde profesional */
+  color: #ffffff; /* Texto en blanco */
+  border: none; /* Sin borde */
+  padding: 12px 20px; /* Espaciado interno */
+  border-radius: 6px; /* Bordes redondeados */
+  font-size: 1rem; /* Tamaño de fuente */
+  font-weight: 600; /* Fuente semi-negrita */
+  text-transform: uppercase; /* Texto en mayúsculas */
+  cursor: pointer; /* Cursor tipo botón */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Sombra sutil */
+  transition: all 0.3s ease; /* Transición suave */
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Efecto hover */
 .addButton:hover {
-  background-color: #218838; /* Verde más oscuro en hover */
+  background-color: #45a049; /* Verde más oscuro */
+  box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15); /* Sombra ligeramente más intensa */
+  transform: translateY(-2px); /* Efecto de elevación */
 }
 
+/* Efecto al presionar */
 .addButton:active {
-  background-color: #1e7e34; /* Verde más intenso en click */
+  background-color: #3e8e41; /* Verde aún más oscuro */
+  transform: translateY(0); /* Botón vuelve a su posición original */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Botón deshabilitado */
+.addButton:disabled {
+  background-color: #bdbdbd; /* Gris claro */
+  color: #f5f5f5; /* Texto en gris claro */
+  cursor: not-allowed; /* Cursor prohibido */
+  box-shadow: none; /* Sin sombra */
+  transform: none; /* Sin movimiento */
+}
+
+
+/* Contenedor del select y botón */
+.inputWithButton {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* Espaciado entre el select y el botón */
+}
+
+/* Ajusta el ancho máximo del select */
+.select {
+  flex: 1; /* Permite al select ocupar el espacio disponible */
+  max-width: 1045px; /* Establece un ancho máximo razonable */
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #2d2d44; /* Color de fondo */
+  color: white; /* Color del texto */
+  font-size: 14px;
+}
+
+/* Compactar el botón de agregar */
+.addButtonCompact {
+  background-color: #00b894;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 10px; /* Botón más pequeño */
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  min-width: 40px; /* Tamaño cuadrado mínimo */
+}
+
+.addButtonCompact:hover {
+  background-color: #019874; /* Color más oscuro al pasar el cursor */
+}
+
+
+.removeButton {
+  background-color: #d63031;
+  color: #fff;
+  border: none;
+  padding: 5px 10px;
+  margin-left: 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9em;
+}
+
+.removeButton:hover {
+  background-color: #c0392b;
 }

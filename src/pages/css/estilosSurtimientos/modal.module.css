@@ -1,0 +1,119 @@
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7); /* Más opacidad para mayor enfoque */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeIn 0.3s ease-in-out;
+  }
+  
+  .modalContent {
+    background: #1e272e; /* Un gris oscuro para mejor contraste */
+    padding: 30px;
+    border-radius: 12px; /* Bordes más redondeados */
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5); /* Sombra más definida */
+    width: 450px;
+    max-width: 90%; /* Responsivo */
+    text-align: center;
+    color: #ffffff; /* Texto en blanco */
+    animation: slideDown 0.3s ease-in-out;
+  }
+  
+  .modalTitle {
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+    font-weight: bold;
+    color: #ffffff;
+  }
+  
+  .formGroup {
+    margin-bottom: 20px;
+    text-align: left;
+  }
+  
+  .label {
+    font-size: 1rem;
+    margin-bottom: 5px;
+    display: block;
+    color: #dfe6e9;
+  }
+  
+  .input,
+  .select {
+    width: 100%;
+    padding: 10px;
+    font-size: 1rem;
+    color: #2d3436;
+    background-color: #ffffff;
+    border: 1px solid #ced6e0;
+    border-radius: 8px;
+    outline: none;
+    transition: border 0.3s ease;
+  }
+  
+  .input:focus,
+  .select:focus {
+    border: 1px solid #6c5ce7;
+  }
+  
+  .modalActions {
+    margin-top: 20px;
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  .cancelButton,
+  .saveButton {
+    padding: 12px 24px;
+    font-size: 1rem;
+    font-weight: bold;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .cancelButton {
+    background: #d63031;
+    color: white;
+  }
+  
+  .cancelButton:hover {
+    background: #c0392b;
+  }
+  
+  .saveButton {
+    background: #00b894;
+    color: white;
+  }
+  
+  .saveButton:hover {
+    background: #019875;
+  }
+  
+  /* Animaciones */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  
+  @keyframes slideDown {
+    from {
+      transform: translateY(-20px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+  

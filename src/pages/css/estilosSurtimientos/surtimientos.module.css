@@ -531,3 +531,67 @@
   margin: 0;
   font-size: 0.9rem;
 }
+
+
+
+/*ESTILOS no data*/
+.noDataMessage {
+  text-align: center;
+  color: #ff4d4f; /* Color rojo claro */
+  font-weight: bold;
+  margin-top: 20px;
+  font-size: 1.2rem;
+}
+
+
+/*estilos aviso info diagnostico*/
+.infoMessage {
+  background-color: #272642; /* Fondo azul muy claro */
+  color: #d5a94a; /* Azul grisáceo oscuro */
+  border-left: 5px solid #5a9bd5; /* Borde izquierdo azul acentuado */
+  border-radius: 6px; /* Bordes redondeados */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra sutil */
+  padding: 12px 15px; /* Espaciado interno */
+  margin: 15px 0; /* Espaciado entre elementos */
+  display: flex; /* Alinear ícono y texto */
+  align-items: center;
+  font-size: 0.95rem; /* Tamaño de fuente moderado */
+  font-weight: 500; /* Fuente semi-negrita */
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Ícono del aviso */
+.infoIcon {
+  margin-right: 10px; /* Espacio entre ícono y texto */
+  color: #5a9bd5; /* Color azul principal */
+  font-size: 1.3rem; /* Tamaño del ícono */
+}
+
+
+.bannerContainer {
+  width: 100%;
+  margin-bottom: 20px; /* Espacio entre el banner y el contenido */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #222436; /* Color de fondo elegante */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3); /* Sombra profesional */
+  border-radius: 8px; /* Bordes redondeados */
+  overflow: hidden;
+}
+
+.bannerImage {
+  object-fit: cover; /* Ajusta la imagen sin deformarla */
+  width: 100%; /* La imagen cubre todo el ancho del banner */
+  height: auto; /* Altura automática */
+  max-height: 200px; /* Altura máxima */
+}
+
+
+.successMessage {
+  color: rgb(17, 199, 17);
+}
+
+.errorMessage {
+  color: rgb(255, 208, 0);
+}
