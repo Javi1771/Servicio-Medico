@@ -84,10 +84,16 @@ const AccionesConsulta = ({ claveConsulta, limpiarFormulario }) => {
     }
   };
 
+  const limpiarLocalStorage = () => {
+    console.log("🗑️ Borrando datos del localStorage...");
+    localStorage.clear();
+  };
+
   const handleGuardarGlobal = async () => {
     try {
       console.log("📤 Iniciando guardado global...");
       await actualizarClavestatus(2); // Cambiar clavestatus a 2
+      limpiarLocalStorage(); // Borrar datos de localStorage
       limpiarFormulario();
 
       MySwal.fire({
@@ -166,6 +172,7 @@ const AccionesConsulta = ({ claveConsulta, limpiarFormulario }) => {
       <button
         onClick={() => {
           actualizarClavestatus(0);
+          limpiarLocalStorage(); // Borrar datos de localStorage
           limpiarFormulario();
         }}
         className="relative px-6 py-3 text-sm font-semibold text-white rounded-xl bg-red-600 hover:bg-red-700 transition-all duration-300"
