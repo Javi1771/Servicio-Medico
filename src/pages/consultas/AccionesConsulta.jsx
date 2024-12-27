@@ -54,8 +54,8 @@ const AccionesConsulta = ({ claveConsulta, limpiarFormulario }) => {
       MySwal.fire({
         icon: "success",
         title:
-          "<span style='color: #00e676; font-weight: bold; font-size: 1.5em;'>✔️ Estatus actualizado</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>La consulta fue marcada como atendida.</p>",
+          "<span style='color: #00e676; font-weight: bold; font-size: 1.5em;'>✔️ Actualización Exitosa</span>",
+        html: "<p style='color: #fff; font-size: 1.1em;'>El estatus se actualizó correctamente.</p>",
         background: "linear-gradient(145deg, #004d40, #00251a)",
         confirmButtonColor: "#00e676",
         confirmButtonText:
@@ -87,7 +87,7 @@ const AccionesConsulta = ({ claveConsulta, limpiarFormulario }) => {
   const handleGuardarGlobal = async () => {
     try {
       console.log("📤 Iniciando guardado global...");
-      await actualizarClavestatus(2);
+      await actualizarClavestatus(2); // Cambiar clavestatus a 2
       limpiarFormulario();
 
       MySwal.fire({

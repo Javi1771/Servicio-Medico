@@ -54,7 +54,7 @@ const Diagnostico = () => {
   const [empleadoData, setEmpleadoData] = useState(null);
   const [selectedBeneficiary, setSelectedBeneficiary] = useState(null);
   const [consultaSeleccionada, setConsultaSeleccionada] = useState("empleado");
-  const [pasarEspecialidad, setPasarEspecialidad] = useState(null);
+  const [pasarEspecialidad, setPasarEspecialidad] = useState('');
   const [formularioCompleto, setFormularioCompleto] = useState(false);
 
   const [especialidadSeleccionada, setEspecialidadSeleccionada] = useState("");
@@ -526,20 +526,18 @@ const Diagnostico = () => {
             <DatosAdicionales
               subPantalla={subPantalla}
               handleSubPantallaChange={setSubPantalla}
-              setDiagnostico={setDiagnostico}
-              setMotivoConsulta={setMotivoConsulta}
               claveConsulta={claveConsulta}
-              pasarEspecialidad={pasarEspecialidad}
-              setPasarEspecialidad={setPasarEspecialidad}
-              especialidadSeleccionada={especialidadSeleccionada}
-              setEspecialidadSeleccionada={setEspecialidadSeleccionada}
-              observaciones={observaciones}
-              setObservaciones={setObservaciones}
               numeroDeNomina={pacienteSeleccionado?.clavenomina}
               clavepaciente={pacienteSeleccionado?.clavepaciente}
               nombrePaciente={pacienteSeleccionado?.nombrepaciente}
               nombreMedico={nombreMedico}
               claveEspecialidad={claveEspecialidad}
+              pasarEspecialidad={pasarEspecialidad} // Pasa el estado
+              setPasarEspecialidad={setPasarEspecialidad} // Pasa la función setter
+              especialidadSeleccionada={especialidadSeleccionada}
+              setEspecialidadSeleccionada={setEspecialidadSeleccionada}
+              observaciones={observaciones}
+              setObservaciones={setObservaciones}
             />
 
             <AccionesConsulta

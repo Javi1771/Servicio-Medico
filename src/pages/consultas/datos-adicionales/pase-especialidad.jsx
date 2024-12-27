@@ -1,8 +1,9 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
-import Pusher from "pusher-js";
+import { FormularioContext } from "/src/context/FormularioContext";
 
 const MySwal = withReactContent(Swal);
 
@@ -14,7 +15,6 @@ const PaseEspecialidad = ({
   setEspecialidadSeleccionada,
   observaciones,
   setObservaciones,
-  setFormularioCompleto,
   clavepaciente,
   clavenomina,
 }) => {
@@ -23,7 +23,9 @@ const PaseEspecialidad = ({
   const [historialEspecialidades, setHistorialEspecialidades] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  //* Carga las especialidades al montar el componente
+  const { updateFormulario } = useContext(FormularioContext);
+
+  // Carga las especialidades disponibles al montar el componente
   useEffect(() => {
     const fetchEspecialidades = async () => {
       try {
@@ -40,285 +42,89 @@ const PaseEspecialidad = ({
       }
     };
     fetchEspecialidades();
-  }, [claveConsulta]);
+  }, []);
 
-  //* Cargar historial desde el backend
+  // Mantener los datos en caché en localStorage
   useEffect(() => {
-    const fetchHistorialEspecialidades = async () => {
-      if (!clavenomina && !clavepaciente) {
-        console.warn(
-          "Clavenomina y Clavepaciente no están definidos, evitando llamada a la API."
-        );
-        setHistorialEspecialidades([]);
-        setIsLoading(false);
-        return;
-      }
-
-      setIsLoading(true); //* Comienza el proceso de carga
-      try {
-        const params = new URLSearchParams();
-        if (clavenomina) params.append("clavenomina", clavenomina);
-        if (clavepaciente) params.append("clavepaciente", clavepaciente);
-
-        const url = `/api/especialidades/historial?${params.toString()}`;
-        console.log("URL que se está solicitando:", url);
-
-        const response = await fetch(url);
-        if (!response.ok) {
-          console.error("Error al cargar historial:", response.statusText);
-          setHistorialEspecialidades([]); //! Si hay un error, inicializar como vacío
-        } else {
-          const data = await response.json();
-          const historialFormateado = data.historial.map((item) => ({
-            ...item,
-            fecha_asignacion: new Date(
-              item.fecha_asignacion
-            ).toLocaleDateString("es-MX", {
-              day: "2-digit",
-              month: "2-digit",
-              year: "numeric",
-            }),
-            especialidad: item.especialidad || "Sin asignar",
-          }));
-          setHistorialEspecialidades(historialFormateado); //* Actualiza el estado con los datos formateados
-        }
-      } catch (error) {
-        console.error("Error inesperado al cargar historial:", error);
-        setHistorialEspecialidades([]); //! Evita estados indefinidos
-      } finally {
-        setIsLoading(false); //! Finaliza el proceso de carga
-      }
-    };
-
-    //* Llamada inicial para cargar historial solo si clavenomina o clavepaciente están definidos
-    if (clavenomina || clavepaciente) {
-      fetchHistorialEspecialidades();
-    }
-  }, [clavenomina, clavepaciente]);
-
-  useEffect(() => {
-    const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY, {
-      cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER,
-      encrypted: true,
-    });
-
-    const channel = pusher.subscribe("especialidades-channel");
-
-    //* Manejar actualizaciones en tiempo real
-    channel.bind("especialidades-updated", (data) => {
-      console.log("Evento recibido de Pusher: especialidades-updated", data);
-
-      if (data.clavepaciente === clavepaciente) {
-        const historialFormateado = data.historial.map((item) => ({
-          ...item,
-          fecha_asignacion: new Date(item.fecha_asignacion).toLocaleDateString(
-            "es-MX",
-            {
-              day: "2-digit",
-              month: "2-digit",
-              year: "numeric",
-            }
-          ),
-        }));
-
-        setHistorialEspecialidades(historialFormateado);
-      }
-    });
-
-    //* Manejar evento cache-especialidades
-    channel.bind("cache-especialidades", (data) => {
-      console.log("Evento recibido de Pusher: cache-especialidades", data);
-
-      if (data.clavepaciente === clavepaciente) {
-        //* Guardar temporalmente el historial en localStorage o estado
-        localStorage.setItem(
-          `especialidades:${data.claveConsulta}`,
-          JSON.stringify(data)
-        );
-        console.log(
-          `Datos de especialidades guardados temporalmente en caché para consulta ${data.claveConsulta}`
-        );
-      }
-    });
-
-    //? Manejar evento consulta-finalizada
-    channel.bind("consulta-finalizada", async (data) => {
-      console.log("Evento recibido de Pusher: consulta-finalizada", data);
-
-      const cacheKey = `especialidades:${data.claveConsulta}`;
-      const cachedData = localStorage.getItem(cacheKey);
-
-      if (cachedData) {
-        const parsedData = JSON.parse(cachedData);
-
-        try {
-          //* Enviar los datos al servidor para guardar en la base de datos
-          const response = await fetch("/api/especialidades/guardar", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(parsedData),
-          });
-
-          if (!response.ok) {
-            const errorData = await response.json();
-            console.error(
-              "Error en el servidor al guardar especialidades:",
-              errorData
-            );
-            throw new Error("Error al guardar en el servidor");
-          }
-
-          console.log(
-            `Especialidades guardadas exitosamente en el servidor:`,
-            parsedData
-          );
-          localStorage.removeItem(cacheKey); 
-        } catch (error) {
-          console.error("Error al guardar especialidades:", error);
-        }
-      }
-    });
-
-    //! Manejar evento consulta-cancelada
-    channel.bind("consulta-cancelada", (data) => {
-      console.log("Evento recibido de Pusher: consulta-cancelada", data);
-
-      const cacheKey = `especialidades:${data.claveConsulta}`;
-      localStorage.removeItem(cacheKey); //* Limpiar el caché si existe
-      setHistorialEspecialidades([]); //* Limpiar el historial en la interfaz
-      console.log(`Caché eliminado para consulta ${data.claveConsulta}`);
-    });
-
-    return () => {
-      channel.unbind_all();
-      channel.unsubscribe();
-    };
-  }, [clavepaciente]);
-
-  //* Agregar para depuración
-  Pusher.logToConsole = true;
-
-  useEffect(() => {
-    console.log(
-      "Tabla actualizada con historialEspecialidades:",
-      historialEspecialidades
+    const cachedData = JSON.parse(
+      localStorage.getItem(`PaseEspecialidad:${claveConsulta}`) || "{}"
     );
-  }, [historialEspecialidades]);
+    const newData = {
+      prioridad,
+      pasarEspecialidad,
+      especialidadSeleccionada,
+      observaciones,
+    };
 
-  //* Verifica si el formulario está completo
-  useEffect(() => {
-    const camposRequeridosLlenos =
-      claveConsulta && especialidadSeleccionada && observaciones && prioridad;
-    if (setFormularioCompleto) {
-      setFormularioCompleto(camposRequeridosLlenos);
+    if (JSON.stringify(cachedData) !== JSON.stringify(newData)) {
+      console.log("Guardando datos en localStorage:", newData);
+      localStorage.setItem(
+        `PaseEspecialidad:${claveConsulta}`,
+        JSON.stringify(newData)
+      );
     }
   }, [
-    claveConsulta,
+    prioridad,
+    pasarEspecialidad,
     especialidadSeleccionada,
     observaciones,
-    prioridad,
-    setFormularioCompleto,
+    claveConsulta,
   ]);
 
-  const handleGuardarEspecialidad = async () => {
-    if (
-      pasarEspecialidad === "si" &&
-      (!especialidadSeleccionada || !observaciones || !prioridad)
-    ) {
-      //! Mostrar alerta de advertencia
-      MySwal.fire({
-        icon: "warning",
-        title:
-          "<span style='color: #ffa726; font-weight: bold; font-size: 1.5em;'>⚠️ Campos incompletos</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>Por favor, completa todos los campos antes de guardar.</p>",
-        background: "linear-gradient(145deg, #3e2723, #1b0000)",
-        confirmButtonColor: "#ffa726",
-        confirmButtonText:
-          "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-yellow-600 shadow-[0px_0px_20px_5px_rgba(255,193,7,0.9)] rounded-lg",
-        },
-      });
-      return;
-    }
+  // Restaurar datos desde localStorage al montar el componente
+  useEffect(() => {
+    const cachedData = localStorage.getItem(
+      `PaseEspecialidad:${claveConsulta}`
+    );
+    if (cachedData) {
+      const parsedData = JSON.parse(cachedData);
+      console.log("Restaurando datos desde localStorage:", parsedData);
 
-    const datos = {
-      claveConsulta,
-      seasignoaespecialidad: pasarEspecialidad === "si" ? "S" : "N",
-      claveEspecialidad:
-        pasarEspecialidad === "si" ? especialidadSeleccionada : null,
-      observaciones: pasarEspecialidad === "si" ? observaciones : null,
-      prioridad: pasarEspecialidad === "si" ? prioridad : null,
-      clavenomina,
-      clavepaciente,
+      // Solo actualiza si hay valores en localStorage
+      if (parsedData.prioridad) setPrioridad(parsedData.prioridad);
+      if (parsedData.pasarEspecialidad)
+        setPasarEspecialidad(parsedData.pasarEspecialidad);
+      if (parsedData.especialidadSeleccionada)
+        setEspecialidadSeleccionada(parsedData.especialidadSeleccionada);
+      if (parsedData.observaciones) setObservaciones(parsedData.observaciones);
+    }
+  }, [claveConsulta]);
+
+  // Sincronizar datos al desmontar el componente
+  useEffect(() => {
+    return () => {
+      const cachedData = {
+        prioridad,
+        pasarEspecialidad,
+        especialidadSeleccionada,
+        observaciones,
+      };
+      console.log("Sincronizando datos al desmontar:", cachedData);
+      localStorage.setItem(
+        `PaseEspecialidad:${claveConsulta}`,
+        JSON.stringify(cachedData)
+      );
     };
+  }, [
+    prioridad,
+    pasarEspecialidad,
+    especialidadSeleccionada,
+    observaciones,
+    claveConsulta,
+  ]);
 
-    try {
-      const response = await fetch("/api/especialidades/guardarEspecialidad", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(datos),
-      });
+  // Actualizar formulario
+  useEffect(() => {
+    const camposRequeridosLlenos =
+      prioridad && pasarEspecialidad === "si" && especialidadSeleccionada;
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error("Error al guardar especialidad:", errorData);
-
-        //! Mostrar alerta de error
-        MySwal.fire({
-          icon: "error",
-          title:
-            "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error al guardar</span>",
-          html: "<p style='color: #fff; font-size: 1.1em;'>Hubo un problema al guardar la especialidad. Por favor, inténtalo nuevamente.</p>",
-          background: "linear-gradient(145deg, #4a0000, #220000)",
-          confirmButtonColor: "#ff1744",
-          confirmButtonText:
-            "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-          customClass: {
-            popup:
-              "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-          },
-        });
-
-        return;
-      }
-
-      //* Mostrar alerta de éxito
-      MySwal.fire({
-        icon: "success",
-        title:
-          "<span style='color: #00e676; font-weight: bold; font-size: 1.5em;'>✔️ Especialidad guardada</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>La decisión se ha guardado exitosamente.</p>",
-        background: "linear-gradient(145deg, #004d40, #00251a)",
-        confirmButtonColor: "#00e676",
-        confirmButtonText:
-          "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-green-600 shadow-[0px_0px_20px_5px_rgba(0,230,118,0.9)] rounded-lg",
-        },
-      });
-    } catch (error) {
-      console.error("Error inesperado al guardar la decisión:", error);
-
-      //! Mostrar alerta de error
-      MySwal.fire({
-        icon: "error",
-        title:
-          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error inesperado</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>Hubo un error inesperado al intentar guardar. Inténtalo nuevamente.</p>",
-        background: "linear-gradient(145deg, #4a0000, #220000)",
-        confirmButtonColor: "#ff1744",
-        confirmButtonText:
-          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-        },
-      });
-    }
-  };
+    updateFormulario("PaseEspecialidad", camposRequeridosLlenos);
+  }, [
+    prioridad,
+    pasarEspecialidad,
+    especialidadSeleccionada,
+    updateFormulario,
+  ]);
 
   return (
     <div className="bg-gray-800 p-4 md:p-8 rounded-lg shadow-lg">
@@ -380,8 +186,10 @@ const PaseEspecialidad = ({
                 claveEspecialidad: null,
                 observaciones: null,
                 prioridad: null,
+                nombreMedico,
                 clavenomina,
                 clavepaciente,
+                nombrePaciente,
               };
 
               try {
@@ -510,14 +318,28 @@ const PaseEspecialidad = ({
 
             {/* Categorías del Triage */}
             <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
-              {/* ROJO */}
               <button
                 className={`p-10 rounded-xl transition-all duration-300 transform hover:scale-105 hover:rotate-1 ${
                   prioridad === "ROJO"
                     ? "border-4 border-red-600 shadow-[0_0_40px_10px_rgba(255,0,0,0.9)]"
                     : "border-2 border-red-800"
                 } bg-gradient-to-br from-red-800 to-red-600 hover:from-red-700 hover:to-red-500`}
-                onClick={() => setPrioridad("ROJO")}
+                onClick={() => {
+                  if (prioridad !== "ROJO") {
+                    setPrioridad("ROJO");
+                    localStorage.setItem(
+                      `PaseEspecialidad:${claveConsulta}`,
+                      JSON.stringify({
+                        ...JSON.parse(
+                          localStorage.getItem(
+                            `PaseEspecialidad:${claveConsulta}`
+                          ) || "{}"
+                        ),
+                        prioridad: "ROJO",
+                      })
+                    );
+                  }
+                }}
               >
                 <h3 className="text-center text-3xl font-bold text-white">
                   ROJO
@@ -536,7 +358,20 @@ const PaseEspecialidad = ({
                     ? "border-4 border-orange-500 shadow-[0_0_40px_10px_rgba(255,140,0,0.9)]"
                     : "border-2 border-orange-700"
                 } bg-gradient-to-br from-orange-800 to-orange-500 hover:from-orange-600 hover:to-orange-400`}
-                onClick={() => setPrioridad("NARANJA")}
+                onClick={() => {
+                  setPrioridad("NARANJA");
+                  localStorage.setItem(
+                    `PaseEspecialidad:${claveConsulta}`,
+                    JSON.stringify({
+                      ...JSON.parse(
+                        localStorage.getItem(
+                          `PaseEspecialidad:${claveConsulta}`
+                        ) || "{}"
+                      ),
+                      prioridad: "NARANJA",
+                    })
+                  );
+                }}
               >
                 <h3 className="text-center text-3xl font-bold text-white">
                   NARANJA
@@ -555,7 +390,20 @@ const PaseEspecialidad = ({
                     ? "border-4 border-yellow-500 shadow-[0_0_40px_10px_rgba(255,255,0,0.9)]"
                     : "border-2 border-yellow-700"
                 } bg-gradient-to-br from-yellow-800 to-yellow-500 hover:from-yellow-600 hover:to-yellow-400`}
-                onClick={() => setPrioridad("AMARILLO")}
+                onClick={() => {
+                  setPrioridad("AMARILLO");
+                  localStorage.setItem(
+                    `PaseEspecialidad:${claveConsulta}`,
+                    JSON.stringify({
+                      ...JSON.parse(
+                        localStorage.getItem(
+                          `PaseEspecialidad:${claveConsulta}`
+                        ) || "{}"
+                      ),
+                      prioridad: "AMARILLO",
+                    })
+                  );
+                }}
               >
                 <h3 className="text-center text-3xl font-bold text-white">
                   AMARILLO
@@ -574,7 +422,20 @@ const PaseEspecialidad = ({
                     ? "border-4 border-green-500 shadow-[0_0_40px_10px_rgba(0,255,0,0.9)]"
                     : "border-2 border-green-700"
                 } bg-gradient-to-br from-green-800 to-green-500 hover:from-green-600 hover:to-green-400`}
-                onClick={() => setPrioridad("VERDE")}
+                onClick={() => {
+                  setPrioridad("VERDE");
+                  localStorage.setItem(
+                    `PaseEspecialidad:${claveConsulta}`,
+                    JSON.stringify({
+                      ...JSON.parse(
+                        localStorage.getItem(
+                          `PaseEspecialidad:${claveConsulta}`
+                        ) || "{}"
+                      ),
+                      prioridad: "VERDE",
+                    })
+                  );
+                }}
               >
                 <h3 className="text-center text-3xl font-bold text-white">
                   VERDE
@@ -593,7 +454,20 @@ const PaseEspecialidad = ({
                     ? "border-4 border-blue-500 shadow-[0_0_40px_10px_rgba(0,0,255,0.9)]"
                     : "border-2 border-blue-700"
                 } bg-gradient-to-br from-blue-800 to-blue-500 hover:from-blue-600 hover:to-blue-400`}
-                onClick={() => setPrioridad("AZUL")}
+                onClick={() => {
+                  setPrioridad("AZUL");
+                  localStorage.setItem(
+                    `PaseEspecialidad:${claveConsulta}`,
+                    JSON.stringify({
+                      ...JSON.parse(
+                        localStorage.getItem(
+                          `PaseEspecialidad:${claveConsulta}`
+                        ) || "{}"
+                      ),
+                      prioridad: "AZUL",
+                    })
+                  );
+                }}
               >
                 <h3 className="text-center text-3xl font-bold text-white">
                   AZUL
@@ -608,13 +482,6 @@ const PaseEspecialidad = ({
           </div>
 
           <br />
-
-          <button
-            className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded mb-12"
-            onClick={handleGuardarEspecialidad}
-          >
-            Guardar Especialidad
-          </button>
         </>
       )}
 
@@ -638,6 +505,9 @@ const PaseEspecialidad = ({
                 </th>
                 <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
                   Fecha de Asignación
+                </th>
+                <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
+                  Nombre del Médico que Asignó la Especialidad
                 </th>
               </tr>
             </thead>
@@ -669,6 +539,9 @@ const PaseEspecialidad = ({
                     </td>
                     <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
                       {item.fecha_asignacion}
+                    </td>
+                    <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
+                      {item.nombre_medico}
                     </td>
                   </tr>
                 ))

@@ -19,8 +19,17 @@ const DatosAdicionales = ({
   clavepaciente,
   nombreMedico,
   claveEspecialidad,
+  pasarEspecialidad, // Añadido como prop
+  setPasarEspecialidad, // Añadido como prop
+  especialidadSeleccionada,
+  setEspecialidadSeleccionada,
+  observaciones,
+  setObservaciones,
 }) => {
-  const { formulariosCompletos, updateFormulario } = useContext(FormularioContext);
+  console.log("Prop pasarEspecialidad en DatosAdicionales:", pasarEspecialidad); // Añadir aquí
+  console.log("Prop claveConsulta en DatosAdicionales:", claveConsulta); // Adicional para depurar claveConsulta si es necesario
+  const { formulariosCompletos, updateFormulario } =
+    useContext(FormularioContext);
   const [diagnosticoTexto, setDiagnosticoTexto] = useState("");
   const [motivoConsultaTexto, setMotivoConsultaTexto] = useState("");
 
@@ -55,11 +64,17 @@ const DatosAdicionales = ({
 
   useEffect(() => {
     const esCompleto =
-      diagnosticoTexto.trim().length > 0 && motivoConsultaTexto.trim().length > 0;
+      diagnosticoTexto.trim().length > 0 &&
+      motivoConsultaTexto.trim().length > 0;
     if (formulariosCompletos["DatosAdicionales"] !== esCompleto) {
       updateFormulario("DatosAdicionales", esCompleto);
     }
-  }, [diagnosticoTexto, motivoConsultaTexto, formulariosCompletos, updateFormulario]);
+  }, [
+    diagnosticoTexto,
+    motivoConsultaTexto,
+    formulariosCompletos,
+    updateFormulario,
+  ]);
 
   return (
     <div className="bg-gray-900 p-4 md:p-6 rounded-lg shadow-lg">
@@ -124,7 +139,16 @@ const DatosAdicionales = ({
       {subPantalla === "Pase a Especialidad" && (
         <PaseEspecialidad
           claveConsulta={claveConsulta}
-          observaciones=""
+          pasarEspecialidad={pasarEspecialidad} // Estado correcto
+          setPasarEspecialidad={setPasarEspecialidad} // Setter correcto
+          especialidadSeleccionada={especialidadSeleccionada}
+          setEspecialidadSeleccionada={setEspecialidadSeleccionada}
+          observaciones={observaciones}
+          setObservaciones={setObservaciones}
+          nombreMedico={nombreMedico}
+          nombrePaciente={nombrePaciente}
+          clavenomina={numeroDeNomina}
+          clavepaciente={clavepaciente}
         />
       )}
 
