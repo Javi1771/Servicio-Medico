@@ -12,7 +12,7 @@ export default async function handler(req, res) {
   const { folioReceta, descMedicamento, indicaciones, cantidad } = req.body;
 
   //* Validación de datos obligatorios
-  if (!folioReceta || !descMedicamento || !indicaciones || !cantidad) {
+  if (!folioReceta || descMedicamento === undefined || !indicaciones || !cantidad) {
     console.error("Faltan datos obligatorios en la solicitud:", req.body);
     return res.status(400).json({ error: "Faltan datos obligatorios en la solicitud" });
   }
@@ -40,26 +40,33 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Los datos proporcionados no son válidos" });
     }
 
-    //* Consulta para obtener el nombre del medicamento
-    const queryObtenerMedicamento = `
-      SELECT MEDICAMENTO
-      FROM [PRESIDENCIA].[dbo].[MEDICAMENTOS]
-      WHERE CLAVEMEDICAMENTO = @medicamentoId
-    `;
+    let medicamentoNombre = "Medicamento no especificado";
 
-    console.log("Ejecutando query para obtener el nombre del medicamento...");
-    const medicamentoResult = await pool
-      .request()
-      .input("medicamentoId", sql.Int, medicamentoId)
-      .query(queryObtenerMedicamento);
+    //* Si descMedicamento es 0, asignar valores predeterminados para `indicaciones` y `cantidad`
+    if (medicamentoId !== 0) {
+      const queryObtenerMedicamento = `
+        SELECT MEDICAMENTO
+        FROM [PRESIDENCIA].[dbo].[MEDICAMENTOS]
+        WHERE CLAVEMEDICAMENTO = @medicamentoId
+      `;
 
-    if (medicamentoResult.recordset.length === 0) {
-      console.error("El medicamento no fue encontrado en la base de datos.");
-      return res.status(404).json({ error: "Medicamento no encontrado" });
+      console.log("Ejecutando query para obtener el nombre del medicamento...");
+      const medicamentoResult = await pool
+        .request()
+        .input("medicamentoId", sql.Int, medicamentoId)
+        .query(queryObtenerMedicamento);
+
+      if (medicamentoResult.recordset.length === 0) {
+        console.error("El medicamento no fue encontrado en la base de datos.");
+        return res.status(404).json({ error: "Medicamento no encontrado" });
+      }
+
+      medicamentoNombre = medicamentoResult.recordset[0].MEDICAMENTO;
+      console.log("Medicamento encontrado:", medicamentoNombre);
+    } else {
+      console.log("MedicamentoId es 0. Usando valores predeterminados para `indicaciones` y `cantidad`.");
+      medicamentoNombre = "0"; // Guardar "0" en descMedicamento
     }
-
-    const medicamentoNombre = medicamentoResult.recordset[0].MEDICAMENTO;
-    console.log("Medicamento encontrado:", medicamentoNombre);
 
     //* Query para insertar en la tabla `detalleReceta`
     const queryInsertarReceta = `
@@ -68,14 +75,25 @@ export default async function handler(req, res) {
       VALUES (@folioReceta, @medicamentoNombre, @indicaciones, @estatus, @cantidad)
     `;
 
+    const valoresInsertar = {
+      indicaciones:
+        medicamentoId === 0
+          ? "Sin indicaciones ya que no se asignaron medicamentos."
+          : indicaciones,
+      cantidad:
+        medicamentoId === 0
+          ? "Sin tiempo de toma estimado, sin medicamentos."
+          : cantidad,
+    };
+
     console.log("Ejecutando query para insertar en detalleReceta...");
     await pool
       .request()
       .input("folioReceta", sql.Int, folio)
-      .input("medicamentoNombre", sql.NVarChar, medicamentoNombre) //* Guardar el nombre del medicamento
-      .input("indicaciones", sql.NVarChar, indicaciones)
+      .input("medicamentoNombre", sql.NVarChar, medicamentoNombre)
+      .input("indicaciones", sql.NVarChar, valoresInsertar.indicaciones)
       .input("estatus", sql.Int, 1) //* Estatus fijo como 1
-      .input("cantidad", sql.NVarChar, cantidad) //* Guardar cantidad como texto
+      .input("cantidad", sql.NVarChar, valoresInsertar.cantidad)
       .query(queryInsertarReceta);
 
     console.log("Detalle de receta guardado exitosamente en la base de datos.");

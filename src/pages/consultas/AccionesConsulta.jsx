@@ -1,104 +1,93 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useContext } from "react";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
-import Cookies from "js-cookie";
 import { FormularioContext } from "/src/context/FormularioContext";
 
 const MySwal = withReactContent(Swal);
 
-const AccionesConsulta = ({
-  claveConsulta,
-  limpiarFormulario,
-  guardarMedicamentos,
-  guardarPaseEspecialidad,
-  guardarIncapacidades,
-  guardarHistorialConsultas,
-  guardarEnfermedadesCronicas,
-  guardarAntecedentes,
-}) => {
-  const { todosCompletos } = useContext(FormularioContext);
+const AccionesConsulta = ({ claveConsulta, limpiarFormulario }) => {
+  const { todosCompletos, formulariosCompletos } = useContext(FormularioContext);
 
-  const limpiarCacheLocalStorage = () => {
-    console.log("🧹 Limpiando localStorage...");
-    localStorage.removeItem("diagnosticoTexto");
-    localStorage.removeItem("motivoConsultaTexto");
+  const tooltipFaltante = () => {
+    const nombresLegibles = {
+      DatosAdicionales: "Diagnóstico",
+      Medicamentos: "Medicamentos",
+      // Agrega más mapeos según sea necesario
+    };
+
+    const faltantes = Object.entries(formulariosCompletos)
+      .filter(([, completo]) => !completo)
+      .map(([pantalla]) => nombresLegibles[pantalla] || pantalla);
+
+    if (faltantes.length === 0) {
+      return {
+        title: "¡Todo está completo!",
+        description: "Todos los formularios están listos para guardar.",
+        icon: "🎉",
+      };
+    }
+
+    return {
+      title: "Formularios incompletos",
+      description: `Faltan los siguientes formularios: ${faltantes.join(", ")}.`,
+      icon: "⚠️",
+    };
   };
 
-  const guardarDatosAdicionales = async () => {
+  const actualizarClavestatus = async (estatus) => {
     try {
-      console.log("📤 Guardando datos adicionales...");
-      const diagnostico = localStorage.getItem("diagnosticoTexto") || "";
-      const motivoConsulta = localStorage.getItem("motivoConsultaTexto") || "";
-      const claveUsuarioCookie = Cookies.get("claveusuario");
-      const claveusuario = claveUsuarioCookie
-        ? parseInt(claveUsuarioCookie, 10)
-        : null;
-
-      if (!diagnostico || !motivoConsulta) {
-        throw new Error("El diagnóstico y el motivo de consulta son obligatorios.");
-      }
-
       const response = await fetch(
-        "/api/pacientes-consultas/diagnostico_observaciones_guardar",
+        "/api/pacientes-consultas/actualizarClavestatus",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            claveConsulta,
-            diagnostico,
-            motivoconsulta: motivoConsulta,
-            claveusuario,
-          }),
+          body: JSON.stringify({ claveConsulta, clavestatus: estatus }),
         }
       );
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Error al guardar los datos adicionales.");
+        throw new Error("Error al actualizar clavestatus.");
       }
 
-      console.log("✅ Datos adicionales guardados correctamente.");
+      console.log("Clavestatus actualizado exitosamente.");
+      MySwal.fire({
+        icon: "success",
+        title:
+          "<span style='color: #00e676; font-weight: bold; font-size: 1.5em;'>✔️ Estatus actualizado</span>",
+        html: "<p style='color: #fff; font-size: 1.1em;'>La consulta fue marcada como atendida.</p>",
+        background: "linear-gradient(145deg, #004d40, #00251a)",
+        confirmButtonColor: "#00e676",
+        confirmButtonText:
+          "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
+        customClass: {
+          popup:
+            "border border-green-600 shadow-[0px_0px_20px_5px_rgba(0,230,118,0.9)] rounded-lg",
+        },
+      });
     } catch (error) {
-      console.error("❌ Error al guardar datos adicionales:", error);
-      throw error;
+      console.error("Error al actualizar el estatus:", error);
+      MySwal.fire({
+        icon: "error",
+        title:
+          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error al actualizar el estatus</span>",
+        html: "<p style='color: #fff; font-size: 1.1em;'>No se pudo actualizar el estatus. Intenta nuevamente.</p>",
+        background: "linear-gradient(145deg, #4a0000, #220000)",
+        confirmButtonColor: "#ff1744",
+        confirmButtonText:
+          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
+        customClass: {
+          popup:
+            "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
+        },
+      });
     }
   };
 
   const handleGuardarGlobal = async () => {
     try {
       console.log("📤 Iniciando guardado global...");
-      console.log("Clave de consulta:", claveConsulta);
-      console.log("Estado de todosCompletos:", todosCompletos);
-
-      const resultados = await Promise.allSettled([
-        guardarDatosAdicionales(),
-        guardarMedicamentos ? guardarMedicamentos() : Promise.resolve(),
-        guardarPaseEspecialidad ? guardarPaseEspecialidad() : Promise.resolve(),
-        guardarIncapacidades ? guardarIncapacidades() : Promise.resolve(),
-        guardarHistorialConsultas
-          ? guardarHistorialConsultas()
-          : Promise.resolve(),
-        guardarEnfermedadesCronicas
-          ? guardarEnfermedadesCronicas()
-          : Promise.resolve(),
-        guardarAntecedentes ? guardarAntecedentes() : Promise.resolve(),
-      ]);
-
-      console.log("📄 Resultados de las funciones de guardado:", resultados);
-
-      const errores = resultados.filter((result) => result.status === "rejected");
-      if (errores.length > 0) {
-        console.error("❌ Errores en el guardado:", errores);
-        throw new Error("Hubo errores al guardar algunos datos.");
-      }
-
       await actualizarClavestatus(2);
-
-      console.log("✅ Todos los datos guardados correctamente.");
-
-      limpiarCacheLocalStorage();
       limpiarFormulario();
 
       MySwal.fire({
@@ -108,7 +97,8 @@ const AccionesConsulta = ({
         html: "<p style='color: #fff; font-size: 1.1em;'>Todos los datos se han guardado correctamente.</p>",
         background: "linear-gradient(145deg, #004d40, #00251a)",
         confirmButtonColor: "#00e676",
-        confirmButtonText: "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
+        confirmButtonText:
+          "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
         customClass: {
           popup:
             "border border-green-600 shadow-[0px_0px_20px_5px_rgba(0,230,118,0.9)] rounded-lg",
@@ -116,15 +106,15 @@ const AccionesConsulta = ({
       });
     } catch (error) {
       console.error("❌ Error durante el guardado global:", error);
-
       MySwal.fire({
         icon: "error",
         title:
           "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error en el guardado</span>",
-        html: `<p style='color: #fff; font-size: 1.1em;'>${error.message || "Hubo un problema al guardar los datos. Inténtalo nuevamente."}</p>`,
+        html: "<p style='color: #fff; font-size: 1.1em;'>Hubo un problema al guardar los datos. Inténtalo nuevamente.</p>",
         background: "linear-gradient(145deg, #4a0000, #220000)",
         confirmButtonColor: "#ff1744",
-        confirmButtonText: "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
+        confirmButtonText:
+          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
         customClass: {
           popup:
             "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
@@ -133,92 +123,55 @@ const AccionesConsulta = ({
     }
   };
 
-  const actualizarClavestatus = async (nuevoEstatus) => {
-    try {
-      const response = await fetch(
-        "/api/pacientes-consultas/actualizarClavestatus",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ claveConsulta, clavestatus: nuevoEstatus }),
-        }
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        console.error(
-          `❌ Error al actualizar clavestatus a ${nuevoEstatus}:`,
-          data.message
-        );
-        throw new Error(data.message);
-      }
-
-      console.log(`✅ Clavestatus actualizado exitosamente a ${nuevoEstatus}:`, data.message);
-    } catch (error) {
-      throw new Error(`Error al actualizar clavestatus: ${error.message}`);
-    }
-  };
-
-  const handleCancelar = async () => {
-    try {
-      console.log("📤 Enviando solicitud para cancelar la consulta...");
-
-      await actualizarClavestatus(0);
-
-      limpiarCacheLocalStorage();
-      limpiarFormulario();
-
-      MySwal.fire({
-        icon: "info",
-        title:
-          "<span style='color: #00bcd4; font-weight: bold; font-size: 1.5em;'>ℹ️ Consulta cancelada</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>Consulta cancelada y datos borrados correctamente.</p>",
-        background: "linear-gradient(145deg, #004d40, #00251a)",
-        confirmButtonColor: "#00bcd4",
-        confirmButtonText: "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-blue-600 shadow-[0px_0px_20px_5px_rgba(0,188,212,0.9)] rounded-lg",
-        },
-      });
-    } catch (error) {
-      console.error("Error al cancelar y borrar datos de la consulta:", error);
-
-      MySwal.fire({
-        icon: "error",
-        title:
-          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error al cancelar</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>Hubo un error al cancelar la consulta. Inténtalo nuevamente.</p>",
-        background: "linear-gradient(145deg, #4a0000, #220000)",
-        confirmButtonColor: "#ff1744",
-        confirmButtonText: "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-        },
-      });
-    }
-  };
+  const tooltipData = tooltipFaltante();
 
   return (
-    <div className="flex space-x-2 md:space-x-4 mt-4">
+    <div className="flex space-x-4 mt-4">
+      <div className="relative inline-block group">
+        <button
+          onClick={handleGuardarGlobal}
+          disabled={!todosCompletos}
+          className={`relative px-6 py-3 text-sm font-semibold text-white rounded-xl transition-all duration-300 overflow-hidden ${
+            todosCompletos
+              ? "bg-green-600/90 hover:bg-green-700/90 focus:outline-none"
+              : "bg-gray-600/90 cursor-not-allowed"
+          }`}
+        >
+          <div
+            className={`absolute inset-0 bg-gradient-to-r ${
+              todosCompletos
+                ? "from-green-500/20 to-teal-500/20"
+                : "from-gray-500/20 to-gray-700/20"
+            } blur-xl group-hover:opacity-75 transition-opacity`}
+          ></div>
+          <span className="relative">Guardar Todo</span>
+        </button>
+        <div className="absolute invisible opacity-0 group-hover:visible group-hover:opacity-100 bottom-full left-1/2 -translate-x-1/2 mb-3 w-80 transition-all duration-300 ease-out transform group-hover:translate-y-0 translate-y-2">
+          <div className="relative p-4 bg-gradient-to-br from-gray-900/95 to-gray-800/95 backdrop-blur-md rounded-2xl border border-white/10 shadow-[0_0_30px_rgba(79,70,229,0.15)]">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-green-500/20">
+                <span className="text-green-400 text-lg">
+                  {tooltipData.icon}
+                </span>
+              </div>
+              <h3 className="text-sm font-semibold text-white">
+                {tooltipData.title}
+              </h3>
+            </div>
+            <p className="text-sm text-gray-300">{tooltipData.description}</p>
+          </div>
+        </div>
+      </div>
+
       <button
-        onClick={handleGuardarGlobal}
-        disabled={!todosCompletos}
-        className={`px-4 py-2 md:px-6 md:py-3 rounded-lg font-semibold tracking-wide transition duration-300 ease-in-out transform hover:scale-105 shadow-lg ${
-          todosCompletos
-            ? "bg-green-500 text-white hover:bg-green-600"
-            : "bg-gray-400 text-gray-700 cursor-not-allowed"
-        }`}
+        onClick={() => {
+          actualizarClavestatus(0);
+          limpiarFormulario();
+        }}
+        className="relative px-6 py-3 text-sm font-semibold text-white rounded-xl bg-red-600 hover:bg-red-700 transition-all duration-300"
       >
-        Guardar Todo
-      </button>
-      <button
-        onClick={handleCancelar}
-        className="px-4 py-2 md:px-6 md:py-3 rounded-lg font-semibold tracking-wide transition duration-300 ease-in-out transform hover:scale-105 shadow-lg bg-red-500 text-white hover:bg-red-600"
-      >
-        Cancelar
+        <div className="absolute inset-0 bg-gradient-to-r from-red-500/20 to-pink-500/20 blur-xl"></div>
+        <span className="relative">Cancelar</span>
       </button>
     </div>
   );
