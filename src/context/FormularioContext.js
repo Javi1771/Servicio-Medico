@@ -3,12 +3,20 @@ import React, { createContext, useState } from "react";
 export const FormularioContext = createContext();
 
 export const FormularioProvider = ({ children }) => {
-  const [formulariosCompletos, setFormulariosCompletos] = useState({});
+  const pantallasIniciales = {
+    DatosAdicionales: false,
+    Medicamentos: false,
+    PaseEspecialidad: false,
+    Incapacidades: false,
+  };
+
+  const [formulariosCompletos, setFormulariosCompletos] = useState(
+    pantallasIniciales
+  );
   const [todosCompletos, setTodosCompletos] = useState(false);
 
   const updateFormulario = (pantalla, completo) => {
     setFormulariosCompletos((prevState) => {
-      // Solo actualizar si el valor cambia
       if (prevState[pantalla] !== completo) {
         const nuevoEstado = { ...prevState, [pantalla]: completo };
         setTodosCompletos(Object.values(nuevoEstado).every((estado) => estado));
@@ -16,7 +24,7 @@ export const FormularioProvider = ({ children }) => {
       }
       return prevState; // No actualizar si no hay cambios
     });
-  };  
+  };
 
   return (
     <FormularioContext.Provider
@@ -26,3 +34,4 @@ export const FormularioProvider = ({ children }) => {
     </FormularioContext.Provider>
   );
 };
+

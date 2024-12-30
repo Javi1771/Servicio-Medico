@@ -18,7 +18,7 @@ const AccionesConsulta = ({
     useContext(FormularioContext);
   const [prioridad, setPrioridad] = useState("");
 
-  // Verificación de props
+  //* Verificación de props
   useEffect(() => {
     console.log("Props recibidas en AccionesConsulta:", {
       claveConsulta,
@@ -32,14 +32,13 @@ const AccionesConsulta = ({
     if (!clavenomina) console.warn("⚠️ clavenomina no está definido.");
   }, [claveConsulta, limpiarFormulario, clavepaciente, clavenomina]);
 
-  // Tooltip para formularios incompletos
+  //* Tooltip para formularios incompletos
   const tooltipFaltante = () => {
     const nombresLegibles = {
       DatosAdicionales: "Diagnóstico",
       Medicamentos: "Medicamentos",
       PaseEspecialidad: "Pase a Especialidad",
       Incapacidades: "Incapacidades",
-      // Agrega más mapeos según sea necesario
     };
 
     const faltantes = Object.entries(formulariosCompletos)
@@ -63,16 +62,17 @@ const AccionesConsulta = ({
     };
   };
 
-  // Limpieza de localStorage
+  //* Limpieza de localStorage
   const limpiarCacheLocalStorage = () => {
     console.log("🧹 Limpiando localStorage...");
     localStorage.removeItem("diagnosticoTexto");
     localStorage.removeItem("motivoConsultaTexto");
     localStorage.removeItem("PaseEspecialidad");
     localStorage.removeItem("medicamentos");
+    localStorage.removeItem("Incapacidad");
   };
 
-  // Guardar datos adicionales
+  //* Guardar datos adicionales
   const guardarDatosAdicionales = async () => {
     try {
       console.log("📤 Guardando datos adicionales...");
@@ -124,12 +124,20 @@ const AccionesConsulta = ({
     }
   };
 
-  // Guardar medicamentos
+  //* Guardar medicamentos
   const guardarMedicamentos = async () => {
     try {
       console.log("📤 Guardando medicamentos...");
 
       const cachedMedicamentos = localStorage.getItem("medicamentos") || "[]";
+      const decisionTomada = localStorage.getItem("decisionTomada");
+
+      // Si la decisión fue "No", no enviar datos al backend
+      if (decisionTomada === "no") {
+        console.log("⚠️ No se asignaron medicamentos en esta consulta.");
+        return;
+      }
+
       const medicamentos = JSON.parse(cachedMedicamentos);
 
       if (!Array.isArray(medicamentos) || medicamentos.length === 0) {
@@ -142,10 +150,10 @@ const AccionesConsulta = ({
           throw new Error(`Faltan datos en el medicamento ${index + 1}`);
         }
         return {
-          folioReceta: parseInt(claveConsulta, 10), // Convertir a número
-          descMedicamento: parseInt(medicamento.medicamento, 10), // Convertir a número
-          indicaciones: medicamento.indicaciones.trim(), // Cadena opcional
-          cantidad: medicamento.tratamiento.trim(), // Cadena
+          folioReceta: parseInt(claveConsulta, 10),
+          descMedicamento: parseInt(medicamento.medicamento, 10),
+          indicaciones: medicamento.indicaciones.trim(),
+          cantidad: medicamento.tratamiento.trim(),
         };
       });
 
@@ -173,7 +181,7 @@ const AccionesConsulta = ({
     }
   };
 
-  // Sincronización de prioridad al cambiar selección
+  //* Sincronización de prioridad al cambiar selección
   useEffect(() => {
     const cachedEspecialidad = localStorage.getItem(
       `PaseEspecialidad:${claveConsulta}`
@@ -192,7 +200,7 @@ const AccionesConsulta = ({
     }
   }, [claveConsulta]);
 
-  // Guardar pase a especialidad
+  //* Guardar pase a especialidad
   const guardarPaseEspecialidad = async () => {
     try {
       console.log("📤 Guardando pase a especialidad...");
@@ -250,7 +258,7 @@ const AccionesConsulta = ({
     }
   };
 
-  // Actualizar clavestatus
+  //* Actualizar clavestatus
   const actualizarClavestatus = async (nuevoEstatus) => {
     try {
       console.log("📤 Actualizando clavestatus a:", nuevoEstatus);
@@ -275,53 +283,103 @@ const AccionesConsulta = ({
     }
   };
 
-  // Guardado global
+  //* Guardar incapacidad
+  const guardarIncapacidad = async () => {
+    try {
+      console.log("📤 Guardando incapacidad...");
+      const cachedIncapacidad = localStorage.getItem("Incapacidad") || "{}";
+      const { fechaInicio, fechaFin, diagnostico } =
+        JSON.parse(cachedIncapacidad);
+
+      const payload = {
+        claveConsulta,
+        clavenomina,
+        fechaInicial: fechaInicio || null,
+        fechaFinal: fechaFin || null,
+        diagnostico:
+          diagnostico ||
+          "Sin Observaciones, No Se Asignó Incapacidad En Esta Consulta",
+        estatus: 1,
+        clavepaciente,
+      };
+
+      console.log("Payload preparado para guardar incapacidad:", payload);
+
+      const response = await fetch("/api/incapacidades/guardar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        console.error("❌ Error del backend al guardar incapacidad:", error);
+        throw new Error(error.message || "Error al guardar incapacidad.");
+      }
+
+      console.log("✅ Incapacidad guardada correctamente.");
+    } catch (error) {
+      console.error("❌ Error al guardar incapacidad:", error);
+      throw error;
+    }
+  };
+
+  //* Guardado global
   const handleGuardarGlobal = async () => {
     try {
       console.log("📤 Iniciando guardado global...");
-      console.log("🔍 Clave de consulta:", claveConsulta);
-      console.log(
-        "🔧 Prioridad antes de guardar pase a especialidad en handleGuardarGlobal:",
-        prioridad
-      );
 
-      const resultados = await Promise.allSettled([
-        guardarDatosAdicionales(),
-        guardarMedicamentos(),
-        guardarPaseEspecialidad(),
-      ]);
+      // Realizar cada operación de guardado de forma secuencial para detenerse en caso de error
+      await guardarDatosAdicionales();
+      await guardarMedicamentos();
+      await guardarPaseEspecialidad();
+      await guardarIncapacidad();
 
-      console.log("📄 Resultados de las operaciones de guardado:", resultados);
-
-      const errores = resultados.filter(
-        (result) => result.status === "rejected"
-      );
-      if (errores.length > 0) {
-        throw new Error("Hubo errores al guardar algunos datos.");
-      }
-
+      // Actualizar el clavestatus solo si todas las operaciones fueron exitosas
       await actualizarClavestatus(2);
 
       limpiarCacheLocalStorage();
       limpiarFormulario();
 
+      // Mostrar alerta de éxito con claveConsulta en grande
       MySwal.fire({
         icon: "success",
-        title:
-          "<span style='color: #00e676; font-weight: bold; font-size: 1.5em;'>✔️ Guardado exitoso</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>Todos los datos se han guardado correctamente.</p>",
+        title: `<span style='color: #00e676; font-weight: bold; font-size: 2em;'>✔️ Consulta Guardada</span>`,
+        html: `
+          <p style='color: #fff; font-size: 1.2em;'>La consulta se ha guardado correctamente.</p>
+          <p style='color: #00e676; font-weight: bold; font-size: 1.5em;'>Clave Consulta: ${claveConsulta}</p>
+        `,
+        background: "linear-gradient(145deg, #003300, #001a00)",
+        confirmButtonColor: "#00e676",
+        confirmButtonText:
+          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
+        customClass: {
+          popup:
+            "border border-green-600 shadow-[0px_0px_20px_5px_rgba(0,230,118,0.9)] rounded-lg",
+        },
       });
     } catch (error) {
       console.error("❌ Error durante el guardado global:", error);
 
+      // Mostrar alerta de error estilizada
       MySwal.fire({
         icon: "error",
         title:
           "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error en el guardado</span>",
-        html: `<p style='color: #fff; font-size: 1.1em;'>${
-          error.message ||
-          "Hubo un problema al guardar los datos. Inténtalo nuevamente."
-        }</p>`,
+        html: `
+          <p style='color: #fff; font-size: 1.1em;'>Hubo un problema al guardar los datos. Por favor, revisa los errores e intenta nuevamente.</p>
+          <p style='color: #ff1744; font-weight: bold;'>Error: ${
+            error.message || "No especificado"
+          }</p>
+        `,
+        background: "linear-gradient(145deg, #4a0000, #220000)",
+        confirmButtonColor: "#ff1744",
+        confirmButtonText:
+          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
+        customClass: {
+          popup:
+            "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
+        },
       });
     }
   };
@@ -382,6 +440,20 @@ const AccionesConsulta = ({
         onClick={() => {
           actualizarClavestatus(0);
           limpiarFormulario();
+          MySwal.fire({
+            icon: "info",
+            title:
+              "<span style='color: #1e90ff; font-weight: bold; font-size: 1.5em;'>ℹ️ Consulta Cancelada</span>",
+            html: "<p style='color: #fff; font-size: 1.1em;'>La consulta ha sido cancelada correctamente.</p>",
+            background: "linear-gradient(145deg, #003366, #001933)",
+            confirmButtonColor: "#1e90ff",
+            confirmButtonText:
+              "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
+            customClass: {
+              popup:
+                "border border-blue-600 shadow-[0px_0px_20px_5px_rgba(30,144,255,0.9)] rounded-lg",
+            },
+          });
         }}
         className="px-6 py-3 text-sm font-semibold text-white rounded-xl bg-red-600 hover:bg-red-700 transition-all duration-300"
       >

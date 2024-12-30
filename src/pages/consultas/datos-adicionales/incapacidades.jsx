@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 import Calendar from "react-calendar";
@@ -7,17 +7,15 @@ import "react-calendar/dist/Calendar.css";
 import { FaCalendarAlt } from "react-icons/fa";
 import "react-datepicker/dist/react-datepicker.css";
 import Pusher from "pusher-js";
+import { FormularioContext } from "/src/context/FormularioContext";
 
 const MySwal = withReactContent(Swal);
 
-const Incapacidades = ({
-  clavepaciente,
-  claveConsulta,
-  clavenomina,
-}) => {
+const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
+  const { updateFormulario } = useContext(FormularioContext); // Obtener updateFormulario
   const [autorizarIncapacidad, setAutorizarIncapacidad] = useState(null);
-  const [fechaInicio, setFechaInicio] = useState("");
-  const [fechaFin, setFechaFin] = useState("");
+  const [fechaInicio, setFechaInicio] = useState(null);
+  const [fechaFin, setFechaFin] = useState(null);
   const [isFechaInicioOpen, setIsFechaInicioOpen] = useState(false);
   const [isFechaFinOpen, setIsFechaFinOpen] = useState(false);
   const [diagnostico, setDiagnostico] = useState("");
@@ -92,6 +90,66 @@ const Incapacidades = ({
   }, [clavenomina, clavepaciente]);
 
   useEffect(() => {
+    if (autorizarIncapacidad === "si") {
+      const incapacidadData = {
+        autorizarIncapacidad,
+        fechaInicio: fechaInicio ? fechaInicio.toISOString() : null,
+        fechaFin: fechaFin ? fechaFin.toISOString() : null,
+        diagnostico: diagnostico.trim() || null,
+      };
+
+      console.log("Guardando en localStorage:", incapacidadData);
+      localStorage.setItem("Incapacidad", JSON.stringify(incapacidadData));
+    }
+  }, [autorizarIncapacidad, fechaInicio, fechaFin, diagnostico]);
+
+  useEffect(() => {
+    const savedData = localStorage.getItem("Incapacidad");
+    if (savedData) {
+      const parsedData = JSON.parse(savedData);
+
+      setAutorizarIncapacidad(parsedData.autorizarIncapacidad || null);
+      setFechaInicio(
+        parsedData.fechaInicio ? new Date(parsedData.fechaInicio) : null
+      );
+      setFechaFin(parsedData.fechaFin ? new Date(parsedData.fechaFin) : null);
+      setDiagnostico(parsedData.diagnostico || "");
+    }
+  }, []);
+
+  useEffect(() => {
+    const camposCompletos =
+      autorizarIncapacidad === "no" ||
+      (autorizarIncapacidad === "si" && fechaInicio && fechaFin && diagnostico);
+
+    if (updateFormulario) {
+      updateFormulario("Incapacidades", camposCompletos);
+    } else {
+      console.warn("El contexto de formulario no está disponible.");
+    }
+  }, [
+    autorizarIncapacidad,
+    fechaInicio,
+    fechaFin,
+    diagnostico,
+    updateFormulario,
+  ]);
+
+  useEffect(() => {
+    if (autorizarIncapacidad === "no") {
+      const incapacidadData = {
+        autorizarIncapacidad,
+        fechaInicio: null,
+        fechaFin: null,
+        diagnostico: null,
+      };
+
+      console.log("Guardando 'No' en localStorage:", incapacidadData);
+      localStorage.setItem("Incapacidad", JSON.stringify(incapacidadData));
+    }
+  }, [autorizarIncapacidad]);
+
+  useEffect(() => {
     const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY, {
       cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER,
     });
@@ -117,14 +175,14 @@ const Incapacidades = ({
                   month: "2-digit",
                   year: "numeric",
                 })
-              : "Sin fecha",
+              : "Fecha no disponible",
             fechaFinal: item.fechaFinal
               ? new Date(item.fechaFinal).toLocaleDateString("es-MX", {
                   day: "2-digit",
                   month: "2-digit",
                   year: "numeric",
                 })
-              : "Sin fecha",
+              : "Fecha no disponible",
           }));
 
           console.log(
@@ -171,234 +229,14 @@ const Incapacidades = ({
 
   const handleAutorizarChange = (value) => {
     setAutorizarIncapacidad(value);
-  };
-
-  const confirmarSinIncapacidad = async () => {
-    try {
-      const response = await fetch("/api/incapacidades/guardar", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          clavepaciente,
-          claveConsulta,
-          clavenomina: clavenomina,
-          fechaInicial: null,
-          fechaFinal: null,
-          diagnostico: "Sin diagnóstico",
-          estatus: 1,
-        }),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        console.error("Error al guardar 'No se asigna incapacidad':", error);
-
-        //! Mostrar alerta de error
-        MySwal.fire({
-          icon: "error",
-          title:
-            "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error al guardar</span>",
-          html: "<p style='color: #fff; font-size: 1.1em;'>Hubo un problema al guardar la decisión. Por favor, inténtalo nuevamente.</p>",
-          background: "linear-gradient(145deg, #4a0000, #220000)",
-          confirmButtonColor: "#ff1744",
-          confirmButtonText:
-            "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-          customClass: {
-            popup:
-              "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-          },
-        });
-        return;
-      }
-
-      //* Mostrar alerta de éxito
-      MySwal.fire({
-        icon: "success",
-        title:
-          "<span style='color: #00e676; font-weight: bold; font-size: 1.5em;'>✔️ No se asigna incapacidad</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>Se ha registrado correctamente que no se asignará incapacidad.</p>",
-        background: "linear-gradient(145deg, #004d40, #00251a)",
-        confirmButtonColor: "#00e676",
-        confirmButtonText:
-          "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-green-600 shadow-[0px_0px_20px_5px_rgba(0,230,118,0.9)] rounded-lg",
-        },
-      });
-
+    if (value === "no") {
+      setFechaInicio(null);
+      setFechaFin(null);
+      setDiagnostico(null);
+    } else {
       setFechaInicio("");
       setFechaFin("");
       setDiagnostico("");
-    } catch (error) {
-      console.error(
-        "Error inesperado al guardar 'No se asigna incapacidad':",
-        error
-      );
-
-      //! Mostrar alerta de error inesperado
-      MySwal.fire({
-        icon: "error",
-        title:
-          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error inesperado</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>Hubo un error inesperado al intentar guardar la decisión. Inténtalo nuevamente.</p>",
-        background: "linear-gradient(145deg, #4a0000, #220000)",
-        confirmButtonColor: "#ff1744",
-        confirmButtonText:
-          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-        },
-      });
-    }
-  };
-
-  const guardarIncapacidadEnDB = async () => {
-    if (fechaInicio && fechaFin && diagnostico) {
-      const nuevaIncapacidad = {
-        claveConsulta,
-        clavenomina: clavenomina,
-        fechaInicial: fechaInicio.toISOString(),
-        fechaFinal: fechaFin.toISOString(),
-        diagnostico,
-        estatus: 1,
-        clavepaciente,
-      };
-
-      try {
-        const response = await fetch("/api/incapacidades/guardar", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(nuevaIncapacidad),
-        });
-
-        if (!response.ok) {
-          const error = await response.json();
-          console.error(
-            "Error al guardar la incapacidad en la base de datos:",
-            error
-          );
-
-          // Mostrar alerta de error
-          MySwal.fire({
-            icon: "error",
-            title:
-              "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error al guardar</span>",
-            html: "<p style='color: #fff; font-size: 1.1em;'>Hubo un problema al guardar la incapacidad. Por favor, inténtalo nuevamente.</p>",
-            background: "linear-gradient(145deg, #4a0000, #220000)",
-            confirmButtonColor: "#ff1744",
-            confirmButtonText:
-              "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-            customClass: {
-              popup:
-                "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-            },
-          });
-
-          return;
-        }
-
-        const { historial, message } = await response.json();
-
-        if (historial && Array.isArray(historial)) {
-          // Formatear los datos recibidos y actualizar el historial
-          const historialFormateado = historial.map((item) => ({
-            ...item,
-            fechaInicial: item.fechaInicial
-              ? new Date(item.fechaInicial).toLocaleDateString("es-MX", {
-                  day: "2-digit",
-                  month: "2-digit",
-                  year: "numeric",
-                })
-              : "Sin fecha",
-            fechaFinal: item.fechaFinal
-              ? new Date(item.fechaFinal).toLocaleDateString("es-MX", {
-                  day: "2-digit",
-                  month: "2-digit",
-                  year: "numeric",
-                })
-              : "Sin fecha",
-          }));
-
-          setHistorialIncapacidades((prev) => {
-            // Combinar el historial previo con el nuevo y eliminar duplicados
-            const historialActualizado = [
-              ...prev,
-              ...historialFormateado.filter(
-                (nuevo) =>
-                  !prev.some(
-                    (existente) =>
-                      existente.idDetalleIncapacidad ===
-                      nuevo.idDetalleIncapacidad
-                  )
-              ),
-            ];
-
-            // Ordenar por idDetalleIncapacidad (descendente)
-            return historialActualizado.sort(
-              (a, b) => b.idDetalleIncapacidad - a.idDetalleIncapacidad
-            );
-          });
-
-          // Mostrar alerta de éxito
-          MySwal.fire({
-            icon: "success",
-            title:
-              "<span style='color: #00e676; font-weight: bold; font-size: 1.5em;'>✔️ Incapacidad guardada</span>",
-            html: `<p style='color: #fff; font-size: 1.1em;'>${message}</p>`,
-            background: "linear-gradient(145deg, #004d40, #00251a)",
-            confirmButtonColor: "#00e676",
-            confirmButtonText:
-              "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
-            customClass: {
-              popup:
-                "border border-green-600 shadow-[0px_0px_20px_5px_rgba(0,230,118,0.9)] rounded-lg",
-            },
-          });
-
-          // Limpiar campos
-          setFechaInicio("");
-          setFechaFin("");
-          setDiagnostico("");
-        } else {
-          console.warn("Respuesta del servidor inválida:", historial);
-        }
-      } catch (error) {
-        console.error("Error inesperado al guardar la incapacidad:", error);
-
-        // Mostrar alerta de error
-        MySwal.fire({
-          icon: "error",
-          title:
-            "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error inesperado</span>",
-          html: "<p style='color: #fff; font-size: 1.1em;'>Hubo un error inesperado al intentar guardar la incapacidad. Inténtalo nuevamente.</p>",
-          background: "linear-gradient(145deg, #4a0000, #220000)",
-          confirmButtonColor: "#ff1744",
-          confirmButtonText:
-            "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-          customClass: {
-            popup:
-              "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-          },
-        });
-      }
-    } else {
-      // Mostrar alerta de advertencia
-      MySwal.fire({
-        icon: "warning",
-        title:
-          "<span style='color: #ffa726; font-weight: bold; font-size: 1.5em;'>⚠️ Campos incompletos</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>Por favor, completa todos los campos antes de guardar.</p>",
-        background: "linear-gradient(145deg, #3e2723, #1b0000)",
-        confirmButtonColor: "#ffa726",
-        confirmButtonText:
-          "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-yellow-600 shadow-[0px_0px_20px_5px_rgba(255,193,7,0.9)] rounded-lg",
-        },
-      });
     }
   };
 
@@ -429,17 +267,6 @@ const Incapacidades = ({
           </button>
         </div>
       </div>
-
-      {autorizarIncapacidad === "no" && (
-        <div className="mt-6">
-          <button
-            className="bg-gradient-to-r from-red-600 to-purple-700 hover:from-red-500 hover:to-purple-600 text-white font-bold py-2 px-6 rounded-lg shadow-lg transform hover:scale-105 transition duration-300"
-            onClick={confirmarSinIncapacidad}
-          >
-            Confirmar Sin Incapacidad
-          </button>
-        </div>
-      )}
 
       {autorizarIncapacidad === "si" && (
         <>
@@ -552,13 +379,6 @@ const Incapacidades = ({
               placeholder="Escribe aquí el diagnóstico..."
             />
           </div>
-
-          <button
-            onClick={guardarIncapacidadEnDB}
-            className="bg-blue-600 text-white px-4 py-2 rounded-md mt-8 hover:bg-blue-500"
-          >
-            Guardar Incapacidad
-          </button>
         </>
       )}
 

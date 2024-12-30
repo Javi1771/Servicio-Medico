@@ -49,7 +49,7 @@ export default async function handler(req, res) {
         WHERE consultas.clavestatus = @clavestatus 
           AND consultas.fechaconsulta >= @startOfDay 
           AND consultas.fechaconsulta <= @endOfDay
-        ORDER BY consultas.fechaconsulta ASC
+        ORDER BY consultas.claveconsulta DESC
       `);
 
     const consultas = result.recordset;

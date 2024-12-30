@@ -58,9 +58,11 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
   useEffect(() => {
     const camposCompletos =
       decisionTomada === "no" ||
-      medicamentos.every(
-        (med) => med.medicamento && med.indicaciones && med.tratamiento
-      );
+      (decisionTomada === "si" &&
+        medicamentos.every(
+          (med) => med.medicamento && med.indicaciones && med.tratamiento
+        ));
+
     updateFormulario("Medicamentos", camposCompletos);
   }, [medicamentos, decisionTomada, updateFormulario]);
 
@@ -88,13 +90,8 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
   const handleDecision = (decision) => {
     setDecisionTomada(decision);
     if (decision === "no") {
-      setMedicamentos([
-        {
-          medicamento: "0",
-          indicaciones: "Sin indicaciones ya que no se asignaron medicamentos.",
-          tratamiento: "Sin tiempo de toma estimado, sin medicamentos.",
-        },
-      ]);
+      // Mantener un estado vacío válido para "No"
+      setMedicamentos([]);
     } else {
       setMedicamentos([
         { medicamento: "", indicaciones: "", tratamiento: "" },
