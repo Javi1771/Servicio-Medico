@@ -104,7 +104,7 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
 
   return (
     <div className="bg-gray-800 p-4 md:p-8 rounded-lg shadow-lg">
-      <h3 className="text-3xl font-extrabold mb-6 text-center text-white">
+      <h3 className="text-2xl md:text-3xl font-bold mb-4 md:mb-6 text-white">
         Prescripción de Medicamentos
       </h3>
 

@@ -81,7 +81,7 @@ const Home = () => {
           handleMouseEnter={() => handleMouseEnter("Catálogos")}
           handleMouseLeave={handleMouseLeave}
         />
-         <SidebarButton
+         {/* <SidebarButton
           title="Farmacia"
           options={[
             "Medicamentos",
@@ -90,7 +90,7 @@ const Home = () => {
           isOpen={openMenu === "Farmacia"}
           handleMouseEnter={() => handleMouseEnter("Farmacia")}
           handleMouseLeave={handleMouseLeave}
-        />
+        /> */}
         <SidebarButton
           title="Capturas"
           options={[

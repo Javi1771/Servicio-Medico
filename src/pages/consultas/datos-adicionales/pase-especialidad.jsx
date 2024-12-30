@@ -44,33 +44,6 @@ const PaseEspecialidad = ({
     fetchEspecialidades();
   }, []);
 
-  // Mantener los datos en caché en localStorage
-  useEffect(() => {
-    const cachedData = JSON.parse(
-      localStorage.getItem(`PaseEspecialidad:${claveConsulta}`) || "{}"
-    );
-    const newData = {
-      prioridad,
-      pasarEspecialidad,
-      especialidadSeleccionada,
-      observaciones,
-    };
-
-    if (JSON.stringify(cachedData) !== JSON.stringify(newData)) {
-      console.log("Guardando datos en localStorage:", newData);
-      localStorage.setItem(
-        `PaseEspecialidad:${claveConsulta}`,
-        JSON.stringify(newData)
-      );
-    }
-  }, [
-    prioridad,
-    pasarEspecialidad,
-    especialidadSeleccionada,
-    observaciones,
-    claveConsulta,
-  ]);
-
   // Restaurar datos desde localStorage al montar el componente
   useEffect(() => {
     const cachedData = localStorage.getItem(
@@ -80,7 +53,6 @@ const PaseEspecialidad = ({
       const parsedData = JSON.parse(cachedData);
       console.log("Restaurando datos desde localStorage:", parsedData);
 
-      // Solo actualiza si hay valores en localStorage
       if (parsedData.prioridad) setPrioridad(parsedData.prioridad);
       if (parsedData.pasarEspecialidad)
         setPasarEspecialidad(parsedData.pasarEspecialidad);
@@ -89,6 +61,74 @@ const PaseEspecialidad = ({
       if (parsedData.observaciones) setObservaciones(parsedData.observaciones);
     }
   }, [claveConsulta]);
+
+  useEffect(() => {
+    const fetchHistorialEspecialidades = async () => {
+      if (!clavepaciente || !clavenomina) {
+        console.error("Faltan clavepaciente o clavenomina");
+        return;
+      }
+
+      try {
+        const url = `/api/especialidades/historial?${new URLSearchParams({
+          clavepaciente,
+          clavenomina,
+        })}`;
+
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (response.ok && Array.isArray(data.historial)) {
+          const historialMapeado = data.historial.map((item) => ({
+            especialidad: item.especialidad || "En Esta Consulta No Se Asignó A Ninguna Especialidad",
+            prioridad: item.prioridad || "Prioridad No Existente",
+            observaciones: item.observaciones || "Sin Observaciones",
+            fecha_asignacion: item.fecha_asignacion || "Fecha No Disponible",
+          }));
+
+          setHistorialEspecialidades(historialMapeado);
+        } else {
+          console.error("Error al cargar el historial:", data.message || data);
+          setHistorialEspecialidades([]);
+        }
+      } catch (error) {
+        console.error("Error al cargar el historial de especialidades:", error);
+        setHistorialEspecialidades([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchHistorialEspecialidades();
+  }, [clavepaciente, clavenomina]);
+
+  useEffect(() => {
+    const cachedData =
+      pasarEspecialidad === "no"
+        ? {
+            pasarEspecialidad: "no",
+            prioridad: null,
+            especialidadSeleccionada: null,
+            observaciones: null,
+          }
+        : {
+            pasarEspecialidad,
+            prioridad,
+            especialidadSeleccionada,
+            observaciones,
+          };
+
+    localStorage.setItem(
+      `PaseEspecialidad:${claveConsulta}`,
+      JSON.stringify(cachedData)
+    );
+  }, [
+    pasarEspecialidad,
+    prioridad,
+    especialidadSeleccionada,
+    observaciones,
+    claveConsulta,
+  ]);
 
   // Sincronizar datos al desmontar el componente
   useEffect(() => {
@@ -99,7 +139,6 @@ const PaseEspecialidad = ({
         especialidadSeleccionada,
         observaciones,
       };
-      console.log("Sincronizando datos al desmontar:", cachedData);
       localStorage.setItem(
         `PaseEspecialidad:${claveConsulta}`,
         JSON.stringify(cachedData)
@@ -116,7 +155,8 @@ const PaseEspecialidad = ({
   // Actualizar formulario
   useEffect(() => {
     const camposRequeridosLlenos =
-      prioridad && pasarEspecialidad === "si" && especialidadSeleccionada;
+      (pasarEspecialidad === "si" && prioridad && especialidadSeleccionada) ||
+      pasarEspecialidad === "no";
 
     updateFormulario("PaseEspecialidad", camposRequeridosLlenos);
   }, [
@@ -125,6 +165,27 @@ const PaseEspecialidad = ({
     especialidadSeleccionada,
     updateFormulario,
   ]);
+
+  // Sincronizar prioridad en localStorage al cambiar
+  useEffect(() => {
+    const cachedData = JSON.parse(
+      localStorage.getItem(`PaseEspecialidad:${claveConsulta}`) || "{}"
+    );
+    cachedData.prioridad = prioridad;
+    localStorage.setItem(
+      `PaseEspecialidad:${claveConsulta}`,
+      JSON.stringify(cachedData)
+    );
+    console.log("Sincronizando prioridad en localStorage:", prioridad);
+  }, [prioridad, claveConsulta]);
+
+  useEffect(() => {
+    if (pasarEspecialidad === "no") {
+      setPrioridad(null);
+      setEspecialidadSeleccionada(null);
+      setObservaciones(null);
+    }
+  }, [pasarEspecialidad]);
 
   return (
     <div className="bg-gray-800 p-4 md:p-8 rounded-lg shadow-lg">
@@ -151,86 +212,19 @@ const PaseEspecialidad = ({
             className={`px-4 py-2 rounded-md ${
               pasarEspecialidad === "no" ? "bg-red-600" : "bg-gray-600"
             } text-white`}
-            onClick={() => setPasarEspecialidad("no")}
+            onClick={() => {
+              setPasarEspecialidad("no");
+              setPrioridad(null); // Prioridad debe ser null para "No"
+              setEspecialidadSeleccionada(null); // Especialidad debe ser null
+              setObservaciones(null); // Observaciones debe ser null para "No"
+              updateFormulario("PaseEspecialidad", true); // Indica que el formulario está completo
+            }}
             aria-label="Seleccionar No para no pasar a especialidad"
           >
             No
           </button>
         </div>
       </div>
-
-      {/* Botón adicional cuando se selecciona "no" */}
-      {pasarEspecialidad === "no" && (
-        <div className="mt-6 mb-12">
-          <button
-            className="bg-gradient-to-r from-blue-600 to-purple-700 hover:from-blue-500 hover:to-purple-600 text-white font-bold py-2 px-6 rounded-lg shadow-lg transform hover:scale-105 transition duration-300"
-            onClick={async () => {
-              Swal.fire({
-                icon: "info",
-                title:
-                  "<span style='color: #00aaff; font-weight: bold; font-size: 1.5em;'>❗ Sin Especialidad Asignada</span>",
-                html: "<p style='color: #fff; font-size: 1.1em;'>Has confirmado que no se asignará una especialidad. Esta decisión será registrada.</p>",
-                background: "linear-gradient(145deg, #002f4b, #005582)",
-                confirmButtonColor: "#00aaff",
-                confirmButtonText:
-                  "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-                customClass: {
-                  popup:
-                    "border border-blue-600 shadow-[0px_0px_20px_5px_rgba(0,170,255,0.8)] rounded-lg",
-                },
-              });
-
-              const datos = {
-                claveConsulta,
-                seasignoaespecialidad: "N",
-                claveEspecialidad: null,
-                observaciones: null,
-                prioridad: null,
-                nombreMedico,
-                clavenomina,
-                clavepaciente,
-                nombrePaciente,
-              };
-
-              try {
-                const response = await fetch(
-                  "/api/especialidades/guardarEspecialidad",
-                  {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(datos),
-                  }
-                );
-
-                if (!response.ok) {
-                  const errorData = await response.json();
-                  console.error("Error al guardar especialidad:", errorData);
-                  return;
-                }
-
-                Swal.fire({
-                  icon: "success",
-                  title:
-                    "<span style='color: #00e676; font-weight: bold; font-size: 1.5em;'>✔️ Especialidad No Asignada</span>",
-                  html: "<p style='color: #fff; font-size: 1.1em;'>La decisión ha sido registrada exitosamente.</p>",
-                  background: "linear-gradient(145deg, #004d40, #00251a)",
-                  confirmButtonColor: "#00e676",
-                  confirmButtonText:
-                    "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
-                  customClass: {
-                    popup:
-                      "border border-green-600 shadow-[0px_0px_20px_5px_rgba(0,230,118,0.9)] rounded-lg",
-                  },
-                });
-              } catch (error) {
-                console.error("Error al guardar la decisión:", error);
-              }
-            }}
-          >
-            Confirmar Sin Especialidad
-          </button>
-        </div>
-      )}
 
       {pasarEspecialidad === "si" && (
         <>
@@ -318,6 +312,7 @@ const PaseEspecialidad = ({
 
             {/* Categorías del Triage */}
             <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
+              {/* ROJO */}
               <button
                 className={`p-10 rounded-xl transition-all duration-300 transform hover:scale-105 hover:rotate-1 ${
                   prioridad === "ROJO"
@@ -325,20 +320,16 @@ const PaseEspecialidad = ({
                     : "border-2 border-red-800"
                 } bg-gradient-to-br from-red-800 to-red-600 hover:from-red-700 hover:to-red-500`}
                 onClick={() => {
-                  if (prioridad !== "ROJO") {
-                    setPrioridad("ROJO");
-                    localStorage.setItem(
-                      `PaseEspecialidad:${claveConsulta}`,
-                      JSON.stringify({
-                        ...JSON.parse(
-                          localStorage.getItem(
-                            `PaseEspecialidad:${claveConsulta}`
-                          ) || "{}"
-                        ),
-                        prioridad: "ROJO",
-                      })
-                    );
-                  }
+                  setPrioridad("ROJO");
+                  const cachedData = JSON.parse(
+                    localStorage.getItem(`PaseEspecialidad:${claveConsulta}`) ||
+                      "{}"
+                  );
+                  cachedData.prioridad = "ROJO";
+                  localStorage.setItem(
+                    `PaseEspecialidad:${claveConsulta}`,
+                    JSON.stringify(cachedData)
+                  );
                 }}
               >
                 <h3 className="text-center text-3xl font-bold text-white">
@@ -360,16 +351,14 @@ const PaseEspecialidad = ({
                 } bg-gradient-to-br from-orange-800 to-orange-500 hover:from-orange-600 hover:to-orange-400`}
                 onClick={() => {
                   setPrioridad("NARANJA");
+                  const cachedData = JSON.parse(
+                    localStorage.getItem(`PaseEspecialidad:${claveConsulta}`) ||
+                      "{}"
+                  );
+                  cachedData.prioridad = "NARANJA";
                   localStorage.setItem(
                     `PaseEspecialidad:${claveConsulta}`,
-                    JSON.stringify({
-                      ...JSON.parse(
-                        localStorage.getItem(
-                          `PaseEspecialidad:${claveConsulta}`
-                        ) || "{}"
-                      ),
-                      prioridad: "NARANJA",
-                    })
+                    JSON.stringify(cachedData)
                   );
                 }}
               >
@@ -392,16 +381,14 @@ const PaseEspecialidad = ({
                 } bg-gradient-to-br from-yellow-800 to-yellow-500 hover:from-yellow-600 hover:to-yellow-400`}
                 onClick={() => {
                   setPrioridad("AMARILLO");
+                  const cachedData = JSON.parse(
+                    localStorage.getItem(`PaseEspecialidad:${claveConsulta}`) ||
+                      "{}"
+                  );
+                  cachedData.prioridad = "AMARILLO";
                   localStorage.setItem(
                     `PaseEspecialidad:${claveConsulta}`,
-                    JSON.stringify({
-                      ...JSON.parse(
-                        localStorage.getItem(
-                          `PaseEspecialidad:${claveConsulta}`
-                        ) || "{}"
-                      ),
-                      prioridad: "AMARILLO",
-                    })
+                    JSON.stringify(cachedData)
                   );
                 }}
               >
@@ -424,16 +411,14 @@ const PaseEspecialidad = ({
                 } bg-gradient-to-br from-green-800 to-green-500 hover:from-green-600 hover:to-green-400`}
                 onClick={() => {
                   setPrioridad("VERDE");
+                  const cachedData = JSON.parse(
+                    localStorage.getItem(`PaseEspecialidad:${claveConsulta}`) ||
+                      "{}"
+                  );
+                  cachedData.prioridad = "VERDE";
                   localStorage.setItem(
                     `PaseEspecialidad:${claveConsulta}`,
-                    JSON.stringify({
-                      ...JSON.parse(
-                        localStorage.getItem(
-                          `PaseEspecialidad:${claveConsulta}`
-                        ) || "{}"
-                      ),
-                      prioridad: "VERDE",
-                    })
+                    JSON.stringify(cachedData)
                   );
                 }}
               >
@@ -456,16 +441,14 @@ const PaseEspecialidad = ({
                 } bg-gradient-to-br from-blue-800 to-blue-500 hover:from-blue-600 hover:to-blue-400`}
                 onClick={() => {
                   setPrioridad("AZUL");
+                  const cachedData = JSON.parse(
+                    localStorage.getItem(`PaseEspecialidad:${claveConsulta}`) ||
+                      "{}"
+                  );
+                  cachedData.prioridad = "AZUL";
                   localStorage.setItem(
                     `PaseEspecialidad:${claveConsulta}`,
-                    JSON.stringify({
-                      ...JSON.parse(
-                        localStorage.getItem(
-                          `PaseEspecialidad:${claveConsulta}`
-                        ) || "{}"
-                      ),
-                      prioridad: "AZUL",
-                    })
+                    JSON.stringify(cachedData)
                   );
                 }}
               >
@@ -506,9 +489,6 @@ const PaseEspecialidad = ({
                 <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
                   Fecha de Asignación
                 </th>
-                <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
-                  Nombre del Médico que Asignó la Especialidad
-                </th>
               </tr>
             </thead>
             <tbody>
@@ -539,9 +519,6 @@ const PaseEspecialidad = ({
                     </td>
                     <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
                       {item.fecha_asignacion}
-                    </td>
-                    <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
-                      {item.nombre_medico}
                     </td>
                   </tr>
                 ))

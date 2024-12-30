@@ -113,6 +113,7 @@ const DatosAdicionales = ({
             value={motivoConsultaTexto}
             onChange={handleMotivoConsultaChange}
           />
+          <br />
           <h3 className="text-2xl md:text-3xl font-bold mb-4 md:mb-6 text-white">
             Diagnóstico
           </h3>

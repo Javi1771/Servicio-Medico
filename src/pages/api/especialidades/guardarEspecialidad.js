@@ -13,7 +13,8 @@ export default async function handler(req, res) {
       clavepaciente,
     } = req.body;
 
-    console.log("Datos recibidos en la solicitud:", {
+    // Log inicial de datos recibidos
+    console.log("🟢 Datos recibidos en la solicitud:", {
       claveConsulta,
       claveEspecialidad,
       observaciones,
@@ -24,7 +25,7 @@ export default async function handler(req, res) {
 
     //* Validar datos obligatorios
     if (!claveConsulta || !clavenomina || !clavepaciente) {
-      console.error("Datos incompletos:", {
+      console.error("❌ Datos incompletos:", {
         claveConsulta,
         claveEspecialidad,
         observaciones,
@@ -42,6 +43,14 @@ export default async function handler(req, res) {
       const claveEspecialidadFinal =
         claveEspecialidad === "N" ? null : claveEspecialidad;
 
+      // Log para claveEspecialidad y observaciones procesadas
+      console.log("🔧 Procesando valores:", {
+        claveEspecialidadFinal,
+        observacionesFinal:
+          observaciones ||
+          "Sin Observaciones, No Se Asignó Especialidad En Esta Consulta",
+      });
+
       //* Determinar el valor real de observaciones
       const observacionesFinal =
         observaciones ||
@@ -57,7 +66,20 @@ export default async function handler(req, res) {
         estatus = 0;
       }
 
-      console.log("Insertando en la tabla detalleEspecialidad...");
+      console.log("🟠 Insertando en la tabla detalleEspecialidad con datos:");
+      console.log({
+        claveConsulta: parseInt(claveConsulta, 10),
+        clavenomina,
+        claveEspecialidad: claveEspecialidadFinal
+          ? parseInt(claveEspecialidadFinal, 10)
+          : null,
+        observaciones: observacionesFinal,
+        prioridad: prioridad || "N/A",
+        estatus,
+        fechaRegistro,
+        clavepaciente,
+      });
+
       await pool
         .request()
         .input("claveconsulta", sql.Int, parseInt(claveConsulta, 10))
@@ -79,7 +101,9 @@ export default async function handler(req, res) {
           (@claveconsulta, @clavenomina, @claveespecialidad, @observaciones, @prioridad, @estatus, @fecha_asignacion, @clavepaciente)
         `);
 
-      console.log("Actualizando la tabla consultas...");
+      console.log("🟢 Registro insertado en la tabla detalleEspecialidad.");
+
+      console.log("🟠 Actualizando la tabla consultas...");
       await pool
         .request()
         .input("claveconsulta", sql.Int, parseInt(claveConsulta, 10))
@@ -100,7 +124,9 @@ export default async function handler(req, res) {
           WHERE claveconsulta = @claveconsulta;
         `);
 
-      console.log("Obteniendo historial actualizado...");
+      console.log("🟢 Tabla consultas actualizada.");
+
+      console.log("🟠 Obteniendo historial actualizado...");
       const result = await pool
         .request()
         .input("clavenomina", sql.VarChar, clavenomina)
@@ -121,24 +147,25 @@ export default async function handler(req, res) {
         `);
 
       const historial = result.recordset;
+      console.log("🟢 Historial actualizado (último mes):", historial);
 
-      console.log("Historial filtrado al último mes:", historial);
-
-      console.log("Disparando evento Pusher...");
+      console.log("🟠 Disparando evento Pusher...");
       await pusher.trigger("especialidades-channel", "especialidades-updated", {
         clavepaciente,
         historial,
       });
 
+      console.log("🟢 Evento Pusher emitido correctamente.");
       res.status(200).json({
         message: "Especialidad guardada correctamente y evento emitido.",
         historial,
       });
     } catch (error) {
-      console.error("Error al guardar la especialidad:", error);
+      console.error("❌ Error al guardar la especialidad:", error);
       res.status(500).json({ message: "Error al guardar la especialidad." });
     }
   } else {
+    console.warn("❌ Método no permitido.");
     res.status(405).json({ message: "Método no permitido" });
   }
 }

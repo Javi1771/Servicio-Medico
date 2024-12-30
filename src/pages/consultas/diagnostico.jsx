@@ -544,7 +544,9 @@ const Diagnostico = () => {
               formCompleto={formCompleto}
               limpiarFormulario={limpiarFormulario}
               claveConsulta={claveConsulta}
-            />
+              clavepaciente={pacienteSeleccionado?.clavepaciente}
+              clavenomina={pacienteSeleccionado?.clavenomina}
+              />
           </div>
         </div>
       )}
