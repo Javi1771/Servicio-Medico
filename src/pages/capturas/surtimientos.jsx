@@ -8,7 +8,7 @@ import Cookies from "js-cookie"; // Asegúrate de tener instalada esta librería
 import Swal from "sweetalert2";
 import { FiInfo } from "react-icons/fi";
 import Image from "next/image";
-
+import useFetchEspecialista from "../../hooks/surtimientosHook/useFetchEspecialista"; // Importar el hook
 
 export default function Surtimientos() {
   const [folioConsulta, setFolioConsulta] = useState("");
@@ -24,7 +24,6 @@ export default function Surtimientos() {
   const [especialidades, setEspecialidades] = useState([]);
   const [especialidadNombre, setEspecialidadNombre] = useState("No registrada");
 
-  const { data, error, loading, fetchConsulta } = useFetchConsulta();
   const { empleadoData, fetchEmpleado } = useFetchEmpleado();
 
   const [diagnosticoEditable, setDiagnosticoEditable] = useState("");
@@ -33,11 +32,21 @@ export default function Surtimientos() {
 
   const [isDiagnosticoEditable, setIsDiagnosticoEditable] = useState(true);
 
-    const [costo, setCosto] = useState("");
-    const [claveusuario, setClaveusuario] = useState("");
-  
+  const [claveusuario, setClaveusuario] = useState("");
 
-  // Manejar la búsqueda del folio de consulta
+  //const para mostrar informacion del medico especialista
+
+  const [especialista, setEspecialista] = useState(null); // Nuevo estado para el especialista
+  const [especialidad, setEspecialidad] = useState("No registrada"); // Nuevo estado para la especialidad
+  const { data, fetchConsulta, error, loading } = useFetchConsulta();
+  const { fetchEspecialista } = useFetchEspecialista(); // Hook para obtener el especialista y su especialidad
+
+  const [showHistorial, setShowHistorial] = useState(false);
+
+  const handleToggleHistorial = () => {
+    setShowHistorial(!showHistorial);
+  };
+
   const handleSearch = async () => {
     setIsSearchAttempted(true); // Marcar que se hizo un intento de búsqueda
 
@@ -50,8 +59,8 @@ export default function Surtimientos() {
       });
       return;
     }
+
     try {
-      // Mostrar SweetAlert de carga
       Swal.fire({
         title: "Cargando...",
         text: "Por favor, espera mientras se carga la consulta.",
@@ -61,7 +70,6 @@ export default function Surtimientos() {
         },
       });
 
-      // Simular espera de 1.5 segundos antes de proceder
       await new Promise((resolve) => setTimeout(resolve, 500));
 
       // 1. Obtener detalles de la receta
@@ -76,49 +84,72 @@ export default function Surtimientos() {
           icon: "error",
           confirmButtonText: "Aceptar",
         });
-        return; // Salimos de la función si falla la petición
+        return;
       }
 
       const detallesData = await detallesResponse.json();
-      console.log("Detalles obtenidos:", detallesData);
       setDetalles(detallesData);
 
-      // 2. Obtener información adicional usando tu hook existente
+      // 2. Obtener información del folio de consulta
       const consultaData = await fetchConsulta(folioConsulta);
 
       if (consultaData) {
         setClaveNomina(consultaData.clavenomina);
         setSindicato(consultaData.sindicato);
+
+        let medicoNombre = "No disponible";
+        let especialidadNombre = "No registrada";
+
+        try {
+          // 3. Consultar el especialista
+          if (consultaData.claveproveedor) {
+            const especialistaResponse = await fetch(
+              `/api/surtimientos/getEspecialista?claveProveedor=${consultaData.claveproveedor}`
+            );
+
+            if (especialistaResponse.ok) {
+              const especialistaData = await especialistaResponse.json();
+              medicoNombre = especialistaData.nombreusuario || "No disponible";
+
+              if (especialistaData.claveespecialidad) {
+                const especialidadResponse = await fetch(
+                  `/api/surtimientos/getEspecialidad?claveEspecialidad=${especialistaData.claveespecialidad}`
+                );
+
+                if (especialidadResponse.ok) {
+                  const especialidadData = await especialidadResponse.json();
+                  especialidadNombre =
+                    especialidadData.especialidad || "No registrada";
+                }
+              }
+            }
+          }
+        } catch (especialistaError) {
+          console.warn(
+            "Error al obtener especialista o especialidad:",
+            especialistaError.message
+          );
+        }
+
         setMedico({
-          nombre: consultaData.medico,
-          especialidad: consultaData.especialidad,
+          nombre: medicoNombre,
+          especialidad: especialidadNombre,
         });
-        setClaveEspecialidad(consultaData.especialidad);
 
-        // Inicializar el diagnóstico editable si no existe
         setDiagnosticoEditable(consultaData.diagnostico || "");
-
-        // Validar si el diagnóstico ya existe
-        setIsDiagnosticoEditable(!consultaData.diagnostico); // No editable si ya tiene valor
+        setIsDiagnosticoEditable(!consultaData.diagnostico);
       }
 
-      // Cerrar SweetAlert cuando todo se completa correctamente
       Swal.close();
     } catch (error) {
       console.error("Error al buscar información:", error.message);
-
-      // Simular espera de 1.5 segundos antes de mostrar el error
-      setTimeout(() => {
-        Swal.fire({
-          title: "Error al Buscar Información",
-          text: "Ocurrió un problema al buscar el folio. Por favor, intenta de nuevo.",
-          icon: "error",
-          confirmButtonText: "Aceptar",
-        });
-      }, 500);
-      // Limpiar los estados cuando hay un error
+      Swal.fire({
+        title: "Error al Buscar Información",
+        text: "Ocurrió un problema al buscar el folio. Por favor, intenta de nuevo.",
+        icon: "error",
+        confirmButtonText: "Aceptar",
+      });
       setClaveNomina(null);
-      setEmpleadoData(null);
       setSindicato("");
       setMedico(null);
       setDetalles([]);
@@ -140,10 +171,6 @@ export default function Surtimientos() {
     console.log("Clave Especialidad desde cookies:", clave);
     setNombreMedico(nombre || "No especificado");
     setClaveEspecialidad(clave || "No especificado");
-
-    const costo = Cookies.get("costo");
-    console.log("Costo: ", costo);
-    setCosto(costo || "No especificado");
 
     const claveusuario = Cookies.get("claveusuario");
     console.log("Clave claveusuario: ", claveusuario);
@@ -213,7 +240,6 @@ export default function Surtimientos() {
     }
   }, [loading]);
 
-
   return (
     <div className={styles.bodyContainer}>
       <div className={styles.container}>
@@ -256,7 +282,7 @@ export default function Surtimientos() {
               <span>Nombre del Médico:</span> {nombreMedico}
             </p>
             <p>
-              <span>Clave Especialidad:</span> {claveEspecialidad}
+              <span>Especialidad:</span> {especialidadNombre}
             </p>
           </div>
         </div>
@@ -343,25 +369,69 @@ export default function Surtimientos() {
               )}
 
               {/* Información del médico especialista */}
-              {medico && (
-                <div className={styles.section}>
+              {medico ? (
+                <div className={`${styles.section}`}>
                   <h2 className={styles.sectionTitle2}>
                     Información del Especialista
                   </h2>
-                  <div className={styles.medicoCard}>
+                  <div
+                    className={`${styles.medicoCard} group relative`}
+                    title={
+                      medico?.nombre === "No disponible"
+                        ? "Especialista no asignado"
+                        : ""
+                    }
+                  >
                     <h3>Médico Especialista</h3>
                     <div className={styles.medicoInfo}>
-                      <div className={styles.medicoDetails}>
-                        <p>
+                      {/* Nombre y Especialidad como campos con tooltip */}
+                      <div className={`${styles.medicoDetails} group relative`}>
+                        <p
+                          className={
+                            medico?.nombre === "No disponible"
+                              ? styles.tooltipTrigger
+                              : undefined
+                          }
+                        >
                           <strong>Nombre:</strong>{" "}
-                          {medico.nombre || "No disponible"}
+                          {medico?.nombre || "No disponible"}
                         </p>
-                        <p>
+                        <p
+                          className={
+                            medico?.especialidad === "No registrada"
+                              ? styles.tooltipTrigger
+                              : undefined
+                          }
+                        >
                           <strong>Especialidad:</strong>{" "}
-                          {especialidadNombre || "No registrada"}
+                          {medico?.especialidad || "No registrada"}
                         </p>
+
+                        {/* Tooltip si no se asignó especialista */}
+                        {(medico?.nombre === "No disponible" ||
+                          medico?.especialidad === "No registrada") && (
+                          <div
+                            className={`${styles.tooltip} invisible opacity-0 group-hover:visible group-hover:opacity-100 absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-72 transition-all duration-300 ease-out transform group-hover:translate-y-0 translate-y-2`}
+                          >
+                            <div className={styles.tooltipContent}>
+                              <div className={styles.tooltipHeader}>
+                                <div className={styles.tooltipIcon}>
+                                  <FiInfo className="w-4 h-4" />
+                                </div>
+                                <h3 className={styles.tooltipTitle}>
+                                  Especialista no asignado
+                                </h3>
+                              </div>
+                              <p className={styles.tooltipText}>
+                                Este folio no tiene un especialista asignado.
+                                Por favor, verifica.
+                              </p>
+                            </div>
+                          </div>
+                        )}
                       </div>
 
+                      {/* Diagnóstico */}
                       <div className={styles.diagnosticoField}>
                         <label htmlFor="diagnostico">
                           <strong>Diagnóstico:</strong>
@@ -376,7 +446,6 @@ export default function Surtimientos() {
                           placeholder="Escribe el diagnóstico..."
                           disabled={!isDiagnosticoEditable} // Deshabilitado si ya existe diagnóstico
                         />
-
                         <p
                           className={`${styles.infoMessage} ${
                             isDiagnosticoEditable
@@ -393,6 +462,17 @@ export default function Surtimientos() {
                     </div>
                   </div>
                 </div>
+              ) : (
+                <div className={styles.section}>
+                  <h2 className={styles.sectionTitle2}>
+                    Información del Especialista
+                  </h2>
+                  <div className={styles.tooltip}>
+                    <p className={styles.tooltipText}>
+                      No se asignó especialista
+                    </p>
+                  </div>
+                </div>
               )}
 
               {/* Formulario */}
@@ -402,17 +482,18 @@ export default function Surtimientos() {
                   diagnostico={diagnosticoEditable}
                   onFormSubmitted={handleSearch}
                   detalles={detalles}
+                  showHistorial={showHistorial} // Pasar el estado showHistorial
+                  handleToggleHistorial={handleToggleHistorial} // Pasar la función handleToggleHistorial
                 />
               )}
 
               {/* Tabla de Resultados */}
               {detalles.length > 0 && (
-              <TablaResultados
-              folioPase={folioConsulta} // Se asegura de pasar el folio correcto
-              data={detalles}
-              onEstatusUpdated={handleSearch}
-            />
-            
+                <TablaResultados
+                  folioPase={folioConsulta} // Se asegura de pasar el folio correcto
+                  data={detalles}
+                  onEstatusUpdated={handleSearch}
+                />
               )}
             </>
           ) : (

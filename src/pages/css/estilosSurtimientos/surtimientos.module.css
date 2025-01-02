@@ -595,3 +595,110 @@
 .errorMessage {
   color: rgb(255, 208, 0);
 }
+ 
+/*ESTILOS TOOL TIP ESPECIAliadad*/
+.tooltip {
+  position: absolute;
+  bottom: 120%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(to right, rgba(31, 41, 55, 0.95), rgba(17, 134, 147, 0.95));
+  color: #ffffff;
+  padding: 12px;
+  border-radius: 12px;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);
+  font-size: 0.9rem;
+  z-index: 1000;
+  transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
+}
+
+.tooltipHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.tooltipIcon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 30px;
+  height: 30px;
+  background: linear-gradient(to right, rgba(79, 70, 229, 0.9), rgba(99, 102, 241, 0.9));
+  border-radius: 50%;
+  color: #ffffff;
+  box-shadow: 0px 4px 6px rgba(13, 0, 255, 0.422);
+}
+
+.tooltipTitle {
+  font-weight: bold;
+  color: #ffffff;
+}
+
+.tooltipText {
+  color: #d1d5db;
+  line-height: 1.4;
+  font-size: 0.85rem;
+}
+
+.group:hover .tooltip {
+  visibility: visible;
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.tooltip::before {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 8px;
+  border-style: solid;
+  border-color: rgba(31, 41, 55, 0.95) transparent transparent transparent;
+}
+
+
+.headerContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.tabButton {
+  background-color: #f1f1f1;
+  border: 1px solid #ccc;
+  border-bottom: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  border-radius: 5px 5px 0 0;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+}
+
+.tabButton:hover {
+  background-color: #e1e1e1;
+}
+
+.contentContainer {
+  display: flex;
+  transition: transform 0.3s ease;
+}
+
+.slideLeft {
+  transform: translateX(-50%);
+}
+
+.formContent {
+  width: 50%;
+}
+
+.historialContent {
+  width: 50%;
+  display: none;
+}
+
+.slideLeft .historialContent {
+  display: block;
+}

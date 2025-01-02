@@ -1,13 +1,20 @@
 /* eslint-disable @next/next/no-img-element */
-import React, { useEffect, useState, useCallback } from "react"; // Asegúrate de incluir useCallback
+import React, { useState, useEffect, useCallback } from "react";
+import HistorialSurtimientos from "./historialSurtimientos"; // Importar el componente HistorialSurtimientos
 import styles from "../../css/estilosSurtimientos/tableSurtimientos.module.css";
 import { MdWarningAmber } from "react-icons/md";
 import ModalRegistrarMedicamento from "../components/modalRegistrarMedicamento";
 import Swal from "sweetalert2";
 import { MdAdd } from "react-icons/md";
-import Cookies from 'js-cookie';
+import Cookies from "js-cookie";
 
-const MedicamentosForm = ({folioConsulta,diagnostico,onFormSubmitted,detalles,
+const MedicamentosForm = ({
+  folioConsulta,
+  diagnostico,
+  onFormSubmitted,
+  detalles,
+  showHistorial,
+  handleToggleHistorial,
 }) => {
   const [medicamentoMap, setMedicamentoMap] = useState({}); // Mapeo de claveMedicamento -> descripción
 
@@ -21,7 +28,6 @@ const MedicamentosForm = ({folioConsulta,diagnostico,onFormSubmitted,detalles,
 
   const [temporalMedicamentos, setTemporalMedicamentos] = useState([]); // Temporal storage
   // Nueva validación: deshabilitar botón si ya existe al menos un medicamento
-
 
   // Función para obtener el medicamento por clave
   const fetchMedicamentoDescripcion = async (claveMedicamento) => {
@@ -45,7 +51,6 @@ const MedicamentosForm = ({folioConsulta,diagnostico,onFormSubmitted,detalles,
       return "Descripción no disponible";
     }
   };
-
 
   const handleRemoveFromReceta = (id, event) => {
     event.preventDefault(); // Evita el refresco de la página
@@ -126,132 +131,154 @@ const MedicamentosForm = ({folioConsulta,diagnostico,onFormSubmitted,detalles,
     });
   };
 
-const handleGuardarMedicamentos = async () => {
-  // Validar que haya al menos un medicamento en el estado temporal
-  if (temporalMedicamentos.length === 0) {
-    Swal.fire({
-      title: "Sin medicamentos",
-      text: "No hay medicamentos para guardar. Añade al menos uno.",
-      icon: "warning",
-      confirmButtonColor: "#f39c12",
-      confirmButtonText: "Ok",
-    });
-    return;
-  }
-
-  // Validar que el diagnóstico no esté vacío
-  if (!diagnostico || diagnostico.trim() === "") {
-    Swal.fire({
-      title: "Falta el diagnóstico",
-      text: "Es obligatorio registrar un diagnóstico antes de guardar medicamentos.",
-      icon: "warning",
-      confirmButtonColor: "#f39c12",
-      confirmButtonText: "Ok",
-    });
-    return;
-  }
-
-  try {
-    // Obtener datos de la consulta
-    const consultaResponse = await fetch(`/api/surtimientos/getConsultaByFolio?folio=${folioConsulta}`);
-    if (!consultaResponse.ok) {
-      throw new Error("Error al obtener los datos de la consulta.");
-    }
-    const consultaData = await consultaResponse.json();
-
-    // Datos a enviar a la API
-    const datosSurtimiento = {
-      folioPase: folioConsulta,
-      fechaEmision: new Date(),
-      nomina: consultaData.clavenomina,
-      clavePaciente: consultaData.clavepaciente,
-      nombrePaciente: consultaData.nombrepaciente,
-      esEmpleado: consultaData.elpacienteesempleado,
-      edad: consultaData.edad, // Obtener la edad directamente de la consulta
-      claveMedico: consultaData.claveproveedor,
-      diagnostico: diagnostico, // Asegúrate de que el diagnóstico se esté enviando
-      departamento: consultaData.departamento.trim().replace(/\s+/g, ' '), // ← Limpieza del valor
-      estatus: 1,
-      fechaDespacho: null,
-      sindicato: consultaData.sindicato, // Obtener el sindicato directamente de la consulta
-      claveUsuario: Cookies.get("claveusuario") || "No especificado"
-    };
-
-    // Depurar los datos que se están enviando
-    console.log("Datos que se están enviando a la API addSurtimiento:");
-    console.log(datosSurtimiento);
-    console.log("Longitud del campo departamento:", datosSurtimiento.departamento.length);
-
-    const newInsertResponse = await fetch("/api/surtimientos/addSurtimiento", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(datosSurtimiento),
-    });
-
-    if (!newInsertResponse.ok) {
-      throw new Error("Error al insertar en la tabla SURTIMIENTOS.");
-    }
-
-    // Insertar en la tabla DETALLE_RECETA
-    for (const med of temporalMedicamentos) {
-      if (isNaN(med.medicamento)) {
-        throw new Error(`El medicamento ${med.medicamento} no tiene un ID válido.`);
+  const handleGuardarMedicamentos = async () => {
+    try {
+      // Obtener datos de la consulta
+      const consultaResponse = await fetch(
+        `/api/surtimientos/getConsultaByFolio?folio=${folioConsulta}`
+      );
+      if (!consultaResponse.ok) {
+        throw new Error("Error al obtener los datos de la consulta.");
       }
-
-      const response = await fetch("/api/surtimientos/addDetalleReceta", {
+      const consultaData = await consultaResponse.json();
+  
+      // Verificar el campo seasignoaespecialidad
+      const { seasignoaespecialidad } = consultaData;
+  
+      // Si seasignoaespecialidad es 'N', permitir guardar sin validaciones
+      if (seasignoaespecialidad === 'N') {
+        await guardarMedicamentos(consultaData);
+        return;
+      }
+  
+      // Validar que haya al menos un medicamento en el estado temporal
+      if (temporalMedicamentos.length === 0) {
+        Swal.fire({
+          title: "Sin medicamentos",
+          text: "No hay medicamentos para guardar. Añade al menos uno.",
+          icon: "warning",
+          confirmButtonColor: "#f39c12",
+          confirmButtonText: "Ok",
+        });
+        return;
+      }
+  
+      // Validar que el diagnóstico no esté vacío
+      if (!diagnostico || diagnostico.trim() === "") {
+        Swal.fire({
+          title: "Falta el diagnóstico",
+          text: "Es obligatorio registrar un diagnóstico antes de guardar medicamentos.",
+          icon: "warning",
+          confirmButtonColor: "#f39c12",
+          confirmButtonText: "Ok",
+        });
+        return;
+      }
+  
+      await guardarMedicamentos(consultaData);
+    } catch (error) {
+      console.error("Error al guardar medicamentos:", error.message);
+      Swal.fire({
+        title: "Error",
+        text: "No se pudo guardar uno o más medicamentos.",
+        icon: "error",
+        confirmButtonColor: "#d63031",
+        confirmButtonText: "Intentar de nuevo",
+      });
+    }
+  };
+  
+  const guardarMedicamentos = async (consultaData) => {
+    try {
+      // Datos a enviar a la API
+      const datosSurtimiento = {
+        folioPase: folioConsulta,
+        fechaEmision: new Date(),
+        nomina: consultaData.clavenomina,
+        clavePaciente: consultaData.clavepaciente,
+        nombrePaciente: consultaData.nombrepaciente,
+        esEmpleado: consultaData.elpacienteesempleado,
+        edad: consultaData.edad, // Obtener la edad directamente de la consulta
+        claveMedico: consultaData.claveproveedor,
+        diagnostico: diagnostico, // Asegúrate de que el diagnóstico se esté enviando
+        departamento: consultaData.departamento.trim().replace(/\s+/g, " "), // ← Limpieza del valor
+        estatus: 1,
+        fechaDespacho: null,
+        sindicato: consultaData.sindicato, // Obtener el sindicato directamente de la consulta
+        claveUsuario: Cookies.get("claveusuario") || "No especificado"
+      };
+  
+      const newInsertResponse = await fetch("/api/surtimientos/addSurtimiento", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(datosSurtimiento),
+      });
+  
+      if (!newInsertResponse.ok) {
+        throw new Error("Error al insertar en la tabla SURTIMIENTOS.");
+      }
+  
+      // Insertar en la tabla DETALLE_SURTIMIENTOS
+      for (const med of temporalMedicamentos) {
+        if (isNaN(med.medicamento)) {
+          throw new Error(`El medicamento ${med.medicamento} no tiene un ID válido.`);
+        }
+  
+        const response = await fetch("/api/surtimientos/addDetalleSurtimiento", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            folioSurtimiento: folioConsulta,
+            claveMedicamento: med.medicamento,
+            indicaciones: med.indicaciones,
+            cantidad: med.cantidad,
+            estatus: 1
+          }),
+        });
+  
+        if (!response.ok) {
+          throw new Error(`Error al insertar el medicamento: ${med.medicamento}`);
+        }
+      }
+  
+      // Actualizar el diagnóstico
+      const updateResponse = await fetch("/api/surtimientos/updateDiagnostico", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          folioReceta: folioConsulta,
-          descMedicamento: med.medicamento,
-          indicaciones: med.indicaciones,
-          cantidad: med.cantidad,
+          claveconsulta: folioConsulta,
+          diagnostico,
         }),
       });
-
-      if (!response.ok) {
-        throw new Error(`Error al insertar el medicamento: ${med.medicamento}`);
+  
+      if (!updateResponse.ok) {
+        const errorData = await updateResponse.json();
+        throw new Error(errorData.message || "Error al actualizar el diagnóstico.");
       }
+  
+      // Mostrar SweetAlert de éxito
+      Swal.fire({
+        title: "¡Éxito!",
+        text: "Todos los medicamentos, el diagnóstico y los nuevos datos han sido guardados exitosamente.",
+        icon: "success",
+        confirmButtonColor: "#6c5ce7",
+        confirmButtonText: "Aceptar",
+      });
+  
+      // Limpiar los registros temporales y refrescar los datos en el componente padre
+      setTemporalMedicamentos([]);
+      onFormSubmitted(); // Refrescar los datos en el componente padre
+    } catch (error) {
+      console.error("Error al guardar medicamentos:", error.message);
+      Swal.fire({
+        title: "Error",
+        text: "No se pudo guardar uno o más medicamentos.",
+        icon: "error",
+        confirmButtonColor: "#d63031",
+        confirmButtonText: "Intentar de nuevo",
+      });
     }
-
-    // Actualizar el diagnóstico
-    const updateResponse = await fetch("/api/surtimientos/updateDiagnostico", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        claveconsulta: folioConsulta,
-        diagnostico,
-      }),
-    });
-
-    if (!updateResponse.ok) {
-      const errorData = await updateResponse.json();
-      throw new Error(errorData.message || "Error al actualizar el diagnóstico.");
-    }
-
-    // Mostrar SweetAlert de éxito
-    Swal.fire({
-      title: "¡Éxito!",
-      text: "Todos los medicamentos, el diagnóstico y los nuevos datos han sido guardados exitosamente.",
-      icon: "success",
-      confirmButtonColor: "#6c5ce7",
-      confirmButtonText: "Aceptar",
-    });
-
-    // Limpiar los registros temporales y refrescar los datos en el componente padre
-    setTemporalMedicamentos([]);
-    onFormSubmitted(); // Refrescar los datos en el componente padre
-  } catch (error) {
-    console.error("Error al guardar medicamentos:", error.message);
-    Swal.fire({
-      title: "Error",
-      text: "No se pudo guardar uno o más medicamentos.",
-      icon: "error",
-      confirmButtonColor: "#d63031",
-      confirmButtonText: "Intentar de nuevo",
-    });
-  }
-};
+  };
 
   const handleSaveMedicamento = async (nombre, tipo) => {
     console.log("Enviando datos al servidor:", { nombre, tipo });
@@ -313,10 +340,10 @@ const handleGuardarMedicamentos = async () => {
       if (!response.ok) {
         throw new Error("Error al obtener la lista de medicamentos.");
       }
-  
+
       const data = await response.json();
       console.log("Medicamentos obtenidos:", data); // Verifica el resultado aquí
-  
+
       setMedicamentos(
         data.map((item) => ({
           CLAVEMEDICAMENTO: item.CLAVEMEDICAMENTO,
@@ -334,17 +361,18 @@ const handleGuardarMedicamentos = async () => {
     }
   };
 
-    // Al renderizar, llena el mapa de medicamentos dinámicamente
-    useEffect(() => {
-      const fetchDescripciones = async () => {
-        const clavesUnicas = [...new Set(temporalMedicamentos.map((med) => med.medicamento))];
-        for (const clave of clavesUnicas) {
-          await fetchMedicamentoDescripcion(clave);
-        }
-      };
-      fetchDescripciones();
-    }, [temporalMedicamentos]);
-  
+  // Al renderizar, llena el mapa de medicamentos dinámicamente
+  useEffect(() => {
+    const fetchDescripciones = async () => {
+      const clavesUnicas = [
+        ...new Set(temporalMedicamentos.map((med) => med.medicamento)),
+      ];
+      for (const clave of clavesUnicas) {
+        await fetchMedicamentoDescripcion(clave);
+      }
+    };
+    fetchDescripciones();
+  }, [temporalMedicamentos]);
 
   useEffect(() => {
     fetchMedicamentos();
@@ -356,7 +384,14 @@ const handleGuardarMedicamentos = async () => {
 
   return (
     <div className={styles.formContainer}>
-      <h2 className={styles.title}>Seleccionar Medicamento</h2>
+      <div className={styles.headerContainer}>
+        <h2 className={styles.title}>Seleccionar Medicamento</h2>
+        <button className={styles.tabButton} onClick={handleToggleHistorial}>
+          {showHistorial
+            ? "Volver a Surtimientos"
+            : "Ver Historial de Surtimientos"}
+        </button>
+      </div>
       <form className={styles.form}>
         <div className={styles.formGroup}>
           <label htmlFor="medicamentoSelect" className={styles.label}>
@@ -470,41 +505,44 @@ const handleGuardarMedicamentos = async () => {
         </div>
 
         {!tieneMedicamentos && (
-        <div className={styles.temporalList}>
-        <h3 className={styles.temporalTitle}>Medicamentos Añadidos</h3>
-        {temporalMedicamentos.length > 0 ? (
-          <div className={styles.temporalContainer}>
-            {temporalMedicamentos.map((med) => (
-              <div key={med.id} className={styles.medicamentoCard}>
-                <div className={styles.medicamentoDetails}>
-                  <p>
-                    <strong>Medicamento:</strong>{" "}
-                    {medicamentoMap[med.medicamento] || "Cargando..."}
-                  </p>
-                  <p>
-                    <strong>Indicaciones:</strong> {med.indicaciones}
-                  </p>
-                  <p>
-                    <strong>Cantidad:</strong> {med.cantidad}
-                  </p>
-                </div>
-                <button
-                  className={styles.removeButton}
-                  onClick={(event) => handleRemoveFromReceta(med.id, event)}
-                >
-                  Eliminar
-                </button>
+          <div className={styles.temporalList}>
+            <h3 className={styles.temporalTitle}>Medicamentos Añadidos</h3>
+            {temporalMedicamentos.length > 0 ? (
+              <div className={styles.temporalContainer}>
+                {temporalMedicamentos.map((med) => (
+                  <div key={med.id} className={styles.medicamentoCard}>
+                    <div className={styles.medicamentoDetails}>
+                      <p>
+                        <strong>Medicamento:</strong>{" "}
+                        {medicamentoMap[med.medicamento] || "Cargando..."}
+                      </p>
+                      <p>
+                        <strong>Indicaciones:</strong> {med.indicaciones}
+                      </p>
+                      <p>
+                        <strong>Cantidad:</strong> {med.cantidad}
+                      </p>
+                    </div>
+                    <button
+                      className={styles.removeButton}
+                      onClick={(event) => handleRemoveFromReceta(med.id, event)}
+                    >
+                      Eliminar
+                    </button>
+                  </div>
+                ))}
               </div>
-            ))}
+            ) : (
+              <p className={styles.noMedicamentosMessage}>
+                No se han añadido medicamentos aún.
+              </p>
+            )}
           </div>
-        ) : (
-          <p className={styles.noMedicamentosMessage}>
-            No se han añadido medicamentos aún.
-          </p>
         )}
-      </div>
-      )}
       </form>
+      <div className={styles.historialContent}>
+        <HistorialSurtimientos folioPase={folioConsulta} />
+      </div>
 
       <ModalRegistrarMedicamento
         isOpen={isModalOpen}

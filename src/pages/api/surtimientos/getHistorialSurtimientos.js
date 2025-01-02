@@ -24,7 +24,7 @@ export default async function handler(req, res) {
         .json({ message: "No se pudo conectar a la base de datos." });
     }
 
-    // Consulta al historial de surtimientos
+    // Consulta al historial de surtimientos con estatus 2
     const query = `
       SELECT 
         FOLIO_SURTIMIENTO,
@@ -32,7 +32,7 @@ export default async function handler(req, res) {
         NOMBRE_PACIENTE,
         DIAGNOSTICO
       FROM [PRESIDENCIA].[dbo].[SURTIMIENTOS]
-      WHERE FOLIO_PASE = @folioPase
+      WHERE FOLIO_PASE = @folioPase AND ESTATUS = 1
     `;
 
     const result = await pool
