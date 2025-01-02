@@ -328,19 +328,19 @@ const AccionesConsulta = ({
     try {
       console.log("📤 Iniciando guardado global...");
 
-      // Realizar cada operación de guardado de forma secuencial para detenerse en caso de error
+      //* Realizar cada operación de guardado de forma secuencial para detenerse en caso de error
       await guardarDatosAdicionales();
       await guardarMedicamentos();
       await guardarPaseEspecialidad();
       await guardarIncapacidad();
 
-      // Actualizar el clavestatus solo si todas las operaciones fueron exitosas
+      //* Actualizar el clavestatus solo si todas las operaciones fueron exitosas
       await actualizarClavestatus(2);
 
       limpiarCacheLocalStorage();
       limpiarFormulario();
 
-      // Mostrar alerta de éxito con claveConsulta en grande
+      //* Mostrar alerta de éxito con claveConsulta en grande
       MySwal.fire({
         icon: "success",
         title: `<span style='color: #00e676; font-weight: bold; font-size: 2em;'>✔️ Consulta Guardada</span>`,
@@ -360,7 +360,7 @@ const AccionesConsulta = ({
     } catch (error) {
       console.error("❌ Error durante el guardado global:", error);
 
-      // Mostrar alerta de error estilizada
+      //! Mostrar alerta de error estilizada
       MySwal.fire({
         icon: "error",
         title:

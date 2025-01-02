@@ -30,22 +30,21 @@ const showErrorAlert = (title, message) => {
   });
 };
 
-const showSuccessAlert = (title, message) => {
+const showSuccessAlert = (title, message, claveConsulta) => {
   MySwal.fire({
     icon: "success",
-    title: (
-      <span style={{ color: "#00e676", fontWeight: "bold", fontSize: "1.5em" }}>
-        {title}
-      </span>
-    ),
-    html: <p style={{ color: "#fff", fontSize: "1.1em" }}>{message}</p>,
-    background: "linear-gradient(145deg, #004d40, #00251a)",
+    title: `<span style='color: #00e676; font-weight: bold; font-size: 2em;'>✔️ ${title}</span>`,
+    html: `
+      <p style='color: #fff; font-size: 1.2em;'>${message}</p>
+      <p style='color: #00e676; font-weight: bold; font-size: 1.5em; margin-top: 1em;'>Clave Consulta: <span style="color: #76ff03; text-shadow: 0px 0px 8px rgba(118,255,3,0.7);">${claveConsulta}</span></p>
+    `,
+    background: "linear-gradient(145deg, #003300, #001a00)",
     confirmButtonColor: "#00e676",
     confirmButtonText:
-      "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
+      "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
     customClass: {
       popup:
-        "border border-green-600 shadow-[0px_0px_20px_5px_rgba(0,230,118,0.9)] rounded-lg",
+        "border border-green-600 shadow-[0px_0px_25px_5px_rgba(0,255,118,0.7)] rounded-lg animate__animated animate__fadeInUp",
     },
   });
 };
@@ -278,7 +277,6 @@ const CrearPaseNuevo = () => {
   };
 
   const handleSave = async () => {
-    //* Validación: verificar que todos los campos requeridos estén llenos
     if (!selectedEspecialidad) {
       showErrorAlert("Error", "Por favor selecciona una especialidad.");
       return;
@@ -363,25 +361,31 @@ const CrearPaseNuevo = () => {
         especialidadinterconsulta,
         costo: costoValor,
         fechacita: fechacitaFormatted,
-        sindicato, 
+        sindicato,
       };
 
-      const response1 = await fetch("/api/especialidades/guardarPaseNuevo", {
+      const response = await fetch("/api/especialidades/guardarPaseNuevo", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(bodyConsultas),
       });
 
-      if (!response1.ok) {
-        showErrorAlert("Error", "No se pudo guardar en la tabla 'consultas'.");
-        return;
+      if (!response.ok) {
+        throw new Error("Error al guardar en la base de datos.");
       }
 
-      //* Mostrar éxito y restablecer formulario
+      const data = await response.json();
+      const claveConsulta = data.claveConsulta;
+
+      //* Mostrar éxito con claveConsulta
       showSuccessAlert(
-        "Éxito",
-        "La información se guardó correctamente en la base de datos."
-      );
+        "Consulta Guardada",
+        "La consulta se ha guardado correctamente.",
+        claveConsulta
+      );      
+
+      //* Aquí puedes realizar otras acciones con la claveConsulta
+      console.log("Clave consulta generada:", claveConsulta);
 
       //* Restablecer el formulario
       setNomina("");
