@@ -98,9 +98,7 @@ export default function TablaResultados({ data, folioPase, onEstatusUpdated }) {
     <div className={styles.tableContainer}>
       <div className={`${styles.titleContainer} ${showHistorial ? styles.hide : ""}`}>
         <h2 className={styles.title}>Detalles del Surtimiento</h2>
-        <button className={styles.historialButton} onClick={handleToggleHistorial}>
-          {showHistorial ? "Volver a Surtimientos" : "Ver Historial de Surtimientos"}
-        </button>
+       
       </div>
       <div className={`${styles.slideContainer} ${showHistorial ? styles.show : ""}`}>
         <HistorialSurtimientos folioPase={folioPase} />

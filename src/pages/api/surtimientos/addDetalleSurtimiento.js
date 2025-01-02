@@ -6,34 +6,54 @@ export default async function handler(req, res) {
     return res.status(405).json({ message: "Método no permitido" });
   }
 
-  const { folioSurtimiento, claveMedicamento, indicaciones, cantidad, estatus } = req.body;
-
-  // Validar que todos los campos sean proporcionados
-  if (!folioSurtimiento || !claveMedicamento || !indicaciones || !cantidad || estatus === undefined) {
-    return res.status(400).json({ message: "Todos los campos son obligatorios" });
-  }
+  const {
+    folioSurtimiento,
+    claveMedicamento,
+    indicaciones,
+    cantidad,
+    estatus
+  } = req.body;
 
   try {
     const pool = await connectToDatabase();
 
+    // Depurar los datos que se están enviando
+    console.log("Datos que se están enviando a la tabla DETALLE_SURTIMIENTOS:");
+    console.log({
+      folioSurtimiento,
+      claveMedicamento,
+      indicaciones,
+      cantidad,
+      estatus
+    });
+
     const query = `
-      INSERT INTO [PRESIDENCIA].[dbo].[detalleSurtimientos] 
-        (folioSurtimiento, claveMedicamento, indicaciones, cantidad, estatus)
-      VALUES (@folioSurtimiento, @claveMedicamento, @indicaciones, @cantidad, @estatus)
+      INSERT INTO [PRESIDENCIA].[dbo].[detalleSurtimientos]
+        ([folioSurtimiento]
+        ,[claveMedicamento]
+        ,[indicaciones]
+        ,[cantidad]
+        ,[ESTATUS])
+      VALUES
+        (@folioSurtimiento
+        ,@claveMedicamento
+        ,@indicaciones
+        ,@cantidad
+        ,@estatus)
     `;
 
     await pool
       .request()
       .input("folioSurtimiento", sql.Int, folioSurtimiento)
-      .input("claveMedicamento", sql.NVarChar(15), claveMedicamento) // Asegúrate de que el tamaño sea correcto
+      .input("claveMedicamento", sql.Int, claveMedicamento)
       .input("indicaciones", sql.NVarChar(sql.MAX), indicaciones)
-      .input("cantidad", sql.NVarChar(50), cantidad)
-      .input("estatus", sql.Int, estatus)
+      .input("cantidad", sql.NVarChar ,cantidad)
+      .input("estatus", sql.Bit, estatus)
       .query(query);
 
-    res.status(200).json({ message: "Registro guardado correctamente." });
+    res.status(200).json({ message: "Detalle del surtimiento insertado exitosamente." });
   } catch (error) {
-    console.error("Error al insertar en detalleSurtimientos:", error);
-    res.status(500).json({ message: "Error al insertar en la base de datos." });
+    console.error("Error al insertar el detalle del surtimiento:", error.message);
+    res.status(500).json({ message: "Error en el servidor." });
   }
 }
