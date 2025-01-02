@@ -9,7 +9,7 @@ export default function TablaResultados({ data, folioPase, onEstatusUpdated }) {
   const [showHistorial, setShowHistorial] = useState(false); // Maneja el estado del historial
   const [medicamentosMap, setMedicamentosMap] = useState({});
   const { updateEstatus, loading, error } = useUpdateEstatus();
-  const { surtimientos, loading: loadingSurtimientos, error: errorSurtimientos } = useHistorialByFolio(folioPase);
+  //const { surtimientos, loading: loadingSurtimientos, error: errorSurtimientos } = useHistorialByFolio(folioPase);
 
   const fetchMedicamentoByClave = async (claveMedicamento) => {
     try {

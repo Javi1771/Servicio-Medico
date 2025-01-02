@@ -311,6 +311,20 @@
 }
 
 /* Mantener el estilo original del modalContent */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(36, 36, 36, 0.644); /* Fondo oscuro sólido */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+/* Mantener el estilo original del modalContent */
 .modalContent {
   position: relative;
   background-color: #2b2f3a;
@@ -324,7 +338,6 @@
   max-height: 90vh;
   overflow-y: auto;
 
-  /* Glow Effect */
   /* Glow Effect */
   box-shadow: 0 0 80px rgba(0, 247, 255, 0.155),
     -46px 42px 79px rgba(0, 166, 255, 0.153),
@@ -348,7 +361,7 @@
 
 /* Inputs en la estructura de grid */
 .modalForm input {
-  width: 741px;
+  width: 100%;
   padding: 10px;
   border: 1px solid #3c3f51;
   border-radius: 6px;
@@ -362,14 +375,14 @@
 /* Selector de especialidad y tipo de usuario */
 .modalForm select {
   width: 100%;
-    padding: 10px;
-    margin: 0;
-    border: 1px solid #2b2f3a;
-    border-radius: 6px;
-    background: #3c3f51;
-    color: #f1f1f1;
-    outline: none;
-    transition: background 0.3s ease, border-color 0.3s ease;
+  padding: 10px;
+  margin: 0;
+  border: 1px solid #2b2f3a;
+  border-radius: 6px;
+  background: #3c3f51;
+  color: #f1f1f1;
+  outline: none;
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 /* Efecto al enfocar los inputs */
