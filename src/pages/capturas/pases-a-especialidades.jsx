@@ -2,59 +2,15 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { FaSearch, FaClipboardList, FaPlus } from "react-icons/fa";
-import Swal from "sweetalert2";
-import withReactContent from "sweetalert2-react-content";
-
-const MySwal = withReactContent(Swal);
-
-//* Función reutilizable para mostrar alertas
-const showAlert = (type, title, message) => {
-  const colors = {
-    error: {
-      icon: "❌",
-      bgGradient: "linear-gradient(145deg, #4a0000, #220000)",
-      borderColor: "red-600",
-      shadowColor: "rgba(255,23,68,0.9)",
-      buttonColor: "#ff1744",
-    },
-    success: {
-      icon: "✅",
-      bgGradient: "linear-gradient(145deg, #004d00, #002900)",
-      borderColor: "green-600",
-      shadowColor: "rgba(0,255,0,0.9)",
-      buttonColor: "#00c853",
-    },
-    info: {
-      icon: "ℹ️",
-      bgGradient: "linear-gradient(145deg, #001a4a, #000022)",
-      borderColor: "blue-600",
-      shadowColor: "rgba(33,150,243,0.9)",
-      buttonColor: "#1e88e5",
-    },
-  };
-
-  const styles = colors[type] || colors.info;
-
-  MySwal.fire({
-    icon: "info",
-    title: `<span style='color: #fff; font-weight: bold; font-size: 1.5em;'>${styles.icon} ${title}</span>`,
-    html: `<p style='color: #fff; font-size: 1.1em;'>${message}</p>`,
-    background: styles.bgGradient,
-    confirmButtonColor: styles.buttonColor,
-    confirmButtonText:
-      "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-    customClass: {
-      popup: `border border-${styles.borderColor} shadow-[0px_0px_20px_5px_${styles.shadowColor}] rounded-lg`,
-    },
-  });
-};
 
 const PasesAEspecialidad = () => {
   const [datos, setDatos] = useState([]);
+  const [filteredData, setFilteredData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [busqueda, setBusqueda] = useState("");
   const router = useRouter();
 
+  //* Función para cargar los datos desde el backend
   const fetchData = async () => {
     try {
       const response = await fetch("/api/especialidades/pases-especialidad");
@@ -62,33 +18,39 @@ const PasesAEspecialidad = () => {
         throw new Error("Error al cargar los datos");
       }
       const data = await response.json();
-      setDatos(data);
+      const uniqueData = data.filter(
+        (item, index, self) =>
+          index === self.findIndex((t) => t.folio === item.folio)
+      );
+      setDatos(uniqueData);
+      setFilteredData(uniqueData);
       setLoading(false);
     } catch (error) {
       console.error("Error al cargar los datos:", error);
-      showAlert(
-        "error",
-        "Error al cargar datos",
-        "No se pudieron cargar los datos. Por favor, intenta nuevamente."
-      );
     }
   };
 
+  //* Cargar datos al montar el componente
   useEffect(() => {
     fetchData();
   }, []);
 
-  //* Filtrado de datos solo por nómina
-  const datosFiltrados = datos.filter((item) =>
-    item.nomina.toLowerCase().includes(busqueda.toLowerCase())
-  );
-
-  const handleRowClick = (folio) => {
-    router.push(`/capturas/pases/crear-pase?claveconsulta=${folio}`);
+  //* Manejo del buscador
+  const handleBusqueda = (e) => {
+    const value = e.target.value.toLowerCase();
+    setBusqueda(value);
+    const filtered = datos.filter(
+      (item) =>
+        item.nomina && item.nomina.toString().toLowerCase().includes(value)
+    );
+    setFilteredData(filtered);
   };
 
-  const handleBusqueda = (e) => {
-    setBusqueda(e.target.value);
+  const handleRowClick = (folio, estatus) => {
+    if (estatus === "ATENDIDA") {
+      return;
+    }
+    router.push(`/capturas/pases/crear-pase?claveconsulta=${folio}`);
   };
 
   return (
@@ -136,65 +98,95 @@ const PasesAEspecialidad = () => {
             </tr>
           </thead>
           <tbody>
-            {loading ? (
-              [...Array(5)].map((_, index) => (
-                <tr key={index} className="animate-pulse">
-                  <td className="p-4">
-                    <div className="h-6 w-20 bg-gray-600 rounded"></div>
-                  </td>
-                  <td className="p-4">
-                    <div className="h-6 w-32 bg-gray-600 rounded"></div>
-                  </td>
-                  <td className="p-4">
-                    <div className="h-6 w-24 bg-gray-600 rounded"></div>
-                  </td>
-                  <td className="p-4">
-                    <div className="h-6 w-32 bg-gray-600 rounded"></div>
-                  </td>
-                  <td className="p-4">
-                    <div className="h-6 w-16 bg-gray-600 rounded"></div>
-                  </td>
-                </tr>
-              ))
-            ) : datosFiltrados.length > 0 ? (
-              datosFiltrados.map((item) => (
-                <tr
-                  key={item.folio}
-                  className="hover:bg-gray-700 transition-all cursor-pointer"
-                  onClick={() => handleRowClick(item.folio)}
-                >
-                  <td className="p-4 border-b border-gray-700">
-                    {item.especialidad}
-                  </td>
-                  <td className="p-4 border-b border-gray-700">
-                    {item.paciente}
-                  </td>
-                  <td className="p-4 border-b border-gray-700">{item.fecha}</td>
-                  <td className="p-4 border-b border-gray-700">
-                    {item.nomina}
-                  </td>
-                  <td
-                    className={`p-4 border-b border-gray-700 font-bold ${
-                      item.estatus === "EN ESPERA"
-                        ? "text-red-400"
-                        : "text-teal-400"
-                    }`}
+  {loading ? (
+    [...Array(5)].map((_, index) => (
+      <tr key={index} className="animate-pulse">
+        <td className="p-4">
+          <div className="h-6 w-20 bg-gray-600 rounded"></div>
+        </td>
+        <td className="p-4">
+          <div className="h-6 w-32 bg-gray-600 rounded"></div>
+        </td>
+        <td className="p-4">
+          <div className="h-6 w-24 bg-gray-600 rounded"></div>
+        </td>
+        <td className="p-4">
+          <div className="h-6 w-32 bg-gray-600 rounded"></div>
+        </td>
+        <td className="p-4">
+          <div className="h-6 w-16 bg-gray-600 rounded"></div>
+        </td>
+      </tr>
+    ))
+  ) : filteredData.length > 0 ? (
+    filteredData.map((item) => (
+      <tr
+        key={item.folio}
+        className={`relative group ${
+          item.estatus === "ATENDIDA"
+            ? "bg-gray-700 bg-opacity-50 text-gray-400 cursor-default"
+            : "hover:bg-gray-700 cursor-pointer"
+        } transition-all`}
+        onClick={() => item.estatus !== "ATENDIDA" && handleRowClick(item.folio, item.estatus)}
+      >
+        <td className="p-4 border-b border-gray-700">{item.especialidad}</td>
+        <td className="p-4 border-b border-gray-700">{item.paciente}</td>
+        <td className="p-4 border-b border-gray-700">{item.fecha}</td>
+        <td className="p-4 border-b border-gray-700">{item.nomina}</td>
+        <td
+          className={`p-4 border-b border-gray-700 font-bold ${
+            item.estatus === "EN ESPERA" ? "text-red-400" : "text-teal-400"
+          }`}
+        >
+          {item.estatus}
+        </td>
+
+        {/* Tooltip visible al pasar el cursor para ATENDIDA */}
+        {item.estatus === "ATENDIDA" && (
+          <div className="absolute invisible opacity-0 group-hover:visible group-hover:opacity-100 top-1/2 left-0 translate-x-[50%] -translate-y-1/2 w-64 transition-all duration-300 ease-out z-50">
+            <div className="relative p-4 bg-gradient-to-br from-gray-900/95 to-gray-800/95 backdrop-blur-md rounded-2xl border border-white/10 shadow-[0_0_30px_rgba(79,70,229,0.15)]">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-indigo-500/20">
+                  <svg
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    className="w-4 h-4 text-indigo-400"
                   >
-                    {item.estatus}
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td
-                  colSpan="5"
-                  className="p-4 text-center text-gray-500 border-b border-gray-700"
-                >
-                  No se encontraron datos.
-                </td>
-              </tr>
-            )}
-          </tbody>
+                    <path
+                      clipRule="evenodd"
+                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                      fillRule="evenodd"
+                    ></path>
+                  </svg>
+                </div>
+                <h3 className="text-sm font-semibold text-white">No editable</h3>
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-sm text-gray-300">
+                  Esta fila no se puede editar porque ya ha sido atendida.
+                </p>
+              </div>
+
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-indigo-500/10 to-purple-500/10 blur-xl opacity-50"></div>
+              <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-gradient-to-br from-gray-900/95 to-gray-800/95 rotate-45 border-r border-b border-white/10"></div>
+            </div>
+          </div>
+        )}
+      </tr>
+    ))
+  ) : (
+    <tr>
+      <td
+        colSpan="5"
+        className="p-4 text-center text-gray-500 border-b border-gray-700"
+      >
+        No se encontraron datos.
+      </td>
+    </tr>
+  )}
+</tbody>
+
         </table>
       </section>
     </div>

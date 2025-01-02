@@ -34,11 +34,19 @@ export default async function handler(req, res) {
     diagnostico ||
     "Sin Observaciones, No Se Asignó Incapacidad En Esta Consulta";
 
+  let transaction;
+
   try {
     const pool = await connectToDatabase();
 
+    //? Iniciar una transacción
+    transaction = new sql.Transaction(pool);
+    await transaction.begin();
+
+    console.log("Transacción iniciada.");
+
     //* Guardar en la base de datos
-    await pool
+    await transaction
       .request()
       .input("claveConsulta", sql.Int, claveConsulta)
       .input("clavenomina", sql.VarChar, clavenomina)
@@ -55,11 +63,22 @@ export default async function handler(req, res) {
 
     console.log("Incapacidad guardada exitosamente en la base de datos.");
 
+    //* Confirmar la transacción
+    await transaction.commit();
+    console.log("Transacción confirmada.");
+
     res.status(200).json({
       message: "Datos guardados correctamente.",
     });
   } catch (error) {
     console.error("Error al guardar los datos:", error);
+
+    //! Revertir la transacción si ocurrió un error
+    if (transaction) {
+      await transaction.rollback();
+      console.log("Transacción revertida debido a un error.");
+    }
+
     res.status(500).json({ message: "Error al guardar los datos." });
   }
 }

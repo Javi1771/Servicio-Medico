@@ -7,6 +7,7 @@ export default async function handler(req, res) {
 
     try {
       const pool = await connectToDatabase();
+      const transaction = new sql.Transaction(pool); //? Crear una transacción
 
       //* Obtener el valor de la cookie 'costo'
       const cookies = req.headers.cookie || "";
@@ -17,14 +18,22 @@ export default async function handler(req, res) {
 
       const costo = costoCookie ? parseFloat(costoCookie) : null;
 
-      //* Verificar campos obligatorios mínimos
+      //! Validar campos obligatorios mínimos
       if (!claveConsulta || !diagnostico || !motivoconsulta || costo === null) {
-        return res.status(400).json({ message: "Datos incompletos o inválidos." });
+        return res
+          .status(400)
+          .json({ message: "Datos incompletos o inválidos." });
       }
 
+      await transaction.begin(); //? Iniciar la transacción
+
       //* Construir la lista de columnas y valores dinámicos
-      const sets = ["diagnostico = @diagnostico", "motivoconsulta = @motivoconsulta", "costo = @costo"];
-      const request = pool.request()
+      const sets = [
+        "diagnostico = @diagnostico",
+        "motivoconsulta = @motivoconsulta",
+        "costo = @costo",
+      ];
+      const request = transaction.request()
         .input("claveConsulta", sql.Int, claveConsulta)
         .input("diagnostico", sql.Text, diagnostico)
         .input("motivoconsulta", sql.Text, motivoconsulta)
@@ -46,9 +55,18 @@ export default async function handler(req, res) {
       //* Ejecutar el query
       await request.query(query);
 
+      await transaction.commit(); //* Confirmar la transacción
+
       res.status(200).json({ message: "Datos guardados correctamente." });
     } catch (error) {
-      console.error("Error al procesar la consulta:", error);
+      console.error("❌ Error durante la transacción:", error);
+
+      //! Revertir la transacción en caso de error
+      if (transaction.isActive) {
+        await transaction.rollback();
+        console.log("❌ Transacción revertida debido a un error.");
+      }
+
       res.status(500).json({ message: "Error al procesar la consulta." });
     }
   } else {

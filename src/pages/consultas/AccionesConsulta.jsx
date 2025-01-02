@@ -124,62 +124,61 @@ const AccionesConsulta = ({
     }
   };
 
-  //* Guardar medicamentos
   const guardarMedicamentos = async () => {
     try {
       console.log("📤 Guardando medicamentos...");
-
+  
       const cachedMedicamentos = localStorage.getItem("medicamentos") || "[]";
       const decisionTomada = localStorage.getItem("decisionTomada");
-
-      // Si la decisión fue "No", no enviar datos al backend
+  
+      //* Si la decisión fue "No", no enviar datos al backend
       if (decisionTomada === "no") {
         console.log("⚠️ No se asignaron medicamentos en esta consulta.");
         return;
       }
-
+  
       const medicamentos = JSON.parse(cachedMedicamentos);
-
+  
       if (!Array.isArray(medicamentos) || medicamentos.length === 0) {
         throw new Error("No hay medicamentos para guardar.");
       }
-
-      // Validar y mapear medicamentos
-      const medicamentosMapeados = medicamentos.map((medicamento, index) => {
-        if (!medicamento.medicamento || !medicamento.tratamiento) {
+  
+      //* Validar y mapear medicamentos
+      const medicamentosPayload = medicamentos.map((medicamento, index) => {
+        if (!medicamento.medicamento || !medicamento.indicaciones || !medicamento.tratamiento) {
           throw new Error(`Faltan datos en el medicamento ${index + 1}`);
         }
         return {
-          folioReceta: parseInt(claveConsulta, 10),
-          descMedicamento: parseInt(medicamento.medicamento, 10),
+          folioReceta: String(claveConsulta), 
+          descMedicamento: medicamento.medicamento,
           indicaciones: medicamento.indicaciones.trim(),
-          cantidad: medicamento.tratamiento.trim(),
+          cantidad: medicamento.tratamiento.trim(), 
         };
       });
-
+  
       console.log(
         "🔍 Medicamentos preparados para enviar al backend:",
-        medicamentosMapeados
+        medicamentosPayload
       );
-
+  
+      //* Enviar medicamentos al backend
       const response = await fetch("/api/medicamentos/guardar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(medicamentosMapeados),
+        body: JSON.stringify(medicamentosPayload),
       });
-
+  
       if (!response.ok) {
         const error = await response.json();
-        console.error("❌ Error del backend al guardar medicamentos:", error);
-        throw new Error(error.error || "Error al guardar medicamentos.");
+        throw new Error(error.message || "Error al guardar los medicamentos.");
       }
-
-      console.log("✅ Medicamentos guardados correctamente.");
+  
+      console.log("✅ Todos los medicamentos guardados correctamente.");
     } catch (error) {
       console.error("❌ Error al guardar medicamentos:", error);
       throw error;
     }
-  };
+  };   
 
   //* Sincronización de prioridad al cambiar selección
   useEffect(() => {

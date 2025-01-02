@@ -13,7 +13,7 @@ export default async function handler(req, res) {
       clavepaciente,
     } = req.body;
 
-    // Log inicial de datos recibidos
+    //* Log inicial de datos recibidos
     console.log("🟢 Datos recibidos en la solicitud:", {
       claveConsulta,
       claveEspecialidad,
@@ -36,20 +36,16 @@ export default async function handler(req, res) {
       return res.status(400).json({ message: "Datos incompletos." });
     }
 
+    //* Establecer una conexión con la base de datos
+    const pool = await connectToDatabase();
+    const transaction = new sql.Transaction(pool); //? Crear una nueva transacción
+
     try {
-      const pool = await connectToDatabase();
+      await transaction.begin(); //? Iniciar la transacción
 
       const fechaRegistro = new Date().toISOString();
       const claveEspecialidadFinal =
         claveEspecialidad === "N" ? null : claveEspecialidad;
-
-      // Log para claveEspecialidad y observaciones procesadas
-      console.log("🔧 Procesando valores:", {
-        claveEspecialidadFinal,
-        observacionesFinal:
-          observaciones ||
-          "Sin Observaciones, No Se Asignó Especialidad En Esta Consulta",
-      });
 
       //* Determinar el valor real de observaciones
       const observacionesFinal =
@@ -63,7 +59,7 @@ export default async function handler(req, res) {
         observacionesFinal ===
           "Sin Observaciones, No Se Asignó Especialidad En Esta Consulta"
       ) {
-        estatus = 0;
+        estatus = 0; //! Sin especialidad asignada
       }
 
       console.log("🟠 Insertando en la tabla detalleEspecialidad con datos:");
@@ -80,8 +76,8 @@ export default async function handler(req, res) {
         clavepaciente,
       });
 
-      await pool
-        .request()
+      //* Insertar datos en la tabla detalleEspecialidad
+      await transaction.request()
         .input("claveconsulta", sql.Int, parseInt(claveConsulta, 10))
         .input("clavenomina", sql.VarChar, clavenomina)
         .input(
@@ -104,8 +100,7 @@ export default async function handler(req, res) {
       console.log("🟢 Registro insertado en la tabla detalleEspecialidad.");
 
       console.log("🟠 Actualizando la tabla consultas...");
-      await pool
-        .request()
+      await transaction.request()
         .input("claveconsulta", sql.Int, parseInt(claveConsulta, 10))
         .input(
           "claveespecialidad",
@@ -125,6 +120,10 @@ export default async function handler(req, res) {
         `);
 
       console.log("🟢 Tabla consultas actualizada.");
+
+      console.log("🟠 Confirmando transacción...");
+      await transaction.commit(); //* Confirmar los cambios si todo fue exitoso
+      console.log("🟢 Transacción confirmada.");
 
       console.log("🟠 Obteniendo historial actualizado...");
       const result = await pool
@@ -161,7 +160,12 @@ export default async function handler(req, res) {
         historial,
       });
     } catch (error) {
-      console.error("❌ Error al guardar la especialidad:", error);
+      console.error("❌ Error durante la transacción:", error);
+
+      //! Revertir la transacción si ocurrió un error
+      await transaction.rollback();
+      console.log("❌ Transacción revertida debido a un error.");
+
       res.status(500).json({ message: "Error al guardar la especialidad." });
     }
   } else {

@@ -8,21 +8,8 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
   ]);
   const [listaMedicamentos, setListaMedicamentos] = useState([]);
   const [historialMedicamentos, setHistorialMedicamentos] = useState([]);
-  const [decisionTomada, setDecisionTomada] = useState(null); // 'si' o 'no'
+  const [decisionTomada, setDecisionTomada] = useState(null); // Inicializa como null
   const { updateFormulario } = useContext(FormularioContext);
-
-  //* Cargar datos iniciales desde localStorage
-  useEffect(() => {
-    const savedDecision = localStorage.getItem("decisionTomada");
-    const savedMedicamentos = localStorage.getItem("medicamentos");
-
-    if (savedDecision) {
-      setDecisionTomada(savedDecision);
-    }
-    if (savedMedicamentos) {
-      setMedicamentos(JSON.parse(savedMedicamentos));
-    }
-  }, []);
 
   //* Cargar lista de medicamentos desde el backend
   useEffect(() => {
@@ -68,9 +55,8 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
 
   //* Guardar datos en localStorage al cambiar
   useEffect(() => {
-    localStorage.setItem("decisionTomada", decisionTomada || "");
     localStorage.setItem("medicamentos", JSON.stringify(medicamentos));
-  }, [medicamentos, decisionTomada]);
+  }, [medicamentos]);
 
   const handleMedicamentoChange = (index, field, value) => {
     const nuevosMedicamentos = [...medicamentos];
@@ -87,17 +73,22 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
   const quitarMedicamento = (index) =>
     setMedicamentos(medicamentos.filter((_, i) => i !== index));
 
+  //* Manejo de la decisión (Sí o No) actualizada
   const handleDecision = (decision) => {
+    console.log(`🛠️ Decisión tomada: ${decision}`);
     setDecisionTomada(decision);
+  
+    //* Guardar la decisión en localStorage
+    localStorage.setItem("decisionTomada", decision);
+  
     if (decision === "no") {
-      // Mantener un estado vacío válido para "No"
+      console.log("🧹 Limpiando medicamentos porque la decisión es 'No'");
       setMedicamentos([]);
     } else {
-      setMedicamentos([
-        { medicamento: "", indicaciones: "", tratamiento: "" },
-      ]);
+      console.log("➕ Agregando un medicamento inicial porque la decisión es 'Sí'");
+      setMedicamentos([{ medicamento: "", indicaciones: "", tratamiento: "" }]);
     }
-  };
+  };  
 
   return (
     <div className="bg-gray-800 p-4 md:p-8 rounded-lg shadow-lg">
@@ -144,7 +135,11 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
                 <select
                   value={med.medicamento}
                   onChange={(e) =>
-                    handleMedicamentoChange(index, "medicamento", e.target.value)
+                    handleMedicamentoChange(
+                      index,
+                      "medicamento",
+                      e.target.value
+                    )
                   }
                   className="mt-2 block w-full h-12 rounded-lg bg-gray-700 border-gray-600 text-white p-3 focus:ring-2 focus:ring-purple-600"
                 >
@@ -156,7 +151,6 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
                   ))}
                 </select>
               </div>
-
               <div>
                 <label className="text-lg font-semibold text-gray-200">
                   Indicaciones:
@@ -164,13 +158,16 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
                 <textarea
                   value={med.indicaciones}
                   onChange={(e) =>
-                    handleMedicamentoChange(index, "indicaciones", e.target.value)
+                    handleMedicamentoChange(
+                      index,
+                      "indicaciones",
+                      e.target.value
+                    )
                   }
                   className="mt-2 block w-full h-32 md:h-40 rounded-lg bg-gray-700 border-gray-600 text-white p-3"
                   placeholder="Escribe aquí las indicaciones..."
                 />
               </div>
-
               <div>
                 <label className="text-lg font-semibold text-gray-200">
                   Tratamiento:
@@ -178,7 +175,11 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
                 <textarea
                   value={med.tratamiento}
                   onChange={(e) =>
-                    handleMedicamentoChange(index, "tratamiento", e.target.value)
+                    handleMedicamentoChange(
+                      index,
+                      "tratamiento",
+                      e.target.value
+                    )
                   }
                   className="mt-2 block w-full h-32 md:h-40 rounded-lg bg-gray-700 border-gray-600 text-white p-3"
                   placeholder="Escribe aquí el tratamiento..."
@@ -218,7 +219,9 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
           <table className="min-w-full rounded-lg text-left">
             <thead>
               <tr className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white border-b border-gray-700">
-                <th className="py-4 px-6 text-base font-semibold">Medicamento</th>
+                <th className="py-4 px-6 text-base font-semibold">
+                  Medicamento
+                </th>
                 <th className="py-4 px-6 text-base font-semibold">
                   Indicaciones
                 </th>
