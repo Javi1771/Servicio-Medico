@@ -108,7 +108,7 @@ const Diagnostico = () => {
 
   useEffect(() => {
     console.log("Estado de validación del formulario:", formCompleto);
-  }, [formCompleto]); // Observa cambios en `formCompleto`
+  }, [formCompleto]); 
 
   useEffect(() => {
     const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY, {
@@ -407,12 +407,12 @@ const Diagnostico = () => {
                 <tr
                   key={paciente.claveconsulta}
                   className={`bg-gray-700 bg-opacity-50 ${
-                    index === 0
+                    index === 0 || index === 1 || index === 2
                       ? "hover:bg-gradient-to-r from-yellow-500 to-yellow-700 transition duration-300 ease-in-out cursor-pointer"
                       : "cursor-not-allowed opacity-50"
                   } rounded-lg shadow-md`}
                   onClick={() => {
-                    if (index === 0) handlePacienteClick(paciente);
+                    if (index === 0 || index === 1 || index === 2) handlePacienteClick(paciente);
                   }}
                 >
                   <td className="py-4 px-6 font-medium text-center text-gray-200">
@@ -532,8 +532,8 @@ const Diagnostico = () => {
               nombrePaciente={pacienteSeleccionado?.nombrepaciente}
               nombreMedico={nombreMedico}
               claveEspecialidad={claveEspecialidad}
-              pasarEspecialidad={pasarEspecialidad} // Pasa el estado
-              setPasarEspecialidad={setPasarEspecialidad} // Pasa la función setter
+              pasarEspecialidad={pasarEspecialidad} 
+              setPasarEspecialidad={setPasarEspecialidad}
               especialidadSeleccionada={especialidadSeleccionada}
               setEspecialidadSeleccionada={setEspecialidadSeleccionada}
               observaciones={observaciones}

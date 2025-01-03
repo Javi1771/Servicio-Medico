@@ -39,9 +39,9 @@ export default async function handler(req, res) {
         .input("motivoconsulta", sql.Text, motivoconsulta)
         .input("costo", sql.Decimal(10, 2), costo);
 
-      //* Agregar claveusuario si está definido
+      //* Agregar claveusuario y claveproveedor si están definidos
       if (claveusuario !== undefined) {
-        sets.push("claveusuario = @claveusuario");
+        sets.push("claveusuario = @claveusuario", "claveproveedor = @claveusuario");
         request.input("claveusuario", sql.Int, claveusuario);
       }
 

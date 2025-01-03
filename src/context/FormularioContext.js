@@ -4,11 +4,11 @@ export const FormularioContext = createContext();
 
 export const FormularioProvider = ({ children }) => {
   const pantallasIniciales = {
-    DatosAdicionales: false,
-    Medicamentos: false,
-    PaseEspecialidad: false,
-    Incapacidades: false,
-  };
+    DatosAdicionales: true, 
+    Medicamentos: true, 
+    PaseEspecialidad: true, 
+    Incapacidades: true, 
+  };  
 
   const [formulariosCompletos, setFormulariosCompletos] = useState(
     pantallasIniciales
@@ -22,7 +22,7 @@ export const FormularioProvider = ({ children }) => {
         setTodosCompletos(Object.values(nuevoEstado).every((estado) => estado));
         return nuevoEstado;
       }
-      return prevState; // No actualizar si no hay cambios
+      return prevState; //! No actualizar si no hay cambios
     });
   };
 

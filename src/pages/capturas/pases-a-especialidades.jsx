@@ -98,97 +98,124 @@ const PasesAEspecialidad = () => {
             </tr>
           </thead>
           <tbody>
-  {loading ? (
-    [...Array(5)].map((_, index) => (
-      <tr key={index} className="animate-pulse">
-        <td className="p-4">
-          <div className="h-6 w-20 bg-gray-600 rounded"></div>
-        </td>
-        <td className="p-4">
-          <div className="h-6 w-32 bg-gray-600 rounded"></div>
-        </td>
-        <td className="p-4">
-          <div className="h-6 w-24 bg-gray-600 rounded"></div>
-        </td>
-        <td className="p-4">
-          <div className="h-6 w-32 bg-gray-600 rounded"></div>
-        </td>
-        <td className="p-4">
-          <div className="h-6 w-16 bg-gray-600 rounded"></div>
-        </td>
-      </tr>
-    ))
-  ) : filteredData.length > 0 ? (
-    filteredData.map((item) => (
-      <tr
-        key={item.folio}
-        className={`relative group ${
-          item.estatus === "ATENDIDA"
-            ? "bg-gray-700 bg-opacity-50 text-gray-400 cursor-default"
-            : "hover:bg-gray-700 cursor-pointer"
-        } transition-all`}
-        onClick={() => item.estatus !== "ATENDIDA" && handleRowClick(item.folio, item.estatus)}
-      >
-        <td className="p-4 border-b border-gray-700">{item.especialidad}</td>
-        <td className="p-4 border-b border-gray-700">{item.paciente}</td>
-        <td className="p-4 border-b border-gray-700">{item.fecha}</td>
-        <td className="p-4 border-b border-gray-700">{item.nomina}</td>
-        <td
-          className={`relative p-4 border-b border-gray-700 font-bold ${
-            item.estatus === "EN ESPERA" ? "text-red-400" : "text-teal-400"
-          }`}
-        >
-          {item.estatus}
+            {loading ? (
+              [...Array(5)].map((_, index) => (
+                <tr key={index} className="animate-pulse">
+                  <td className="p-4">
+                    <div className="h-6 w-20 bg-gray-600 rounded"></div>
+                  </td>
+                  <td className="p-4">
+                    <div className="h-6 w-32 bg-gray-600 rounded"></div>
+                  </td>
+                  <td className="p-4">
+                    <div className="h-6 w-24 bg-gray-600 rounded"></div>
+                  </td>
+                  <td className="p-4">
+                    <div className="h-6 w-32 bg-gray-600 rounded"></div>
+                  </td>
+                  <td className="p-4">
+                    <div className="h-6 w-16 bg-gray-600 rounded"></div>
+                  </td>
+                </tr>
+              ))
+            ) : filteredData.length > 0 ? (
+              filteredData.map((item) => (
+                <tr
+                  key={item.folio}
+                  className={`relative group ${
+                    item.estatus === "ATENDIDA"
+                      ? "bg-gray-700 bg-opacity-50 text-gray-400 cursor-default"
+                      : "hover:bg-gray-700 cursor-pointer"
+                  } transition-all`}
+                  onClick={() =>
+                    item.estatus !== "ATENDIDA" &&
+                    handleRowClick(item.folio, item.estatus)
+                  }
+                >
+                  <td className="p-4 border-b border-gray-700">
+                    {item.especialidad}
+                  </td>
+                  <td className="p-4 border-b border-gray-700">
+                    {item.paciente}
+                  </td>
+                  <td className="p-4 border-b border-gray-700">{item.fecha}</td>
+                  <td className="p-4 border-b border-gray-700">
+                    {item.nomina}
+                  </td>
 
-          {/* Tooltip visible al pasar el cursor para ATENDIDA */}
-          {item.estatus === "ATENDIDA" && (
-            <div className="absolute invisible opacity-0 group-hover:visible group-hover:opacity-100 bottom-full right-0 transform translate-y-2 w-72 transition-all duration-300 ease-out z-50">
-              <div className="relative p-4 bg-gradient-to-br from-gray-900/95 to-gray-800/95 backdrop-blur-md rounded-2xl border border-white/10 shadow-[0_0_30px_rgba(79,70,229,0.5)]">
-                <div className="absolute inset-0 rounded-2xl blur-xl opacity-75 animate-pulse bg-gradient-to-r from-indigo-500/30 via-purple-500/30 to-pink-500/30"></div>
-                <div className="relative">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-indigo-500/20">
-                      <svg
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                        className="w-4 h-4 text-indigo-400"
+                  <td
+                    className={`relative p-4 border-b border-gray-700 font-bold ${
+                      item.estatus === "EN ESPERA"
+                        ? "text-red-400"
+                        : "text-teal-400"
+                    } group`}
+                  >
+                    {item.estatus}
+
+                    {/* Tooltip visible al pasar el cursor para ATENDIDA */}
+                    {item.estatus === "ATENDIDA" && (
+                      <div
+                        className={`absolute invisible opacity-0 group-hover:visible group-hover:opacity-100 ${
+                          datos.indexOf(item) === 0 || datos.indexOf(item) === 1
+                            ? "top-full translate-y-2"
+                            : "bottom-full -translate-y-2"
+                        } right-0 transform w-72 transition-all duration-300 ease-out z-50`}
                       >
-                        <path
-                          clipRule="evenodd"
-                          d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                          fillRule="evenodd"
-                        ></path>
-                      </svg>
-                    </div>
-                    <h3 className="text-sm font-semibold text-white">No editable</h3>
-                  </div>
+                        <div className="relative p-4 bg-gradient-to-br from-gray-900/95 to-gray-800/95 backdrop-blur-md rounded-2xl border border-white/10 shadow-[0_0_30px_rgba(79,70,229,0.5)]">
+                          <div className="absolute inset-0 rounded-2xl blur-xl opacity-75 animate-pulse bg-gradient-to-r from-indigo-500/30 via-purple-500/30 to-pink-500/30"></div>
+                          <div className="relative">
+                            <div className="flex items-center gap-3 mb-2">
+                              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-indigo-500/20">
+                                <svg
+                                  viewBox="0 0 20 20"
+                                  fill="currentColor"
+                                  className="w-4 h-4 text-indigo-400"
+                                >
+                                  <path
+                                    clipRule="evenodd"
+                                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                                    fillRule="evenodd"
+                                  ></path>
+                                </svg>
+                              </div>
+                              <h3 className="text-sm font-bold text-white">
+                                No editable
+                              </h3>
+                            </div>
 
-                  <div className="space-y-2">
-                    <p className="text-sm text-gray-300">
-                      Esta fila no se puede editar porque ya ha sido atendida.
-                    </p>
-                  </div>
-                </div>
-                <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-indigo-500/10 to-purple-500/10 blur-xl opacity-50"></div>
-                <div className="absolute -bottom-1.5 right-3 w-3 h-3 bg-gradient-to-br from-gray-900/95 to-gray-800/95 rotate-45 border-r border-b border-white/10"></div>
-              </div>
-            </div>
-          )}
-        </td>
-      </tr>
-    ))
-  ) : (
-    <tr>
-      <td
-        colSpan="5"
-        className="p-4 text-center text-gray-500 border-b border-gray-700"
-      >
-        No se encontraron datos.
-      </td>
-    </tr>
-  )}
-</tbody>
-
+                            <div className="space-y-2">
+                              <p className="text-sm text-gray-300">
+                                Esta consulta no se puede editar porque ya ha sido
+                                atendida.
+                              </p>
+                            </div>
+                          </div>
+                          <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-indigo-500/10 to-purple-500/10 blur-xl opacity-50"></div>
+                          <div
+                            className={`absolute ${
+                              datos.indexOf(item) === 0 ||
+                              datos.indexOf(item) === 1
+                                ? "top-0 right-3 transform -translate-y-1/2 rotate-45"
+                                : "bottom-0 right-3 transform translate-y-1/2 rotate-45"
+                            } w-3 h-3 bg-gradient-to-br from-gray-900/95 to-gray-800/95 border-r border-b border-white/10`}
+                          ></div>
+                        </div>
+                      </div>
+                    )}
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td
+                  colSpan="5"
+                  className="p-4 text-center text-gray-500 border-b border-gray-700"
+                >
+                  No se encontraron datos.
+                </td>
+              </tr>
+            )}
+          </tbody>
         </table>
       </section>
     </div>

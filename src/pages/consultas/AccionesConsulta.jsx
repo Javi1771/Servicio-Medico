@@ -42,7 +42,15 @@ const AccionesConsulta = ({
     };
 
     const faltantes = Object.entries(formulariosCompletos)
-      .filter(([, completo]) => !completo)
+      .filter(
+        ([pantalla, completo]) =>
+          !completo &&
+          !(
+            pantalla === "Medicamentos" ||
+            pantalla === "PaseEspecialidad" ||
+            pantalla === "Incapacidades"
+          )
+      )
       .map(([pantalla]) => nombresLegibles[pantalla] || pantalla);
 
     if (faltantes.length === 0) {
@@ -131,37 +139,36 @@ const AccionesConsulta = ({
       const cachedMedicamentos = localStorage.getItem("medicamentos") || "[]";
       const decisionTomada = localStorage.getItem("decisionTomada");
   
-      //* Si la decisión fue "No", no enviar datos al backend
-      if (decisionTomada === "no") {
-        console.log("⚠️ No se asignaron medicamentos en esta consulta.");
-        return;
-      }
+      console.log("Decisión tomada al guardar medicamentos:", decisionTomada);
+      console.log("Medicamentos cargados del localStorage:", cachedMedicamentos);
   
       const medicamentos = JSON.parse(cachedMedicamentos);
+      let medicamentosPayload;
   
-      if (!Array.isArray(medicamentos) || medicamentos.length === 0) {
-        throw new Error("No hay medicamentos para guardar.");
+      if (decisionTomada === "no") {
+        medicamentosPayload = {
+          folioReceta: claveConsulta,
+          decisionTomada,
+          medicamentos: [], // Vacío porque no se asignaron medicamentos
+        };
+      } else {
+        if (!Array.isArray(medicamentos) || medicamentos.length === 0) {
+          throw new Error("No hay medicamentos para guardar.");
+        }
+  
+        medicamentosPayload = {
+          folioReceta: claveConsulta,
+          decisionTomada,
+          medicamentos: medicamentos.map((medicamento) => ({
+            descMedicamento: medicamento.medicamento,
+            indicaciones: medicamento.indicaciones.trim(),
+            cantidad: medicamento.tratamiento.trim(),
+          })),
+        };
       }
   
-      //* Validar y mapear medicamentos
-      const medicamentosPayload = medicamentos.map((medicamento, index) => {
-        if (!medicamento.medicamento || !medicamento.indicaciones || !medicamento.tratamiento) {
-          throw new Error(`Faltan datos en el medicamento ${index + 1}`);
-        }
-        return {
-          folioReceta: String(claveConsulta), 
-          descMedicamento: medicamento.medicamento,
-          indicaciones: medicamento.indicaciones.trim(),
-          cantidad: medicamento.tratamiento.trim(), 
-        };
-      });
+      console.log("🔍 Payload preparado para el backend:", medicamentosPayload);
   
-      console.log(
-        "🔍 Medicamentos preparados para enviar al backend:",
-        medicamentosPayload
-      );
-  
-      //* Enviar medicamentos al backend
       const response = await fetch("/api/medicamentos/guardar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -178,7 +185,8 @@ const AccionesConsulta = ({
       console.error("❌ Error al guardar medicamentos:", error);
       throw error;
     }
-  };   
+  };
+  
 
   //* Sincronización de prioridad al cambiar selección
   useEffect(() => {
@@ -326,6 +334,39 @@ const AccionesConsulta = ({
   //* Guardado global
   const handleGuardarGlobal = async () => {
     try {
+      //* Mostrar alerta de confirmación si todas las respuestas son "NO"
+      if (
+        formulariosCompletos["Medicamentos"] === false &&
+        formulariosCompletos["PaseEspecialidad"] === false &&
+        formulariosCompletos["Incapacidades"] === false
+      ) {
+        const result = await MySwal.fire({
+          icon: "warning",
+          title: "Confirmación requerida",
+          html: `
+            <p style="color: #fff; font-size: 1.1em;">No se asignarán medicamentos, especialidad ni incapacidad en esta consulta.</p>
+            <p style="color: #ffcc00; font-weight: bold;">¿Desea continuar?</p>
+          `,
+          showCancelButton: true,
+          confirmButtonColor: "#1e90ff",
+          cancelButtonColor: "#ff1744",
+          confirmButtonText:
+            "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
+          cancelButtonText:
+            "<span style='color: #fff; font-weight: bold;'>Cancelar</span>",
+          background: "linear-gradient(145deg, #333333, #222222)",
+          customClass: {
+            popup:
+              "border border-yellow-600 shadow-[0px_0px_20px_5px_rgba(255,255,0,0.9)] rounded-lg",
+          },
+        });
+
+        if (!result.isConfirmed) {
+          console.log("🚫 Guardado cancelado por el usuario.");
+          return;
+        }
+      }
+
       console.log("📤 Iniciando guardado global...");
 
       //* Realizar cada operación de guardado de forma secuencial para detenerse en caso de error

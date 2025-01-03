@@ -9,8 +9,6 @@ const MySwal = withReactContent(Swal);
 
 const PaseEspecialidad = ({
   claveConsulta,
-  pasarEspecialidad,
-  setPasarEspecialidad,
   especialidadSeleccionada,
   setEspecialidadSeleccionada,
   observaciones,
@@ -22,10 +20,11 @@ const PaseEspecialidad = ({
   const [prioridad, setPrioridad] = useState("");
   const [historialEspecialidades, setHistorialEspecialidades] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [pasarEspecialidad, setPasarEspecialidad] = useState("no");
 
   const { updateFormulario } = useContext(FormularioContext);
 
-  // Carga las especialidades disponibles al montar el componente
+  //* Carga las especialidades disponibles al montar el componente
   useEffect(() => {
     const fetchEspecialidades = async () => {
       try {
@@ -44,7 +43,7 @@ const PaseEspecialidad = ({
     fetchEspecialidades();
   }, []);
 
-  // Restaurar datos desde localStorage al montar el componente
+  //* Restaurar datos desde localStorage al montar el componente
   useEffect(() => {
     const cachedData = localStorage.getItem(
       `PaseEspecialidad:${claveConsulta}`
@@ -130,7 +129,7 @@ const PaseEspecialidad = ({
     claveConsulta,
   ]);
 
-  // Sincronizar datos al desmontar el componente
+  //* Sincronizar datos al desmontar el componente
   useEffect(() => {
     return () => {
       const cachedData = {
@@ -152,7 +151,7 @@ const PaseEspecialidad = ({
     claveConsulta,
   ]);
 
-  // Actualizar formulario
+  //* Actualizar formulario
   useEffect(() => {
     const camposRequeridosLlenos =
       (pasarEspecialidad === "si" && prioridad && especialidadSeleccionada) ||
@@ -166,7 +165,7 @@ const PaseEspecialidad = ({
     updateFormulario,
   ]);
 
-  // Sincronizar prioridad en localStorage al cambiar
+  //* Sincronizar prioridad en localStorage al cambiar
   useEffect(() => {
     const cachedData = JSON.parse(
       localStorage.getItem(`PaseEspecialidad:${claveConsulta}`) || "{}"
@@ -214,10 +213,10 @@ const PaseEspecialidad = ({
             } text-white`}
             onClick={() => {
               setPasarEspecialidad("no");
-              setPrioridad(null); // Prioridad debe ser null para "No"
-              setEspecialidadSeleccionada(null); // Especialidad debe ser null
-              setObservaciones(null); // Observaciones debe ser null para "No"
-              updateFormulario("PaseEspecialidad", true); // Indica que el formulario está completo
+              setPrioridad(null); //! Prioridad debe ser null para "No"
+              setEspecialidadSeleccionada(null); //! Especialidad debe ser null
+              setObservaciones(null); //! Observaciones debe ser null para "No"
+              updateFormulario("PaseEspecialidad", true); //! Indica que el formulario está completo
             }}
             aria-label="Seleccionar No para no pasar a especialidad"
           >

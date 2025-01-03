@@ -15,12 +15,15 @@ export default async function handler(req, res) {
     fechaFinal,
     diagnostico,
     clavepaciente,
+    seAsignoIncapacidad, // Nuevo campo para decidir el valor a actualizar
   } = req.body;
 
-  if (!clavenomina || !clavepaciente) {
+  if (!clavenomina || !clavepaciente || seAsignoIncapacidad === undefined) {
     const datosFaltantes = [];
     if (!clavenomina) datosFaltantes.push("clavenomina");
     if (!clavepaciente) datosFaltantes.push("clavepaciente");
+    if (seAsignoIncapacidad === undefined)
+      datosFaltantes.push("seAsignoIncapacidad");
 
     console.error("Faltan datos obligatorios:", datosFaltantes);
     return res
@@ -45,7 +48,7 @@ export default async function handler(req, res) {
 
     console.log("Transacción iniciada.");
 
-    //* Guardar en la base de datos
+    //* Guardar en la tabla detalleIncapacidad
     await transaction
       .request()
       .input("claveConsulta", sql.Int, claveConsulta)
@@ -57,11 +60,26 @@ export default async function handler(req, res) {
       .input("clavepaciente", sql.VarChar, clavepaciente)
       .query(`
         INSERT INTO detalleIncapacidad 
-        (claveConsulta, clavenomina, fechaInicial, fechaFinal, diagnostico, estatus, clavepaciente)
+        (claveConsulta, noNomina, fechaInicial, fechaFinal, diagnostico, estatus, clavepaciente)
         VALUES (@claveConsulta, @clavenomina, @fechaInicial, @fechaFinal, @diagnostico, @estatus, @clavepaciente)
       `);
 
     console.log("Incapacidad guardada exitosamente en la base de datos.");
+
+    //* Actualizar la tabla consultas
+    await transaction
+      .request()
+      .input("claveConsulta", sql.Int, claveConsulta)
+      .input("seAsignoIncapacidad", sql.Int, seAsignoIncapacidad ? 1 : 0) // 1: Sí, 0: No
+      .query(`
+        UPDATE consultas
+        SET seAsignoIncapacidad = @seAsignoIncapacidad
+        WHERE claveConsulta = @claveConsulta
+      `);
+
+    console.log(
+      `Columna seAsignoIncapacidad actualizada correctamente con el valor: ${seAsignoIncapacidad ? 1 : 0}`
+    );
 
     //* Confirmar la transacción
     await transaction.commit();

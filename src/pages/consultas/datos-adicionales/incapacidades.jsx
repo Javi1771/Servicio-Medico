@@ -12,8 +12,8 @@ import { FormularioContext } from "/src/context/FormularioContext";
 const MySwal = withReactContent(Swal);
 
 const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
-  const { updateFormulario } = useContext(FormularioContext); // Obtener updateFormulario
-  const [autorizarIncapacidad, setAutorizarIncapacidad] = useState(null);
+  const { updateFormulario } = useContext(FormularioContext);
+  const [autorizarIncapacidad, setAutorizarIncapacidad] = useState("no");
   const [fechaInicio, setFechaInicio] = useState(null);
   const [fechaFin, setFechaFin] = useState(null);
   const [isFechaInicioOpen, setIsFechaInicioOpen] = useState(false);
@@ -193,7 +193,7 @@ const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
           setHistorialIncapacidades((prev) => {
             const combinado = [...prev, ...historialFormateado];
 
-            // Eliminar duplicados basado en idDetalleIncapacidad
+            //! Eliminar duplicados basado en idDetalleIncapacidad
             const unico = combinado.reduce((acc, current) => {
               if (
                 !acc.some(
@@ -294,10 +294,17 @@ const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
                   <Calendar
                     onChange={(date) => {
                       setFechaInicio(date);
+                      setFechaFin(null); // Reiniciar la fecha final al cambiar la inicial
                       setIsFechaInicioOpen(false);
                     }}
                     value={fechaInicio}
                     className="bg-gradient-to-br from-gray-900 via-black to-gray-800 rounded-lg text-cyan-300"
+                    tileDisabled={({ date }) => {
+                      const today = new Date();
+                      today.setHours(0, 0, 0, 0); // Comparar solo por fecha
+                      // Deshabilitar fechas anteriores al día actual
+                      return date < today;
+                    }}
                     tileClassName={({ date, view }) =>
                       "text-gray-500 bg-gray-800 border border-gray-700 rounded-md"
                     }
@@ -347,6 +354,20 @@ const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
                     }}
                     value={fechaFin}
                     className="bg-gradient-to-br from-gray-900 via-black to-gray-800 rounded-lg text-pink-300"
+                    tileDisabled={({ date }) => {
+                      if (!fechaInicio) return true; // Deshabilitar si no hay fecha inicial seleccionada
+
+                      const maxDate = new Date(fechaInicio);
+                      maxDate.setDate(maxDate.getDate() + 15); // Agregar 15 días a la fecha inicial
+
+                      const today = new Date();
+                      today.setHours(0, 0, 0, 0); // Comparar solo por fecha
+
+                      // Deshabilitar fechas fuera del rango permitido
+                      return (
+                        date < fechaInicio || date > maxDate || date < today
+                      );
+                    }}
                     tileClassName={({ date, view }) =>
                       "text-gray-500 bg-gray-800 border border-gray-700 rounded-md"
                     }
@@ -410,13 +431,13 @@ const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
                   historialIncapacidades
                     .filter(
                       (item) => item.idDetalleIncapacidad && item.claveConsulta
-                    ) // Filtrar filas inválidas
+                    ) //* Filtrar filas inválidas
                     .sort(
                       (a, b) => b.idDetalleIncapacidad - a.idDetalleIncapacidad
-                    ) // Ordenar por idDetalleIncapacidad
+                    ) //* Ordenar por idDetalleIncapacidad
                     .map((item) => (
                       <tr
-                        key={item.idDetalleIncapacidad} // Usar idDetalleIncapacidad como clave
+                        key={item.idDetalleIncapacidad} //* Usar idDetalleIncapacidad como clave
                         className="hover:bg-purple-600 hover:bg-opacity-50 transition-colors duration-300"
                       >
                         <td className="py-3 px-4 border-t border-gray-800 text-gray-300">

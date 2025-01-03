@@ -18,7 +18,7 @@ async function queryWithRetries(pool, query, retries = MAX_RETRIES) {
         } segundos...`
       );
       await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
-      const newPool = await connectToDatabase(); // Intentar reconectar
+      const newPool = await connectToDatabase(); //* Intentar reconectar
       return queryWithRetries(newPool, query, retries - 1);
     } else if (retries > 1) {
       console.warn(
@@ -43,7 +43,7 @@ export default async function handler(req, res) {
   try {
     const { claveEspecialidad } = req.body;
 
-    // Validar que claveEspecialidad sea un número
+    //* Validar que claveEspecialidad sea un número
     if (!claveEspecialidad || isNaN(Number(claveEspecialidad))) {
       res.status(400).json({
         message: 'La claveEspecialidad debe ser un número válido.',
@@ -53,7 +53,7 @@ export default async function handler(req, res) {
 
     const pool = await connectToDatabase();
 
-    // Consulta para obtener los proveedores según la clave de especialidad
+    //* Consulta para obtener los proveedores según la clave de especialidad
     const query = `
       SELECT 
         claveproveedor, 

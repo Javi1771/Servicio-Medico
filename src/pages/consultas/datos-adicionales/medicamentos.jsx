@@ -8,8 +8,25 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
   ]);
   const [listaMedicamentos, setListaMedicamentos] = useState([]);
   const [historialMedicamentos, setHistorialMedicamentos] = useState([]);
-  const [decisionTomada, setDecisionTomada] = useState(null); // Inicializa como null
+  const [decisionTomada, setDecisionTomada] = useState("no");
   const { updateFormulario } = useContext(FormularioContext);
+
+  useEffect(() => {
+    const decisionGuardada = localStorage.getItem("decisionTomada");
+    if (decisionGuardada) {
+      setDecisionTomada(decisionGuardada);
+    } else {
+      // Si no hay nada en el localStorage, inicializar como "no"
+      localStorage.setItem("decisionTomada", "no");
+    }
+  }, []);  
+
+  useEffect(() => {
+    if (decisionTomada === "no") {
+      setMedicamentos([]); // Asegurarse de que no haya medicamentos si es "no"
+      localStorage.removeItem("medicamentos");
+    }
+  }, [decisionTomada]);  
 
   //* Cargar lista de medicamentos desde el backend
   useEffect(() => {
@@ -83,10 +100,17 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
   
     if (decision === "no") {
       console.log("🧹 Limpiando medicamentos porque la decisión es 'No'");
-      setMedicamentos([]);
+      setMedicamentos([]); //* Limpia el estado
+      localStorage.removeItem("medicamentos"); //* Limpia el localStorage
     } else {
-      console.log("➕ Agregando un medicamento inicial porque la decisión es 'Sí'");
+      console.log(
+        "➕ Agregando un medicamento inicial porque la decisión es 'Sí'"
+      );
       setMedicamentos([{ medicamento: "", indicaciones: "", tratamiento: "" }]);
+      localStorage.setItem(
+        "medicamentos",
+        JSON.stringify([{ medicamento: "", indicaciones: "", tratamiento: "" }])
+      );
     }
   };  
 

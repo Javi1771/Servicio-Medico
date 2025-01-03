@@ -3,25 +3,27 @@ import sql from "mssql";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
-    console.error("\uD83D\uDEAB Método no permitido. Solo se acepta POST.");
+    console.error("❌ Método no permitido. Solo se acepta POST.");
     return res.status(405).json({ error: "Método no permitido" });
   }
 
-  console.log("\uD83D\uDE80 Datos recibidos en el backend:", req.body);
+  console.log("📨 Datos recibidos en el backend:", req.body);
 
-  if (!Array.isArray(req.body)) {
-    console.warn("⚠️ Payload no es un arreglo de medicamentos.");
-    return res.status(400).json({ error: "El payload debe ser un arreglo de medicamentos." });
+  const { medicamentos = [], folioReceta, decisionTomada } = req.body;
+
+  // Validar que el payload tenga los campos esperados
+  if (!folioReceta || decisionTomada === undefined) {
+    console.error("❌ Faltan datos obligatorios en el payload.");
+    return res.status(400).json({
+      error: "El payload debe contener 'folioReceta' y 'decisionTomada'.",
+    });
   }
 
-  const medicamentos = req.body;
-
   try {
-    console.log("\uD83C\uDF10 Conectando a la base de datos...");
+    console.log("🌐 Conectando a la base de datos...");
     const pool = await connectToDatabase();
-    console.log("\uD83C\uDF10 Conexión establecida con éxito.");
+    console.log("🌐 Conexión establecida con éxito.");
 
-    //? Iniciar una transacción
     const transaction = new sql.Transaction(pool);
     await transaction.begin();
 
@@ -33,61 +35,63 @@ export default async function handler(req, res) {
 
     const resultados = [];
 
-    for (const [index, med] of medicamentos.entries()) {
-      const { folioReceta, descMedicamento, indicaciones, cantidad } = med;
+    if (decisionTomada === "no") {
+      // Insertar valores predeterminados si la decisión es "No"
+      console.log("⚠️ Decisión tomada: No. Insertando valores predeterminados.");
+      await transaction.request()
+        .input("folioReceta", sql.Int, parseInt(folioReceta, 10))
+        .input("descMedicamento", sql.Int, 0)
+        .input(
+          "indicaciones",
+          sql.NVarChar,
+          "Sin indicaciones ya que no se asignaron medicamentos."
+        )
+        .input("estatus", sql.Int, 1)
+        .input(
+          "cantidad",
+          sql.NVarChar,
+          "Sin tiempo de toma estimado, sin medicamentos."
+        )
+        .query(queryInsertarReceta);
 
-      //* Validación de campos obligatorios
-      if (!folioReceta || !descMedicamento || !indicaciones || !cantidad) {
-        console.error(`⚠️ Medicamento ${index + 1} tiene campos faltantes.`);
-        resultados.push({
-          medicamento: med,
-          error: "Faltan datos obligatorios.",
-        });
-        //! Revertir transacción si hay errores
-        await transaction.rollback();
-        return res.status(400).json({
-          message: "Error al procesar los datos.",
-          resultados,
-        });
-      }
+      resultados.push({
+        folioReceta,
+        status: "success",
+        message: "Registro predeterminado insertado.",
+      });
+    } else {
+      // Insertar medicamentos reales
+      for (const med of medicamentos) {
+        const { descMedicamento, indicaciones, cantidad } = med;
 
-      try {
-        //* Insertar medicamento en la base de datos
+        if (!descMedicamento || !indicaciones || !cantidad) {
+          console.error("❌ Medicamento tiene campos faltantes:", med);
+          await transaction.rollback();
+          return res.status(400).json({
+            message: "Error: Medicamento tiene campos faltantes.",
+          });
+        }
+
         await transaction.request()
           .input("folioReceta", sql.Int, parseInt(folioReceta, 10))
           .input("descMedicamento", sql.Int, parseInt(descMedicamento, 10))
           .input("indicaciones", sql.NVarChar, indicaciones.trim())
-          .input("estatus", sql.Int, 1) 
+          .input("estatus", sql.Int, 1)
           .input("cantidad", sql.NVarChar, cantidad.trim())
           .query(queryInsertarReceta);
 
-        console.log(`✅ Medicamento ${index + 1} guardado correctamente.`);
-        resultados.push({ medicamento: med, status: "success" });
-      } catch (error) {
-        console.error(`❌ Error al guardar medicamento ${index + 1}:`, error.message);
         resultados.push({
           medicamento: med,
-          error: error.message || "Error inesperado.",
-        });
-        //* Revertir transacción si hay errores
-        await transaction.rollback();
-        return res.status(500).json({
-          message: "Error al guardar los medicamentos.",
-          resultados,
+          status: "success",
         });
       }
     }
 
-    //* Confirmar la transacción si no hay errores
     await transaction.commit();
     console.log("✅ Transacción completada con éxito.");
-
-    res.status(200).json({
-      message: "Todos los medicamentos se guardaron correctamente.",
-      resultados,
-    });
+    res.status(200).json({ message: "Datos guardados correctamente.", resultados });
   } catch (error) {
-    console.error("\uD83D\uDEAB Error inesperado al procesar medicamentos:", error);
+    console.error("❌ Error inesperado:", error);
     res.status(500).json({ error: "Error inesperado en el servidor." });
   }
 }
