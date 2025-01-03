@@ -111,7 +111,7 @@ export default async function handler(req, res) {
       .input("claveUsuario", sql.Int, claveUsuario)
       .query(query);
 
-    res.status(200).json({ message: "Surtimiento insertado exitosamente." });
+    res.status(200).json({ message: "Surtimiento insertado exitosamente.", nuevoFolio });
   } catch (error) {
     console.error("Error al insertar el surtimiento:", error.message);
     res.status(500).json({ message: "Error en el servidor." });
