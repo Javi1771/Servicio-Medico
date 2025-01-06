@@ -28,10 +28,15 @@ export default async function handler(req, res) {
     let query;
     let inputParams = [];
 
+    //* ----------------------------------------------------------------------------------
+    //* Consulta para "idRegistro"
+    //* ----------------------------------------------------------------------------------
     if (idRegistro) {
       query = `
-        SELECT 
+        SELECT
           KPI.id_registro_kpi AS idRegistro,
+          KPI.id_kpi AS idKPI,           
+          T.kpi AS nombreKPI,            
           KPI.clavenomina,
           KPI.clavepaciente,
           KPI.valor_actual,
@@ -39,22 +44,32 @@ export default async function handler(req, res) {
           KPI.calificacion,
           CONVERT(VARCHAR, KPI.fecha_registro, 23) AS fechaRegistro,
           CONVERT(VARCHAR, KPI.fecha_evaluacion, 23) AS fechaEvaluacion,
-          KPI.observacion_valuacion AS observacionEvaluacion,
           KPI.observaciones,
           KPI.valor_alcanzado,
-          ISNULL(KPI.kpi_calificada, 'No calificada') AS kpi_calificada,
+          CASE 
+            WHEN KPI.calificacion = 'SIN CALIFICAR' THEN 'No calificada'
+            ELSE 'Calificada'
+          END AS kpi_calificada,
           C.cronica AS nombreEnfermedad
         FROM REGISTROS_KPIS KPI
-        LEFT JOIN CRONICAS C ON KPI.id_enf_cronica = C.id_enf_cronica
+          LEFT JOIN CRONICAS C ON KPI.id_enf_cronica = C.id_enf_cronica
+          LEFT JOIN KPIs T ON KPI.id_kpi = T.id_kpi      
         WHERE KPI.id_registro_kpi = @idRegistro
           AND KPI.clavenomina IS NOT NULL
           AND KPI.clavepaciente IS NOT NULL;
       `;
+
       inputParams.push({ name: "idRegistro", value: parseInt(idRegistro, 10) });
+
+    //* ----------------------------------------------------------------------------------
+    //* Consulta para "clavenomina" y "clavepaciente"
+    //* ----------------------------------------------------------------------------------
     } else {
       query = `
-        SELECT 
+        SELECT
           KPI.id_registro_kpi AS idRegistro,
+          KPI.id_kpi AS idKPI,           
+          T.kpi AS nombreKPI,         
           KPI.clavenomina,
           KPI.clavepaciente,
           KPI.valor_actual,
@@ -62,35 +77,37 @@ export default async function handler(req, res) {
           KPI.calificacion,
           CONVERT(VARCHAR, KPI.fecha_registro, 23) AS fechaRegistro,
           CONVERT(VARCHAR, KPI.fecha_evaluacion, 23) AS fechaEvaluacion,
-          KPI.observacion_valuacion AS observacionEvaluacion,
           KPI.observaciones,
           KPI.valor_alcanzado,
-          ISNULL(KPI.kpi_calificada, 'No calificada') AS kpi_calificada,
+          CASE 
+            WHEN KPI.calificacion = 'SIN CALIFICAR' THEN 'No calificada'
+            ELSE 'Calificada'
+          END AS kpi_calificada,
           C.cronica AS nombreEnfermedad
         FROM REGISTROS_KPIS KPI
-        LEFT JOIN CRONICAS C ON KPI.id_enf_cronica = C.id_enf_cronica
+          LEFT JOIN CRONICAS C ON KPI.id_enf_cronica = C.id_enf_cronica
+          LEFT JOIN KPIs T ON KPI.id_kpi = T.id_kpi     
         WHERE KPI.clavenomina = @clavenomina
           AND KPI.clavepaciente = @clavepaciente
           AND KPI.clavenomina IS NOT NULL
           AND KPI.clavepaciente IS NOT NULL
         ORDER BY KPI.fecha_registro DESC;
       `;
+
       inputParams.push({ name: "clavenomina", value: clavenomina.trim() });
       inputParams.push({ name: "clavepaciente", value: clavepaciente.trim() });
     }
 
+    //* ----------------------------------------------------------------------------------
+    //* Ejecutar la consulta con los parámetros
+    //* ----------------------------------------------------------------------------------
     const request = pool.request();
     inputParams.forEach((param) => request.input(param.name, param.value));
 
     const result = await request.query(query);
 
-    // Agregar logs detallados
     console.log("Consulta ejecutada:", query, "Parámetros:", inputParams);
     console.log("Resultados obtenidos:", result.recordset);
-
-    if (result.recordset.length === 0) {
-      return res.status(404).json({ message: "No se encontraron datos" });
-    }
 
     if (result.recordset.length === 0) {
       console.warn("Consulta sin resultados para los parámetros:", {
@@ -101,9 +118,10 @@ export default async function handler(req, res) {
       return res.status(404).json({ message: "No se encontraron datos" });
     }
 
+    //* Responder con los registros obtenidos
     return res.status(200).json(result.recordset);
   } catch (error) {
-    //* Log detallado de errores
+    //! Log detallado de errores
     console.error("Error al consultar la base de datos:", {
       error: error.message,
       stack: error.stack,

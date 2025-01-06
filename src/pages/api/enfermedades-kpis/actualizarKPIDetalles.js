@@ -9,16 +9,16 @@ export default async function handler(req, res) {
     id_registro_kpi,
     valor_alcanzado,
     calificacion,
-    observacion_valuacion,
+    observaciones,
     fecha_evaluacion,
   } = req.body;
 
-  // Log para verificar los datos recibidos en el backend
+  //* Log para verificar los datos recibidos en el backend
   console.log("Datos recibidos en el backend:", {
     id_registro_kpi,
     valor_alcanzado,
     calificacion,
-    observacion_valuacion,
+    observaciones,
     fecha_evaluacion,
   });
 
@@ -35,7 +35,7 @@ export default async function handler(req, res) {
         id_registro_kpi,
         valor_alcanzado,
         calificacion,
-        observacion_valuacion,
+        observaciones,
         fecha_evaluacion,
       },
     });
@@ -44,14 +44,13 @@ export default async function handler(req, res) {
   try {
     const pool = await connectToDatabase();
 
-    // Construir consulta para actualizar datos del KPI
+    //* Construir consulta para actualizar datos del KPI
     const query = `
       UPDATE REGISTROS_KPIS
       SET valor_alcanzado = @valor_alcanzado,
           calificacion = @calificacion,
-          observacion_valuacion = @observacion_valuacion,
+          observaciones = @observaciones,
           fecha_evaluacion = @fecha_evaluacion,
-          kpi_calificada = 'Calificada'
       WHERE id_registro_kpi = @id_registro_kpi
     `;
 
@@ -60,7 +59,7 @@ export default async function handler(req, res) {
       id_registro_kpi,
       valor_alcanzado,
       calificacion,
-      observacion_valuacion,
+      observaciones,
       fecha_evaluacion,
     });
 
@@ -68,12 +67,12 @@ export default async function handler(req, res) {
       .request()
       .input("valor_alcanzado", valor_alcanzado)
       .input("calificacion", calificacion)
-      .input("observacion_valuacion", observacion_valuacion)
+      .input("observaciones", observaciones)
       .input("fecha_evaluacion", fecha_evaluacion)
       .input("id_registro_kpi", id_registro_kpi)
       .query(query);
 
-    // Validar si se actualizó algún registro
+    //* Validar si se actualizó algún registro
     if (result.rowsAffected[0] === 0) {
       return res
         .status(404)

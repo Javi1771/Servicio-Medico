@@ -31,30 +31,30 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
   const [verDetalleKPI, setVerDetalleKPI] = useState(false);
   const [detalleKPI, setDetalleKPI] = useState(null);
 
-  const cargarNombreEnfermedad = async (idEnfCronica) => {
-    try {
-      if (!idEnfCronica) {
-        console.error("ID de enfermedad crónica no proporcionado");
-        return;
-      }
+  // const cargarNombreEnfermedad = async (idEnfCronica) => {
+  //   try {
+  //     if (!idEnfCronica) {
+  //       console.error("ID de enfermedad crónica no proporcionado");
+  //       return;
+  //     }
 
-      const response = await fetch(
-        `/api/enfermedades-kpis/obtenerNombreEnfermedad?id=${idEnfCronica}`
-      );
-      if (!response.ok) {
-        throw new Error("Error al obtener el nombre de la enfermedad");
-      }
+  //     const response = await fetch(
+  //       `/api/enfermedades-kpis/obtenerNombreEnfermedad?id=${idEnfCronica}`
+  //     );
+  //     if (!response.ok) {
+  //       throw new Error("Error al obtener el nombre de la enfermedad");
+  //     }
 
-      const data = await response.json();
-      setNombreEnfermedad(data.cronica || "Desconocido");
-    } catch (error) {
-      console.error("Error al obtener el nombre de la enfermedad:", error);
-    }
-  };
+  //     const data = await response.json();
+  //     setNombreEnfermedad(data.cronica || "Desconocido");
+  //   } catch (error) {
+  //     console.error("Error al obtener el nombre de la enfermedad:", error);
+  //   }
+  // };
 
   const handleRowClick = async (kpi) => {
     try {
-      // Construir la URL con los parámetros requeridos
+      //* Construir la URL con los parámetros requeridos
       const queryParams = new URLSearchParams({
         idRegistro: kpi.idRegistro,
         clavenomina: kpi.clavenomina,
@@ -74,7 +74,7 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
       const data = await response.json();
       console.log("Detalles del KPI seleccionados:", data);
 
-      // Validar que se obtuvieron datos
+      //* Validar que se obtuvieron datos
       if (!Array.isArray(data) || data.length === 0) {
         console.error("No se encontró detalle para el KPI seleccionado");
         MySwal.fire({
@@ -85,7 +85,7 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
         return;
       }
 
-      // Buscar el detalle exacto basado en `idRegistro`
+      //* Buscar el detalle exacto basado en `idRegistro`
       const detalleSeleccionado = data.find(
         (item) => item.idRegistro === kpi.idRegistro
       );
@@ -100,7 +100,7 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
         return;
       }
 
-      // Asegurarse de mapear idRegistro a id_registro_kpi
+      //* Asegurarse de mapear idRegistro a id_registro_kpi
       const detalleConIDKPI = {
         ...detalleSeleccionado,
         id_registro_kpi: detalleSeleccionado.idRegistro,
@@ -108,7 +108,7 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
 
       console.log("Detalle seleccionado con ID KPI:", detalleConIDKPI);
 
-      // Actualizar el estado con los detalles seleccionados
+      //* Actualizar el estado con los detalles seleccionados
       setEditKPIDetails(detalleConIDKPI);
       setMostrarVentanaKPI(true);
     } catch (error) {
@@ -218,6 +218,7 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
     }
 
     const kpiData = {
+      id_kpi: parseInt(nuevoKPI.id_kpi, 10),
       id_enf_cronica: parseInt(nuevoKPI.id_enf_cronica, 10),
       clavenomina,
       clavepaciente,
@@ -734,12 +735,12 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
                     throw new Error("Error al obtener los KPIs");
 
                   const data = await response.json();
-                  setCatalogoKPIs(data); // Actualiza el catálogo de KPIs para el menú desplegable
+                  setCatalogoKPIs(data); //* Actualiza el catálogo de KPIs para el menú desplegable
                 } catch (error) {
                   console.error("Error al obtener los KPIs:", error);
                 }
               } else {
-                setCatalogoKPIs([]); // Limpia el catálogo si no hay selección
+                setCatalogoKPIs([]); //* Limpia el catálogo si no hay selección
               }
             }}
             className="mt-2 p-2 md:p-3 rounded-lg bg-gray-700 text-white w-full"
@@ -762,13 +763,26 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
             KPI a Evaluar:
           </span>
           <select
-            value={nuevoKPI.kpi || ""}
-            onChange={(e) => setNuevoKPI({ ...nuevoKPI, kpi: e.target.value })}
+            //* En lugar de usar `nuevoKPI.kpi`, usa `nuevoKPI.id_kpi`
+            value={nuevoKPI.id_kpi || ""}
+            onChange={(e) => {
+              const selectedID = parseInt(e.target.value, 10);
+              //* Buscar el KPI completo en `catalogoKPIs`
+              const selectedKPI = catalogoKPIs.find(
+                (item) => item.id_kpi === selectedID
+              );
+
+              setNuevoKPI({
+                ...nuevoKPI,
+                id_kpi: selectedID, //* Guardamos el ID en el estado
+                kpi: selectedKPI ? selectedKPI.kpi : "", //* Guardamos también el texto (por si se necesita)
+              });
+            }}
             className="mt-2 p-2 md:p-3 rounded-lg bg-gray-700 text-white w-full"
           >
             <option value="">Selecciona un KPI...</option>
             {catalogoKPIs.map((kpi) => (
-              <option key={kpi.id_kpi} value={kpi.kpi}>
+              <option key={kpi.id_kpi} value={kpi.id_kpi}>
                 {kpi.kpi}
               </option>
             ))}
@@ -878,19 +892,19 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
                   Fecha de Registro
                 </th>
                 <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
-                  Enfermedad
+                  Enfermedad Crónica
                 </th>
                 <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
-                  Observaciones Iniciales
+                  KPI Evaluado
                 </th>
                 <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
                   Fecha de Evaluación
                 </th>
                 <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
-                  Observaciones Finales
+                  Observaciones de Evaluación
                 </th>
                 <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
-                  Estado
+                  Evaluación del KPI 
                 </th>
               </tr>
             </thead>
@@ -910,6 +924,7 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
                         : "hover:bg-purple-700"
                     }`}
                   >
+                    {/* Fecha de Registro */}
                     <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
                       {kpi.fechaRegistro
                         ? new Date(kpi.fechaRegistro).toLocaleDateString(
@@ -917,12 +932,18 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
                           )
                         : "Sin fecha"}
                     </td>
+
+                    {/* Enfermedad */}
                     <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
                       {kpi.nombreEnfermedad || "Sin enfermedad"}
                     </td>
+
+                    {/* Nombre KPI */}
                     <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
-                      {kpi.observaciones || "Sin observaciones"}
+                      {kpi.nombreKPI || "Sin nombre"}
                     </td>
+
+                    {/* Fecha de Evaluación */}
                     <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
                       {kpi.fechaEvaluacion
                         ? new Date(kpi.fechaEvaluacion).toLocaleDateString(
@@ -930,9 +951,13 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
                           )
                         : "Sin fecha"}
                     </td>
+
+                    {/* Observaciones */}
                     <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
                       {kpi.observacionEvaluacion || "Sin observaciones"}
                     </td>
+
+                    {/* Estado */}
                     <td
                       className={`py-3 px-4 border-t border-gray-800 text-center font-bold text-sm md:text-base rounded-lg shadow-lg ${
                         kpi.kpi_calificada === "Calificada"
@@ -1041,9 +1066,10 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
               <div className="flex items-center text-lg font-semibold text-purple-400 mb-4">
                 KPI Que Se Está Evaluando:{" "}
                 <span className="text-white font-light ml-2">
-                  {editKPIDetails.observaciones || "Sin observaciones"}
+                  {editKPIDetails.nombreKPI || "Sin nombre"}
                 </span>
               </div>
+
               <hr className="border-gray-700 mb-4" />
             </div>
 
@@ -1091,8 +1117,8 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
                   className="w-full mt-2 p-3 rounded-xl bg-gray-800 text-white outline-none focus:ring-4 focus:ring-yellow-500 shadow-[0_0_10px_rgba(255,255,0,0.8)]"
                 >
                   <option value="">Selecciona una opción</option>
-                  <option value="1">Sí</option>
-                  <option value="0">No</option>
+                  <option value="CUMPLIDA">Sí</option>
+                  <option value="INCUMPLIDA">No</option>
                 </select>
               </label>
 

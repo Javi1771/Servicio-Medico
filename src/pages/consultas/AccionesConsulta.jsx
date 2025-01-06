@@ -17,6 +17,11 @@ const AccionesConsulta = ({
   const { todosCompletos, formulariosCompletos } =
     useContext(FormularioContext);
   const [prioridad, setPrioridad] = useState("");
+  const [tooltipMessage, setTooltipMessage] = useState({
+    title: "Formularios incompletos",
+    description: "Algunos formularios no están completos.",
+    icon: "⚠️",
+  });
 
   //* Verificación de props
   useEffect(() => {
@@ -31,6 +36,28 @@ const AccionesConsulta = ({
     if (!clavepaciente) console.warn("⚠️ clavepaciente no está definido.");
     if (!clavenomina) console.warn("⚠️ clavenomina no está definido.");
   }, [claveConsulta, limpiarFormulario, clavepaciente, clavenomina]);
+
+  useEffect(() => {
+    if (todosCompletos) {
+      setTooltipMessage({
+        title: "¡Todo está completo!",
+        description: "Todos los formularios están listos para guardar.",
+        icon: "🎉",
+      });
+    } else {
+      const faltantes = Object.entries(formulariosCompletos)
+        .filter(([_, completo]) => !completo)
+        .map(([pantalla]) => pantalla);
+
+      setTooltipMessage({
+        title: "Formularios incompletos",
+        description: `Faltan los siguientes formularios: ${faltantes.join(
+          ", "
+        )}.`,
+        icon: "⚠️",
+      });
+    }
+  }, [todosCompletos, formulariosCompletos]);
 
   //* Tooltip para formularios incompletos
   const tooltipFaltante = () => {
@@ -135,16 +162,19 @@ const AccionesConsulta = ({
   const guardarMedicamentos = async () => {
     try {
       console.log("📤 Guardando medicamentos...");
-  
+
       const cachedMedicamentos = localStorage.getItem("medicamentos") || "[]";
       const decisionTomada = localStorage.getItem("decisionTomada");
-  
+
       console.log("Decisión tomada al guardar medicamentos:", decisionTomada);
-      console.log("Medicamentos cargados del localStorage:", cachedMedicamentos);
-  
+      console.log(
+        "Medicamentos cargados del localStorage:",
+        cachedMedicamentos
+      );
+
       const medicamentos = JSON.parse(cachedMedicamentos);
       let medicamentosPayload;
-  
+
       if (decisionTomada === "no") {
         medicamentosPayload = {
           folioReceta: claveConsulta,
@@ -155,7 +185,7 @@ const AccionesConsulta = ({
         if (!Array.isArray(medicamentos) || medicamentos.length === 0) {
           throw new Error("No hay medicamentos para guardar.");
         }
-  
+
         medicamentosPayload = {
           folioReceta: claveConsulta,
           decisionTomada,
@@ -166,27 +196,26 @@ const AccionesConsulta = ({
           })),
         };
       }
-  
+
       console.log("🔍 Payload preparado para el backend:", medicamentosPayload);
-  
+
       const response = await fetch("/api/medicamentos/guardar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(medicamentosPayload),
       });
-  
+
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || "Error al guardar los medicamentos.");
       }
-  
+
       console.log("✅ Todos los medicamentos guardados correctamente.");
     } catch (error) {
       console.error("❌ Error al guardar medicamentos:", error);
       throw error;
     }
   };
-  
 
   //* Sincronización de prioridad al cambiar selección
   useEffect(() => {
@@ -430,22 +459,7 @@ const AccionesConsulta = ({
     <div className="flex space-x-4 mt-4">
       <div className="relative inline-block group">
         <button
-          onClick={() => {
-            const cachedEspecialidad = localStorage.getItem(
-              `PaseEspecialidad:${claveConsulta}`
-            );
-            if (cachedEspecialidad) {
-              const parsedEspecialidad = JSON.parse(cachedEspecialidad);
-              if (parsedEspecialidad.prioridad) {
-                setPrioridad(parsedEspecialidad.prioridad);
-              }
-            }
-            console.log(
-              "🔧 Prioridad sincronizada antes de guardar en el botón Guardar Todo:",
-              prioridad
-            );
-            handleGuardarGlobal();
-          }}
+          onClick={handleGuardarGlobal}
           disabled={!todosCompletos}
           className={`relative px-6 py-3 text-sm font-semibold text-white rounded-xl transition-all duration-300 overflow-hidden ${
             todosCompletos
@@ -459,23 +473,23 @@ const AccionesConsulta = ({
           <div className="relative p-4 bg-gradient-to-br from-gray-900/95 to-gray-800/95 backdrop-blur-md rounded-2xl border border-white/10 shadow-[0_0_30px_rgba(34,197,94,0.3)]">
             <div className="flex items-center gap-3 mb-2">
               <div className="flex items-center justify-center w-8 h-8 rounded-full bg-green-500/20">
-                <span className="text-lg">{tooltipData.icon}</span>
+                <span className="text-lg">{tooltipMessage.icon}</span>
               </div>
               <h3 className="text-sm font-semibold text-white">
-                {tooltipData.title}
+                {tooltipMessage.title}
               </h3>
             </div>
-
             <div className="space-y-2">
-              <p className="text-sm text-gray-300">{tooltipData.description}</p>
+              <p className="text-sm text-gray-300">
+                {tooltipMessage.description}
+              </p>
             </div>
-
             <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-green-500/10 to-blue-500/10 blur-xl opacity-50"></div>
-
             <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-gradient-to-br from-gray-900/95 to-gray-800/95 rotate-45 border-r border-b border-white/10"></div>
           </div>
         </div>
       </div>
+
       <button
         onClick={() => {
           actualizarClavestatus(0);
