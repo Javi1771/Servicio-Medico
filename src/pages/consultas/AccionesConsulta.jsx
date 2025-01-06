@@ -40,10 +40,9 @@ const AccionesConsulta = ({
   useEffect(() => {
     if (todosCompletos) {
       setTooltipMessage({
-        title: "¡Listo para guardar!",
-        description:
-          "Todos los formularios están completos. Puedes guardar la consulta.",
-        icon: "✅",
+        title: "¡Todo está completo!",
+        description: "Todos los formularios están listos para guardar.",
+        icon: "🎉",
       });
     } else {
       const faltantes = Object.entries(formulariosCompletos)
