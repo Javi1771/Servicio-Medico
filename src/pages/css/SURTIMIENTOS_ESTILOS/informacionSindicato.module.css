@@ -1,0 +1,54 @@
+.sindicatoCard {
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.25);
+    color: #ffffff;
+    margin: 20px 0;
+    max-width: 300px;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  /* Fondo dinámico para sindicalizado */
+  .sindicatoCardSindicalizado {
+    background: linear-gradient(to bottom right, #2f8f46, #0d1f1a);
+  }
+  
+  /* Fondo dinámico para no sindicalizado */
+  .sindicatoCardNoSindicalizado {
+    background: linear-gradient(to bottom right, #8f2f2f, #1a0d0d);
+  }
+  
+  /* Título */
+  .sindicatoTitle {
+    margin-bottom: 10px;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #ffffff;
+  }
+  
+  /* Estilo del contenido */
+  .sindicatoCard p {
+    margin: 8px 0;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: #ffffff;
+  }
+  
+  .sindicatoCard strong {
+    color: #ffffff;
+  }
+  
+  /* Esquina decorativa */
+  .sindicatoCard::before {
+    content: "";
+    position: absolute;
+    top: -20px;
+    right: -20px;
+    width: 100px;
+    height: 100px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    box-shadow: 0px 0px 15px rgba(255, 255, 255, 0.1);
+  }
+  

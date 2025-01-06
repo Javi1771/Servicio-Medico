@@ -81,21 +81,24 @@ const Home = () => {
           handleMouseEnter={() => handleMouseEnter("Catálogos")}
           handleMouseLeave={handleMouseLeave}
         />
-         {/* <SidebarButton
+         { <SidebarButton
           title="Farmacia"
           options={[
             "Medicamentos",
+            "surtimientos",
+
             
           ]}
           isOpen={openMenu === "Farmacia"}
           handleMouseEnter={() => handleMouseEnter("Farmacia")}
           handleMouseLeave={handleMouseLeave}
-        /> */}
+        /> }
         <SidebarButton
           title="Capturas"
           options={[
             "Pases a Especialidades",
             "Surtimientos",
+            "Surtimientos2",
             "Orden de Estudio de Laboratorio",
             "Incapacidades",
             "Gastos",
