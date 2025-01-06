@@ -50,9 +50,11 @@ const AccionesConsulta = ({
         .map(([pantalla]) => pantalla);
 
       setTooltipMessage({
-        title: "¡Todo está completo!",
-        description: "Todos los formularios están listos para guardar.",
-        icon: "🎉",
+        title: "Formularios incompletos",
+        description: `Faltan los siguientes formularios: ${faltantes.join(
+          ", "
+        )}.`,
+        icon: "⚠️",
       });
     }
   }, [todosCompletos, formulariosCompletos]);
