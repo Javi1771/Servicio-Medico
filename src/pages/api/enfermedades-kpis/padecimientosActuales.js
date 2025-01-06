@@ -12,7 +12,7 @@ export default async function handler(req, res) {
         cronica AS enfermedad, 
         observaciones_cronica AS observaciones
       FROM 
-        Registro_Enfermedades_Cronicas AS rec
+        PACIENTES_CRONICOS AS rec
       INNER JOIN 
         CRONICAS AS c 
       ON 

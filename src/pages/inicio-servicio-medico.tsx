@@ -118,6 +118,13 @@ const Home = () => {
           handleMouseEnter={() => handleMouseEnter("Reportes")}
           handleMouseLeave={handleMouseLeave}
         />
+        <SidebarButton
+          title="Estadisticas"
+          options={["Costo De Surtimientos", "Costos Consulta General", "Costos Consulta Especialidad"]}
+          isOpen={openMenu === "Estadisticas"}
+          handleMouseEnter={() => handleMouseEnter("Estadisticas")}
+          handleMouseLeave={handleMouseLeave}
+        />
         <button
             onClick={handleLogout}
             className="bg-red-600 p-4 rounded-lg shadow-md hover:bg-red-500 transition text-center mt-4 md:mt-0 w-full md:w-auto transform transition-transform duration-300 hover:scale-105 border-2 border-red-700"

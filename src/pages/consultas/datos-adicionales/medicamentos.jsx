@@ -3,30 +3,11 @@ import React, { useState, useEffect, useContext } from "react";
 import { FormularioContext } from "/src/context/FormularioContext";
 
 const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
-  const [medicamentos, setMedicamentos] = useState([
-    { medicamento: "", indicaciones: "", tratamiento: "" },
-  ]);
+  const [medicamentos, setMedicamentos] = useState([]);
   const [listaMedicamentos, setListaMedicamentos] = useState([]);
   const [historialMedicamentos, setHistorialMedicamentos] = useState([]);
-  const [decisionTomada, setDecisionTomada] = useState("no");
+  const [decisionTomada, setDecisionTomada] = useState("no"); // Inicializa como "no" de forma predeterminada
   const { updateFormulario } = useContext(FormularioContext);
-
-  useEffect(() => {
-    const decisionGuardada = localStorage.getItem("decisionTomada");
-    if (decisionGuardada) {
-      setDecisionTomada(decisionGuardada);
-    } else {
-      // Si no hay nada en el localStorage, inicializar como "no"
-      localStorage.setItem("decisionTomada", "no");
-    }
-  }, []);  
-
-  useEffect(() => {
-    if (decisionTomada === "no") {
-      setMedicamentos([]); // Asegurarse de que no haya medicamentos si es "no"
-      localStorage.removeItem("medicamentos");
-    }
-  }, [decisionTomada]);  
 
   //* Cargar lista de medicamentos desde el backend
   useEffect(() => {
@@ -70,10 +51,27 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
     updateFormulario("Medicamentos", camposCompletos);
   }, [medicamentos, decisionTomada, updateFormulario]);
 
-  //* Guardar datos en localStorage al cambiar
+  //* Guardar medicamentos en localStorage
   useEffect(() => {
-    localStorage.setItem("medicamentos", JSON.stringify(medicamentos));
-  }, [medicamentos]);
+    if (decisionTomada === "si") {
+      localStorage.setItem("medicamentos", JSON.stringify(medicamentos));
+    }
+  }, [medicamentos, decisionTomada]);
+
+  //* Manejo del cambio de decisión
+  const handleDecision = (decision) => {
+    console.log(`🛠️ Decisión tomada: ${decision}`);
+    setDecisionTomada(decision);
+    localStorage.setItem("decisionTomada", decision);
+
+    if (decision === "no") {
+      console.log("🧹 Limpiando medicamentos porque la decisión es 'No'");
+      setMedicamentos([]); // Limpia el estado
+    } else {
+      console.log("➕ Agregando un medicamento inicial porque la decisión es 'Sí'");
+      setMedicamentos([{ medicamento: "", indicaciones: "", tratamiento: "" }]);
+    }
+  };
 
   const handleMedicamentoChange = (index, field, value) => {
     const nuevosMedicamentos = [...medicamentos];
@@ -89,30 +87,6 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
 
   const quitarMedicamento = (index) =>
     setMedicamentos(medicamentos.filter((_, i) => i !== index));
-
-  //* Manejo de la decisión (Sí o No) actualizada
-  const handleDecision = (decision) => {
-    console.log(`🛠️ Decisión tomada: ${decision}`);
-    setDecisionTomada(decision);
-  
-    //* Guardar la decisión en localStorage
-    localStorage.setItem("decisionTomada", decision);
-  
-    if (decision === "no") {
-      console.log("🧹 Limpiando medicamentos porque la decisión es 'No'");
-      setMedicamentos([]); //* Limpia el estado
-      localStorage.removeItem("medicamentos"); //* Limpia el localStorage
-    } else {
-      console.log(
-        "➕ Agregando un medicamento inicial porque la decisión es 'Sí'"
-      );
-      setMedicamentos([{ medicamento: "", indicaciones: "", tratamiento: "" }]);
-      localStorage.setItem(
-        "medicamentos",
-        JSON.stringify([{ medicamento: "", indicaciones: "", tratamiento: "" }])
-      );
-    }
-  };  
 
   return (
     <div className="bg-gray-800 p-4 md:p-8 rounded-lg shadow-lg">
@@ -184,7 +158,7 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
                   onChange={(e) =>
                     handleMedicamentoChange(
                       index,
-                      "indicaciones",
+                      "indications",
                       e.target.value
                     )
                   }

@@ -15,15 +15,13 @@ export default async function handler(req, res) {
     fechaFinal,
     diagnostico,
     clavepaciente,
-    seAsignoIncapacidad, // Nuevo campo para decidir el valor a actualizar
   } = req.body;
 
-  if (!clavenomina || !clavepaciente || seAsignoIncapacidad === undefined) {
+  //* Validar campos obligatorios
+  if (!clavenomina || !clavepaciente) {
     const datosFaltantes = [];
     if (!clavenomina) datosFaltantes.push("clavenomina");
     if (!clavepaciente) datosFaltantes.push("clavepaciente");
-    if (seAsignoIncapacidad === undefined)
-      datosFaltantes.push("seAsignoIncapacidad");
 
     console.error("Faltan datos obligatorios:", datosFaltantes);
     return res
@@ -37,6 +35,12 @@ export default async function handler(req, res) {
     diagnostico ||
     "Sin Observaciones, No Se Asignó Incapacidad En Esta Consulta";
 
+  //* Determinar el valor de seAsignoIncapacidad
+  const seAsignoIncapacidad = 
+    diagnosticoFinal === "Sin Observaciones, No Se Asignó Incapacidad En Esta Consulta"
+      ? 0
+      : 1;
+
   let transaction;
 
   try {
@@ -48,7 +52,7 @@ export default async function handler(req, res) {
 
     console.log("Transacción iniciada.");
 
-    //* Guardar en la tabla detalleIncapacidad
+    //* Insertar en la tabla detalleIncapacidad
     await transaction
       .request()
       .input("claveConsulta", sql.Int, claveConsulta)
@@ -70,7 +74,7 @@ export default async function handler(req, res) {
     await transaction
       .request()
       .input("claveConsulta", sql.Int, claveConsulta)
-      .input("seAsignoIncapacidad", sql.Int, seAsignoIncapacidad ? 1 : 0) // 1: Sí, 0: No
+      .input("seAsignoIncapacidad", sql.Int, seAsignoIncapacidad)
       .query(`
         UPDATE consultas
         SET seAsignoIncapacidad = @seAsignoIncapacidad
@@ -78,7 +82,7 @@ export default async function handler(req, res) {
       `);
 
     console.log(
-      `Columna seAsignoIncapacidad actualizada correctamente con el valor: ${seAsignoIncapacidad ? 1 : 0}`
+      `Columna seAsignoIncapacidad actualizada correctamente con el valor: ${seAsignoIncapacidad}`
     );
 
     //* Confirmar la transacción

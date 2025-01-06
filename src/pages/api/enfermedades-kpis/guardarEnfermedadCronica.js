@@ -13,8 +13,8 @@ export default async function handler(req, res) {
     clavepaciente
   } = req.body;
 
-  // Log para verificar los datos recibidos
-  console.log("Datos recibidos en el servidor:", {
+  //* Log para verificar los datos recibidos
+  console.log("Datos recibidos en el servidor al guardar enfermedad crónica:", {
     id_enf_cronica,
     clavenomina,
     observaciones_cronica,
@@ -22,7 +22,7 @@ export default async function handler(req, res) {
     clavepaciente
   });
 
-  // Validación de datos requeridos
+  //* Validación de datos requeridos
   if (!id_enf_cronica || !clavenomina || !observaciones_cronica || !fecha_registro) {
     return res.status(400).json({ message: 'Faltan datos obligatorios' });
   }
@@ -30,9 +30,9 @@ export default async function handler(req, res) {
   try {
     const pool = await connectToDatabase();
     const query = `
-      INSERT INTO Registro_Enfermedades_Cronicas 
-      (id_enf_cronica, clavenomina, observaciones_cronica, fecha_registro, clavepaciente)
-      VALUES (@id_enf_cronica, @clavenomina, @observaciones_cronica, @fecha_registro, @clavepaciente)
+      INSERT INTO PACIENTES_CRONICOS
+      (id_enf_cronica, clavenomina, observaciones_cronica, fecha_registro, clavepaciente, estatus)
+      VALUES (@id_enf_cronica, @clavenomina, @observaciones_cronica, @fecha_registro, @clavepaciente, @estatus)
     `;
 
     await pool.request()
@@ -41,6 +41,7 @@ export default async function handler(req, res) {
       .input('observaciones_cronica', observaciones_cronica)
       .input('fecha_registro', fecha_registro)
       .input('clavepaciente', clavepaciente)
+      .input('estatus', 1) //* Siempre insertar un 1 en la columna 'estatus'
       .query(query);
 
     res.status(201).json({ message: 'Enfermedad crónica registrada exitosamente' });
