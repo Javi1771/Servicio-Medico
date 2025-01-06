@@ -158,7 +158,7 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
                   onChange={(e) =>
                     handleMedicamentoChange(
                       index,
-                      "indications",
+                      "indicaciones",
                       e.target.value
                     )
                   }
