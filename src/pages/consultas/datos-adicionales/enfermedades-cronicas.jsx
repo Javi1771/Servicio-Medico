@@ -13,7 +13,7 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
   const [nombreEnfermedad, setNombreEnfermedad] = useState("");
   const [valorAlcanzado, setValorAlcanzado] = useState("");
   const [calificacion, setCalificacion] = useState("");
-  const [observacionEvaluacion, setObservacionEvaluacion] = useState("");
+  const [observaciones, setObservaciones] = useState("");
   const [catalogoKPIs, setCatalogoKPIs] = useState([]);
   const [mostrarVentanaKPI, setMostrarVentanaKPI] = useState(false);
 
@@ -292,7 +292,7 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
     const fechaEvaluacion = new Date().toISOString().split("T")[0];
 
     //* Validación de campos
-    if (!valorAlcanzado || !calificacion || !observacionEvaluacion) {
+    if (!valorAlcanzado || !calificacion || !observaciones) {
       MySwal.fire({
         icon: "warning",
         title:
@@ -322,7 +322,7 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
       valor_actual: editKPIDetails.valor_actual,
       valor_objetivo: editKPIDetails.valor_objetivo,
       calificacion: calificacion,
-      observacion_valuacion: observacionEvaluacion,
+      observaciones: observaciones,
       fecha_evaluacion: fechaEvaluacion,
     };
 
@@ -904,7 +904,7 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
                   Observaciones de Evaluación
                 </th>
                 <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
-                  Evaluación del KPI 
+                  Evaluación del KPI
                 </th>
               </tr>
             </thead>
@@ -914,15 +914,16 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
                   <tr
                     key={idx}
                     onClick={() => {
-                      if (kpi.kpi_calificada !== "Calificada") {
+                      if (kpi.calificacion === "SIN CALIFICAR") {
                         handleRowClick(kpi);
                       }
                     }}
-                    className={`hover:bg-purple-600 hover:bg-opacity-50 transition-colors duration-300 ${
-                      kpi.kpi_calificada === "Calificada"
-                        ? "bg-gray-800 text-gray-500 cursor-not-allowed"
-                        : "hover:bg-purple-700"
-                    }`}
+                    className={
+                      // Si está SIN_CALIFICAR => cursor-pointer y hover; de lo contrario => bloqueo
+                      kpi.calificacion === "SIN CALIFICAR"
+                        ? "cursor-pointer hover:bg-purple-600 hover:bg-opacity-50 transition-colors duration-300"
+                        : "bg-gray-800 text-gray-500 cursor-not-allowed transition-colors duration-300"
+                    }
                   >
                     {/* Fecha de Registro */}
                     <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
@@ -954,21 +955,26 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
 
                     {/* Observaciones */}
                     <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
-                      {kpi.observacionEvaluacion || "Sin observaciones"}
+                      {kpi.observaciones || "Sin observaciones"}
                     </td>
 
                     {/* Estado */}
                     <td
-                      className={`py-3 px-4 border-t border-gray-800 text-center font-bold text-sm md:text-base rounded-lg shadow-lg ${
-                        kpi.kpi_calificada === "Calificada"
-                          ? "bg-gradient-to-r from-green-900 to-green-700 text-green-200"
-                          : "bg-gradient-to-r from-red-900 to-red-700 text-red-200"
-                      }`}
+                      className={`py-3 px-4 border-t border-gray-800 text-center font-bold text-sm md:text-base rounded-lg shadow-lg
+            ${
+              kpi.calificacion === "CUMPLIDA"
+                ? "bg-gradient-to-r from-green-900 to-green-700 text-green-200"
+                : kpi.calificacion === "INCUMPLIDA"
+                ? "bg-gradient-to-r from-yellow-900 to-yellow-700 text-yellow-200"
+                : "bg-gradient-to-r from-red-900 to-red-700 text-red-200"
+            }
+          `}
                     >
                       <div className="flex flex-col items-center justify-center">
-                        {kpi.kpi_calificada === "Calificada" ? (
+                        {kpi.calificacion === "CUMPLIDA" ? (
                           <>
                             <div className="w-8 h-8 bg-green-950 text-green-300 rounded-full flex items-center justify-center shadow-lg">
+                              {/* Ícono de check */}
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 className="h-5 w-5"
@@ -985,12 +991,37 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
                               </svg>
                             </div>
                             <span className="mt-1 text-xs uppercase tracking-wider">
-                              Calificada
+                              CUMPLIDA
+                            </span>
+                          </>
+                        ) : kpi.calificacion === "INCUMPLIDA" ? (
+                          <>
+                            <div className="w-8 h-8 bg-yellow-950 text-yellow-300 rounded-full flex items-center justify-center shadow-lg">
+                              {/* Ícono de advertencia */}
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="h-5 w-5"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  d="M13 16h-1v-4h1m0 4v2m-6 4h12a2 2 0 002-2v-7a9 9 0 10-18 0v7a2 2 0 002 2z"
+                                />
+                              </svg>
+                            </div>
+                            <span className="mt-1 text-xs uppercase tracking-wider">
+                              INCUMPLIDA
                             </span>
                           </>
                         ) : (
+                          // Caso contrario => SIN_CALIFICAR
                           <>
                             <div className="w-8 h-8 bg-red-950 text-red-300 rounded-full flex items-center justify-center shadow-lg">
+                              {/* Ícono de "x" */}
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 className="h-5 w-5"
@@ -1007,7 +1038,7 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
                               </svg>
                             </div>
                             <span className="mt-1 text-xs uppercase tracking-wider">
-                              No calificada
+                              SIN CALIFICAR
                             </span>
                           </>
                         )}
@@ -1127,8 +1158,8 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
                   Observaciones:
                 </span>
                 <textarea
-                  value={observacionEvaluacion}
-                  onChange={(e) => setObservacionEvaluacion(e.target.value)}
+                  value={observaciones}
+                  onChange={(e) => setObservaciones(e.target.value)}
                   className="w-full mt-2 p-3 rounded-xl bg-gray-800 text-white outline-none focus:ring-4 focus:ring-yellow-500 shadow-[0_0_10px_rgba(255,255,0,0.8)]"
                   placeholder="Escribe observaciones..."
                 />

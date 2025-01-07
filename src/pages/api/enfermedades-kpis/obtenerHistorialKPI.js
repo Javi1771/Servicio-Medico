@@ -35,8 +35,8 @@ export default async function handler(req, res) {
       query = `
         SELECT
           KPI.id_registro_kpi AS idRegistro,
-          KPI.id_kpi AS idKPI,           
-          T.kpi AS nombreKPI,            
+          KPI.id_kpi AS idKPI,
+          T.kpi AS nombreKPI,
           KPI.clavenomina,
           KPI.clavepaciente,
           KPI.valor_actual,
@@ -46,14 +46,16 @@ export default async function handler(req, res) {
           CONVERT(VARCHAR, KPI.fecha_evaluacion, 23) AS fechaEvaluacion,
           KPI.observaciones,
           KPI.valor_alcanzado,
-          CASE 
-            WHEN KPI.calificacion = 'SIN CALIFICAR' THEN 'No calificada'
-            ELSE 'Calificada'
+          CASE
+            WHEN KPI.calificacion = 'SIN CALIFICAR' THEN 'SIN CALIFICAR'
+            WHEN KPI.calificacion = 'CUMPLIDA' THEN 'CUMPLIDA'
+            WHEN KPI.calificacion = 'INCUMPLIDA' THEN 'INCUMPLIDA'
+            ELSE 'DESCONOCIDO'
           END AS kpi_calificada,
           C.cronica AS nombreEnfermedad
         FROM REGISTROS_KPIS KPI
           LEFT JOIN CRONICAS C ON KPI.id_enf_cronica = C.id_enf_cronica
-          LEFT JOIN KPIs T ON KPI.id_kpi = T.id_kpi      
+          LEFT JOIN KPIs T ON KPI.id_kpi = T.id_kpi
         WHERE KPI.id_registro_kpi = @idRegistro
           AND KPI.clavenomina IS NOT NULL
           AND KPI.clavepaciente IS NOT NULL;
@@ -68,8 +70,8 @@ export default async function handler(req, res) {
       query = `
         SELECT
           KPI.id_registro_kpi AS idRegistro,
-          KPI.id_kpi AS idKPI,           
-          T.kpi AS nombreKPI,         
+          KPI.id_kpi AS idKPI,
+          T.kpi AS nombreKPI,
           KPI.clavenomina,
           KPI.clavepaciente,
           KPI.valor_actual,
@@ -79,14 +81,16 @@ export default async function handler(req, res) {
           CONVERT(VARCHAR, KPI.fecha_evaluacion, 23) AS fechaEvaluacion,
           KPI.observaciones,
           KPI.valor_alcanzado,
-          CASE 
-            WHEN KPI.calificacion = 'SIN CALIFICAR' THEN 'No calificada'
-            ELSE 'Calificada'
+          CASE
+            WHEN KPI.calificacion = 'SIN CALIFICAR' THEN 'SIN CALIFICAR'
+            WHEN KPI.calificacion = 'CUMPLIDA' THEN 'CUMPLIDA'
+            WHEN KPI.calificacion = 'INCUMPLIDA' THEN 'INCUMPLIDA'
+            ELSE 'DESCONOCIDO'
           END AS kpi_calificada,
           C.cronica AS nombreEnfermedad
         FROM REGISTROS_KPIS KPI
           LEFT JOIN CRONICAS C ON KPI.id_enf_cronica = C.id_enf_cronica
-          LEFT JOIN KPIs T ON KPI.id_kpi = T.id_kpi     
+          LEFT JOIN KPIs T ON KPI.id_kpi = T.id_kpi
         WHERE KPI.clavenomina = @clavenomina
           AND KPI.clavepaciente = @clavepaciente
           AND KPI.clavenomina IS NOT NULL

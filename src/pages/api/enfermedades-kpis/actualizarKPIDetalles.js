@@ -5,6 +5,27 @@ export default async function handler(req, res) {
     return res.status(405).json({ message: "Método no permitido" });
   }
 
+  //? 1) Obtener la cookie 'claveusuario' de forma manual
+  const rawCookies = req.headers.cookie || "";
+  //* Buscamos la cookie "claveusuario" en la cadena
+  const claveusuarioCookie = rawCookies
+    .split("; ")
+    .find((row) => row.startsWith("claveusuario="))
+    ?.split("=")[1];
+
+  //* Guardamos el valor en claveusuario (o null si no existe)
+  const claveusuario = claveusuarioCookie || null;
+
+  console.log("Cookie claveusuario:", claveusuario);
+
+  //? 2) Revisar que tengamos claveusuario
+  if (!claveusuario) {
+    return res
+      .status(400)
+      .json({ message: "No se encontró la cookie 'claveusuario'" });
+  }
+
+  //* Desestructuramos los datos del body
   const {
     id_registro_kpi,
     valor_alcanzado,
@@ -44,13 +65,14 @@ export default async function handler(req, res) {
   try {
     const pool = await connectToDatabase();
 
-    //* Construir consulta para actualizar datos del KPI
+    //? 3) Incluir la columna clave_evaluo en la sentencia UPDATE
     const query = `
       UPDATE REGISTROS_KPIS
       SET valor_alcanzado = @valor_alcanzado,
           calificacion = @calificacion,
           observaciones = @observaciones,
           fecha_evaluacion = @fecha_evaluacion,
+          clave_evaluo = @clave_evaluo
       WHERE id_registro_kpi = @id_registro_kpi
     `;
 
@@ -61,14 +83,17 @@ export default async function handler(req, res) {
       calificacion,
       observaciones,
       fecha_evaluacion,
+      claveusuario, 
     });
 
+    //? 4) Pasamos la nueva input "clave_evaluo" con el valor de la cookie
     const result = await pool
       .request()
       .input("valor_alcanzado", valor_alcanzado)
       .input("calificacion", calificacion)
       .input("observaciones", observaciones)
       .input("fecha_evaluacion", fecha_evaluacion)
+      .input("clave_evaluo", claveusuario)
       .input("id_registro_kpi", id_registro_kpi)
       .query(query);
 
