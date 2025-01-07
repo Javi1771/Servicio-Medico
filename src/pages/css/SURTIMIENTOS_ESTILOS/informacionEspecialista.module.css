@@ -1,0 +1,67 @@
+.especialistaCard {
+    background: linear-gradient(to right, #242637, #1b1c2b); /* Fondo con degradado */
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.3); /* Sombra para profundidad */
+    color: #ffffff;
+    margin: 20px 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .especialistaTitle {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #38b2ac; /* Verde profesional */
+    margin-bottom: 10px;
+    text-shadow: 0px 4px 8px rgba(0, 0, 0, 0.3); /* Sombra en el texto */
+  }
+  
+  .especialistaCard p {
+    margin: 5px 0;
+    font-size: 1rem;
+    line-height: 1.6;
+    color: #b9d8ff; /* Azul claro */
+  }
+  
+  .especialistaCard strong {
+    color: #ffffff; /* Blanco brillante para destacar */
+  }
+  
+  .diagnosticoField {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .diagnosticoField label {
+    font-size: 1rem;
+    font-weight: bold;
+    color: #ffffff;
+  }
+  
+  .diagnosticoTextarea {
+    width: 100%;
+    height: 120px;
+    border: none;
+    border-radius: 8px;
+    background-color: #2d2d44;
+    color: #ffffff;
+    font-size: 1rem;
+    padding: 12px;
+    resize: none;
+    outline: none;
+    transition: box-shadow 0.3s ease;
+  }
+  
+  .diagnosticoTextarea::placeholder {
+    color: #b0b0b0; /* Placeholder tenue */
+  }
+  
+  .diagnosticoTextarea:focus {
+    box-shadow: 0px 0px 10px rgba(59, 130, 246, 0.5); /* Sombra azul al enfocar */
+    background-color: #373759; /* Fondo ligeramente más claro */
+  }
+  

@@ -131,6 +131,104 @@ const MedicamentosForm = ({
     });
   };
 
+  const guardarMedicamentos = async (consultaData) => {
+    try {
+      // Datos a enviar a la API
+      const datosSurtimiento = {
+        folioPase: folioConsulta,
+        fechaEmision: new Date(),
+        nomina: consultaData.clavenomina,
+        clavePaciente: consultaData.clavepaciente,
+        nombrePaciente: consultaData.nombrepaciente,
+        esEmpleado: consultaData.elpacienteesempleado,
+        edad: consultaData.edad, // Obtener la edad directamente de la consulta
+        claveMedico: consultaData.claveproveedor,
+        diagnostico: diagnostico, // Asegúrate de que el diagnóstico se esté enviando
+        departamento: consultaData.departamento.trim().replace(/\s+/g, " "), // ← Limpieza del valor
+        estatus: 1,
+        fechaDespacho: null,
+        sindicato: consultaData.sindicato, // Obtener el sindicato directamente de la consulta
+        claveUsuario: Cookies.get("claveusuario") || "No especificado"
+      };
+  
+      const newInsertResponse = await fetch("/api/surtimientos/addSurtimiento", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(datosSurtimiento),
+      });
+  
+      if (!newInsertResponse.ok) {
+        throw new Error("Error al insertar en la tabla SURTIMIENTOS.");
+      }
+  
+      const newInsertData = await newInsertResponse.json();
+      const nuevoFolio = newInsertData.nuevoFolio; // Obtener el nuevo FOLIO_SURTIMIENTO
+  
+      // Insertar en la tabla DETALLE_SURTIMIENTOS
+      for (const med of temporalMedicamentos) {
+        const claveMedicamento = med.medicamento;
+        const cantidad = med.cantidad;
+  
+        if (!claveMedicamento || !cantidad) {
+          throw new Error(`El medicamento ${med.medicamento} o la cantidad ${med.cantidad} no tienen un ID válido.`);
+        }
+  
+        const response = await fetch("/api/surtimientos/addDetalleSurtimiento", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            folioSurtimiento: nuevoFolio, // Usar el nuevo FOLIO_SURTIMIENTO
+            claveMedicamento,
+            indicaciones: med.indicaciones,
+            cantidad,
+            estatus: 1
+          }),
+        });
+  
+        if (!response.ok) {
+          throw new Error(`Error al insertar el medicamento: ${med.medicamento}`);
+        }
+      }
+  
+      // Actualizar el diagnóstico
+      const updateResponse = await fetch("/api/surtimientos/updateDiagnostico", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          claveconsulta: folioConsulta,
+          diagnostico,
+        }),
+      });
+  
+      if (!updateResponse.ok) {
+        const errorData = await updateResponse.json();
+        throw new Error(errorData.message || "Error al actualizar el diagnóstico.");
+      }
+  
+      // Mostrar SweetAlert de éxito
+      Swal.fire({
+        title: "¡Éxito!",
+        text: "Todos los medicamentos, el diagnóstico y los nuevos datos han sido guardados exitosamente.",
+        icon: "success",
+        confirmButtonColor: "#6c5ce7",
+        confirmButtonText: "Aceptar",
+      });
+  
+      // Limpiar los registros temporales y refrescar los datos en el componente padre
+      setTemporalMedicamentos([]);
+      onFormSubmitted(); // Refrescar los datos en el componente padre
+    } catch (error) {
+      console.error("Error al guardar medicamentos:", error.message);
+      Swal.fire({
+        title: "Error",
+        text: "No se pudo guardar uno o más medicamentos.",
+        icon: "error",
+        confirmButtonColor: "#d63031",
+        confirmButtonText: "Intentar de nuevo",
+      });
+    }
+  };
+  
   const handleGuardarMedicamentos = async () => {
     try {
       // Obtener datos de la consulta
@@ -296,11 +394,7 @@ const MedicamentosForm = ({
     <div className={styles.formContainer}>
       <div className={styles.headerContainer}>
         <h2 className={styles.title}>Seleccionar Medicamento</h2>
-        <button className={styles.tabButton} onClick={handleToggleHistorial}>
-          {showHistorial
-            ? "Volver a Surtimientos"
-            : "Ver Historial de Surtimientos"}
-        </button>
+      
       </div>
       <form className={styles.form}>
         <div className={styles.formGroup}>
