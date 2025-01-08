@@ -28,7 +28,8 @@ export default async function handler(req, res) {
             FOTO_URL,
             ESESTUDIANTE,
             ESDISCAPACITADO,
-            VIGENCIA_ESTUDIOS
+            VIGENCIA_ESTUDIOS,
+            CURP
           FROM [PRESIDENCIA].[dbo].[BENEFICIARIO]
           WHERE NO_NOMINA = @num_nom
         `);

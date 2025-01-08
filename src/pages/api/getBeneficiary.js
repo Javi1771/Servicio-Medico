@@ -35,7 +35,8 @@ export default async function handler(req, res) {
             VIGENCIA_ESTUDIOS, 
             TEL_EMERGENCIA, 
             NOMBRE_EMERGENCIA,
-            FOTO_URL
+            FOTO_URL,
+            CURP
         FROM BENEFICIARIO
         WHERE ID_BENEFICIARIO = @idBeneficiario
       `);

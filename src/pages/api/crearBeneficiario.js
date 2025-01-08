@@ -1,6 +1,4 @@
-// /api/crearBeneficiario.js
 import { connectToDatabase } from "./connectToDatabase";
-
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -26,6 +24,7 @@ export default async function handler(req, res) {
     esDiscapacitado,
     vigenciaEstudios,
     imageUrl,
+    curp, // Nuevo campo CURP
   } = req.body;
 
   try {
@@ -38,6 +37,7 @@ export default async function handler(req, res) {
     const truncatedTelEmergencia = telEmergencia?.substring(0, 12);
     const truncatedNombreEmergencia = nombreEmergencia?.substring(0, 99);
     const truncatedFotoUrl = imageUrl?.substring(0, 255);
+    const truncatedCurp = curp?.substring(0, 18); // Validar longitud de CURP
 
     const pool = await connectToDatabase();
 
@@ -60,18 +60,19 @@ export default async function handler(req, res) {
       .input("esDiscapacitado", esDiscapacitado)
       .input("vigenciaEstudios", vigenciaEstudios || null)
       .input("imageUrl", truncatedFotoUrl)
+      .input("curp", truncatedCurp) // Nuevo campo CURP
       .query(`
         INSERT INTO BENEFICIARIO (
           NO_NOMINA, PARENTESCO, NOMBRE, A_PATERNO, A_MATERNO, SEXO, 
           F_NACIMIENTO, ESCOLARIDAD, ACTIVO, ALERGIAS, SANGRE, 
           TEL_EMERGENCIA, NOMBRE_EMERGENCIA, ESESTUDIANTE, ESDISCAPACITADO, 
-          VIGENCIA_ESTUDIOS, FOTO_URL
+          VIGENCIA_ESTUDIOS, FOTO_URL, CURP
         )
         VALUES (
           @noNomina, @parentesco, @nombre, @aPaterno, @aMaterno, @sexo, 
           @fNacimiento, @escolaridad, @activo, @alergias, @sangre, 
           @telEmergencia, @nombreEmergencia, @esEstudiante, @esDiscapacitado, 
-          @vigenciaEstudios, @imageUrl
+          @vigenciaEstudios, @imageUrl, @curp
         )
       `);
 

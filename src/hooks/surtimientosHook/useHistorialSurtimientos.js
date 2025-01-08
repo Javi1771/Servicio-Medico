@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import Swal from "sweetalert2";
 
 const useHistorialSurtimientos = (folioPase) => {
   const [historial, setHistorial] = useState([]);

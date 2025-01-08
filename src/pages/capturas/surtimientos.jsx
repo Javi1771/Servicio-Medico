@@ -8,7 +8,6 @@ import Cookies from "js-cookie"; // Asegúrate de tener instalada esta librería
 import Swal from "sweetalert2";
 import { FiInfo } from "react-icons/fi";
 import Image from "next/image";
-import useFetchEspecialista from "../../hooks/surtimientosHook/useFetchEspecialista"; // Importar el hook
 
 export default function Surtimientos() {
   const [folioConsulta, setFolioConsulta] = useState("");
@@ -32,15 +31,12 @@ export default function Surtimientos() {
 
   const [isDiagnosticoEditable, setIsDiagnosticoEditable] = useState(true);
 
-  const [claveusuario, setClaveusuario] = useState("");
+  const [setClaveusuario] = useState("");
 
   //const para mostrar informacion del medico especialista
 
-  const [especialista, setEspecialista] = useState(null); // Nuevo estado para el especialista
-  const [especialidad, setEspecialidad] = useState("No registrada"); // Nuevo estado para la especialidad
+ 
   const { data, fetchConsulta, error, loading } = useFetchConsulta();
-  const { fetchEspecialista } = useFetchEspecialista(); // Hook para obtener el especialista y su especialidad
-
   const [showHistorial, setShowHistorial] = useState(false);
 
   const handleToggleHistorial = () => {
@@ -171,11 +167,11 @@ export default function Surtimientos() {
     console.log("Clave Especialidad desde cookies:", clave);
     setNombreMedico(nombre || "No especificado");
     setClaveEspecialidad(clave || "No especificado");
-
+  
     const claveusuario = Cookies.get("claveusuario");
     console.log("Clave claveusuario: ", claveusuario);
     setClaveusuario(claveusuario || "No especificado");
-  }, []);
+  }, [setClaveusuario]);
 
   // Fetch para obtener especialidades
   useEffect(() => {

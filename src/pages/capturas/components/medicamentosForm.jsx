@@ -13,8 +13,6 @@ const MedicamentosForm = ({
   diagnostico,
   onFormSubmitted,
   detalles,
-  showHistorial,
-  handleToggleHistorial,
 }) => {
   const [medicamentoMap, setMedicamentoMap] = useState({}); // Mapeo de claveMedicamento -> descripción
 
@@ -24,13 +22,13 @@ const MedicamentosForm = ({
   const [indicaciones, setIndicaciones] = useState("");
   const [cantidad, setCantidad] = useState("");
 
-  const [isGuardadoHabilitado, setIsGuardadoHabilitado] = useState(false);
+  const [setIsGuardadoHabilitado] = useState(false);
 
   const [temporalMedicamentos, setTemporalMedicamentos] = useState([]); // Temporal storage
   // Nueva validación: deshabilitar botón si ya existe al menos un medicamento
 
   // Función para obtener el medicamento por clave
-  const fetchMedicamentoDescripcion = async (claveMedicamento) => {
+  const fetchMedicamentoDescripcion = useCallback(async (claveMedicamento) => {
     if (medicamentoMap[claveMedicamento]) {
       return medicamentoMap[claveMedicamento]; // Retorna si ya está en el mapeo
     }
@@ -50,7 +48,28 @@ const MedicamentosForm = ({
       console.error("Error al obtener medicamento:", error.message);
       return "Descripción no disponible";
     }
-  };
+  }, [medicamentoMap]);
+
+    // Al renderizar, llena el mapa de medicamentos dinámicamente
+    useEffect(() => {
+      const fetchDescripciones = async () => {
+        const clavesUnicas = [
+          ...new Set(temporalMedicamentos.map((med) => med.medicamento)),
+        ];
+        for (const clave of clavesUnicas) {
+          await fetchMedicamentoDescripcion(clave);
+        }
+      };
+      fetchDescripciones();
+    }, [temporalMedicamentos, fetchMedicamentoDescripcion]);
+  
+    useEffect(() => {
+      fetchMedicamentos();
+      validarEspecialidad();
+    }, [folioConsulta, validarEspecialidad]);
+  
+    // Nueva validación: deshabilitar botón si ya existe al menos un medicamento
+    const tieneMedicamentos = detalles?.length > 0;
 
   const handleRemoveFromReceta = (id, event) => {
     event.preventDefault(); // Evita el refresco de la página
@@ -369,26 +388,7 @@ const MedicamentosForm = ({
     }
   };
 
-  // Al renderizar, llena el mapa de medicamentos dinámicamente
-  useEffect(() => {
-    const fetchDescripciones = async () => {
-      const clavesUnicas = [
-        ...new Set(temporalMedicamentos.map((med) => med.medicamento)),
-      ];
-      for (const clave of clavesUnicas) {
-        await fetchMedicamentoDescripcion(clave);
-      }
-    };
-    fetchDescripciones();
-  }, [temporalMedicamentos]);
 
-  useEffect(() => {
-    fetchMedicamentos();
-    validarEspecialidad();
-  }, [folioConsulta, validarEspecialidad]);
-
-  // Nueva validación: deshabilitar botón si ya existe al menos un medicamento
-  const tieneMedicamentos = detalles?.length > 0;
 
   return (
     <div className={styles.formContainer}>

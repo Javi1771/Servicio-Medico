@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useCallback } from "react";
 import useUpdateEstatus from "../../../hooks/surtimientosHook/useUpdateEstatus";
-import useHistorialByFolio from "../../../hooks/surtimientosHook/useHistorialSurtimientos";
 import HistorialSurtimientos from "./historialSurtimientos";
 import styles from "../../css/estilosSurtimientos/tablaResultados.module.css";
 import Swal from "sweetalert2";
 
 export default function TablaResultados({ data, folioPase, onEstatusUpdated }) {
-  const [showHistorial, setShowHistorial] = useState(false); // Maneja el estado del historial
+  const [showHistorial] = useState(false); // Maneja el estado del historial
   const [medicamentosMap, setMedicamentosMap] = useState({});
   const { updateEstatus, loading, error } = useUpdateEstatus();
   //const { surtimientos, loading: loadingSurtimientos, error: errorSurtimientos } = useHistorialByFolio(folioPase);
@@ -23,11 +22,11 @@ export default function TablaResultados({ data, folioPase, onEstatusUpdated }) {
       return "No disponible";
     }
   };
-
+  
   const loadMedicamentos = useCallback(async () => {
     const newMedicamentosMap = { ...medicamentosMap };
     let updated = false;
-
+  
     for (const detalle of data) {
       const clave = detalle.descMedicamento;
       if (!newMedicamentosMap[clave]) {
@@ -36,17 +35,12 @@ export default function TablaResultados({ data, folioPase, onEstatusUpdated }) {
         updated = true;
       }
     }
-
+  
     // Solo actualizar el estado si hubo cambios
     if (updated) {
       setMedicamentosMap(newMedicamentosMap);
     }
-  }, [data]);
-
-  const handleToggleHistorial = () => {
-    console.log("Botón de historial clickeado");
-    setShowHistorial(!showHistorial);
-  };
+  }, [data, medicamentosMap]);
 
   useEffect(() => {
     loadMedicamentos();
