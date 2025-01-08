@@ -81,7 +81,7 @@ const Home = () => {
           handleMouseEnter={() => handleMouseEnter("Catálogos")}
           handleMouseLeave={handleMouseLeave}
         />
-         { <SidebarButton
+         {/* { <SidebarButton
           title="Farmacia"
           options={[
             "Medicamentos",
@@ -92,7 +92,7 @@ const Home = () => {
           isOpen={openMenu === "Farmacia"}
           handleMouseEnter={() => handleMouseEnter("Farmacia")}
           handleMouseLeave={handleMouseLeave}
-        /> }
+        /> } */}
         <SidebarButton
           title="Capturas"
           options={[
@@ -123,7 +123,7 @@ const Home = () => {
         />
         <SidebarButton
           title="Estadisticas"
-          options={["Costo De Surtimientos", "Costos Consulta General", "Costos Consulta Especialidad"]}
+          options={["Intervalos de Consultas", "Costo De Surtimientos", "Costos Consulta General", "Costos Consulta Especialidad"]}
           isOpen={openMenu === "Estadisticas"}
           handleMouseEnter={() => handleMouseEnter("Estadisticas")}
           handleMouseLeave={handleMouseLeave}
