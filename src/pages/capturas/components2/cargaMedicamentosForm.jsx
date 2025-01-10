@@ -34,7 +34,7 @@ const CargaMedicamentosForm = ({ medicamentos, onAddMedicamento, onSave }) => {
           className={styles.select}
         >
           <option value="">Seleccionar Medicamento</option>
-          {medicamentos.map((med) => (
+          {medicamentos && medicamentos.map((med) => (
             <option key={med.CLAVEMEDICAMENTO} value={med.CLAVEMEDICAMENTO}>
               {med.MEDICAMENTO}
             </option>

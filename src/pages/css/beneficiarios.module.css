@@ -515,7 +515,7 @@
     -webkit-backdrop-filter: blur(15px);
     padding: 10px 0px;
     border-radius: 20px;
-    max-width: 800px;
+    max-width: 880px;
     width: 90%;
     color: #000000;
     display: flex;
@@ -531,7 +531,7 @@
   flex-direction: column;
   gap: 20px;
   width: 100%;
-  padding: 10px;
+  padding: 40px;
 }
 
 /* Títulos de las secciones */
@@ -1884,4 +1884,37 @@
 .checkboxWrapper:hover .label {
   opacity: 1;
   transform: translateX(5px);
+}
+
+
+
+/*estilos para el tool tip error CURP*/
+.tooltip {
+  display: inline-block;
+  position: relative;
+  cursor: pointer;
+  color: rgb(0, 98, 255);
+  margin-left: 10px;
+}
+
+.tooltip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #333;
+  color: #fff;
+  padding: 5px;
+  border-radius: 5px;
+  white-space: nowrap;
+  font-size: 12px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s;
+}
+
+.tooltip:hover::after {
+  opacity: 1;
+  visibility: visible;
 }
