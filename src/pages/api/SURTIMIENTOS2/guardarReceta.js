@@ -19,7 +19,7 @@ export default async function handler(req, res) {
 
     // Obtener el último FOLIO_SURTIMIENTO
     const folioQuery = `
-      SELECT ISNULL(MAX(FOLIO_SURTIMIMIENTO), 0) + 1 AS nuevoFolio
+      SELECT ISNULL(MAX(FOLIO_SURTIMIENTO), 0) + 1 AS nuevoFolio
       FROM [PRESIDENCIA].[dbo].[SURTIMIENTOS]
     `;
     const folioResult = await pool.request().query(folioQuery);
@@ -52,12 +52,22 @@ export default async function handler(req, res) {
         return "SUTSMSJR";
       } else if (clavenomina.startsWith("8")) {
         return "SITAM";
+      } else if (clavenomina.startsWith("3")) { // Ajusta esta lógica según tus reglas
+        return "OTRO_SINDICATO"; // Reemplaza con el sindicato correcto
       } else {
         return null;
       }
     };
 
     const sindicato = getSindicato(consulta.clavenomina);
+    console.log("Sindicato determinado:", sindicato);
+
+    // Normalizar el valor del campo departamento
+    let departamento = consulta.departamento || null;
+    if (departamento && departamento.length > 100) {
+      departamento = departamento.substring(0, 100);
+    }
+    console.log("Longitud del valor del campo departamento después de normalizar:", departamento ? departamento.length : 0);
 
     // Insertar en la tabla SURTIMIENTOS
     const insertSurtimientoQuery = `
@@ -82,7 +92,7 @@ export default async function handler(req, res) {
       .input("esEmpleado", sql.NVarChar(1), consulta.elpacienteesempleado)
       .input("claveMedico", sql.Int, consulta.claveproveedor)
       .input("diagnostico", sql.NVarChar(sql.MAX), diagnostico)
-      .input("departamento", sql.NVarChar(100), consulta.departamento || null)
+      .input("departamento", sql.NVarChar(100), departamento)
       .input("estatus", sql.Bit, consulta.clavestatus)
       .input("sindicato", sql.NVarChar(10), sindicato || null)
       .input("claveUsuario", sql.Int, consulta.claveusuario)

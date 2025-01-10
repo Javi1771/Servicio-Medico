@@ -25,6 +25,7 @@ export default async function handler(req, res) {
     vigenciaEstudios, // Vigencia de estudios en formato ISO (puede ser null)
     imageUrl,        // URL de la imagen del beneficiario
     curp,            // Nuevo campo CURP
+    urlConstancia,   // Nuevo campo para la URL de la constancia
   } = req.body;
 
   // Validar datos obligatorios
@@ -85,6 +86,7 @@ export default async function handler(req, res) {
       .input("vigenciaEstudios", vigenciaEstudios ? new Date(vigenciaEstudios).toISOString() : null) // Convertir a ISO si no es null
       .input("imageUrl", imageUrl || null) // Puede ser null
       .input("curp", curp || null) // Nuevo campo CURP
+      .input("urlConstancia", urlConstancia || null) // Nuevo campo URL_CONSTANCIA
       .query(`
         UPDATE BENEFICIARIO
         SET 
@@ -105,7 +107,8 @@ export default async function handler(req, res) {
           ESDISCAPACITADO = @esDiscapacitado,
           VIGENCIA_ESTUDIOS = @vigenciaEstudios,
           FOTO_URL = @imageUrl,
-          CURP = @curp
+          CURP = @curp,
+          URL_CONSTANCIA = @urlConstancia -- Agregado: Campo URL_CONSTANCIA
         WHERE ID_BENEFICIARIO = @idBeneficiario
       `);
 

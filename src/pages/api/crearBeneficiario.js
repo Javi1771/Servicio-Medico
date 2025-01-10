@@ -25,6 +25,7 @@ export default async function handler(req, res) {
     vigenciaEstudios,
     imageUrl,
     curp, // Nuevo campo CURP
+    urlConstancia, // Nuevo campo para la URL de la constancia
   } = req.body;
 
   try {
@@ -38,6 +39,7 @@ export default async function handler(req, res) {
     const truncatedNombreEmergencia = nombreEmergencia?.substring(0, 99);
     const truncatedFotoUrl = imageUrl?.substring(0, 255);
     const truncatedCurp = curp?.substring(0, 18); // Validar longitud de CURP
+    const truncatedUrlConstancia = urlConstancia?.substring(0, 255); // Validar longitud de URL_CONSTANCIA
 
     const pool = await connectToDatabase();
 
@@ -61,18 +63,19 @@ export default async function handler(req, res) {
       .input("vigenciaEstudios", vigenciaEstudios || null)
       .input("imageUrl", truncatedFotoUrl)
       .input("curp", truncatedCurp) // Nuevo campo CURP
+      .input("urlConstancia", truncatedUrlConstancia) // Nuevo campo para la URL de la constancia
       .query(`
         INSERT INTO BENEFICIARIO (
           NO_NOMINA, PARENTESCO, NOMBRE, A_PATERNO, A_MATERNO, SEXO, 
           F_NACIMIENTO, ESCOLARIDAD, ACTIVO, ALERGIAS, SANGRE, 
           TEL_EMERGENCIA, NOMBRE_EMERGENCIA, ESESTUDIANTE, ESDISCAPACITADO, 
-          VIGENCIA_ESTUDIOS, FOTO_URL, CURP
+          VIGENCIA_ESTUDIOS, FOTO_URL, CURP, URL_CONSTANCIA
         )
         VALUES (
           @noNomina, @parentesco, @nombre, @aPaterno, @aMaterno, @sexo, 
           @fNacimiento, @escolaridad, @activo, @alergias, @sangre, 
           @telEmergencia, @nombreEmergencia, @esEstudiante, @esDiscapacitado, 
-          @vigenciaEstudios, @imageUrl, @curp
+          @vigenciaEstudios, @imageUrl, @curp, @urlConstancia
         )
       `);
 

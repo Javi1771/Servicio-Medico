@@ -11,11 +11,15 @@ cloudinary.config({
 
 // En desarrollo, configura el agente HTTPS para ignorar SSL
 if (process.env.NODE_ENV === 'development') {
-  cloudinary.options = {
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+    secure: true,
     http_agent: new https.Agent({
       rejectUnauthorized: false, // Ignora verificación SSL en desarrollo
     }),
-  };
+  });
 }
 
 export default cloudinary;

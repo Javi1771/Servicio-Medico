@@ -1,4 +1,3 @@
-// src/pages/api/uploadImage.js
 import cloudinary from '../../lib/cloudinaryServer';
 
 export const config = {

@@ -40,6 +40,7 @@
   font-weight: bold;
   margin-bottom: 20px;
   color: #ffffff;
+  text-align: center;
 }
 
 /* Sección de búsqueda */
@@ -436,14 +437,6 @@
   color: #c7ccd8;
 }
 
-.inputField {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #4c5362;
-  border-radius: 4px;
-  background-color: #1f222a;
-  color: #ffffff;
-}
 
 .submitButton {
   width: 100%;
@@ -493,36 +486,70 @@
 
 /* Fondo oscuro con blur al fondo */
 .modalOverlay {
+  background-color: rgba(0, 0, 0, 0.447); /* Fondo oscuro translúcido */
   position: fixed;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.322);
-  backdrop-filter: blur(8px);
+  width: 100%;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  padding: 0; /* O ajústalo */
 }
 
 /* Contenedor del modal - Estilo vidrio esmerilado con efecto neón */
 .modal {
-    position: relative;
-    background: rgb(38 52 66 / 32%);
-    backdrop-filter: blur(15px); /* Efecto vidrio esmerilado */
-    -webkit-backdrop-filter: blur(15px);
-    padding: 10px 0px;
-    border-radius: 20px;
-    max-width: 880px;
-    width: 90%;
-    color: #000000;
-    display: flex;
-    flex-direction: column;
-    max-height: 90vh;
-    overflow-y: auto;
+  position: relative;
+  background: rgb(38 52 66 / 32%);
+  backdrop-filter: blur(15px); /* Efecto vidrio esmerilado */
+  -webkit-backdrop-filter: blur(15px);
+  padding: 40px; /* Aumentar el padding para mayor espacio interno */
+  border-radius: 20px;
+  max-width: 880px;
+  width: 90%;
+  color: #e1e4eb; /* Color de texto claro */
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+  overflow-y: auto;
+
+  /* Box-shadow neón animado */
+  box-shadow: 0 0 20px 4px #ff000022, /* Inicial en rosa */
+              0 0 40px 8px rgba(242, 0, 0, 0.164);
+  animation: neonGlow 12s infinite;
+}
+
+/* Animación de entrada */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
   }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Animación de neón en el borde */
+@keyframes neonGlow {
+  0% {
+    box-shadow: 0 0 20px 4px #0202021e, 0 0 40px 8px rgba(0, 238, 255, 0.11);
+  }
+  25% {
+    box-shadow: 0 0 20px 4px #0202021e, 0 0 40px 8px rgba(0, 200, 255, 0.11);
+  }
+  50% {
+    box-shadow: 0 0 20px 4px #0202021e, 0 0 40px 8px rgba(0, 98, 255, 0.11);
+  }
+  75% {
+    box-shadow: 0 0 20px 4px #0202021e, 0 0 40px 8px rgba(0, 30, 255, 0.11);
+  }
+  100% {
+    box-shadow: 0 0 20px 4px #0202021e, 0 0 40px 8px rgba(93, 0, 255, 0.11);
+  }
+}
 
 
 /* Formulario interno - Organización */
@@ -531,7 +558,6 @@
   flex-direction: column;
   gap: 20px;
   width: 100%;
-  padding: 40px;
 }
 
 /* Títulos de las secciones */
@@ -540,7 +566,6 @@
   font-weight: bold;
   margin-bottom: 15px;
   color: #ffffff;
-  /* Efecto neón */
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.8), rgba(238, 255, 240, 0.8));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -650,36 +675,33 @@
   transition: all 0.3s ease;
   width: 100%;
 }
-
 .inputField:focus {
   border-color: #1e65ff;
   outline: none;
-  box-shadow: 0 0 10px rgba(75, 79, 122, 0.6), 
-              0 0 20px rgba(83, 85, 137, 0.4);
+  box-shadow: 0 0 10px rgba(75, 79, 122, 0.6), 0 0 20px rgba(83, 85, 137, 0.4);
 }
 
 /* Botón de continuar */
 .submitButton {
   width: 100%;
-    padding: 12px;
-    background: linear-gradient(135deg, #1818188a, #1818188a);    color: #ffffff;
-    border: none;
-    border-radius: 10px;
-    font-size: 16px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
-    box-shadow: 0 0 15px rgb(30 95 255 / 40%), 0 0 25px rgb(30 100 255 / 30%);
+  padding: 12px;
+  background: linear-gradient(135deg, #1818188a, #1818188a);
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+  box-shadow: 0 0 15px rgb(30 95 255 / 40%), 0 0 25px rgb(30 100 255 / 30%);
 }
 
 .submitButton:hover {
   background: linear-gradient(135deg, #1c5fe4, #0088cc);
   transform: scale(1.05);
-  box-shadow: 0 0 20px rgba(30, 101, 255, 0.6), 
-              0 0 30px rgba(30, 101, 255, 0.5);
+  box-shadow: 0 0 20px rgba(30, 101, 255, 0.6), 0 0 30px rgba(30, 101, 255, 0.5);
 }
 
-/* Botón de cancelar */
 .cancelButton {
   width: 100%;
   padding: 12px;
@@ -691,8 +713,6 @@
   cursor: pointer;
   margin-top: 10px;
   transition: all 0.3s ease;
-
-  /* Glow effect */
   box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
 }
 
@@ -1249,129 +1269,7 @@
   }
 }
 
-/* Contenedor de la imagen del beneficiario */
-.imageContainer {
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-top: 20px;
-  perspective: 1000px; /* Añade un efecto 3D para que parezca flotante */
-}
 
-/* Imagen del beneficiario */
-.beneficiaryImage {
-  width: 200px; /* Tamaño de la imagen */
-  height: 200px;
-  border-radius: 50%; /* Imagen redonda */
-  object-fit: cover; /* Ajuste para mantener proporciones */
-  background: linear-gradient(145deg, #222, #333); /* Fondo degradado sutil */
-  box-shadow: 
-    0 15px 35px rgba(0, 0, 0, 0.5), /* Sombra base */
-    0 5px 15px rgba(0, 0, 0, 0.3), /* Sombra suave */
-    0 0 20px rgba(0, 72, 255, 0.4); /* Glow dorado suave */
-  transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
-}
-
-/* Efecto de hover */
-.beneficiaryImage:hover {
-  transform: translateY(-10px) scale(1.1); /* Efecto de flotación */
-  box-shadow: 
-    0 20px 40px rgba(0, 0, 0, 0.6), /* Incremento de sombra base */
-    0 10px 30px rgba(0, 0, 0, 0.4), /* Incremento de sombra secundaria */
-    0 0 30px #00aaff, /* Glow dorado intenso */
-    0 0 60px rgba(0, 68, 255, 0.5); /* Glow extendido */
-}
-
-/* Animación sutil al estar quieto */
-.beneficiaryImage::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 220px;
-  height: 220px;
-  border-radius: 50%;
-  background: radial-gradient(ellipse at center, rgba(255, 215, 0, 0.2), transparent);
-  transform: translate(-50%, -50%);
-  animation: pulse 2s infinite;
-  pointer-events: none; /* No afecta el hover */
-}
-
-/* Keyframes para el efecto de pulso */
-@keyframes pulse {
-  0% {
-    transform: translate(-50%, -50%) scale(1);
-    opacity: 0.8;
-  }
-  50% {
-    transform: translate(-50%, -50%) scale(1.1);
-    opacity: 0.5;
-  }
-  100% {
-    transform: translate(-50%, -50%) scale(1);
-    opacity: 0.8;
-  }
-}
-
-
-/* Estilos para los botones de imprimir */
-.printButton {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #004d34;
-  color: #ffffff;
-  border: 2px solid #2c2c2c;
-  border-radius: 15px;
-  padding: 7px 24px;
-  font-size: 1rem;
-  font-weight: normal;
-  cursor: pointer;
-  transition: all 0.4s ease;
-  outline: none;
-  position: relative;
-  overflow: hidden;
-  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1); /* Sombra inicial */
-}
-
-.printButton::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: radial-gradient(
-    circle,
-    rgba(2, 175, 135, 0.25) 0%,
-    rgba(2, 104, 118, 0) 70%
-  );
-  transform: scale(0);
-  transition: transform 0.5s ease;
-}
-
-.printButton:hover::after {
-  transform: scale(4); /* Expande el efecto radial */
-}
-
-.printButton:hover {
-  border-color: #666666; /* Borde gris más claro */
-  background: #292929; /* Fondo ligeramente más claro */
-  box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.2); /* Sombra más intensa */
-}
-
-.printButton:active {
-  background-color: #c2c2c2; /* Gris más claro al hacer clic */
-  box-shadow: none; /* Elimina la sombra */
-}
-
-.printButton svg {
-  margin-right: 8px; /* Espaciado entre ícono y texto */
-  fill: #ffffff; /* Color del ícono */
-  width: 20px; /* Ancho del ícono */
-  height: 20px; /* Altura del ícono */
-}
 
 /*boton para cerrar el modal*/
 .button {
@@ -1564,16 +1462,48 @@
 
 
 
+/*ESTILOS MODAL INFORMARIOCN BENEFICIAIROS*/
 
-.modalContent {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 20px;
-  padding: 20px;
+/* General Styles */
+.modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(10, 10, 10, 0.1); /* Fondo más transparente */
+  backdrop-filter: blur(20px); /* Efecto vidrio más suave */
+  width: 95%;
+  max-width: 750px; /* Modal más ancho */
+  max-height: 90vh; /* Limita la altura */
+  overflow-y: auto; /* Habilita scroll */
+  border-radius: 20px;
+  border: 1px solid rgb(87 87 87);
+  box-shadow: 0px 10px 40px rgba(0, 0, 0, 0.7);
 }
 
-.imageContainer {
+/* Contenido del Modal */
+.modalContent {
+  padding: 3px;
+  font-family: 'Poppins', sans-serif;
+  color: #ffffff;
+}
+
+/* Barra de desplazamiento personalizada */
+.modal::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modal::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.4));
+  border-radius: 10px;
+}
+
+.modal::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.6));
+}
+
+/* Sección de Imagen */
+.imageSection {
   display: flex;
   justify-content: center;
   margin-bottom: 20px;
@@ -1581,112 +1511,151 @@
 
 .beneficiaryImage {
   border-radius: 50%;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  width: 170px;
+  height: 170px;
   object-fit: cover;
+  border: 4px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0px 8px 25px rgba(0, 0, 0, 0.6);
+  transition: transform 0.4s ease, box-shadow 0.4s ease, border-color 0.4s ease;
 }
 
+.beneficiaryImage:hover {
+  transform: scale(1.1);
+  box-shadow: 0px 12px 30px rgba(20, 39, 255, 0.8); /* Efecto neon al pasar el mouse */
+  border-color: rgba(67, 20, 255, 0.8);
+}
+
+/* Texto cuando no hay imagen */
 .noImageText {
-  font-size: 1rem;
-  color: #a0a0a0;
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.7);
+  text-align: center;
+  font-style: italic;
 }
 
+/* Estilos de las Tarjetas */
 .card {
-  width: 100%;
-  max-width: 595px;
-  background: rgba(43, 47, 58, 0.411);
-  border-radius: 10px;
-  padding: 16px;
-  box-shadow: 0 4px 8px rgb(0 0 0 / 97%);
-  color: #fff;
+  background: linear-gradient(135deg, rgba(20, 20, 20, 0.4), rgba(10, 10, 10, 0.5));
+  backdrop-filter: blur(15px);
+  margin-bottom: 20px;
+  border-radius: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0px 5px 20px rgba(0, 0, 0, 0.5);
+  padding: 20px;
 }
 
 .cardTitle {
-  font-size: 1.2rem;
-  margin-bottom: 10px;
-  color: #fff;
-  text-align: center;
+  font-size: 20px;
+  margin-bottom: 15px;
+  color: rgba(255, 255, 255, 0.9);
+  background: linear-gradient(90deg, #75d6ff, #6a11cb); /* Título con gradiente neon */
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
-/* Contenedor de los botones */
+.cardList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.cardList li {
+  margin-bottom: 10px;
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.cardList li strong {
+  color: #ffffff;
+}
+
+/* Botones */
 .buttonsContainer {
   display: flex;
-  justify-content: center; /* Centra los botones */
-  gap: 15px; /* Espaciado entre los botones */
-  margin-top: 30px;
-  width: 100%;
-  flex-wrap: wrap; /* Permitir que los botones se ajusten en pantallas pequeñas */
+  justify-content: space-around;
+  margin-top: 20px;
 }
 
-/* Botón genérico */
-.button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.printButton {
   padding: 12px 20px;
-  border-radius: 30px;
+  border-radius: 25px;
   font-size: 14px;
   font-weight: bold;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  color: #ffffff;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+  backdrop-filter: blur(5px);
   cursor: pointer;
-  transition: all 0.3s ease;
-  border: none;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-  text-align: center;
-  white-space: nowrap;
-  min-width: 120px; /* Tamaño mínimo para mantener consistencia */
+  transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
 }
 
-/* Botón verde - Imprimir Credencial */
+.printButton:hover {
+  transform: translateY(-3px);
+}
+
 .greenButton {
-  background: linear-gradient(45deg, #4caf50, #81c784);
-  color: #fff;
-  box-shadow: 0 0 10px rgba(76, 175, 80, 0.4), 0 0 20px rgba(76, 175, 80, 0.2);
+  background: linear-gradient(135deg, #151515, #20c997);
 }
 
 .greenButton:hover {
-  background: linear-gradient(45deg, #45a049, #66bb6a);
-  box-shadow: 0 0 15px rgba(76, 175, 80, 0.6), 0 0 25px rgba(76, 175, 80, 0.4);
-  transform: translateY(-3px); /* Efecto de elevación */
+  background: linear-gradient(135deg, #2d5751, #28ffbf);
+  box-shadow: 0px 8px 20px rgba(32, 201, 151, 0.5);
 }
 
-/* Botón azul - Imprimir Carnet */
 .blueButton {
-  background: linear-gradient(45deg, #2196f3, #64b5f6);
-  color: #fff;
-  box-shadow: 0 0 10px rgba(33, 150, 243, 0.4), 0 0 20px rgba(33, 150, 243, 0.2);
+  background: linear-gradient(135deg, #192228, #0056b3);
 }
 
 .blueButton:hover {
-  background: linear-gradient(45deg, #1976d2, #42a5f5);
-  box-shadow: 0 0 15px rgba(33, 150, 243, 0.6), 0 0 25px rgba(33, 150, 243, 0.4);
-  transform: translateY(-3px); /* Efecto de elevación */
+  background: linear-gradient(135deg, #447b95, #339af0);
+  box-shadow: 0px 8px 20px rgba(51, 154, 240, 0.5);
 }
 
-/* Botón rojo - Cancelar */
 .redButton {
-  background: linear-gradient(45deg, #c9302c, #e57373);
-  color: #fff;
-  box-shadow: 0 0 10px rgba(201, 48, 44, 0.4), 0 0 20px rgba(201, 48, 44, 0.2);
+  background: linear-gradient(135deg, #ff6f61, #ff4b4b);
 }
 
 .redButton:hover {
-  background: linear-gradient(45deg, #a12824, #ef5350);
-  box-shadow: 0 0 15px rgba(201, 48, 44, 0.6), 0 0 25px rgba(201, 48, 44, 0.4);
-  transform: translateY(-3px); /* Efecto de elevación */
+  background: linear-gradient(135deg, #ff9080, #ff6f61);
+  box-shadow: 0px 8px 20px rgba(255, 111, 97, 0.5);
 }
 
-/* Responsividad */
-@media (max-width: 768px) {
-  .buttonsContainer {
-    flex-direction: column;
-    align-items: center;
+.orangeButton {
+  background: linear-gradient(135deg, #f39c12, #e67e22);
+}
+
+.orangeButton:hover {
+  background: linear-gradient(135deg, #f7b733, #d35400);
+  box-shadow: 0px 8px 20px rgba(243, 156, 18, 0.5);
+}
+
+
+.iconSmall {
+  width: 16px;
+  height: 16px;
+  margin-right: 8px; /* Espaciado entre el ícono y el texto */
+}
+
+/* Responsivo */
+@media (max-width: 600px) {
+  .modal {
+    width: 100%;
+    max-width: 95%;
   }
 
-  .button {
-    width: 80%; /* Botones más grandes en pantallas pequeñas */
-    margin-bottom: 15px;
+  .cardList li {
+    font-size: 14px;
+  }
+
+  .printButton {
+    padding: 10px 15px;
+    font-size: 12px;
   }
 }
 
+
+
+/***********************************************/
 
 /*ESTILOS UPLOAD IMAGE*//* Estilo para el contenedor del botón de subir foto */
 .uploadLabel {
@@ -1917,4 +1886,133 @@
 .tooltip:hover::after {
   opacity: 1;
   visibility: visible;
+}
+
+/*ESTILOS DE INFO*/
+.fileInfo {
+  font-size: 0.9rem; /* Tamaño acorde al diseño */
+  font-weight: 600; /* Negrita para resaltar */
+  color: #ffffff; /* Blanco para buen contraste */
+  background-color: #1e293b; /* Fondo oscuro acorde al diseño */
+  padding: 6px 10px; /* Espaciado interno */
+  border-radius: 4px; /* Bordes ligeramente redondeados */
+  display: inline-block; /* Para mantenerlo en línea */
+  margin-top: 8px; /* Espaciado superior */
+}
+
+
+
+
+/* Contenedor general */
+.inputRow2 {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem; /* Reducir el espacio entre elementos */
+  margin: 1rem 0;
+  padding: 0.8rem 1rem; /* Espaciado interno compacto */
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px; /* Bordes redondeados suaves */
+  background-color: rgb(0 0 0 / 5%);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Añadir un toque de elevación */
+}
+
+/* Etiquetas */
+.inputLabel2 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 0.5rem;
+}
+
+/* Envoltorio del input tipo archivo */
+.fileInputWrapper2 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem; /* Menor espacio entre elementos */
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px; /* Bordes redondeados */
+  padding: 0.4rem 0.6rem;
+}
+
+/* Input tipo archivo (oculto) */
+.fileInput2 {
+  display: none;
+}
+
+/* Botón para seleccionar archivo */
+.uploadButton2 {
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #ffffff;
+  background: linear-gradient(90deg, #007bff, #0056b3);
+  border: none;
+  border-radius: 8px; /* Bordes redondeados */
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.uploadButton2:hover {
+  background: linear-gradient(90deg, #0056b3, #003f7f);
+}
+
+/* Nombre del archivo */
+.fileName2 {
+  font-size: 0.85rem;
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.7);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Información del archivo actual */
+.fileInfo2 {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin-top: 0.5rem;
+}
+
+/* Botón para ver constancia */
+.viewButton2 {
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #ffffff;
+  background: transparent;
+  border: 1px solid #1d72b8;
+  border-radius: 8px; /* Bordes redondeados */
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.viewButton2:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #1d72b8;
+  border-color: #0056b3;
+}
+
+
+.inputField {
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(66, 94, 76, 0.2); /* Borde original */
+  background: rgba(27, 27, 27, 0.153); /* Fondo similar al input */
+  color: #e1e4eb; /* Texto claro */
+  width: 100%;
+  transition: all 0.3s ease;
+}
+
+.inputField.hasText {
+  border-color: #00ff73d1; /* Borde verde */
+  box-shadow: 0 0 10px rgba(30, 255, 131, 0.361), 0 0 20px rgba(30, 255, 158, 0.347); /* Sombra verde */
+}
+
+.icon {
+  margin-right: 8px;
+}
+
+.iconLarge {
+  font-size: 1.5rem; /* Ajusta el tamaño según sea necesario */
 }
