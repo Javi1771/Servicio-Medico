@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 
-const Loader = ({ text = "CARGANDO...", size = 48, duration = 3000 }) => {
+const Loader = ({ size = 30, duration = 10000 }) => {
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
@@ -14,29 +14,35 @@ const Loader = ({ text = "CARGANDO...", size = 48, duration = 3000 }) => {
   if (!isVisible) return null;
 
   return (
-    <div className="flex flex-col items-center justify-center space-y-8">
-      {/* Texto Cargando */}
+    <div className="flex flex-col items-center justify-center space-y-4">
+      {/* Texto superior */}
       <p
-        className="text-4xl font-extrabold text-blue-700 animate-fade tracking-wider uppercase"
+        className="text-2xl font-bold tracking-wide text-teal-300 uppercase"
+        style={{ fontSize: `${size / 3.5}px` }}
+      >
+      </p>
+
+      {/* Texto cargando */}
+      <p
+        className="text-4xl font-extrabold tracking-wider text-teal-400 uppercase animate-gradient-text"
         style={{ fontSize: `${size / 4}px` }}
       >
-        {text}
       </p>
 
       {/* Contenedor principal del monitor cardíaco */}
       <div
-        className="relative flex items-center justify-center bg-gradient-to-br from-blue-900 via-gray-800 to-black p-6 rounded-full shadow-2xl"
+        className="relative flex items-center justify-center bg-gradient-to-br from-blue-900 via-gray-800 to-black p-6 rounded-full shadow-lg transform hover:scale-105 transition-transform duration-300"
         style={{
-          width: `${size * 2}px`,
-          height: `${size * 2}px`,
+          width: `${size * 2.1}px`,
+          height: `${size * 2.1}px`,
         }}
       >
         {/* Círculo pulsante para efecto visual */}
         <div
-          className="absolute rounded-full border-4 border-blue-700 animate-pulse-slow"
+          className="absolute rounded-full border-4 border-teal-500 animate-pulse-slow"
           style={{
-            width: `${size * 1.8}px`,
-            height: `${size * 1.8}px`,
+            width: `${size * 2.6}px`,
+            height: `${size * 2.6}px`,
           }}
         ></div>
 
@@ -49,8 +55,8 @@ const Loader = ({ text = "CARGANDO...", size = 48, duration = 3000 }) => {
           strokeLinecap="round"
           strokeLinejoin="round"
           style={{
-            width: `${size * 1.6}px`,
-            height: `${size * 1.6}px`,
+            width: `${size * 1.5}px`,
+            height: `${size * 1.5}px`,
           }}
         >
           <path
@@ -61,16 +67,28 @@ const Loader = ({ text = "CARGANDO...", size = 48, duration = 3000 }) => {
 
         {/* Anillos rotatorios para efecto dinámico */}
         <div
-          className="absolute rounded-full border-2 border-blue-500 animate-rotate-slow"
+          className="absolute rounded-full border-2 border-teal-400 animate-rotate-slow"
           style={{
-            width: `${size * 2}px`,
-            height: `${size * 2}px`,
+            width: `${size * 2.4}px`,
+            height: `${size * 2.4}px`,
           }}
         ></div>
       </div>
 
       {/* Estilos del Loader */}
       <style jsx>{`
+        @keyframes gradient-text {
+          0% {
+            background-position: 0% 50%;
+          }
+          50% {
+            background-position: 100% 50%;
+          }
+          100% {
+            background-position: 0% 50%;
+          }
+        }
+
         @keyframes fancyCardiograma {
           0% {
             stroke-dashoffset: 500;
@@ -143,12 +161,20 @@ const Loader = ({ text = "CARGANDO...", size = 48, duration = 3000 }) => {
           animation: rotate-slow 6s linear infinite;
         }
 
-        .animate-fade {
-          animation: fade 2.5s ease-in-out infinite;
+        .animate-gradient-text {
+          background: linear-gradient(90deg, #4ca1af, #c4e0e5);
+          background-size: 200% 200%;
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          animation: gradient-text 4s ease infinite;
         }
 
         .animate-pulse-slow {
           animation: pulse-slow 3s ease-in-out infinite;
+        }
+
+        .hover\\:scale-105:hover {
+          transform: scale(1.05);
         }
       `}</style>
     </div>

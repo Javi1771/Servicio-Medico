@@ -7,21 +7,15 @@ import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
-import Loader from "./Loaders/Loader-azul";
+import Loader from "./Loaders/Loader-rosa";
 
-// ***** IMPORTAMOS PAGINATION DE MUI *****
+// Importamos Pagination de MUI
 import { Pagination } from "@mui/material";
 
 /**
  * parseDateString:
- *   Convierte las cadenas que vienen del backend en objetos Date,
- *   para mostrarlas en la gráfica. No ajusta zona horaria.
- *
- * Formatos esperados:
- *  - horas: "YYYY-MM-DD HH:00"
- *  - días:  "YYYY-MM-DD"
- *  - meses: "YYYY-MM"
- *  - años:  "YYYY"
+ *   Convierte las cadenas que vienen del backend en objetos Date.
+ *   Formatos esperados: "YYYY-MM-DD HH:00", "YYYY-MM-DD", "YYYY-MM", "YYYY".
  */
 function parseDateString(key, interval) {
   if (!key) return null;
@@ -61,18 +55,21 @@ function parseDateString(key, interval) {
   }
 }
 
+/**
+ * formatExactDBDate:
+ *   Recibe un string "YYYY-MM-DD HH:MM:SS" y retorna "DD/MM/YYYY, HH:MM:SS".
+ */
 function formatExactDBDate(dbDateStr) {
   const cleanStr = dbDateStr.replace(/\.\d+$/, ""); // Elimina milisegundos
   const match = cleanStr.match(
     /^(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2}):(\d{2})$/
   );
-  if (!match) return dbDateStr; // Si no coincide, retorna original
-
+  if (!match) return dbDateStr;
   const [, yyyy, mm, dd, HH, MM, SS] = match;
   return `${dd}/${mm}/${yyyy}, ${HH}:${MM}:${SS}`;
 }
 
-// SweetAlert + React
+// SweetAlert con React
 const MySwal = withReactContent(Swal);
 
 export default function IntervalosDeConsultas() {
@@ -82,7 +79,7 @@ export default function IntervalosDeConsultas() {
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
 
-  // Calendarios
+  // Calendarios emergentes
   const [isStartCalendarOpen, setIsStartCalendarOpen] = useState(false);
   const [isEndCalendarOpen, setIsEndCalendarOpen] = useState(false);
 
@@ -91,19 +88,16 @@ export default function IntervalosDeConsultas() {
   const [fechaMaxConsultas, setFechaMaxConsultas] = useState(null);
 
   // Loaders
-  const [isLoading, setIsLoading] = useState(true); // Para datos de resumen
-  const [isLoadingDetalles, setIsLoadingDetalles] = useState(false); // Para detalles
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingDetalles, setIsLoadingDetalles] = useState(false);
 
-  // Tabla de Detalles
+  // Tabla detalles
   const [detalles, setDetalles] = useState([]);
 
-  // Paginación de la tabla
+  // Paginación
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
-  // totalPages calculado en base a "detalles"
   const totalPages = Math.ceil(detalles.length / itemsPerPage);
-
-  // Datos que se mostrarán en la tabla según la página actual
   const currentData = detalles.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
@@ -112,7 +106,7 @@ export default function IntervalosDeConsultas() {
   // Chart
   const chartRef = useRef(null);
 
-  // Mapeo (español => inglés)
+  // Mapeo (es->en)
   const intervalMap = {
     horas: "hours",
     días: "days",
@@ -120,7 +114,7 @@ export default function IntervalosDeConsultas() {
     años: "years",
   };
 
-  // Deshabilita fechas futuras
+  // Deshabilitar fechas futuras
   const disableFutureDates = (date) => date > new Date();
 
   // Manejadores de Fecha
@@ -131,16 +125,12 @@ export default function IntervalosDeConsultas() {
       MySwal.fire({
         icon: "error",
         title:
-          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>⚠️ Fecha inválida</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>La fecha inicial no puede ser después de la fecha final.</p>",
-        background: "linear-gradient(145deg, #4a0000, #220000)",
-        confirmButtonColor: "#ff1744",
+          "<span style='color: #FF007B; font-weight: bold; font-size: 1.5em;'>⚠️ Fecha inválida</span>",
+        html: "<p style='color: #FFF0F9; font-size: 1.1em;'>La fecha inicial no puede ser después de la fecha final.</p>",
+        background: "linear-gradient(145deg, #5F0025, #980345)",
+        confirmButtonColor: "#FF007B",
         confirmButtonText:
-          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-        },
+          "<span style='color: #FFF0F9; font-weight: bold;'>Aceptar</span>",
       });
     }
   };
@@ -152,43 +142,37 @@ export default function IntervalosDeConsultas() {
       MySwal.fire({
         icon: "error",
         title:
-          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>⚠️ Fecha inválida</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>La fecha final no puede ser antes de la fecha inicial.</p>",
-        background: "linear-gradient(145deg, #4a0000, #220000)",
-        confirmButtonColor: "#ff1744",
+          "<span style='color: #FF007B; font-weight: bold; font-size: 1.5em;'>⚠️ Fecha inválida</span>",
+        html: "<p style='color: #FFF0F9; font-size: 1.1em;'>La fecha final no puede ser antes de la fecha inicial.</p>",
+        background: "linear-gradient(145deg, #5F0025, #980345)",
+        confirmButtonColor: "#FF007B",
         confirmButtonText:
-          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-        },
+          "<span style='color: #FFF0F9; font-weight: bold;'>Aceptar</span>",
       });
     }
   };
 
-  // --------- FORZAR 5 SEGUNDOS DE LOADER en la carga inicial ---------
+  // Forzar 5s de Loader
   useEffect(() => {
     let finishedLoading = false;
     let minTimeReached = false;
 
     const fetchData = async () => {
       try {
-        const resp = await fetch("/api/estadisticas/intervaloConsultas");
+        // Ajusta a tu endpoint real
+        const resp = await fetch("/api/estadisticas/intervaloEspecialidades");
         const json = await resp.json();
         setData(json);
-      } catch (err) {
-        console.error("Error al cargar datos:", err);
+      } catch (error) {
+        console.error("Error:", error);
       } finally {
         finishedLoading = true;
-        if (minTimeReached) {
-          setIsLoading(false);
-        }
+        if (minTimeReached) setIsLoading(false);
       }
     };
 
     fetchData();
 
-    // Temporizador de 5 segundos
     const timer = setTimeout(() => {
       minTimeReached = true;
       if (finishedLoading) {
@@ -199,14 +183,17 @@ export default function IntervalosDeConsultas() {
     return () => clearTimeout(timer);
   }, []);
 
-  // Filtrar data en base a startDate y endDate
+  /**
+   * Filtra la data según el rango de fechas
+   */
   const filterDataByDateRange = (originalData, startDate, endDate) => {
     const filtered = {};
     for (const [key, value] of Object.entries(originalData)) {
       const date = parseDateString(key, interval);
       if (!date) continue;
+
       if (interval === "horas") {
-        // "horas" => sólo del mismo día
+        // Coincide si año, mes y día es igual al startDate
         if (
           date.getFullYear() === startDate.getFullYear() &&
           date.getMonth() === startDate.getMonth() &&
@@ -220,7 +207,7 @@ export default function IntervalosDeConsultas() {
         }
       }
     }
-    // Ordenar por fecha ascendente
+    // Ordenar
     const sorted = Object.entries(filtered).sort(([a], [b]) => {
       const dA = parseDateString(a, interval);
       const dB = parseDateString(b, interval);
@@ -229,12 +216,14 @@ export default function IntervalosDeConsultas() {
     return Object.fromEntries(sorted);
   };
 
-  // Actualiza estadísticas (total, fechaMaxConsultas)
+  /**
+   * Actualiza estadísticas (Total, fecha(s) con más consultas)
+   */
   const updateStatistics = (filteredData) => {
     const total = Object.values(filteredData).reduce((acc, x) => acc + x, 0);
     setTotalConsultas(total);
 
-    if (Object.values(filteredData).length === 0) {
+    if (!Object.values(filteredData).length) {
       setFechaMaxConsultas(null);
       return;
     }
@@ -243,7 +232,7 @@ export default function IntervalosDeConsultas() {
       (k) => filteredData[k] === maxConsultas
     );
 
-    if (maxTimes.length > 0) {
+    if (maxTimes.length) {
       const formatted = maxTimes.map((t) => {
         const d = parseDateString(t, interval);
         if (!d) return t;
@@ -253,6 +242,8 @@ export default function IntervalosDeConsultas() {
             year: "numeric",
             month: "long",
             day: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
           });
         } else {
           return d.toLocaleDateString("es-ES", {
@@ -269,7 +260,7 @@ export default function IntervalosDeConsultas() {
     }
   };
 
-  // Para "Meses": ajustar fin de mes
+  // Manejo "Meses": Ajustar fin de mes
   const handleMonthlyCalendar = () => {
     const newStartDate = new Date(startDate);
     const newEndDate = new Date(
@@ -281,10 +272,10 @@ export default function IntervalosDeConsultas() {
     setEndDate(newEndDate);
   };
 
+  // Construir rango de fechas
   const buildDateRange = (label, interval) => {
     const parsed = parseDateString(label, interval);
     if (!parsed) return null;
-
     let start, end;
     if (interval === "horas") {
       const sd = new Date(parsed);
@@ -292,56 +283,48 @@ export default function IntervalosDeConsultas() {
       ed.setMinutes(59);
       ed.setSeconds(59);
 
-      start = `${sd.getFullYear()}-${(sd.getMonth() + 1)
-        .toString()
-        .padStart(2, "0")}-${sd.getDate().toString().padStart(2, "0")} ${sd
-        .getHours()
-        .toString()
-        .padStart(2, "0")}:00:00`;
-      end = `${ed.getFullYear()}-${(ed.getMonth() + 1)
-        .toString()
-        .padStart(2, "0")}-${ed.getDate().toString().padStart(2, "0")} ${ed
-        .getHours()
-        .toString()
-        .padStart(2, "0")}:59:59`;
+      start = `${sd.getFullYear()}-${String(sd.getMonth() + 1).padStart(
+        2,
+        "0"
+      )}-${String(sd.getDate()).padStart(2, "0")} ${String(
+        sd.getHours()
+      ).padStart(2, "0")}:00:00`;
+      end = `${ed.getFullYear()}-${String(ed.getMonth() + 1).padStart(
+        2,
+        "0"
+      )}-${String(ed.getDate()).padStart(2, "0")} ${String(
+        ed.getHours()
+      ).padStart(2, "0")}:59:59`;
     } else if (interval === "días") {
       const sd = new Date(parsed);
       sd.setHours(0, 0, 0, 0);
       const ed = new Date(parsed);
       ed.setHours(23, 59, 59, 999);
 
-      start = `${sd.getFullYear()}-${(sd.getMonth() + 1)
-        .toString()
-        .padStart(2, "0")}-${sd
-        .getDate()
-        .toString()
-        .padStart(2, "0")} 00:00:00`;
-      end = `${ed.getFullYear()}-${(ed.getMonth() + 1)
-        .toString()
-        .padStart(2, "0")}-${ed
-        .getDate()
-        .toString()
-        .padStart(2, "0")} 23:59:59`;
+      start = `${sd.getFullYear()}-${String(sd.getMonth() + 1).padStart(
+        2,
+        "0"
+      )}-${String(sd.getDate()).padStart(2, "0")} 00:00:00`;
+      end = `${ed.getFullYear()}-${String(ed.getMonth() + 1).padStart(
+        2,
+        "0"
+      )}-${String(ed.getDate()).padStart(2, "0")} 23:59:59`;
     } else if (interval === "meses") {
       const sd = new Date(parsed.getFullYear(), parsed.getMonth(), 1);
       const ed = new Date(parsed.getFullYear(), parsed.getMonth() + 1, 0);
-
-      start = `${sd.getFullYear()}-${(sd.getMonth() + 1)
-        .toString()
-        .padStart(2, "0")}-01 00:00:00`;
-      end = `${ed.getFullYear()}-${(ed.getMonth() + 1)
-        .toString()
-        .padStart(2, "0")}-${ed
-        .getDate()
-        .toString()
-        .padStart(2, "0")} 23:59:59`;
+      start = `${sd.getFullYear()}-${String(sd.getMonth() + 1).padStart(
+        2,
+        "0"
+      )}-01 00:00:00`;
+      end = `${ed.getFullYear()}-${String(ed.getMonth() + 1).padStart(
+        2,
+        "0"
+      )}-${String(ed.getDate()).padStart(2, "0")} 23:59:59`;
     } else if (interval === "años") {
       const year = parsed.getFullYear();
-
       start = `${year}-01-01 00:00:00`;
       end = `${year}-12-31 23:59:59`;
     }
-
     return { start, end };
   };
 
@@ -349,19 +332,14 @@ export default function IntervalosDeConsultas() {
   useEffect(() => {
     if (!data || !data[intervalMap[interval]]) return;
 
-    // 1) Obtenemos el elemento <canvas>, si no existe aún, salimos.
     const canvasEl = document.getElementById("consultasChart");
     if (!canvasEl) return;
 
-    // 2) Destruimos el chart anterior si existe
     if (chartRef.current) {
       chartRef.current.destroy();
     }
 
-    // 3) Obtenemos el context
     const ctx = canvasEl.getContext("2d");
-
-    // Filtramos data y actualizamos estadísticas
     const filteredData = filterDataByDateRange(
       data[intervalMap[interval]],
       startDate,
@@ -369,23 +347,24 @@ export default function IntervalosDeConsultas() {
     );
     updateStatistics(filteredData);
 
-    // 4) Creamos el nuevo chart y lo guardamos en chartRef
     chartRef.current = new Chart(ctx, {
       type: "line",
       data: {
         labels: Object.keys(filteredData),
         datasets: [
           {
+            // Curva de la gráfica
             label: "Consultas",
             data: Object.values(filteredData),
-            borderColor: "rgba(38, 166, 154, 1)",
-            backgroundColor: "rgba(38, 166, 154, 0.1)",
+            borderColor: "rgb(166, 38, 140)", // Rose 600
+            backgroundColor: "rgba(166, 38, 151, 0.1)", // Rose 400 + transparencia
             borderWidth: 3,
             fill: true,
             tension: 0.4,
             pointRadius: 4,
             pointHoverRadius: 8,
-            pointBackgroundColor: "rgba(255, 255, 255, 1)",
+            pointBackgroundColor: "#FFF0F9", // Rose 50
+            pointHoverBackgroundColor: "#FF27A1", // Rose 500
           },
         ],
       },
@@ -401,14 +380,16 @@ export default function IntervalosDeConsultas() {
 
           setIsLoadingDetalles(true);
           setDetalles([]);
-          setCurrentPage(1); // Reiniciamos a la primera página al cargar nuevos detalles
+          setCurrentPage(1);
+
           try {
-            const url = `/api/estadisticas/infoConsultas?start=${range.start}&end=${range.end}`;
+            // Ajusta la ruta a tu endpoint
+            const url = `/api/estadisticas/infoEspecialidades?start=${range.start}&end=${range.end}`;
             const resp = await fetch(url);
             const json = await resp.json();
             setDetalles(json.detalles || []);
-          } catch (err) {
-            console.error("Error al cargar detalles:", err);
+          } catch (error) {
+            console.error("Error al cargar detalles:", error);
           } finally {
             setIsLoadingDetalles(false);
           }
@@ -417,18 +398,18 @@ export default function IntervalosDeConsultas() {
           legend: {
             display: true,
             labels: {
-              color: "#FFFFFF",
+              color: "#FFF0F9", // Rose 50
               font: { size: 14, weight: "bold" },
             },
           },
           tooltip: {
-            backgroundColor: "rgba(20, 20, 40, 0.9)",
-            titleColor: "#00FFC6",
-            bodyColor: "#FFFFFF",
+            backgroundColor: "rgba(20, 20, 40, 0.9)", // Rose 700
+            titleColor: "#ff0088", // Rose 200
+            bodyColor: "#FFF0F9",
             titleFont: { size: 16, weight: "bold" },
             bodyFont: { size: 14 },
             borderWidth: 2,
-            borderColor: "#00FFC6",
+            borderColor: "#FF007B", // Rose 600
             padding: 12,
             intersect: false,
             mode: "index",
@@ -438,7 +419,6 @@ export default function IntervalosDeConsultas() {
                 const parsed = parseDateString(rawKey, interval);
                 if (!parsed) return rawKey;
                 if (interval === "horas") {
-                  // Muestra en tooltip (ej: 07:00 => 07:59)
                   return parsed.toLocaleString("es-ES", {
                     weekday: "long",
                     year: "numeric",
@@ -472,11 +452,11 @@ export default function IntervalosDeConsultas() {
             title: {
               display: true,
               text: "Intervalos de Tiempo",
-              color: "#FFFFFF",
+              color: "#FFF0F9",
               font: { size: 16, weight: "bold" },
             },
             ticks: {
-              color: "#FFFFFF",
+              color: "#FFE3F5", // Rose 100
               font: { size: 12 },
               maxRotation: 45,
               autoSkip: true,
@@ -491,11 +471,11 @@ export default function IntervalosDeConsultas() {
             title: {
               display: true,
               text: "Número de Consultas",
-              color: "#FFFFFF",
+              color: "#FFF0F9",
               font: { size: 16, weight: "bold" },
             },
             ticks: {
-              color: "#FFFFFF",
+              color: "#FFE3F5",
               font: { size: 12 },
             },
           },
@@ -503,26 +483,24 @@ export default function IntervalosDeConsultas() {
       },
     });
 
-    // Limpieza opcional en el return:
     return () => {
-      if (chartRef.current) {
-        chartRef.current.destroy();
-      }
+      if (chartRef.current) chartRef.current.destroy();
     };
   }, [data, interval, startDate, endDate]);
 
-  // ***** NUEVA FUNCIÓN para MUI Pagination *****
+  // Paginación
   const handlePageChange = (event, value) => {
     setCurrentPage(value);
   };
 
   return (
+    // Fondo principal en gradiente oscuro con toques de Rose
     <div className="flex flex-col items-center p-6 bg-gradient-to-br from-gray-800 via-black to-gray-900 text-white min-h-screen">
-      <h1 className="text-4xl font-extrabold mb-6 text-teal-500">
-        Intervalos de Consultas Generales
+      <h1 className="text-4xl font-extrabold mb-6" style={{ color: "#FF007B" }}>
+        Intervalos de Consultas por Especialidad
       </h1>
 
-      {/* Loader principal si isLoading */}
+      {/* Loader principal */}
       {isLoading ? (
         <div className="flex justify-center items-center w-full h-[80vh]">
           <Loader size={120} />
@@ -540,8 +518,8 @@ export default function IntervalosDeConsultas() {
                 }}
                 className={`px-6 py-3 rounded-full text-lg font-semibold shadow-lg transition-all duration-300 ${
                   interval === int.toLowerCase()
-                    ? "bg-teal-500 text-black hover:bg-teal-400"
-                    : "bg-gray-700 text-gray-300 hover:bg-gray-600 hover:text-white"
+                    ? "bg-[#FF007B] text-white hover:bg-[#DF005F]"
+                    : "bg-[#980345] text-[#FFC6EB] hover:bg-[#B8004F] hover:text-white"
                 }`}
               >
                 {int}
@@ -553,26 +531,29 @@ export default function IntervalosDeConsultas() {
           <div className="flex space-x-4 items-center mb-6">
             {/* Fecha Inicial */}
             <div className="mb-6">
-              <label className="block text-xl font-extrabold text-cyan-400 mb-3 tracking-wider">
+              <label
+                className="block text-xl font-extrabold mb-3 tracking-wider"
+                style={{ color: "#FF58BD" }} // Rose 400
+              >
                 Fecha Inicial:
               </label>
               <div className="relative">
                 <div
-                  className="flex items-center bg-blue-800 rounded-lg p-4 shadow-lg cursor-pointer hover:scale-105 transition-all"
+                  className="flex items-center bg-[#980345] rounded-lg p-4 shadow-lg cursor-pointer hover:scale-105 transition-all"
                   onClick={() => {
                     setIsStartCalendarOpen(!isStartCalendarOpen);
                     setIsEndCalendarOpen(false);
                   }}
                 >
-                  <FaCalendarAlt className="text-blue-300 mr-4" size={28} />
-                  <span className="text-blue-100 font-medium">
+                  <FaCalendarAlt className="text-[#FFC6EB] mr-4" size={24} />
+                  <span className="text-[#FFE3F5] font-medium">
                     {startDate
                       ? startDate.toLocaleDateString("es-ES")
                       : "📅 Selecciona fecha"}
                   </span>
                 </div>
                 {isStartCalendarOpen && (
-                  <div className="absolute top-16 left-0 z-50 bg-blue-900 p-6 rounded-3xl shadow-lg ring-2 ring-blue-500">
+                  <div className="absolute top-16 left-0 z-50 bg-[#5F0025] p-6 rounded-3xl shadow-lg ring-2 ring-[#FF58BD]">
                     <Calendar
                       onChange={(date) => {
                         handleStartDateChange(date);
@@ -580,11 +561,12 @@ export default function IntervalosDeConsultas() {
                       }}
                       value={startDate}
                       tileDisabled={({ date }) => disableFutureDates(date)}
-                      className="bg-blue-900 rounded-lg text-black 
-                       [&_.react-calendar__tile]:text-black
-                       [&_.react-calendar__tile--now]:bg-blue-300
-                       [&_.react-calendar__tile--active]:bg-blue-500
-                       [&_.react-calendar__tile--active]:text-black"
+                      className="bg-[#5F0025] rounded-lg text-black
+                                 [&_.react-calendar__tile--now]:bg-[#FF98D9]
+                                 [&_.react-calendar__tile--active]:bg-[#FF007B]
+                                 [&_.react-calendar__tile--active]:text-[#FFF0F9]
+                                 [&_.react-calendar__tile]:text-[#FFE3F5]
+                                 [&_.react-calendar__tile--now]:text-[#FF007B]"
                     />
                   </div>
                 )}
@@ -594,26 +576,29 @@ export default function IntervalosDeConsultas() {
             {/* Fecha Final (no para "horas") */}
             {interval !== "horas" && (
               <div className="mb-6">
-                <label className="block text-xl font-extrabold text-cyan-400 mb-3 tracking-wider">
+                <label
+                  className="block text-xl font-extrabold mb-3 tracking-wider"
+                  style={{ color: "#FF58BD" }}
+                >
                   Fecha Final:
                 </label>
                 <div className="relative">
                   <div
-                    className="flex items-center bg-blue-800 rounded-lg p-4 shadow-lg cursor-pointer hover:scale-105 transition-all"
+                    className="flex items-center bg-[#980345] rounded-lg p-4 shadow-lg cursor-pointer hover:scale-105 transition-all"
                     onClick={() => {
                       setIsEndCalendarOpen(!isEndCalendarOpen);
                       setIsStartCalendarOpen(false);
                     }}
                   >
-                    <FaCalendarAlt className="text-blue-300 mr-4" size={28} />
-                    <span className="text-blue-100 font-medium">
+                    <FaCalendarAlt className="text-[#FFC6EB] mr-4" size={24} />
+                    <span className="text-[#FFE3F5] font-medium">
                       {endDate
                         ? endDate.toLocaleDateString("es-ES")
                         : "📅 Selecciona fecha"}
                     </span>
                   </div>
                   {isEndCalendarOpen && (
-                    <div className="absolute top-16 left-0 z-50 bg-blue-900 p-6 rounded-3xl shadow-lg ring-2 ring-blue-500">
+                    <div className="absolute top-16 left-0 z-50 bg-[#5F0025] p-6 rounded-3xl shadow-lg ring-2 ring-[#FF58BD]">
                       <Calendar
                         onChange={(date) => {
                           handleEndDateChange(date);
@@ -621,11 +606,12 @@ export default function IntervalosDeConsultas() {
                         }}
                         value={endDate}
                         tileDisabled={({ date }) => disableFutureDates(date)}
-                        className="bg-blue-900 rounded-lg text-black 
-                         [&_.react-calendar__tile]:text-black
-                         [&_.react-calendar__tile--now]:bg-blue-300
-                         [&_.react-calendar__tile--active]:bg-blue-500
-                         [&_.react-calendar__tile--active]:text-black"
+                        className="bg-[#5F0025] rounded-lg text-black
+                                   [&_.react-calendar__tile--now]:bg-[#FF98D9]
+                                   [&_.react-calendar__tile--active]:bg-[#FF007B]
+                                   [&_.react-calendar__tile--active]:text-[#FFF0F9]
+                                   [&_.react-calendar__tile]:text-[#FFE3F5]
+                                   [&_.react-calendar__tile--now]:text-[#FF007B]"
                       />
                     </div>
                   )}
@@ -635,16 +621,20 @@ export default function IntervalosDeConsultas() {
           </div>
 
           {/* Resumen */}
-          <div className="flex flex-col items-center mb-6 text-gray-200">
+          <div className="flex flex-col items-center mb-6 text-[#FFE3F5]">
             <p className="text-lg font-bold">
               Consultas Totales:{" "}
-              <span className="text-teal-400">{totalConsultas}</span>
+              <span style={{ color: "#FF007B", fontWeight: "bold" }}>
+                {totalConsultas}
+              </span>
             </p>
             {fechaMaxConsultas && (
               <p className="text-lg font-bold">
                 {interval === "horas" ? "Hora(s)" : "Fecha(s)"} con Más
                 Consultas:{" "}
-                <span className="text-teal-400">{fechaMaxConsultas}</span>
+                <span style={{ color: "#FF007B", fontWeight: "bold" }}>
+                  {fechaMaxConsultas}
+                </span>
               </p>
             )}
           </div>
@@ -664,11 +654,13 @@ export default function IntervalosDeConsultas() {
 
           {/* Detalles */}
           <div className="w-full max-w-[120rem] mt-8 bg-gray-800 p-6 rounded-lg">
-            <h2 className="text-2xl font-bold text-teal-400 mb-4">
+            <h2
+              className="text-2xl font-bold mb-4"
+              style={{ color: "#FF007B" }}
+            >
               Detalles de las Consultas
             </h2>
 
-            {/* Loader secundario si isLoadingDetalles */}
             {isLoadingDetalles ? (
               <Loader size={50} />
             ) : detalles.length > 0 ? (
@@ -678,39 +670,40 @@ export default function IntervalosDeConsultas() {
                   <table className="w-full table-auto bg-gray-800">
                     <thead>
                       <tr className="bg-gray-900 text-white">
-                        <th className="px-4 py-3 text-left border-b border-teal-500 font-semibold">
+                        <th className="px-4 py-3 text-left border-b border-pink-500 font-semibold">
                           Fecha
                         </th>
-                        <th className="px-4 py-3 text-left border-b border-teal-500 font-semibold">
+                        <th className="px-4 py-3 text-left border-b border-pink-500 font-semibold">
                           Clave
                         </th>
-                        <th className="px-4 py-3 text-left border-b border-teal-500 font-semibold">
+                        <th className="px-4 py-3 text-left border-b border-pink-500 font-semibold">
                           Paciente
                         </th>
-                        <th className="px-4 py-3 text-left border-b border-teal-500 font-semibold">
+                        <th className="px-4 py-3 text-left border-b border-pink-500 font-semibold">
                           Motivo de Consulta
                         </th>
-                        <th className="px-4 py-3 text-left border-b border-teal-500 font-semibold">
+                        <th className="px-4 py-3 text-left border-b border-pink-500 font-semibold">
                           Diagnóstico
                         </th>
-                        <th className="px-4 py-3 text-left border-b border-teal-500 font-semibold">
+                        <th className="px-4 py-3 text-left border-b border-pink-500 font-semibold">
+                          Especialidad Asignada
+                        </th>
+                        <th className="px-4 py-3 text-left border-b border-pink-500 font-semibold">
                           Departamento
                         </th>
-                        <th className="px-4 py-3 text-left border-b border-teal-500 font-semibold">
+                        <th className="px-4 py-3 text-left border-b border-pink-500 font-semibold">
                           Nombre del Médico
                         </th>
-                        <th className="px-4 py-3 text-left border-b border-teal-500 font-semibold">
+                        <th className="px-4 py-3 text-left border-b border-pink-500 font-semibold">
                           Costo de Consulta
                         </th>
-                        <th className="px-4 py-3 text-left border-b border-teal-500 font-semibold">
+                        <th className="px-4 py-3 text-left border-b border-pink-500 font-semibold">
                           Sindicato
                         </th>
                       </tr>
                     </thead>
                     <tbody>
                       {currentData.map((det, idx) => {
-                        // Si no existe 'fechaconsulta', devolvemos un string "No hubo fecha"
-                        // Si sí existe, usamos la función 'formatExactDBDate'
                         const fechaStr = det.fechaconsulta
                           ? formatExactDBDate(det.fechaconsulta)
                           : "No hubo fecha";
@@ -722,7 +715,7 @@ export default function IntervalosDeConsultas() {
                             }-${idx}`}
                             className={`${
                               idx % 2 === 0 ? "bg-gray-700" : "bg-gray-800"
-                            } text-white hover:bg-teal-700 transition-colors`}
+                            } text-white hover:bg-pink-800 transition-colors`}
                           >
                             <td className="px-4 py-3 border-b border-gray-700">
                               {fechaStr}
@@ -746,6 +739,11 @@ export default function IntervalosDeConsultas() {
                               {det.diagnostico
                                 ? det.diagnostico
                                 : "No hubo diagnóstico registrado"}
+                            </td>
+                            <td className="px-4 py-3 border-b border-gray-700">
+                              {det.especialidad
+                                ? det.especialidad
+                                : "No hubo especialidad asignada"}
                             </td>
                             <td className="px-4 py-3 border-b border-gray-700">
                               {det.departamento
@@ -783,23 +781,24 @@ export default function IntervalosDeConsultas() {
                     display: "flex",
                     justifyContent: "center",
                     "& .MuiPaginationItem-root": {
-                      color: "#bde",
+                      color: "#FFC6EB",
                       fontSize: "16px",
                       "&.Mui-selected": {
-                        backgroundColor: "#26A69A",
-                        color: "#FFFFFF",
+                        backgroundColor: "#FF007B",
+                        color: "#FFF0F9",
                         fontWeight: "bold",
-                        boxShadow: "0px 0px 10px #26A69A",
+                        boxShadow: "0px 0px 10px #FF007B",
                       },
                       "&:hover": {
-                        backgroundColor: "#1E8E86",
+                        backgroundColor: "#DF005F",
+                        color: "#FFF0F9",
                       },
                     },
                   }}
                 />
               </>
             ) : (
-              <p className="text-gray-300">No hay detalles para mostrar.</p>
+              <p className="text-[#FFE3F5]">No hay detalles para mostrar.</p>
             )}
           </div>
         </>

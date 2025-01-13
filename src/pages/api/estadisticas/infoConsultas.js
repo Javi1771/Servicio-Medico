@@ -5,30 +5,30 @@ export const getDetallesConsultas = async (fechaHoraInicio, fechaHoraFin) => {
     const pool = await connectToDatabase();
 
     const query = `
-      SELECT
-        c.fechaconsulta,
-        c.claveconsulta,
-        c.clavenomina,
-        c.motivoconsulta,
-        c.diagnostico,
-        c.nombrepaciente,
-        c.edad,
-        CASE
-          WHEN TRY_CAST(c.parentesco AS INT) IS NOT NULL THEN p.parentesco
-          ELSE c.parentesco
-        END AS parentesco,
-        c.departamento,
-        c.costo,
-        c.sindicato,
-        c.claveproveedor,
-        pr.nombreproveedor
-      FROM consultas AS c
-      LEFT JOIN PARENTESCO AS p ON TRY_CAST(c.parentesco AS INT) = p.ID_PARENTESCO
-      LEFT JOIN proveedores AS pr ON c.claveproveedor = pr.claveproveedor
-      WHERE c.especialidadinterconsulta IS NULL
-        AND c.clavestatus = 2
-        AND c.fechaconsulta >= @fechaHoraInicio
-        AND c.fechaconsulta <= @fechaHoraFin
+          SELECT
+      c.fechaconsulta,
+      c.claveconsulta,
+      c.clavenomina,
+      c.motivoconsulta,
+      c.diagnostico,
+      c.nombrepaciente,
+      c.edad,
+      CASE
+        WHEN TRY_CAST(c.parentesco AS INT) IS NOT NULL THEN p.parentesco
+        ELSE c.parentesco
+      END AS parentesco,
+      c.departamento,
+      c.costo,
+      c.sindicato,
+      c.claveproveedor,
+      pr.nombreproveedor
+    FROM consultas AS c
+    LEFT JOIN PARENTESCO AS p ON TRY_CAST(c.parentesco AS INT) = p.ID_PARENTESCO
+    LEFT JOIN proveedores AS pr ON c.claveproveedor = pr.claveproveedor
+    WHERE c.especialidadinterconsulta IS NULL
+      AND c.clavestatus = 2
+      AND c.fechaconsulta >= @fechaHoraInicio
+      AND c.fechaconsulta <= @fechaHoraFin;
     `;
 
     console.log("Ejecutando consulta con parámetros:", {
