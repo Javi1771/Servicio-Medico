@@ -7,6 +7,7 @@ cloudinary.config({
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
   secure: true, // Asegúrate de usar HTTPS siempre que sea posible
+  httpAgent: global.httpsAgent, // Usa el agente HTTPS global
 });
 
 // En desarrollo, configura el agente HTTPS para ignorar SSL
@@ -15,10 +16,7 @@ if (process.env.NODE_ENV === 'development') {
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_API_SECRET,
-    secure: true,
-    http_agent: new https.Agent({
-      rejectUnauthorized: false, // Ignora verificación SSL en desarrollo
-    }),
+    httpAgent: global.httpsAgent, // Usa el agente HTTPS global
   });
 }
 
