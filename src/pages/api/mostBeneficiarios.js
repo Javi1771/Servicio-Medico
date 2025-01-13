@@ -30,7 +30,9 @@ export default async function handler(req, res) {
             ESDISCAPACITADO,
             VIGENCIA_ESTUDIOS,
             CURP,
-            URL_CONSTANCIA
+            URL_CONSTANCIA,
+            URL_CURP,
+	          URL_ACTA_NAC
           FROM [PRESIDENCIA].[dbo].[BENEFICIARIO]
           WHERE NO_NOMINA = @num_nom
         `);

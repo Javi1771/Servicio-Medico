@@ -1,5 +1,4 @@
 import { v2 as cloudinary } from 'cloudinary';
-import https from 'https';
 
 // Configurar Cloudinary con opciones para ignorar SSL en desarrollo
 cloudinary.config({
