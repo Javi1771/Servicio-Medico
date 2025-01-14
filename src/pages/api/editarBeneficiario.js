@@ -24,10 +24,12 @@ export default async function handler(req, res) {
     esDiscapacitado, // Si es discapacitado (1 o 0)
     vigenciaEstudios, // Vigencia de estudios en formato ISO (puede ser null)
     imageUrl,        // URL de la imagen del beneficiario
-    curp,            // Nuevo campo CURP
     urlConstancia,   // Nuevo campo para la URL de la constancia
     urlCurp,         // Nuevo campo para la URL del CURP
-    urlActaNac       // Nuevo campo para la URL del Acta de Nacimiento
+    urlActaNac,      // Nuevo campo para la URL del Acta de Nacimiento
+    urlINE,          // Nuevo campo para la URL del INE
+    urlActaMatrimonio, // Nuevo campo para la URL del Acta de Matrimonio
+    urlCartaNoAfiliacion // Nuevo campo para la URL de la Carta de No Afiliación
   } = req.body;
 
   // Validar datos obligatorios
@@ -87,10 +89,12 @@ export default async function handler(req, res) {
       .input("esDiscapacitado", discapacitadoValue) // Convertido a 1 o 0
       .input("vigenciaEstudios", vigenciaEstudios ? new Date(vigenciaEstudios).toISOString() : null) // Convertir a ISO si no es null
       .input("imageUrl", imageUrl || null) // Puede ser null
-      .input("curp", curp || null) // Nuevo campo CURP
       .input("urlConstancia", urlConstancia || null) // Nuevo campo URL_CONSTANCIA
       .input("urlCurp", urlCurp || null) // Nuevo campo URL_CURP
       .input("urlActaNac", urlActaNac || null) // Nuevo campo URL_ACTA_NAC
+      .input("urlINE", urlINE || null) // Nuevo campo URL_INE
+      .input("urlActaMatrimonio", urlActaMatrimonio || null) // Nuevo campo URL_ACTA_MATRIMONIO
+      .input("urlCartaNoAfiliacion", urlCartaNoAfiliacion || null) // Nuevo campo URL_NOISSTE
       .query(`
         UPDATE BENEFICIARIO
         SET 
@@ -111,10 +115,12 @@ export default async function handler(req, res) {
           ESDISCAPACITADO = @esDiscapacitado,
           VIGENCIA_ESTUDIOS = @vigenciaEstudios,
           FOTO_URL = @imageUrl,
-          CURP = @curp,
           URL_CONSTANCIA = @urlConstancia,
           URL_CURP = @urlCurp,
-          URL_ACTA_NAC = @urlActaNac
+          URL_ACTA_NAC = @urlActaNac,
+          URL_INE = @urlINE,
+          URL_ACTA_MATRIMONIO = @urlActaMatrimonio,
+          URL_NOISSTE = @urlCartaNoAfiliacion
         WHERE ID_BENEFICIARIO = @idBeneficiario
       `);
 

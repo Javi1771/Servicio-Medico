@@ -36,10 +36,12 @@ export default async function handler(req, res) {
             TEL_EMERGENCIA, 
             NOMBRE_EMERGENCIA,
             FOTO_URL,
-            CURP,
             URL_CONSTANCIA,
             URL_CURP,
-	          URL_ACTA_NAC
+            URL_ACTA_NAC,
+            URL_INE,            -- Ajustado: URL_INE
+            URL_ACTAMATRIMONIO, -- Ajustado: URL_ACTAMATRIMONIO
+            URL_NOISSTE         -- Ajustado: URL_NOISSTE
         FROM BENEFICIARIO
         WHERE ID_BENEFICIARIO = @idBeneficiario
       `);
