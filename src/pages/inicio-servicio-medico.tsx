@@ -123,7 +123,7 @@ const Home = () => {
         />
         <SidebarButton
           title="Estadisticas"
-          options={["Intervalos de Consultas", "Costo De Surtimientos", "Intervalo de Especialidades"]}
+          options={["Intervalos de Consultas", "Costo de Surtimientos", "Intervalo de Especialidades", "Total de Pacientes por Especialidad"]}
           isOpen={openMenu === "Estadisticas"}
           handleMouseEnter={() => handleMouseEnter("Estadisticas")}
           handleMouseLeave={handleMouseLeave}

@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useEffect, useState } from "react";
 import {
   Typography,
@@ -23,11 +25,17 @@ import {
   Legend,
 } from "chart.js";
 
-// Importa tu Loader personalizado
 import Loader from "./Loaders/Loader-morado";
 
-// Registrar componentes de ChartJS
-ChartJS.register(ArcElement, BarElement, CategoryScale, LinearScale, Tooltip, Legend);
+//* Registrar componentes de ChartJS
+ChartJS.register(
+  ArcElement,
+  BarElement,
+  CategoryScale,
+  LinearScale,
+  Tooltip,
+  Legend
+);
 
 const CostoDeSurtimientos = () => {
   const [groupedData, setGroupedData] = useState([]);
@@ -35,19 +43,21 @@ const CostoDeSurtimientos = () => {
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [pieChartLoading, setPieChartLoading] = useState(false);
+  const [barChartLoading, setBarChartLoading] = useState(false);
 
-  // Estado para manejar qué elementos están ocultos en la gráfica
+  //* Estado para manejar qué elementos están ocultos en la gráfica
   const [hiddenItems, setHiddenItems] = useState({});
 
-  // --------- NUEVAS banderas para forzar 5 segundos de Loader ---------
-  // Indican cuándo la petición terminó y cuándo se cumplió el tiempo mínimo.
+  //! --------- NUEVAS banderas para forzar 5 segundos de Loader ---------
+  //* Indican cuándo la petición terminó y cuándo se cumplió el tiempo mínimo.
   useEffect(() => {
     let finishedLoading = false;
     let minTimeReached = false;
 
     const fetchData = async () => {
       try {
-        // Comienza la petición
         const response = await axios.get(
           `/api/estadisticas/surtimientoEstadistica?year=${currentYear}`
         );
@@ -58,33 +68,50 @@ const CostoDeSurtimientos = () => {
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
-        // La petición terminó
         finishedLoading = true;
-        // Si además el tiempo mínimo ya pasó, entonces se quita el Loader
         if (minTimeReached) {
-          setLoading(false);
+          setInitialLoading(false); //! Desactiva el loader inicial
         }
       }
     };
 
-    // Arrancamos la petición
     fetchData();
 
-    // Temporizador de 5s para forzar el Loader
     const timer = setTimeout(() => {
-      // Pasaron los 5s
       minTimeReached = true;
-      // Si la petición ya terminó, quitamos el Loader
       if (finishedLoading) {
-        setLoading(false);
+        setInitialLoading(false); //! Desactiva el loader inicial
       }
-    }, 5000);
+    }, 5000); //* Loader inicial dura 5 segundos mínimo
 
-    // Limpieza
-    return () => clearTimeout(timer);
+    return () => clearTimeout(timer); //* Limpieza del temporizador
+  }, []); //* Solo al inicio
+
+  useEffect(() => {
+    setPieChartLoading(true);
+    setBarChartLoading(true);
+
+    const fetchData = async () => {
+      try {
+        const response = await axios.get(
+          `/api/estadisticas/surtimientoEstadistica?year=${currentYear}`
+        );
+        const sortedData = response.data.sort(
+          (a, b) => b.TOTAL_COSTO - a.TOTAL_COSTO
+        );
+        setGroupedData(sortedData);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setPieChartLoading(false); //! Desactiva el loader del gráfico Pie
+        setBarChartLoading(false); //! Desactiva el loader del gráfico Bar
+      }
+    };
+
+    fetchData();
   }, [currentYear]);
 
-  // Función para alternar la visibilidad de cada paciente (label)
+  //* Función para alternar la visibilidad de cada paciente (label)
   const toggleItem = (label) => {
     setHiddenItems((prev) => ({
       ...prev,
@@ -92,14 +119,14 @@ const CostoDeSurtimientos = () => {
     }));
   };
 
-  // Filtrar y mapear los datos de la página actual
+  //* Filtrar y mapear los datos de la página actual
   const pageData = groupedData.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
 
-  // Construcción de los datos para la gráfica Pie,
-  // ocultando los valores cuyo label esté marcado como oculto en `hiddenItems`.
+  //* Construcción de los datos para la gráfica Pie,
+  //* ocultando los valores cuyo label esté marcado como oculto en `hiddenItems`.
   const pieData = {
     labels: pageData.map((item) => item.NOMBRE_PACIENTE),
     datasets: [
@@ -126,8 +153,8 @@ const CostoDeSurtimientos = () => {
     ],
   };
 
-  // Construcción de los datos para la gráfica de Barras,
-  // también ocultando los valores según `hiddenItems`.
+  //* Construcción de los datos para la gráfica de Barras,
+  //* también ocultando los valores según `hiddenItems`.
   const barData = {
     labels: pageData.map((item) => item.NOMBRE_PACIENTE),
     datasets: [
@@ -148,28 +175,45 @@ const CostoDeSurtimientos = () => {
   const chartOptions = {
     plugins: {
       legend: {
-        position: "top",
-        labels: {
-          font: { size: 14, family: "Poppins, sans-serif" },
-          color: "#EFE9FE",
-        },
+        display: false,
       },
       tooltip: {
-        backgroundColor: "#2C2F33",
-        titleColor: "#F8E9A1",
-        bodyColor: "#FFFFFF",
-        borderColor: "#F8E9A1",
-        borderWidth: 1,
+        backgroundColor: "rgba(43, 13, 79, 0.9)",
+        titleColor: "rgb(230, 0, 255)",
+        bodyColor: "#FFF0F9",
+        titleFont: { size: 16, weight: "bold" },
+        bodyFont: { size: 14 },
+        borderWidth: 2,
+        borderColor: "rgba(230, 0, 255, 0.9)",
+        padding: 12,
+        intersect: false,
+        mode: "index",
+        callbacks: {
+          title: (context) => {
+            const rawKey = context[0].label;
+            return `Paciente: ${rawKey}`;
+          },
+          label: (context) => {
+            const value = context.raw;
+            return `Costo Total: $${value.toLocaleString("es-MX")}`;
+          },
+        },
       },
     },
     scales: {
       x: {
         grid: { color: "rgba(255, 255, 255, 0.1)" },
-        ticks: { color: "#EFE9FE", font: { size: 12, family: "Poppins" } },
+        ticks: {
+          color: "#FFE3F5",
+          font: { size: 12, family: "Poppins" },
+        },
       },
       y: {
         grid: { color: "rgba(255, 255, 255, 0.1)" },
-        ticks: { color: "#EFE9FE", font: { size: 12, family: "Poppins" } },
+        ticks: {
+          color: "#FFE3F5",
+          font: { size: 12, family: "Poppins" },
+        },
       },
     },
   };
@@ -201,7 +245,7 @@ const CostoDeSurtimientos = () => {
       </Typography>
 
       {/* Si está cargando, mostramos el Loader morado */}
-      {loading ? (
+      {initialLoading ? (
         <Box
           sx={{
             display: "flex",
@@ -210,13 +254,13 @@ const CostoDeSurtimientos = () => {
             minHeight: "60vh",
           }}
         >
-          {/* Renderiza tu Loader personalizado (no importa la prop 'duration', 
-              pues la forzamos 5s con el timeout en el useEffect) */}
-          <Loader size={120} duration={5000} />
+          <Loader size={120} />
         </Box>
       ) : (
         <>
-          <Box sx={{ display: "flex", justifyContent: "center", gap: 2, mb: 5 }}>
+          <Box
+            sx={{ display: "flex", justifyContent: "center", gap: 2, mb: 5 }}
+          >
             {[-1, 0, 1].map((offset) => (
               <Button
                 key={offset}
@@ -240,184 +284,290 @@ const CostoDeSurtimientos = () => {
           </Box>
 
           <Grid container spacing={4}>
-            {/* Sección Pie Chart con lista y fondo en común */}
+            {/* Gráfica Pie */}
             <Grid item xs={12} md={6}>
               <Box
                 sx={{
-                  p: 3,
+                  p: 4,
                   backgroundColor: "#1C1F2F",
                   borderRadius: "12px",
                   boxShadow: "0px 5px 15px rgba(0, 0, 0, 0.5)",
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",
+                  minHeight: "1500px", // Altura mínima aumentada
+                  height: "1500px", // Altura fija para mantener simetría
+                  justifyContent: "center",
+                  position: "relative",
                 }}
               >
-                {/* Lista de etiquetas arriba de la gráfica */}
-                <Typography
-                  variant="h6"
-                  align="center"
-                  sx={{
-                    mb: 2,
-                    color: "#7F29D8",
-                    textShadow: "0px 0px 10px #7F29D8",
-                  }}
-                >
-                  Lista de Pacientes
-                </Typography>
-                <Box
-                  sx={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: 1,
-                    mb: 4,
-                    width: "100%",
-                    maxWidth: "400px",
-                  }}
-                >
-                  {pieData.labels.map((label, index) => {
-                    const color = pieData.datasets[0].backgroundColor[index];
-                    const isHidden = hiddenItems[label];
-                    return (
-                      <Box
-                        key={index}
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 1,
-                          cursor: "pointer",
-                          opacity: isHidden ? 0.5 : 1,
-                          transition: "opacity 0.3s",
-                        }}
-                        onClick={() => toggleItem(label)}
-                      >
-                        <Box
-                          sx={{
-                            width: "20px",
-                            height: "20px",
-                            backgroundColor: color,
-                            borderRadius: "4px",
-                          }}
-                        />
-                        <Typography sx={{ color: "#EFE9FE", fontSize: "14px" }}>
-                          {label}
-                        </Typography>
-                      </Box>
-                    );
-                  })}
-                </Box>
-
-                {/* Gráfica Pie */}
-                <Pie
-                  data={pieData}
-                  options={{ ...chartOptions, plugins: { legend: { display: false } } }}
-                />
+                {pieChartLoading ? (
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      width: "100%",
+                      height: "100%",
+                      position: "absolute",
+                      top: 0,
+                      left: 0,
+                      backgroundColor: "rgba(28, 31, 47, 0.8)",
+                      borderRadius: "12px",
+                    }}
+                  >
+                    <Loader size={120} />
+                  </Box>
+                ) : (
+                  <>
+                    <Typography
+                      variant="h6"
+                      align="center"
+                      sx={{
+                        mb: 2,
+                        color: "#7F29D8",
+                        textShadow: "0px 0px 10px #7F29D8",
+                      }}
+                    >
+                      Lista de Pacientes
+                    </Typography>
+                    {/* Lista de nombres de pacientes */}
+                    <Box
+                      sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 1,
+                        mb: 4,
+                        width: "100%",
+                        maxWidth: "400px",
+                      }}
+                    >
+                      {pieData.labels.map((label, index) => {
+                        const color =
+                          pieData.datasets[0].backgroundColor[index];
+                        const isHidden = hiddenItems[label];
+                        return (
+                          <Box
+                            key={index}
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 1,
+                              cursor: "pointer",
+                              opacity: isHidden ? 0.5 : 1,
+                              transition: "opacity 0.3s",
+                            }}
+                            onClick={() => toggleItem(label)}
+                          >
+                            <Box
+                              sx={{
+                                width: "20px",
+                                height: "20px",
+                                backgroundColor: color,
+                                borderRadius: "4px",
+                              }}
+                            />
+                            <Typography
+                              sx={{ color: "#EFE9FE", fontSize: "14px" }}
+                            >
+                              {label}
+                            </Typography>
+                          </Box>
+                        );
+                      })}
+                    </Box>
+                    {/* Gráfica de pastel */}
+                    <Pie data={pieData} options={chartOptions} />
+                  </>
+                )}
               </Box>
             </Grid>
 
+            {/* Gráfica Bar */}
             <Grid item xs={12} md={6}>
-              <Typography
-                variant="h5"
-                align="center"
+              <Box
                 sx={{
-                  mb: 2,
-                  color: "#9A5DF5",
-                  textShadow: "0px 0px 10px #8E3BEC",
+                  p: 4,
+                  backgroundColor: "#1C1F2F",
+                  borderRadius: "12px",
+                  boxShadow: "0px 5px 15px rgba(0, 0, 0, 0.5)",
+                  minHeight: "1500px", // Altura mínima aumentada
+                  height: "1500px", // Altura fija para mantener simetría
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  position: "relative",
                 }}
               >
-                Análisis Completo de Pacientes
-              </Typography>
-              <Bar data={barData} options={chartOptions} />
+                {barChartLoading ? (
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      width: "100%",
+                      height: "100%",
+                      position: "absolute",
+                      top: 0,
+                      left: 0,
+                      backgroundColor: "rgba(28, 31, 47, 0.8)",
+                      borderRadius: "12px",
+                    }}
+                  >
+                    <Loader size={120} />
+                  </Box>
+                ) : (
+                  <Bar
+                    data={barData}
+                    options={{
+                      ...chartOptions,
+                      maintainAspectRatio: false, // Permite que la gráfica ocupe todo el espacio disponible
+                      layout: {
+                        padding: {
+                          top: 20, // Ajusta el espacio superior
+                          bottom: 20, // Ajusta el espacio inferior
+                          left: 10, // Ajusta el espacio izquierdo
+                          right: 10, // Ajusta el espacio derecho
+                        },
+                      },
+                      scales: {
+                        x: {
+                          grid: { color: "rgba(255, 255, 255, 0.1)" },
+                          ticks: {
+                            color: "#FFE3F5",
+                            font: { size: 12, family: "Poppins" },
+                          },
+                        },
+                        y: {
+                          grid: { color: "rgba(255, 255, 255, 0.1)" },
+                          ticks: {
+                            color: "#FFE3F5",
+                            font: { size: 14, family: "Poppins" }, // Fuente más grande
+                          },
+                        },
+                      },
+                      barThickness: 60, // Aumenta el grosor de las barras
+                      plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                          backgroundColor: "rgba(43, 13, 79, 0.9)",
+                          titleColor: "rgb(230, 0, 255)",
+                          bodyColor: "#FFF0F9",
+                          titleFont: { size: 16, weight: "bold" },
+                          bodyFont: { size: 14 },
+                          borderWidth: 2,
+                          borderColor: "rgba(230, 0, 255, 0.9)",
+                          padding: 12,
+                          intersect: false,
+                          mode: "index",
+                          callbacks: {
+                            title: (context) => {
+                              const rawKey = context[0].label;
+                              return `Paciente: ${rawKey}`;
+                            },
+                            label: (context) => {
+                              const value = context.raw;
+                              return `Costo Total: $${value.toLocaleString(
+                                "es-MX"
+                              )}`;
+                            },
+                          },
+                        },
+                      },
+                    }}
+                  />
+                )}
+              </Box>
             </Grid>
           </Grid>
 
           <Box sx={{ mt: 5 }}>
-            <Typography
-              variant="h5"
-              align="center"
-              sx={{
-                mb: 2,
-                color: "#EFE9FE",
-                textShadow: "0px 0px 10px #7F29D8",
-              }}
-            >
-              Detalles por Paciente
-            </Typography>
-            <Table
-              sx={{
-                backgroundColor: "#1C1F2F",
-                borderRadius: "12px",
-                overflow: "hidden",
-                boxShadow: "0px 10px 25px rgba(0, 0, 0, 0.5)",
-              }}
-            >
-              <TableHead>
-                <TableRow>
-                  <TableCell
-                    sx={{ color: "#7F29D8", fontWeight: "bold", fontSize: "16px" }}
-                  >
-                    Paciente
-                  </TableCell>
-                  <TableCell
-                    sx={{ color: "#7F29D8", fontWeight: "bold", fontSize: "16px" }}
-                  >
-                    Nómina
-                  </TableCell>
-                  <TableCell
-                    sx={{ color: "#7F29D8", fontWeight: "bold", fontSize: "16px" }}
-                  >
-                    Fecha Emisión
-                  </TableCell>
-                  <TableCell
-                    sx={{ color: "#7F29D8", fontWeight: "bold", fontSize: "16px" }}
-                  >
-                    Costo Total
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {pageData.map((item, index) => (
-                  <TableRow key={index}>
-                    <TableCell sx={{ color: "#EFE9FE", fontSize: "14px" }}>
-                      {item.NOMBRE_PACIENTE}
-                    </TableCell>
-                    <TableCell sx={{ color: "#EFE9FE", fontSize: "14px" }}>
-                      {item.NOMINA}
-                    </TableCell>
-                    <TableCell sx={{ color: "#EFE9FE", fontSize: "14px" }}>
-                      {new Date(item.FECHA_EMISION).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell sx={{ color: "#EFE9FE", fontSize: "14px" }}>
-                      ${item.TOTAL_COSTO.toLocaleString()}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            {/* Título */}
+            <div className="w-full max-w-[120rem] mt-8 bg-gray-800 p-6 rounded-lg">
+              <Typography
+                className="text-2xl font-bold mb-4"
+                style={{ color: "#dc21ff" }}
+              >
+                Detalles por Paciente
+              </Typography>
 
-            <Pagination
-              count={Math.ceil(groupedData.length / itemsPerPage)}
-              page={currentPage}
-              onChange={handlePageChange}
-              sx={{
-                mt: 4,
-                display: "flex",
-                justifyContent: "center",
-                "& .MuiPaginationItem-root": {
-                  color: "#EFE9FE",
-                  fontSize: "16px",
-                  "&.Mui-selected": {
-                    backgroundColor: "#581E94",
-                    color: "#FFFFFF",
-                    fontWeight: "bold",
-                    boxShadow: "0px 0px 10px #7F29D8",
-                  },
-                  "&:hover": {
-                    backgroundColor: "#6A22B5",
-                  },
-                },
-              }}
-            />
+              {/* Contenido condicional */}
+              {pageData.length > 0 ? (
+                <div className="overflow-x-auto rounded-lg shadow-lg border border-gray-700">
+                  <table className="w-full table-auto bg-gray-800">
+                    <thead>
+                      <tr className="bg-gray-900 text-white">
+                        <th className="px-4 py-3 text-left border-b border-purple-500 font-semibold">
+                          Paciente
+                        </th>
+                        <th className="px-4 py-3 text-left border-b border-purple-500 font-semibold">
+                          Nómina
+                        </th>
+                        <th className="px-4 py-3 text-left border-b border-purple-500 font-semibold">
+                          Fecha Emisión
+                        </th>
+                        <th className="px-4 py-3 text-left border-b border-purple-500 font-semibold">
+                          Costo Total
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {pageData.map((item, index) => (
+                        <tr
+                          key={index}
+                          className={`${
+                            index % 2 === 0 ? "bg-gray-700" : "bg-gray-800"
+                          } text-white hover:bg-purple-800 transition-colors`}
+                        >
+                          <td className="px-4 py-3 border-b border-gray-700">
+                            {item.NOMBRE_PACIENTE}
+                          </td>
+                          <td className="px-4 py-3 border-b border-gray-700">
+                            {item.NOMINA}
+                          </td>
+                          <td className="px-4 py-3 border-b border-gray-700">
+                            {new Date(item.FECHA_EMISION).toLocaleDateString()}
+                          </td>
+                          <td className="px-4 py-3 border-b border-gray-700">
+                            ${item.TOTAL_COSTO.toLocaleString()}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <p className="text-[#FFE3F5]">No hay detalles para mostrar.</p>
+              )}
+
+              {/* Paginación */}
+              {pageData.length > 0 && (
+                <Pagination
+                  count={Math.ceil(groupedData.length / itemsPerPage)}
+                  page={currentPage}
+                  onChange={handlePageChange}
+                  sx={{
+                    mt: 4,
+                    display: "flex",
+                    justifyContent: "center",
+                    "& .MuiPaginationItem-root": {
+                      color: "#FFC6EB",
+                      fontSize: "16px",
+                      "&.Mui-selected": {
+                        backgroundColor: "#c800ff",
+                        color: "#FFF0F9",
+                        fontWeight: "bold",
+                        boxShadow: "0px 0px 10px #c800ff",
+                      },
+                      "&:hover": {
+                        backgroundColor: "#740689",
+                        color: "#FFF0F9",
+                      },
+                    },
+                  }}
+                />
+              )}
+            </div>
           </Box>
         </>
       )}

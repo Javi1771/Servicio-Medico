@@ -25,6 +25,7 @@ export const getDetallesConsultas = async (fechaHoraInicio, fechaHoraFin) => {
         c.costo,
         c.sindicato,
         c.claveproveedor,
+        c.fechacita,
         pr.nombreproveedor,
         e.especialidad
       FROM consultas AS c

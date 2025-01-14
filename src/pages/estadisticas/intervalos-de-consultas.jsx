@@ -62,57 +62,57 @@ function parseDateString(key, interval) {
 }
 
 function formatExactDBDate(dbDateStr) {
-  const cleanStr = dbDateStr.replace(/\.\d+$/, ""); // Elimina milisegundos
+  const cleanStr = dbDateStr.replace(/\.\d+$/, ""); 
   const match = cleanStr.match(
     /^(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2}):(\d{2})$/
   );
-  if (!match) return dbDateStr; // Si no coincide, retorna original
+  if (!match) return dbDateStr; 
 
   const [, yyyy, mm, dd, HH, MM, SS] = match;
   return `${dd}/${mm}/${yyyy}, ${HH}:${MM}:${SS}`;
 }
 
-// SweetAlert + React
+//* SweetAlert + React
 const MySwal = withReactContent(Swal);
 
 export default function IntervalosDeConsultas() {
-  // ESTADOS PRINCIPALES
+  //* ESTADOS PRINCIPALES
   const [data, setData] = useState(null);
   const [interval, setInterval] = useState("días");
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
 
-  // Calendarios
+  //* Calendarios
   const [isStartCalendarOpen, setIsStartCalendarOpen] = useState(false);
   const [isEndCalendarOpen, setIsEndCalendarOpen] = useState(false);
 
-  // Estadísticas
+  //* Estadísticas
   const [totalConsultas, setTotalConsultas] = useState(0);
   const [fechaMaxConsultas, setFechaMaxConsultas] = useState(null);
 
-  // Loaders
+  //* Loaders
   const [isLoading, setIsLoading] = useState(true); // Para datos de resumen
   const [isLoadingDetalles, setIsLoadingDetalles] = useState(false); // Para detalles
 
-  // Tabla de Detalles
+  //* Tabla de Detalles
   const [detalles, setDetalles] = useState([]);
 
-  // Paginación de la tabla
+  //* Paginación de la tabla
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
-  // totalPages calculado en base a "detalles"
+  //* totalPages calculado en base a "detalles"
   const totalPages = Math.ceil(detalles.length / itemsPerPage);
 
-  // Datos que se mostrarán en la tabla según la página actual
+  //* Datos que se mostrarán en la tabla según la página actual
   const currentData = detalles.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
 
-  // Chart
+  //* Chart
   const chartRef = useRef(null);
 
-  // Mapeo (español => inglés)
+  //* Mapeo (español => inglés)
   const intervalMap = {
     horas: "hours",
     días: "days",
@@ -120,10 +120,10 @@ export default function IntervalosDeConsultas() {
     años: "years",
   };
 
-  // Deshabilita fechas futuras
+  //! Deshabilita fechas futuras
   const disableFutureDates = (date) => date > new Date();
 
-  // Manejadores de Fecha
+  //* Manejadores de Fecha
   const handleStartDateChange = (date) => {
     if (date <= endDate) {
       setStartDate(date);
@@ -166,7 +166,7 @@ export default function IntervalosDeConsultas() {
     }
   };
 
-  // --------- FORZAR 5 SEGUNDOS DE LOADER en la carga inicial ---------
+  //! --------- FORZAR 5 SEGUNDOS DE LOADER en la carga inicial ---------
   useEffect(() => {
     let finishedLoading = false;
     let minTimeReached = false;
@@ -188,7 +188,7 @@ export default function IntervalosDeConsultas() {
 
     fetchData();
 
-    // Temporizador de 5 segundos
+    //? Temporizador de 5 segundos
     const timer = setTimeout(() => {
       minTimeReached = true;
       if (finishedLoading) {
@@ -199,14 +199,14 @@ export default function IntervalosDeConsultas() {
     return () => clearTimeout(timer);
   }, []);
 
-  // Filtrar data en base a startDate y endDate
+  //* Filtrar data en base a startDate y endDate
   const filterDataByDateRange = (originalData, startDate, endDate) => {
     const filtered = {};
     for (const [key, value] of Object.entries(originalData)) {
       const date = parseDateString(key, interval);
       if (!date) continue;
       if (interval === "horas") {
-        // "horas" => sólo del mismo día
+        //* "horas" => sólo del mismo día
         if (
           date.getFullYear() === startDate.getFullYear() &&
           date.getMonth() === startDate.getMonth() &&
@@ -220,7 +220,7 @@ export default function IntervalosDeConsultas() {
         }
       }
     }
-    // Ordenar por fecha ascendente
+    //* Ordenar por fecha ascendente
     const sorted = Object.entries(filtered).sort(([a], [b]) => {
       const dA = parseDateString(a, interval);
       const dB = parseDateString(b, interval);
@@ -229,7 +229,7 @@ export default function IntervalosDeConsultas() {
     return Object.fromEntries(sorted);
   };
 
-  // Actualiza estadísticas (total, fechaMaxConsultas)
+  //* Actualiza estadísticas (total, fechaMaxConsultas)
   const updateStatistics = (filteredData) => {
     const total = Object.values(filteredData).reduce((acc, x) => acc + x, 0);
     setTotalConsultas(total);
@@ -269,7 +269,7 @@ export default function IntervalosDeConsultas() {
     }
   };
 
-  // Para "Meses": ajustar fin de mes
+  //* Para "Meses": ajustar fin de mes
   const handleMonthlyCalendar = () => {
     const newStartDate = new Date(startDate);
     const newEndDate = new Date(
@@ -345,23 +345,23 @@ export default function IntervalosDeConsultas() {
     return { start, end };
   };
 
-  // Efecto para construir/actualizar la gráfica
+  //* Efecto para construir/actualizar la gráfica
   useEffect(() => {
     if (!data || !data[intervalMap[interval]]) return;
 
-    // 1) Obtenemos el elemento <canvas>, si no existe aún, salimos.
+    //? 1) Obtenemos el elemento <canvas>, si no existe aún, salimos.
     const canvasEl = document.getElementById("consultasChart");
     if (!canvasEl) return;
 
-    // 2) Destruimos el chart anterior si existe
+    //? 2) Destruimos el chart anterior si existe
     if (chartRef.current) {
       chartRef.current.destroy();
     }
 
-    // 3) Obtenemos el context
+    //? 3) Obtenemos el context
     const ctx = canvasEl.getContext("2d");
 
-    // Filtramos data y actualizamos estadísticas
+    //* Filtramos data y actualizamos estadísticas
     const filteredData = filterDataByDateRange(
       data[intervalMap[interval]],
       startDate,
@@ -369,7 +369,7 @@ export default function IntervalosDeConsultas() {
     );
     updateStatistics(filteredData);
 
-    // 4) Creamos el nuevo chart y lo guardamos en chartRef
+    //? 4) Creamos el nuevo chart y lo guardamos en chartRef
     chartRef.current = new Chart(ctx, {
       type: "line",
       data: {
@@ -401,7 +401,7 @@ export default function IntervalosDeConsultas() {
 
           setIsLoadingDetalles(true);
           setDetalles([]);
-          setCurrentPage(1); // Reiniciamos a la primera página al cargar nuevos detalles
+          setCurrentPage(1); //* Reiniciamos a la primera página al cargar nuevos detalles
           try {
             const url = `/api/estadisticas/infoConsultas?start=${range.start}&end=${range.end}`;
             const resp = await fetch(url);
@@ -438,7 +438,7 @@ export default function IntervalosDeConsultas() {
                 const parsed = parseDateString(rawKey, interval);
                 if (!parsed) return rawKey;
                 if (interval === "horas") {
-                  // Muestra en tooltip (ej: 07:00 => 07:59)
+                  //* Muestra en tooltip (ej: 07:00 => 07:59)
                   return parsed.toLocaleString("es-ES", {
                     weekday: "long",
                     year: "numeric",
@@ -503,7 +503,7 @@ export default function IntervalosDeConsultas() {
       },
     });
 
-    // Limpieza opcional en el return:
+    //* Limpieza opcional en el return:
     return () => {
       if (chartRef.current) {
         chartRef.current.destroy();
@@ -670,7 +670,7 @@ export default function IntervalosDeConsultas() {
 
             {/* Loader secundario si isLoadingDetalles */}
             {isLoadingDetalles ? (
-              <Loader size={50} />
+              <Loader size={40} />
             ) : detalles.length > 0 ? (
               <>
                 {/* Contenedor "overflow-x-auto" para la tabla responsive */}

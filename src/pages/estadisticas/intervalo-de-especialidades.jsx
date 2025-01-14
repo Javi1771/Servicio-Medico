@@ -9,7 +9,7 @@ import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 import Loader from "./Loaders/Loader-rosa";
 
-// Importamos Pagination de MUI
+//* Importamos Pagination de MUI
 import { Pagination } from "@mui/material";
 
 /**
@@ -69,32 +69,32 @@ function formatExactDBDate(dbDateStr) {
   return `${dd}/${mm}/${yyyy}, ${HH}:${MM}:${SS}`;
 }
 
-// SweetAlert con React
+//* SweetAlert con React
 const MySwal = withReactContent(Swal);
 
 export default function IntervalosDeConsultas() {
-  // ESTADOS PRINCIPALES
+  //* ESTADOS PRINCIPALES
   const [data, setData] = useState(null);
   const [interval, setInterval] = useState("días");
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
 
-  // Calendarios emergentes
+  //* Calendarios emergentes
   const [isStartCalendarOpen, setIsStartCalendarOpen] = useState(false);
   const [isEndCalendarOpen, setIsEndCalendarOpen] = useState(false);
 
-  // Estadísticas
+  //* Estadísticas
   const [totalConsultas, setTotalConsultas] = useState(0);
   const [fechaMaxConsultas, setFechaMaxConsultas] = useState(null);
 
-  // Loaders
+  //* Loaders
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingDetalles, setIsLoadingDetalles] = useState(false);
 
-  // Tabla detalles
+  //* Tabla detalles
   const [detalles, setDetalles] = useState([]);
 
-  // Paginación
+  //* Paginación
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
   const totalPages = Math.ceil(detalles.length / itemsPerPage);
@@ -103,10 +103,10 @@ export default function IntervalosDeConsultas() {
     currentPage * itemsPerPage
   );
 
-  // Chart
+  //* Chart
   const chartRef = useRef(null);
 
-  // Mapeo (es->en)
+  //* Mapeo (es->en)
   const intervalMap = {
     horas: "hours",
     días: "days",
@@ -114,10 +114,10 @@ export default function IntervalosDeConsultas() {
     años: "years",
   };
 
-  // Deshabilitar fechas futuras
+  //* Deshabilitar fechas futuras
   const disableFutureDates = (date) => date > new Date();
 
-  // Manejadores de Fecha
+  //* Manejadores de Fecha
   const handleStartDateChange = (date) => {
     if (date <= endDate) {
       setStartDate(date);
@@ -152,14 +152,13 @@ export default function IntervalosDeConsultas() {
     }
   };
 
-  // Forzar 5s de Loader
+  //! Forzar 5s de Loader
   useEffect(() => {
     let finishedLoading = false;
     let minTimeReached = false;
 
     const fetchData = async () => {
       try {
-        // Ajusta a tu endpoint real
         const resp = await fetch("/api/estadisticas/intervaloEspecialidades");
         const json = await resp.json();
         setData(json);
@@ -193,7 +192,7 @@ export default function IntervalosDeConsultas() {
       if (!date) continue;
 
       if (interval === "horas") {
-        // Coincide si año, mes y día es igual al startDate
+        //* Coincide si año, mes y día es igual al startDate
         if (
           date.getFullYear() === startDate.getFullYear() &&
           date.getMonth() === startDate.getMonth() &&
@@ -207,7 +206,7 @@ export default function IntervalosDeConsultas() {
         }
       }
     }
-    // Ordenar
+    //* Ordenar
     const sorted = Object.entries(filtered).sort(([a], [b]) => {
       const dA = parseDateString(a, interval);
       const dB = parseDateString(b, interval);
@@ -217,7 +216,7 @@ export default function IntervalosDeConsultas() {
   };
 
   /**
-   * Actualiza estadísticas (Total, fecha(s) con más consultas)
+   ** Actualiza estadísticas (Total, fecha(s) con más consultas)
    */
   const updateStatistics = (filteredData) => {
     const total = Object.values(filteredData).reduce((acc, x) => acc + x, 0);
@@ -260,7 +259,7 @@ export default function IntervalosDeConsultas() {
     }
   };
 
-  // Manejo "Meses": Ajustar fin de mes
+  //* Manejo "Meses": Ajustar fin de mes
   const handleMonthlyCalendar = () => {
     const newStartDate = new Date(startDate);
     const newEndDate = new Date(
@@ -272,7 +271,7 @@ export default function IntervalosDeConsultas() {
     setEndDate(newEndDate);
   };
 
-  // Construir rango de fechas
+  //* Construir rango de fechas
   const buildDateRange = (label, interval) => {
     const parsed = parseDateString(label, interval);
     if (!parsed) return null;
@@ -328,7 +327,7 @@ export default function IntervalosDeConsultas() {
     return { start, end };
   };
 
-  // Efecto para construir/actualizar la gráfica
+  //? Efecto para construir/actualizar la gráfica
   useEffect(() => {
     if (!data || !data[intervalMap[interval]]) return;
 
@@ -353,18 +352,18 @@ export default function IntervalosDeConsultas() {
         labels: Object.keys(filteredData),
         datasets: [
           {
-            // Curva de la gráfica
+            //* Curva de la gráfica
             label: "Consultas",
             data: Object.values(filteredData),
-            borderColor: "rgb(166, 38, 140)", // Rose 600
-            backgroundColor: "rgba(166, 38, 151, 0.1)", // Rose 400 + transparencia
+            borderColor: "rgb(166, 38, 140)",
+            backgroundColor: "rgba(166, 38, 151, 0.1)", 
             borderWidth: 3,
             fill: true,
             tension: 0.4,
             pointRadius: 4,
             pointHoverRadius: 8,
-            pointBackgroundColor: "#FFF0F9", // Rose 50
-            pointHoverBackgroundColor: "#FF27A1", // Rose 500
+            pointBackgroundColor: "#FFF0F9", 
+            pointHoverBackgroundColor: "#FF27A1", 
           },
         ],
       },
@@ -383,7 +382,6 @@ export default function IntervalosDeConsultas() {
           setCurrentPage(1);
 
           try {
-            // Ajusta la ruta a tu endpoint
             const url = `/api/estadisticas/infoEspecialidades?start=${range.start}&end=${range.end}`;
             const resp = await fetch(url);
             const json = await resp.json();
@@ -398,18 +396,18 @@ export default function IntervalosDeConsultas() {
           legend: {
             display: true,
             labels: {
-              color: "#FFF0F9", // Rose 50
+              color: "#FFF0F9", 
               font: { size: 14, weight: "bold" },
             },
           },
           tooltip: {
-            backgroundColor: "rgba(20, 20, 40, 0.9)", // Rose 700
-            titleColor: "#ff0088", // Rose 200
+            backgroundColor: "rgba(20, 20, 40, 0.9)",
+            titleColor: "#ff0088", 
             bodyColor: "#FFF0F9",
             titleFont: { size: 16, weight: "bold" },
             bodyFont: { size: 14 },
             borderWidth: 2,
-            borderColor: "#FF007B", // Rose 600
+            borderColor: "#FF007B", 
             padding: 12,
             intersect: false,
             mode: "index",
@@ -456,7 +454,7 @@ export default function IntervalosDeConsultas() {
               font: { size: 16, weight: "bold" },
             },
             ticks: {
-              color: "#FFE3F5", // Rose 100
+              color: "#FFE3F5", 
               font: { size: 12 },
               maxRotation: 45,
               autoSkip: true,
@@ -488,13 +486,12 @@ export default function IntervalosDeConsultas() {
     };
   }, [data, interval, startDate, endDate]);
 
-  // Paginación
+  //* Paginación
   const handlePageChange = (event, value) => {
     setCurrentPage(value);
   };
 
   return (
-    // Fondo principal en gradiente oscuro con toques de Rose
     <div className="flex flex-col items-center p-6 bg-gradient-to-br from-gray-800 via-black to-gray-900 text-white min-h-screen">
       <h1 className="text-4xl font-extrabold mb-6" style={{ color: "#FF007B" }}>
         Intervalos de Consultas por Especialidad
@@ -698,6 +695,9 @@ export default function IntervalosDeConsultas() {
                           Costo de Consulta
                         </th>
                         <th className="px-4 py-3 text-left border-b border-pink-500 font-semibold">
+                          Fecha de Cita Médica
+                        </th>
+                        <th className="px-4 py-3 text-left border-b border-pink-500 font-semibold">
                           Sindicato
                         </th>
                       </tr>
@@ -759,6 +759,11 @@ export default function IntervalosDeConsultas() {
                               {det.costo
                                 ? det.costo
                                 : "No hay un costo registrado para esta consulta"}
+                            </td>
+                            <td className="px-4 py-3 border-b border-gray-700">
+                              {det.fechacita
+                                ? det.fechacita
+                                : "No hay fecha de cita médica"}
                             </td>
                             <td className="px-4 py-3 border-b border-gray-700">
                               {det.sindicato

@@ -6,7 +6,7 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
   const [medicamentos, setMedicamentos] = useState([]);
   const [listaMedicamentos, setListaMedicamentos] = useState([]);
   const [historialMedicamentos, setHistorialMedicamentos] = useState([]);
-  const [decisionTomada, setDecisionTomada] = useState("no"); // Inicializa como "no" de forma predeterminada
+  const [decisionTomada, setDecisionTomada] = useState("no");
   const { updateFormulario } = useContext(FormularioContext);
 
   //* Cargar lista de medicamentos desde el backend
@@ -62,22 +62,44 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
   const handleDecision = (decision) => {
     console.log(`🛠️ Decisión tomada: ${decision}`);
     setDecisionTomada(decision);
-    localStorage.setItem("decisionTomada", decision);
-
+  
     if (decision === "no") {
       console.log("🧹 Limpiando medicamentos porque la decisión es 'No'");
-      setMedicamentos([]); // Limpia el estado
+      setMedicamentos([]);
+      localStorage.removeItem("medicamentos"); // Limpia medicamentos del localStorage
     } else {
       console.log("➕ Agregando un medicamento inicial porque la decisión es 'Sí'");
-      setMedicamentos([{ medicamento: "", indicaciones: "", tratamiento: "" }]);
+      const savedMedicamentos = JSON.parse(localStorage.getItem("medicamentos")) || [];
+      setMedicamentos(savedMedicamentos.length > 0 ? savedMedicamentos : [{ medicamento: "", indicaciones: "", tratamiento: "" }]);
     }
-  };
+  
+    localStorage.setItem("decisionTomada", decision);
+  };  
+
+  useEffect(() => {
+    const savedDecision = localStorage.getItem("decisionTomada");
+    const savedMedicamentos = JSON.parse(localStorage.getItem("medicamentos")) || [];
+    const savedHistorial = JSON.parse(localStorage.getItem("historialMedicamentos")) || [];
+  
+    if (savedDecision) setDecisionTomada(savedDecision);
+    if (savedMedicamentos.length > 0) setMedicamentos(savedMedicamentos);
+    if (savedHistorial.length > 0) setHistorialMedicamentos(savedHistorial);
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("historialMedicamentos", JSON.stringify(historialMedicamentos));
+  }, [historialMedicamentos]);
+  
 
   const handleMedicamentoChange = (index, field, value) => {
     const nuevosMedicamentos = [...medicamentos];
     nuevosMedicamentos[index][field] = value;
     setMedicamentos(nuevosMedicamentos);
   };
+
+  useEffect(() => {
+    localStorage.setItem("decisionTomada", decisionTomada);
+  }, [decisionTomada]);  
 
   const agregarMedicamento = () =>
     setMedicamentos([
