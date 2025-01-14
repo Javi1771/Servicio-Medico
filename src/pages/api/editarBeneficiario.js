@@ -26,6 +26,8 @@ export default async function handler(req, res) {
     imageUrl,        // URL de la imagen del beneficiario
     curp,            // Nuevo campo CURP
     urlConstancia,   // Nuevo campo para la URL de la constancia
+    urlCurp,         // Nuevo campo para la URL del CURP
+    urlActaNac       // Nuevo campo para la URL del Acta de Nacimiento
   } = req.body;
 
   // Validar datos obligatorios
@@ -87,6 +89,8 @@ export default async function handler(req, res) {
       .input("imageUrl", imageUrl || null) // Puede ser null
       .input("curp", curp || null) // Nuevo campo CURP
       .input("urlConstancia", urlConstancia || null) // Nuevo campo URL_CONSTANCIA
+      .input("urlCurp", urlCurp || null) // Nuevo campo URL_CURP
+      .input("urlActaNac", urlActaNac || null) // Nuevo campo URL_ACTA_NAC
       .query(`
         UPDATE BENEFICIARIO
         SET 
@@ -108,7 +112,9 @@ export default async function handler(req, res) {
           VIGENCIA_ESTUDIOS = @vigenciaEstudios,
           FOTO_URL = @imageUrl,
           CURP = @curp,
-          URL_CONSTANCIA = @urlConstancia -- Agregado: Campo URL_CONSTANCIA
+          URL_CONSTANCIA = @urlConstancia,
+          URL_CURP = @urlCurp,
+          URL_ACTA_NAC = @urlActaNac
         WHERE ID_BENEFICIARIO = @idBeneficiario
       `);
 

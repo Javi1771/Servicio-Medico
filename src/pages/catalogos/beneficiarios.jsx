@@ -44,7 +44,9 @@ export default function RegistroBeneficiario() {
     vigenciaEstudios: "",
     imageUrl: "", // URL de Cloudinary
     curp: "", // Nuevo campo CURP
-    urlConstancia: "", // Nuevo campo para la URL de la constancia
+    urlConstancia: "", // Nuevo campo para la URL de la constancia\
+    urlCurp:"",
+    urlActanac:""
   });
 
   const [error, setError] = useState(null);
@@ -59,6 +61,80 @@ export default function RegistroBeneficiario() {
     const segments = url.split("/");
     return segments[segments.length - 1]; // Obtener el nombre al final de la URL
   };
+
+
+
+  const handleFileUploadCurp = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+  
+    const formData = new FormData();
+    formData.append("file", file);
+  
+    try {
+      const response = await fetch("/api/beneficiarios/uploadCurp", {
+        method: "POST",
+        body: formData,
+      });
+  
+      const data = await response.json();
+  
+      if (response.ok) {
+        console.log("CURP subida exitosamente:", data.url);
+        setFormData((prev) => ({
+          ...prev,
+          urlCurp: data.url, // Guardar la URL correcta
+        }));
+      } else {
+        Swal.fire("Error", "Error al subir la CURP. Intenta nuevamente.", "error");
+      }
+    } catch (error) {
+      console.error("Error al subir la CURP:", error);
+      Swal.fire("Error", "No se pudo subir la CURP.", "error");
+    }
+  };
+  
+
+
+  const handleFileUploadActa = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+  
+    const formData = new FormData();
+    formData.append("file", file);
+  
+    try {
+      const response = await fetch("/api/beneficiarios/uploadActa", {
+        method: "POST",
+        body: formData,
+      });
+  
+      const data = await response.json();
+  
+      if (response.ok) {
+        console.log("Acta subida exitosamente:", data.url);
+        setFormData((prev) => ({
+          ...prev,
+          urlActaNac: data.url, // Cambiar a `urlActaNac` para coincidir con la API
+        }));
+      } else {
+        Swal.fire("Error", "Error al subir el Acta. Intenta nuevamente.", "error");
+      }
+    } catch (error) {
+      console.error("Error al subir el Acta:", error);
+      Swal.fire("Error", "No se pudo subir el Acta.", "error");
+    }
+  };
+  
+  
+  
+  
+  
+  
+
+
+
+
 
   //SUBIR DOCUMENTO DE CONSTANCIA DE ESTUDIOS//
   const handleFileUpload = async (event) => {
@@ -689,7 +765,7 @@ export default function RegistroBeneficiario() {
       Swal.fire("Error", "Por favor, busca primero un empleado.", "warning");
       return;
     }
-
+  
     // Cerrar el modal si ya estaba abierto y resetear los valores
     setIsModalOpen(false);
     setTimeout(() => {
@@ -707,31 +783,32 @@ export default function RegistroBeneficiario() {
         activo: "A",
         vigenciaEstudios: "",
         imageUrl: "", // Limpia la vista previa de la imagen
-        urlConstancia: "", // Nuevo campo para la URL de la constancia
+        urlConstancia: "", // Limpia la constancia de estudios
+        urlActanac: "", // Nuevo: Limpia la URL del acta de nacimiento
+        urlCurp: "", // Nuevo: Limpia la URL del CURP
       });
-
+  
       // Establecer el modal en modo registro y abrirlo
       setIsEditMode(false);
       setIsModalOpen(true);
     }, 0); // Asegura que el estado se limpie correctamente antes de abrir
   };
+  
 
   const handleModalSubmit = async (e) => {
     e.preventDefault();
-
-    // Verificar que la imagen tenga una URL válida
+  
+    // Validaciones de los campos necesarios
     if (!formData.imageUrl || !formData.imageUrl.startsWith("http")) {
       Swal.fire("Error", "Por favor, sube una imagen válida.", "error");
       return;
     }
-
-    // Verificar que el CURP tenga exactamente 18 caracteres
+  
     if (formData.curp.length !== 18) {
       setCurpError("El CURP debe tener exactamente 18 caracteres");
       return;
     }
-
-    // Verificar que la constancia tenga un URL válido si "Es estudiante" está seleccionado
+  
     if (
       formData.esEstudiante &&
       (!formData.urlConstancia || !formData.urlConstancia.startsWith("http"))
@@ -743,19 +820,18 @@ export default function RegistroBeneficiario() {
       );
       return;
     }
-
+  
     const formattedNacimiento = formData.fNacimiento
       ? new Date(formData.fNacimiento).toISOString()
       : null;
+  
     const formattedVigenciaEstudios = formData.vigenciaEstudios
       ? new Date(formData.vigenciaEstudios).toISOString()
       : null;
-
-    const endpoint = isEditMode
-      ? "/api/editarBeneficiario"
-      : "/api/crearBeneficiario";
+  
+    const endpoint = isEditMode ? "/api/editarBeneficiario" : "/api/crearBeneficiario";
     const method = isEditMode ? "PUT" : "POST";
-
+  
     try {
       const response = await fetch(endpoint, {
         method,
@@ -763,7 +839,7 @@ export default function RegistroBeneficiario() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          ...(isEditMode && { idBeneficiario: currentBeneficiaryId }), // Solo en edición
+          ...(isEditMode && { idBeneficiario: currentBeneficiaryId }),
           noNomina: numNomina,
           parentesco: formData.parentesco,
           nombre: formData.nombre,
@@ -781,11 +857,13 @@ export default function RegistroBeneficiario() {
           esDiscapacitado: formData.esDiscapacitado || 0,
           vigenciaEstudios: formattedVigenciaEstudios,
           imageUrl: formData.imageUrl,
-          curp: formData.curp, // Incluir CURP
-          urlConstancia: formData.urlConstancia || null, // Incluir URL de la constancia
+          curp: formData.curp,
+          urlConstancia: formData.urlConstancia || null,
+          urlActaNac: formData.urlActaNac || null, // Enviar correctamente al backend
+          urlCurp: formData.urlCurp || null, // Campo CURP
         }),
       });
-
+  
       if (!response.ok) {
         throw new Error(
           isEditMode
@@ -793,7 +871,7 @@ export default function RegistroBeneficiario() {
             : "Error al registrar el beneficiario."
         );
       }
-
+  
       Swal.fire(
         "Éxito",
         isEditMode
@@ -801,8 +879,7 @@ export default function RegistroBeneficiario() {
           : "Beneficiario registrado correctamente.",
         "success"
       );
-
-      // Reiniciar los valores del formulario
+  
       setFormData({
         parentesco: "",
         nombre: "",
@@ -820,39 +897,40 @@ export default function RegistroBeneficiario() {
         esEstudiante: 0,
         esDiscapacitado: 0,
         imageUrl: "",
-        curp: "", // Resetear CURP
-        urlConstancia: "", // Resetear URL de la constancia
+        curp: "",
+        urlConstancia: "",
+        urlActanac: "",
+        urlCurp: "",
       });
-
+  
       setIsModalOpen(false);
-      fetchBeneficiarios(); // Actualizar la lista de beneficiarios
+      fetchBeneficiarios();
     } catch (error) {
       console.error("Error al enviar el formulario:", error.message);
       Swal.fire("Error", error.message, "error");
     }
   };
+  
 
-  // Función para editar beneficiario existente
+  //EDITAR BENEFICIAROS//
   const handleEditBeneficiary = (beneficiario) => {
-
-    // Formatea la fecha para un input de tipo `date`
+    // Formatear fechas
     const formatFecha = (fecha) => {
       if (!fecha) return "";
       const date = new Date(fecha);
       return date.toISOString().split("T")[0]; // Formato YYYY-MM-DD
     };
-
-    // Formatea la fecha para un input de tipo `datetime-local`
+  
     const formatDateTimeLocal = (fecha) => {
       if (!fecha) return "";
       const date = new Date(fecha);
       return date.toISOString().slice(0, 16); // Formato YYYY-MM-DDTHH:MM
     };
-
-    // Calcula la edad a partir de la fecha de nacimiento
+  
+    // Calcular la edad a partir de la fecha de nacimiento
     const edad = calculateAge(new Date(beneficiario.F_NACIMIENTO));
-
-    // Asignar los datos del beneficiario al formulario
+  
+    // Actualizar los datos en el formulario
     setFormData({
       parentesco: beneficiario.PARENTESCO || "",
       nombre: beneficiario.NOMBRE || "",
@@ -868,22 +946,24 @@ export default function RegistroBeneficiario() {
       activo: beneficiario.ACTIVO || "A",
       vigenciaEstudios: beneficiario.VIGENCIA_ESTUDIOS
         ? formatDateTimeLocal(beneficiario.VIGENCIA_ESTUDIOS)
-        : "", // Vigencia de estudios en formato `datetime-local`
+        : "",
       imageUrl: beneficiario.FOTO_URL || "",
-      esEstudiante: Number(beneficiario.ESESTUDIANTE) === 1 ? true : false,
-      esDiscapacitado:
-        Number(beneficiario.ESDISCAPACITADO) === 1 ? true : false,
-      showCheckboxes: Number(beneficiario.PARENTESCO) === 2 && edad >= 16,
-      curp: beneficiario.CURP || "", // Incluir CURP
-      urlConstancia: beneficiario.URL_CONSTANCIA || "", // Incluir URL de la constancia existente
+      esEstudiante: Number(beneficiario.ESESTUDIANTE) === 1, // Convertir a booleano
+      esDiscapacitado: Number(beneficiario.ESDISCAPACITADO) === 1, // Convertir a booleano
+      curp: beneficiario.CURP || "",
+      urlConstancia: beneficiario.URL_CONSTANCIA || "",
+      urlActaNac: beneficiario.URL_ACTA_NAC || "", // Ajustado: Acta de Nacimiento
+      urlCurp: beneficiario.URL_CURP || "", // Ajustado: CURP
+      showCheckboxes: beneficiario.PARENTESCO === 2 && edad >= 16, // Mostrar checkboxes solo si aplica
+      showUploadFiles: beneficiario.PARENTESCO === 2, // Mostrar inputs para archivos si es hijo(a)
     });
-
-
+  
     setCurrentBeneficiaryId(beneficiario.ID_BENEFICIARIO);
     setIsEditMode(true); // Activar modo edición
     setIsModalOpen(true); // Abrir modal
   };
-
+  
+  
   useEffect(() => {}, [formData]);
 
   // Función para ver los datos del beneficiario
@@ -1192,47 +1272,155 @@ export default function RegistroBeneficiario() {
         )}
       </div>
 
-      {/**ESTILOS INPUT SELCT PARENTESCO */}
-      <label className={styles.inputLabel}>
-        Parentesco:
-        <select
-          name="parentesco"
-          value={formData.parentesco}
-          onChange={(e) => {
-            const selectedId = e.target.value;
-            const selectedOption = parentescoOptions.find(
-              (option) =>
-                String(option.ID_PARENTESCO) === String(selectedId)
-            );
-            const selectedParentescoText = selectedOption
-              ? selectedOption.PARENTESCO
-              : "";
+  {/**ESTILOS INPUT SELCT PARENTESCO */}
+<label className={styles.inputLabel}>
+  Parentesco:
+  <select
+    name="parentesco"
+    value={formData.parentesco}
+    onChange={(e) => {
+      const selectedId = e.target.value;
+      const selectedOption = parentescoOptions.find(
+        (option) => String(option.ID_PARENTESCO) === String(selectedId)
+      );
+      const selectedParentescoText = selectedOption
+        ? selectedOption.PARENTESCO
+        : "";
 
-            const isHijo = selectedParentescoText === "Hijo(a)";
-            const isMayorOIgual16 = formData.edad >= 16;
+      const isHijo = selectedParentescoText === "Hijo(a)";
+      const isMayorOIgual16 = formData.edad >= 16;
 
-            setFormData((prev) => ({
-              ...prev,
-              parentesco: selectedId,
-              showCheckboxes: isHijo && isMayorOIgual16,
-              esEstudiante: 0,
-              esDiscapacitado: 0,
-            }));
-          }}
-          className={styles.inputField}
-          required
-        >
-          <option value="">Selecciona</option>
-          {parentescoOptions.map((option) => (
-            <option
-              key={option.ID_PARENTESCO}
-              value={option.ID_PARENTESCO}
-            >
-              {option.PARENTESCO}
-            </option>
-          ))}
-        </select>
+      setFormData((prev) => ({
+        ...prev,
+        parentesco: selectedId,
+        showCheckboxes: isHijo && isMayorOIgual16,
+        showUploadFiles: isHijo, // Mostrar inputs de archivo si es hijo(a)
+        esEstudiante: 0,
+        esDiscapacitado: 0,
+        actaNacimientoUrl: "", // Resetear URL del acta
+        curpFileUrl: "", // Resetear URL del CURP
+      }));
+    }}
+    className={styles.inputField}
+    required
+  >
+    <option value="">Selecciona</option>
+    {parentescoOptions.map((option) => (
+      <option key={option.ID_PARENTESCO} value={option.ID_PARENTESCO}>
+        {option.PARENTESCO}
+      </option>
+    ))}
+  </select>
+</label>
+
+{/* Mostrar campos para subir Acta de Nacimiento y CURP si es hijo(a) */}
+{formData.showUploadFiles && (
+  <fieldset className={styles.fieldset}>
+    <legend>Documentos Requeridos</legend>
+
+    {/* Subir Acta de Nacimiento */}
+    <div className={styles.inputRow2}>
+      <label className={styles.inputLabel2}>
+        <FaFileUpload className={styles.icon} /> Acta de Nacimiento - SUBIR:
+        <div className={styles.fileInputWrapper2}>
+          <input
+            type="file"
+            name="actaNacimiento"
+            accept="application/pdf"
+            onChange={handleFileUploadActa} // Handler específico para el Acta
+            className={styles.fileInput2}
+            id="acta-nacimiento-upload"
+          />
+          <label
+            htmlFor="acta-nacimiento-upload"
+            className={styles.uploadButton2}
+          >
+            Seleccionar archivo
+          </label>
+          <span className={styles.fileName2}>
+            {formData.urlActaNac // Usar `urlActaNac` para mostrar archivo actual
+              ? getFileNameFromURL(formData.urlActaNac)
+              : "Sin archivo seleccionado"}
+          </span>
+        </div>
       </label>
+
+      {/* Botón para ver el archivo actual del Acta de Nacimiento */}
+      {formData.urlActaNac && (
+        <div className={styles.inputRow2}>
+          <button
+            type="button"
+            className={styles.viewButton2}
+            onClick={() => {
+              if (formData.urlActaNac) {
+                window.open(formData.urlActaNac, "_blank");
+              } else {
+                Swal.fire(
+                  "Error",
+                  "No se encontró un Acta de Nacimiento válida.",
+                  "error"
+                );
+              }
+            }}
+          >
+            Ver Acta Actual
+          </button>
+        </div>
+      )}
+    </div>
+
+    {/* Subir CURP */}
+    <div className={styles.inputRow2}>
+      <label className={styles.inputLabel2}>
+        <FaFileUpload className={styles.icon} /> CURP - SUBIR:
+        <div className={styles.fileInputWrapper2}>
+          <input
+            type="file"
+            name="curp"
+            accept="application/pdf"
+            onChange={handleFileUploadCurp} // Handler específico para la CURP
+            className={styles.fileInput2}
+            id="curp-upload"
+          />
+          <label htmlFor="curp-upload" className={styles.uploadButton2}>
+            Seleccionar archivo
+          </label>
+          <span className={styles.fileName2}>
+            {formData.urlCurp // Usar `urlCurp` para mostrar archivo actual
+              ? getFileNameFromURL(formData.urlCurp)
+              : "Sin archivo seleccionado"}
+          </span>
+        </div>
+      </label>
+
+      {/* Botón para ver el archivo actual del CURP */}
+      {formData.urlCurp && (
+        <div className={styles.inputRow2}>
+          <button
+            type="button"
+            className={styles.viewButton2}
+            onClick={() => {
+              if (formData.urlCurp) {
+                window.open(formData.urlCurp, "_blank");
+              } else {
+                Swal.fire("Error", "No se encontró un CURP válido.", "error");
+              }
+            }}
+          >
+            Ver CURP Actual
+          </button>
+        </div>
+      )}
+    </div>
+  </fieldset>
+)}
+
+
+
+
+
+
+
 
       <div className={styles.inputRow}>
         <label className={styles.inputLabel}>

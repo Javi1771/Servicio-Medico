@@ -26,6 +26,8 @@ export default async function handler(req, res) {
     imageUrl,
     curp, // Nuevo campo CURP
     urlConstancia, // Nuevo campo para la URL de la constancia
+    urlCurp, // Nuevo campo para la URL del CURP
+    urlActaNac, // Nuevo campo para la URL del Acta de Nacimiento
   } = req.body;
 
   try {
@@ -40,6 +42,8 @@ export default async function handler(req, res) {
     const truncatedFotoUrl = imageUrl?.substring(0, 255);
     const truncatedCurp = curp?.substring(0, 18); // Validar longitud de CURP
     const truncatedUrlConstancia = urlConstancia?.substring(0, 255); // Validar longitud de URL_CONSTANCIA
+    const truncatedUrlCurp = urlCurp?.substring(0, 255); // Validar longitud de URL_CURP
+    const truncatedUrlActaNac = urlActaNac?.substring(0, 255); // Validar longitud de URL_ACTA_NAC
 
     const pool = await connectToDatabase();
 
@@ -62,20 +66,24 @@ export default async function handler(req, res) {
       .input("esDiscapacitado", esDiscapacitado)
       .input("vigenciaEstudios", vigenciaEstudios || null)
       .input("imageUrl", truncatedFotoUrl)
-      .input("curp", truncatedCurp) // Nuevo campo CURP
-      .input("urlConstancia", truncatedUrlConstancia) // Nuevo campo para la URL de la constancia
+      .input("curp", truncatedCurp) // Campo CURP
+      .input("urlConstancia", truncatedUrlConstancia) // Campo URL_CONSTANCIA
+      .input("urlCurp", truncatedUrlCurp) // Campo URL_CURP
+      .input("urlActaNac", truncatedUrlActaNac) // Campo URL_ACTA_NAC
       .query(`
         INSERT INTO BENEFICIARIO (
           NO_NOMINA, PARENTESCO, NOMBRE, A_PATERNO, A_MATERNO, SEXO, 
           F_NACIMIENTO, ESCOLARIDAD, ACTIVO, ALERGIAS, SANGRE, 
           TEL_EMERGENCIA, NOMBRE_EMERGENCIA, ESESTUDIANTE, ESDISCAPACITADO, 
-          VIGENCIA_ESTUDIOS, FOTO_URL, CURP, URL_CONSTANCIA
+          VIGENCIA_ESTUDIOS, FOTO_URL, CURP, URL_CONSTANCIA, 
+          URL_CURP, URL_ACTA_NAC
         )
         VALUES (
           @noNomina, @parentesco, @nombre, @aPaterno, @aMaterno, @sexo, 
           @fNacimiento, @escolaridad, @activo, @alergias, @sangre, 
           @telEmergencia, @nombreEmergencia, @esEstudiante, @esDiscapacitado, 
-          @vigenciaEstudios, @imageUrl, @curp, @urlConstancia
+          @vigenciaEstudios, @imageUrl, @curp, @urlConstancia, 
+          @urlCurp, @urlActaNac
         )
       `);
 
