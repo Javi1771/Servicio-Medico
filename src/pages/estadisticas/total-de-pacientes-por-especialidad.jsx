@@ -513,6 +513,9 @@ export default function PacientesPorEspecialidad() {
                         <th className="px-4 py-3 text-left border-b border-[#FF7300] font-semibold">
                           Médico Que Atendió
                         </th>
+                        <th className="px-4 py-3 text-left border-b border-[#FF7300] font-semibold">
+                          Fecha de Cita
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
@@ -547,6 +550,9 @@ export default function PacientesPorEspecialidad() {
                           </td>
                           <td className="px-4 py-3 border-b border-[#0F111A]">
                             {item.nombreproveedor || "Sin médico"}
+                          </td>
+                          <td className="px-4 py-3 border-b border-[#0F111A]">
+                            {item.fechacita || "Sin fecha de cita"}
                           </td>
                         </tr>
                       ))}
