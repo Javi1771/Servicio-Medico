@@ -11,11 +11,19 @@ import {
   FaPrint,
   FaTimes,
   FaUser,
-  FaChild,
   FaInfoCircle,
 } from "react-icons/fa";
 
-import { FaCalendarAlt, FaPhone, FaFileUpload, FaVenusMars, FaDisease, FaSave } from 'react-icons/fa';
+import {
+  FaCalendarAlt,
+  FaPhone,
+  FaFileUpload,
+  FaFileAlt,
+  FaDisease,
+  FaSave,
+  FaUsers,
+  FaVenusMars,
+} from "react-icons/fa";
 
 Modal.setAppElement("#__next"); // Configuración del modal en Next.js
 
@@ -25,7 +33,6 @@ export default function RegistroBeneficiario() {
   const [beneficiarios, setBeneficiarios] = useState([]);
   const [parentescoOptions, setParentescoOptions] = useState([]);
   const [sexoOptions, setSexoOptions] = useState([]);
-  const [curpError, setCurpError] = useState(""); // Estado para el mensaje de error del CURP
   const [formData, setFormData] = useState({
     parentesco: "",
     nombre: "",
@@ -34,19 +41,22 @@ export default function RegistroBeneficiario() {
     sexo: "",
     fNacimiento: "",
     escolaridad: "",
-    activo: "A", // Por defecto "A" (activo)
+    activo: "A",
     alergias: "",
     sangre: "",
     telEmergencia: "",
     nombreEmergencia: "",
-    esEstudiante: 0, // 0 o 1
-    esDiscapacitado: 0, // 0 o 1
+    esEstudiante: 0,
+    esDiscapacitado: 0,
     vigenciaEstudios: "",
-    imageUrl: "", // URL de Cloudinary
-    curp: "", // Nuevo campo CURP
-    urlConstancia: "", // Nuevo campo para la URL de la constancia\
-    urlCurp:"",
-    urlActanac:""
+    imageUrl: "",
+    curp: "",
+    urlConstancia: "",
+    urlCurp: "",
+    urlActaNac: "",
+    actaMatrimonioUrl: "",
+    ineUrl: "",
+    cartaNoAfiliacionUrl: "",
   });
 
   const [error, setError] = useState(null);
@@ -55,6 +65,17 @@ export default function RegistroBeneficiario() {
   const [currentBeneficiaryId, setCurrentBeneficiaryId] = useState(null);
   const router = useRouter(); // Define el router usando useRouter
   const [isSaveDisabled, setIsSaveDisabled] = useState(false); // Estado para deshabilitar el botón de guardar
+  const [isDocumentsModalOpen, setIsDocumentsModalOpen] = useState(false);
+
+  const [isFadingOut, setIsFadingOut] = useState(false);
+
+  const handleCloseModal = () => {
+    setIsFadingOut(true); // Activamos la animación de salida
+    setTimeout(() => {
+      setIsFadingOut(false); // Reseteamos el estado después del fadeOut
+      setIsDocumentsModalOpen(false); // Cerramos el modal
+    }, 300); // La duración del fadeOut debe coincidir con la animación CSS
+  };
 
   const getFileNameFromURL = (url) => {
     if (!url) return "Sin archivo";
@@ -62,23 +83,130 @@ export default function RegistroBeneficiario() {
     return segments[segments.length - 1]; // Obtener el nombre al final de la URL
   };
 
+  const handleFileUploadINE = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
 
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const response = await fetch("/api/beneficiarios/uploadINE", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        console.log("INE subida exitosamente:", data.url);
+        setFormData((prev) => ({
+          ...prev,
+          ineUrl: data.url, // Guardar la URL correcta
+        }));
+      } else {
+        Swal.fire(
+          "Error",
+          "Error al subir el INE. Intenta nuevamente.",
+          "error"
+        );
+      }
+    } catch (error) {
+      console.error("Error al subir el INE:", error);
+      Swal.fire("Error", "No se pudo subir el INE.", "error");
+    }
+  };
+
+  const handleFileUploadActaMatrimonio = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const response = await fetch("/api/beneficiarios/uploadActaMatrimonio", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        console.log("Acta de Matrimonio subida exitosamente:", data.url);
+        setFormData((prev) => ({
+          ...prev,
+          actaMatrimonioUrl: data.url, // Guardar la URL correcta
+        }));
+      } else {
+        Swal.fire(
+          "Error",
+          "Error al subir el Acta de Matrimonio. Intenta nuevamente.",
+          "error"
+        );
+      }
+    } catch (error) {
+      console.error("Error al subir el Acta de Matrimonio:", error);
+      Swal.fire("Error", "No se pudo subir el Acta de Matrimonio.", "error");
+    }
+  };
+
+  const handleFileUploadCartaNoAfiliacion = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const response = await fetch(
+        "/api/beneficiarios/uploadCartaNoAfiliacion",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        console.log("Carta de No Afiliación subida exitosamente:", data.url);
+        setFormData((prev) => ({
+          ...prev,
+          cartaNoAfiliacionUrl: data.url, // Guardar la URL correcta
+        }));
+      } else {
+        Swal.fire(
+          "Error",
+          "Error al subir la Carta de No Afiliación. Intenta nuevamente.",
+          "error"
+        );
+      }
+    } catch (error) {
+      console.error("Error al subir la Carta de No Afiliación:", error);
+      Swal.fire(
+        "Error",
+        "No se pudo subir la Carta de No Afiliación.",
+        "error"
+      );
+    }
+  };
 
   const handleFileUploadCurp = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
-  
+
     const formData = new FormData();
     formData.append("file", file);
-  
+
     try {
       const response = await fetch("/api/beneficiarios/uploadCurp", {
         method: "POST",
         body: formData,
       });
-  
+
       const data = await response.json();
-  
+
       if (response.ok) {
         console.log("CURP subida exitosamente:", data.url);
         setFormData((prev) => ({
@@ -86,31 +214,33 @@ export default function RegistroBeneficiario() {
           urlCurp: data.url, // Guardar la URL correcta
         }));
       } else {
-        Swal.fire("Error", "Error al subir la CURP. Intenta nuevamente.", "error");
+        Swal.fire(
+          "Error",
+          "Error al subir la CURP. Intenta nuevamente.",
+          "error"
+        );
       }
     } catch (error) {
       console.error("Error al subir la CURP:", error);
       Swal.fire("Error", "No se pudo subir la CURP.", "error");
     }
   };
-  
-
 
   const handleFileUploadActa = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
-  
+
     const formData = new FormData();
     formData.append("file", file);
-  
+
     try {
       const response = await fetch("/api/beneficiarios/uploadActa", {
         method: "POST",
         body: formData,
       });
-  
+
       const data = await response.json();
-  
+
       if (response.ok) {
         console.log("Acta subida exitosamente:", data.url);
         setFormData((prev) => ({
@@ -118,23 +248,17 @@ export default function RegistroBeneficiario() {
           urlActaNac: data.url, // Cambiar a `urlActaNac` para coincidir con la API
         }));
       } else {
-        Swal.fire("Error", "Error al subir el Acta. Intenta nuevamente.", "error");
+        Swal.fire(
+          "Error",
+          "Error al subir el Acta. Intenta nuevamente.",
+          "error"
+        );
       }
     } catch (error) {
       console.error("Error al subir el Acta:", error);
       Swal.fire("Error", "No se pudo subir el Acta.", "error");
     }
   };
-  
-  
-  
-  
-  
-  
-
-
-
-
 
   //SUBIR DOCUMENTO DE CONSTANCIA DE ESTUDIOS//
   const handleFileUpload = async (event) => {
@@ -393,7 +517,6 @@ export default function RegistroBeneficiario() {
 
       const employeeData = await response.json();
 
-    
       const DEPARTAMENTO = employeeData?.departamento || "N/A";
 
       // Configuración para jsPDF
@@ -515,10 +638,10 @@ export default function RegistroBeneficiario() {
   // Dentro de handleInputChange para actualizar el estado cuando cambie la fecha de nacimiento
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-  
+
     setFormData((prevData) => {
       const updatedData = { ...prevData, [name]: value };
-  
+
       if (name === "curp") {
         if (value.length > 18) {
           setCurpError("El CURP debe tener un máximo de 18 caracteres");
@@ -528,25 +651,25 @@ export default function RegistroBeneficiario() {
           setCurpError("");
         }
       }
-  
+
       // Calcular la edad si cambia la fecha de nacimiento
       if (name === "fNacimiento") {
         const birthDate = new Date(value);
         const age = calculateAge(birthDate);
         updatedData.edad = age;
-  
+
         // Revalidar checkboxes basados en el nuevo valor de edad
         updateCheckboxState(age, updatedData.parentesco);
       }
-  
+
       // Revalidar checkboxes si cambia el parentesco
       if (name === "parentesco") {
         updateCheckboxState(updatedData.edad, value);
       }
-  
+
       return updatedData;
     });
-  
+
     // Añadir o eliminar la clase 'hasText' según corresponda
     if (value) {
       e.target.classList.add(styles.hasText);
@@ -765,7 +888,7 @@ export default function RegistroBeneficiario() {
       Swal.fire("Error", "Por favor, busca primero un empleado.", "warning");
       return;
     }
-  
+
     // Cerrar el modal si ya estaba abierto y resetear los valores
     setIsModalOpen(false);
     setTimeout(() => {
@@ -776,39 +899,41 @@ export default function RegistroBeneficiario() {
         aMaterno: "",
         sexo: "",
         fNacimiento: "",
+        escolaridad: "",
+        activo: "A",
         alergias: "",
         sangre: "",
         telEmergencia: "",
         nombreEmergencia: "",
-        activo: "A",
+        esEstudiante: 0,
+        esDiscapacitado: 0,
         vigenciaEstudios: "",
         imageUrl: "", // Limpia la vista previa de la imagen
         urlConstancia: "", // Limpia la constancia de estudios
         urlActanac: "", // Nuevo: Limpia la URL del acta de nacimiento
         urlCurp: "", // Nuevo: Limpia la URL del CURP
+        actaMatrimonioUrl: "", // Limpia la URL del acta de matrimonio
+        ineUrl: "", // Limpia la URL del INE
+        cartaNoAfiliacionUrl: "", // Limpia la URL de la carta de no afiliación
       });
-  
+
       // Establecer el modal en modo registro y abrirlo
       setIsEditMode(false);
       setIsModalOpen(true);
     }, 0); // Asegura que el estado se limpie correctamente antes de abrir
   };
-  
 
   const handleModalSubmit = async (e) => {
     e.preventDefault();
-  
+
+    console.log("Enviando formulario...");
+
     // Validaciones de los campos necesarios
     if (!formData.imageUrl || !formData.imageUrl.startsWith("http")) {
       Swal.fire("Error", "Por favor, sube una imagen válida.", "error");
       return;
     }
-  
-    if (formData.curp.length !== 18) {
-      setCurpError("El CURP debe tener exactamente 18 caracteres");
-      return;
-    }
-  
+
     if (
       formData.esEstudiante &&
       (!formData.urlConstancia || !formData.urlConstancia.startsWith("http"))
@@ -820,19 +945,51 @@ export default function RegistroBeneficiario() {
       );
       return;
     }
-  
+
+    // Formatear las fechas
     const formattedNacimiento = formData.fNacimiento
       ? new Date(formData.fNacimiento).toISOString()
       : null;
-  
+
     const formattedVigenciaEstudios = formData.vigenciaEstudios
       ? new Date(formData.vigenciaEstudios).toISOString()
       : null;
-  
-    const endpoint = isEditMode ? "/api/editarBeneficiario" : "/api/crearBeneficiario";
+
+    const endpoint = isEditMode
+      ? "/api/editarBeneficiario"
+      : "/api/crearBeneficiario";
     const method = isEditMode ? "PUT" : "POST";
-  
+
     try {
+      // Depurar formData antes de enviarlo
+      console.log("Datos enviados al backend (antes del fetch):", {
+        ...(isEditMode && { idBeneficiario: currentBeneficiaryId }),
+        noNomina: numNomina,
+        parentesco: formData.parentesco,
+        nombre: formData.nombre,
+        aPaterno: formData.aPaterno,
+        aMaterno: formData.aMaterno,
+        sexo: formData.sexo,
+        fNacimiento: formattedNacimiento,
+        escolaridad: formData.escolaridad || null,
+        activo: formData.activo || "A",
+        alergias: formData.alergias || "",
+        sangre: formData.sangre || null,
+        telEmergencia: formData.telEmergencia,
+        nombreEmergencia: formData.nombreEmergencia,
+        esEstudiante: formData.esEstudiante || 0,
+        esDiscapacitado: formData.esDiscapacitado || 0,
+        vigenciaEstudios: formattedVigenciaEstudios,
+        imageUrl: formData.imageUrl,
+        urlConstancia: formData.urlConstancia || null,
+        urlActaNac: formData.urlActaNac || null,
+        urlCurp: formData.urlCurp || null,
+        actaMatrimonioUrl: formData.actaMatrimonioUrl || null,
+        ineUrl: formData.ineUrl || null,
+        cartaNoAfiliacionUrl: formData.cartaNoAfiliacionUrl || null,
+      });
+
+      // Realizar la solicitud al backend
       const response = await fetch(endpoint, {
         method,
         headers: {
@@ -857,21 +1014,25 @@ export default function RegistroBeneficiario() {
           esDiscapacitado: formData.esDiscapacitado || 0,
           vigenciaEstudios: formattedVigenciaEstudios,
           imageUrl: formData.imageUrl,
-          curp: formData.curp,
           urlConstancia: formData.urlConstancia || null,
-          urlActaNac: formData.urlActaNac || null, // Enviar correctamente al backend
-          urlCurp: formData.urlCurp || null, // Campo CURP
+          urlActaNac: formData.urlActaNac || null,
+          urlCurp: formData.urlCurp || null,
+          actaMatrimonioUrl: formData.actaMatrimonioUrl || null,
+          ineUrl: formData.ineUrl || null,
+          cartaNoAfiliacionUrl: formData.cartaNoAfiliacionUrl || null,
         }),
       });
-  
+
       if (!response.ok) {
+        const errorData = await response.json(); // Intentar obtener más detalles del error
+        console.error("Error del backend:", errorData);
         throw new Error(
           isEditMode
             ? "Error al actualizar el beneficiario."
             : "Error al registrar el beneficiario."
         );
       }
-  
+
       Swal.fire(
         "Éxito",
         isEditMode
@@ -879,7 +1040,8 @@ export default function RegistroBeneficiario() {
           : "Beneficiario registrado correctamente.",
         "success"
       );
-  
+
+      // Resetear el formulario después de guardar o actualizar
       setFormData({
         parentesco: "",
         nombre: "",
@@ -897,12 +1059,14 @@ export default function RegistroBeneficiario() {
         esEstudiante: 0,
         esDiscapacitado: 0,
         imageUrl: "",
-        curp: "",
         urlConstancia: "",
-        urlActanac: "",
+        urlActaNac: "",
         urlCurp: "",
+        actaMatrimonioUrl: "", // Resetear Acta de Matrimonio
+        ineUrl: "", // Resetear INE
+        cartaNoAfiliacionUrl: "", // Resetear Carta de No Afiliación
       });
-  
+
       setIsModalOpen(false);
       fetchBeneficiarios();
     } catch (error) {
@@ -910,7 +1074,6 @@ export default function RegistroBeneficiario() {
       Swal.fire("Error", error.message, "error");
     }
   };
-  
 
   //EDITAR BENEFICIAROS//
   const handleEditBeneficiary = (beneficiario) => {
@@ -950,10 +1113,12 @@ export default function RegistroBeneficiario() {
       imageUrl: beneficiario.FOTO_URL || "",
       esEstudiante: Number(beneficiario.ESESTUDIANTE) === 1, // Convertir a booleano
       esDiscapacitado: Number(beneficiario.ESDISCAPACITADO) === 1, // Convertir a booleano
-      curp: beneficiario.CURP || "",
       urlConstancia: beneficiario.URL_CONSTANCIA || "",
       urlActaNac: beneficiario.URL_ACTA_NAC || "", // Ajustado: Acta de Nacimiento
       urlCurp: beneficiario.URL_CURP || "", // Ajustado: CURP
+      urlINE: beneficiario.URL_INE || "", // Ajustado: INE
+      urlActaMatrimonio: beneficiario.URL_ACTAMATRIMONIO || "", // Ajustado: Acta de Matrimonio
+      urlCartaNoAfiliacion: beneficiario.URL_NOISSTE || "", // Ajustado: Carta de No Afiliación
       showCheckboxes: beneficiario.PARENTESCO === 2 && edad >= 16, // Mostrar checkboxes solo si aplica
       showUploadFiles: beneficiario.PARENTESCO === 2, // Mostrar inputs para archivos si es hijo(a)
     });
@@ -962,8 +1127,7 @@ export default function RegistroBeneficiario() {
     setIsEditMode(true); // Activar modo edición
     setIsModalOpen(true); // Abrir modal
   };
-  
-  
+
   useEffect(() => {}, [formData]);
 
   // Función para ver los datos del beneficiario
@@ -1134,692 +1298,931 @@ export default function RegistroBeneficiario() {
         </div>
 
         <Modal
-  isOpen={isModalOpen}
-  onRequestClose={() => {
-    setIsModalOpen(false);
-    setFormData({
-      parentesco: "",
-      nombre: "",
-      aPaterno: "",
-      aMaterno: "",
-      sexo: "",
-      fNacimiento: "",
-      alergias: "",
-      telEmergencia: "",
-      nombreEmergencia: "",
-      imageUrl: "",
-      esEstudiante: 0,
-      esDiscapacitado: 0,
-      vigenciaEstudios: "",
-      edad: "",
-      showCheckboxes: false,
-      urlConstancia: "", // Limpiar URL de la constancia
-    });
-  }}
-  overlayClassName={styles.modalOverlay}
-  className={styles.modal}
->
-  <form onSubmit={handleModalSubmit} className={styles.form}>
-    <h2 className={styles.title}>
-      {isEditMode ? "Editar Beneficiario" : "Registrar Beneficiario"}
-    </h2>
-
-    <fieldset className={styles.fieldset}>
-      <legend>Datos Personales</legend>
-      {/* Nombre y Apellido Paterno */}
-      <div className={styles.inputRow}>
-        <label className={styles.inputLabel}>
-          <FaUser className={styles.icon} /> Nombre:
-          <input
-            type="text"
-            name="nombre"
-            value={formData.nombre}
-            onChange={handleInputChange}
-            className={styles.inputField}
-            required
-          />
-        </label>
-        <label className={styles.inputLabel}>
-          <FaUser className={styles.icon} /> Apellido Paterno:
-          <input
-            type="text"
-            name="aPaterno"
-            value={formData.aPaterno}
-            onChange={handleInputChange}
-            className={styles.inputField}
-            required
-          />
-        </label>
-      </div>
-
-      {/* Apellido Materno y Sexo */}
-      <div className={styles.inputRow}>
-        <label className={styles.inputLabel}>
-          <FaUser className={styles.icon} /> Apellido Materno:
-          <input
-            type="text"
-            name="aMaterno"
-            value={formData.aMaterno}
-            onChange={handleInputChange}
-            className={styles.inputField}
-          />
-        </label>
-        <label className={styles.inputLabel}>
-          <FaVenusMars className={styles.icon} /> Sexo:
-          <select
-            name="sexo"
-            value={formData.sexo}
-            onChange={handleInputChange}
-            className={styles.inputField}
-            required
-          >
-            <option value="">Selecciona</option>
-            {sexoOptions.map((option) => (
-              <option key={option.idSexo} value={option.idSexo}>
-                {option.sexo}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
-
-      {/* Fecha de Nacimiento y Parentesco */}
-      <div className={styles.inputRow}>
-        <label className={styles.inputLabel}>
-          <FaCalendarAlt className={styles.icon} /> Fecha de Nacimiento:
-          <input
-            type="date"
-            name="fNacimiento"
-            value={formData.fNacimiento}
-            onChange={(e) => {
-              handleInputChange(e);
-
-              const birthDate = new Date(e.target.value);
-              const today = new Date();
-              let age = today.getFullYear() - birthDate.getFullYear();
-              const monthDiff = today.getMonth() - birthDate.getMonth();
-
-              if (
-                monthDiff < 0 ||
-                (monthDiff === 0 && today.getDate() < birthDate.getDate())
-              ) {
-                age--;
-              }
-
-              setFormData((prev) => ({
-                ...prev,
-                edad: age,
-              }));
-
-              const isHijo = formData.parentesco === "Hijo(a)";
-              const isMayorOIgual16 = age >= 16;
-
-              setFormData((prev) => ({
-                ...prev,
-                showCheckboxes: isHijo && isMayorOIgual16,
-                esEstudiante: 0,
-                esDiscapacitado: 0,
-              }));
-            }}
-            className={styles.inputField}
-            required
-          />
-        </label>
-        {formData.edad && (
-          <span className={styles.ageDisplay}>
-            Edad: {formData.edad} años
-          </span>
-        )}
-      </div>
-
-  {/**ESTILOS INPUT SELCT PARENTESCO */}
-<label className={styles.inputLabel}>
-  Parentesco:
-  <select
-    name="parentesco"
-    value={formData.parentesco}
-    onChange={(e) => {
-      const selectedId = e.target.value;
-      const selectedOption = parentescoOptions.find(
-        (option) => String(option.ID_PARENTESCO) === String(selectedId)
-      );
-      const selectedParentescoText = selectedOption
-        ? selectedOption.PARENTESCO
-        : "";
-
-      const isHijo = selectedParentescoText === "Hijo(a)";
-      const isMayorOIgual16 = formData.edad >= 16;
-
-      setFormData((prev) => ({
-        ...prev,
-        parentesco: selectedId,
-        showCheckboxes: isHijo && isMayorOIgual16,
-        showUploadFiles: isHijo, // Mostrar inputs de archivo si es hijo(a)
-        esEstudiante: 0,
-        esDiscapacitado: 0,
-        actaNacimientoUrl: "", // Resetear URL del acta
-        curpFileUrl: "", // Resetear URL del CURP
-      }));
-    }}
-    className={styles.inputField}
-    required
-  >
-    <option value="">Selecciona</option>
-    {parentescoOptions.map((option) => (
-      <option key={option.ID_PARENTESCO} value={option.ID_PARENTESCO}>
-        {option.PARENTESCO}
-      </option>
-    ))}
-  </select>
-</label>
-
-{/* Mostrar campos para subir Acta de Nacimiento y CURP si es hijo(a) */}
-{formData.showUploadFiles && (
-  <fieldset className={styles.fieldset}>
-    <legend>Documentos Requeridos</legend>
-
-    {/* Subir Acta de Nacimiento */}
-    <div className={styles.inputRow2}>
-      <label className={styles.inputLabel2}>
-        <FaFileUpload className={styles.icon} /> Acta de Nacimiento - SUBIR:
-        <div className={styles.fileInputWrapper2}>
-          <input
-            type="file"
-            name="actaNacimiento"
-            accept="application/pdf"
-            onChange={handleFileUploadActa} // Handler específico para el Acta
-            className={styles.fileInput2}
-            id="acta-nacimiento-upload"
-          />
-          <label
-            htmlFor="acta-nacimiento-upload"
-            className={styles.uploadButton2}
-          >
-            Seleccionar archivo
-          </label>
-          <span className={styles.fileName2}>
-            {formData.urlActaNac // Usar `urlActaNac` para mostrar archivo actual
-              ? getFileNameFromURL(formData.urlActaNac)
-              : "Sin archivo seleccionado"}
-          </span>
-        </div>
-      </label>
-
-      {/* Botón para ver el archivo actual del Acta de Nacimiento */}
-      {formData.urlActaNac && (
-        <div className={styles.inputRow2}>
-          <button
-            type="button"
-            className={styles.viewButton2}
-            onClick={() => {
-              if (formData.urlActaNac) {
-                window.open(formData.urlActaNac, "_blank");
-              } else {
-                Swal.fire(
-                  "Error",
-                  "No se encontró un Acta de Nacimiento válida.",
-                  "error"
-                );
-              }
-            }}
-          >
-            Ver Acta Actual
-          </button>
-        </div>
-      )}
-    </div>
-
-    {/* Subir CURP */}
-    <div className={styles.inputRow2}>
-      <label className={styles.inputLabel2}>
-        <FaFileUpload className={styles.icon} /> CURP - SUBIR:
-        <div className={styles.fileInputWrapper2}>
-          <input
-            type="file"
-            name="curp"
-            accept="application/pdf"
-            onChange={handleFileUploadCurp} // Handler específico para la CURP
-            className={styles.fileInput2}
-            id="curp-upload"
-          />
-          <label htmlFor="curp-upload" className={styles.uploadButton2}>
-            Seleccionar archivo
-          </label>
-          <span className={styles.fileName2}>
-            {formData.urlCurp // Usar `urlCurp` para mostrar archivo actual
-              ? getFileNameFromURL(formData.urlCurp)
-              : "Sin archivo seleccionado"}
-          </span>
-        </div>
-      </label>
-
-      {/* Botón para ver el archivo actual del CURP */}
-      {formData.urlCurp && (
-        <div className={styles.inputRow2}>
-          <button
-            type="button"
-            className={styles.viewButton2}
-            onClick={() => {
-              if (formData.urlCurp) {
-                window.open(formData.urlCurp, "_blank");
-              } else {
-                Swal.fire("Error", "No se encontró un CURP válido.", "error");
-              }
-            }}
-          >
-            Ver CURP Actual
-          </button>
-        </div>
-      )}
-    </div>
-  </fieldset>
-)}
-
-
-
-
-
-
-
-
-      <div className={styles.inputRow}>
-        <label className={styles.inputLabel}>
-          CURP:
-          <input
-            type="text"
-            name="curp"
-            value={formData.curp}
-            onChange={handleInputChange}
-            className={styles.inputField}
-            maxLength="18"
-            required
-          />
-          {curpError && (
-            <span className={styles.tooltip} data-tooltip={curpError}>
-              {curpError}
-            </span>
-          )}
-        </label>
-      </div>
-
-      {/* Checkboxes dinámicos */}
-      {formData.showCheckboxes && (
-        <div className={styles.inputRow}>
-          <label className={styles.checkboxWrapper}>
-            <input
-              type="checkbox"
-              name="esEstudiante"
-              checked={formData.esEstudiante}
-              onChange={(e) => {
-                setFormData((prev) => ({
-                  ...prev,
-                  esEstudiante: e.target.checked,
-                  esDiscapacitado: false,
-                  vigenciaEstudios: e.target.checked
-                    ? prev.vigenciaEstudios
-                    : "",
-                }));
-              }}
-            />
-            <span className={styles.checkmark}>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="currentColor"
-                viewBox="0 0 16 16"
-              >
-                <path d="M10.854 5.146a.5.5 0 0 0-.708 0L7.5 7.793 6.354 6.646a.5.5 0 1 0-.708.708l1.5 1.5a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0 0-.708z" />
-              </svg>
-            </span>
-            <span className={styles.label}>Es estudiante</span>
-          </label>
-
-          <label className={styles.checkboxWrapper}>
-            <input
-              type="checkbox"
-              name="esDiscapacitado"
-              checked={formData.esDiscapacitado}
-              onChange={(e) => {
-                setFormData((prev) => ({
-                  ...prev,
-                  esDiscapacitado: e.target.checked,
-                  esEstudiante: false,
-                  vigenciaEstudios: "",
-                }));
-              }}
-            />
-            <span className={styles.checkmark}>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="currentColor"
-                viewBox="0 0 16 16"
-              >
-                <path d="M10.854 5.146a.5.5 0 0 0-.708 0L7.5 7.793 6.354 6.646a.5.5 0 1 0-.708.708l1.5 1.5a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0 0-.708z" />
-              </svg>
-            </span>
-            <span className={styles.label}>Es discapacitado</span>
-          </label>
-        </div>
-      )}
-
-      {/* Vigencia de Estudios */}
-      {formData.esEstudiante && (
-        <div className={styles.inputRow}>
-          <label className={styles.inputLabel}>
-            Vigencia de Estudios:
-            <input
-              type="datetime-local"
-              name="vigenciaEstudios"
-              value={formData.vigenciaEstudios}
-              onChange={handleVigenciaChange} // Validación incluida aquí
-              className={styles.inputField}
-              required
-            />
-          </label>
-        </div>
-      )}
-
-      {formData.esEstudiante && (
-        <div className={styles.inputRow2}>
-          <label className={styles.inputLabel2}>
-            <FaFileUpload className={styles.icon} /> Constancia de Estudios - SUBIR:
-            <div className={styles.fileInputWrapper2}>
-              <input
-                type="file"
-                name="file"
-                accept="application/pdf"
-                onChange={handleFileUpload}
-                className={styles.fileInput2}
-                id="file-upload"
-              />
-              <label
-                htmlFor="file-upload"
-                className={styles.uploadButton2}
-              >
-                Seleccionar archivo
-              </label>
-              <span className={styles.fileName2}>
-                {formData.fileName || "Sin archivo seleccionado"}
-              </span>
-            </div>
-          </label>
-
-          {isEditMode && formData.urlConstancia && (
-            <span className={styles.fileInfo2}>
-              {`Archivo actual: ${getFileNameFromURL(
-                formData.urlConstancia
-              )}`}
-            </span>
-          )}
-
-          <div className={styles.inputRow2}>
-            <button
-              type="button"
-              className={styles.viewButton2}
-              onClick={() => {
-                if (formData.urlConstancia) {
-                  window.open(formData.urlConstancia, "_blank");
-                } else {
-                  Swal.fire(
-                    "Error",
-                    "No se encontró una constancia válida.",
-                    "error"
-                  );
-                }
-              }}
-            >
-              Ver Constancia Actual
-            </button>
-          </div>
-        </div>
-      )}
-    </fieldset>
-
-    {/* Alergias y Subir Foto */}
-    <div className={styles.inputRow}>
-      <label className={styles.inputLabel}>
-        <FaDisease className={styles.icon} /> Alergias:
-        <input
-          type="text"
-          name="alergias"
-          value={formData.alergias}
-          onChange={handleInputChange}
-          className={styles.inputField}
-        />
-      </label>
-      <label className={styles.uploadLabel}>
-        <span className={styles.uploadButton}>
-          <FaFileUpload className={styles.icon} /> Subir Foto
-        </span>
-        <input
-          type="file"
-          accept="image/*"
-          onChange={handleImageUpload}
-          className={styles.hiddenInput}
-        />
-      </label>
-    </div>
-
-{/* Vista previa de la imagen */}
-{formData.imageUrl && (
-  <div className={styles.imagePreview}>
-    <Image
-      src={formData.imageUrl}
-      alt="Vista previa de la foto"
-      width={150} // Ajusta el ancho según sea necesario
-      height={150} // Ajusta la altura según sea necesario
-      className={styles.previewImage}
-    />
-  </div>
-)}
-
-    <fieldset className={styles.fieldset}>
-      <legend>En caso de emergencia avisar a:</legend>
-      <div className={styles.inputRow}>
-        <label className={styles.inputLabel}>
-          <FaPhone className={styles.icon} /> Teléfono:
-          <input
-            type="tel"
-            name="telEmergencia"
-            value={formData.telEmergencia}
-            onChange={handleInputChange}
-            className={styles.inputField}
-            required
-          />
-        </label>
-        <label className={styles.inputLabel}>
-          <FaUser className={styles.icon} /> Nombre:
-          <input
-            type="text"
-            name="nombreEmergencia"
-            value={formData.nombreEmergencia}
-            onChange={handleInputChange}
-            className={styles.inputField}
-            required
-          />
-        </label>
-      </div>
-    </fieldset>
-
-    {/* Botones */}
-    <div className={styles.buttonGroup}>
-      <button
-        type="submit"
-        className={styles.submitButton}
-        disabled={isSaveDisabled} // Botón deshabilitado si la fecha es inválida
-      >
-        <FaSave className={`${styles.icon} ${styles.iconLarge}`} /> {isEditMode ? "Actualizar" : "Guardar"}
-      </button>
-      <button
-        type="button"
-        onClick={() => setIsModalOpen(false)}
-        className={styles.cancelButton}
-      >
-        <FaTimes className={`${styles.icon} ${styles.iconLarge}`} /> Cancelar
-      </button>
-    </div>
-  </form>
-</Modal>
-
-<Modal
-  key={isViewModalOpen ? "open" : "closed"} // Forzar un re-render al abrir/cerrar
-  isOpen={isViewModalOpen}
-  onRequestClose={() => {
-    setIsViewModalOpen(false); // Cerrar modal
-    setSelectedBeneficiary(null); // Limpiar beneficiario seleccionado
-  }}
-  overlayClassName={styles.modalOverlay}
-  className={styles.modal}
->
-  {selectedBeneficiary && (
-    <div className={styles.modalContent}>
-      {/* Imagen del Beneficiario */}
-      <div className={styles.imageSection}>
-        {selectedBeneficiary.FOTO_URL ? (
-          <Image
-            src={selectedBeneficiary.FOTO_URL}
-            alt={`${selectedBeneficiary.NOMBRE} ${selectedBeneficiary.A_PATERNO}`}
-            width={150}
-            height={150}
-            className={styles.beneficiaryImage}
-          />
-        ) : (
-          <p className={styles.noImageText}>Imagen no disponible</p>
-        )}
-      </div>
-
-      {/* Información Personal */}
-      <div className={styles.card}>
-        <h3 className={styles.cardTitle}>
-          <FaUser size={20} /> Información Personal
-        </h3>
-        <ul className={styles.cardList}>
-          <li>
-            <strong>ID:</strong> {selectedBeneficiary.ID_BENEFICIARIO}
-          </li>
-          <li>
-            <strong>Número de Nómina:</strong>{" "}
-            {selectedBeneficiary.NO_NOMINA}
-          </li>
-          <li>
-            <strong>Nombre Completo:</strong>{" "}
-            {`${selectedBeneficiary.NOMBRE} ${selectedBeneficiary.A_PATERNO} ${selectedBeneficiary.A_MATERNO}`}
-          </li>
-          <li>
-            <strong>CURP:</strong> {selectedBeneficiary.CURP}
-          </li>
-          <li>
-            <strong>Sexo:</strong>{" "}
-            {sexoOptions.find(
-              (s) =>
-                String(s.idSexo) === String(selectedBeneficiary.SEXO)
-            )?.sexo || "Desconocido"}
-          </li>
-          <li>
-            <strong>Fecha de Nacimiento:</strong>{" "}
-            {new Date(
-              selectedBeneficiary.F_NACIMIENTO
-            ).toLocaleDateString("es-ES", {
-              day: "2-digit",
-              month: "2-digit",
-              year: "numeric",
-            })}
-          </li>
-          <li>
-            <strong>Edad:</strong>{" "}
-            {calculateAge(new Date(selectedBeneficiary.F_NACIMIENTO))}
-          </li>
-          <li>
-            <strong>Activo:</strong>{" "}
-            {selectedBeneficiary.ACTIVO === "A" ? "Sí" : "No"}
-          </li>
-        </ul>
-      </div>
-
-      {/* Información Adicional */}
-      <div className={styles.card}>
-        <h3 className={styles.cardTitle}>
-          <FaInfoCircle size={20} /> Información Adicional
-        </h3>
-        <ul className={styles.cardList}>
-          <li>
-            <strong>Parentesco:</strong>{" "}
-            {parentescoOptions.find(
-              (p) => p.ID_PARENTESCO === selectedBeneficiary.PARENTESCO
-            )?.PARENTESCO || "Desconocido"}
-          </li>
-          <li>
-            <strong>Alergias:</strong>{" "}
-            {selectedBeneficiary.ALERGIAS || "Ninguna"}
-          </li>
-          <li>
-            <strong>Teléfono de Emergencia:</strong>{" "}
-            {selectedBeneficiary.TEL_EMERGENCIA || "N/A"}
-          </li>
-          <li>
-            <strong>Nombre de Contacto de Emergencia:</strong>{" "}
-            {selectedBeneficiary.NOMBRE_EMERGENCIA || "N/A"}
-          </li>
-        </ul>
-      </div>
-
-      {/* Botones */}
-      <div className={styles.buttonsContainer}>
-        <button
-          onClick={() => handlePrintCredential(selectedBeneficiary)}
-          className={`${styles.printButton} ${styles.greenButton}`}
-        >
-          <FaIdCard size={16} /> Imprimir Credencial
-        </button>
-        <button
-          onClick={async () => {
-            try {
-              await handleGenerateCard(selectedBeneficiary);
-            } catch (error) {
-              console.error("Error al generar el carnet:", error);
-              Swal.fire(
-                "Error",
-                "No se pudo generar el carnet. Intenta nuevamente.",
-                "error"
-              );
-            }
+          isOpen={isModalOpen}
+          onRequestClose={() => {
+            setIsModalOpen(false);
+            setFormData({
+              parentesco: "",
+              nombre: "",
+              aPaterno: "",
+              aMaterno: "",
+              sexo: "",
+              fNacimiento: "",
+              alergias: "",
+              telEmergencia: "",
+              nombreEmergencia: "",
+              imageUrl: "",
+              esEstudiante: 0,
+              esDiscapacitado: 0,
+              vigenciaEstudios: "",
+              edad: "",
+              showCheckboxes: false,
+              urlConstancia: "", // Limpiar URL de la constancia
+              urlCurp: "", // Limpiar URL del CURP
+              urlActaNac: "", // Limpiar URL del acta de nacimiento
+              actaMatrimonioUrl: "", // Limpiar URL del acta de matrimonio
+              ineUrl: "", // Limpiar URL del INE
+              cartaNoAfiliacionUrl: "", // Limpiar URL de la carta de no afiliación
+            });
           }}
-          className={`${styles.printButton} ${styles.blueButton}`}
+          overlayClassName={styles.modalOverlay}
+          className={styles.modal}
         >
-          <FaPrint size={16} /> Imprimir Carnet
-        </button>
+          <form onSubmit={handleModalSubmit} className={styles.form}>
+            <h2 className={styles.title}>
+              {isEditMode ? "Editar Beneficiario" : "Registrar Beneficiario"}
+            </h2>
 
-        {/* Botón adicional: visible solo si es hijo y tiene 16 años o más */}
-        {selectedBeneficiary?.PARENTESCO === 2 &&
-          calculateAge(new Date(selectedBeneficiary.F_NACIMIENTO)) >=
-            16 && (
-            <button
-              onClick={() => {
-                if (selectedBeneficiary.URL_CONSTANCIA) {
-                  window.open(selectedBeneficiary.URL_CONSTANCIA, "_blank");
-                } else {
-                  Swal.fire(
-                    "Error",
-                    "No se encontró una constancia válida.",
-                    "error"
-                  );
-                }
-              }}
-              className={`${styles.printButton} ${styles.orangeButton}`}
-            >
-              <FaChild size={16} />Constancia Estudios
-            </button>
+            <fieldset className={styles.fieldset}>
+              <legend>Datos Personales</legend>
+              {/* Nombre, Apellido Paterno y Apellido Materno */}
+              <div className={styles.inputRow}>
+                <label className={styles.inputLabel}>
+                  <FaUser className={styles.icon} /> Nombre:
+                  <input
+                    type="text"
+                    name="nombre"
+                    value={formData.nombre}
+                    onChange={handleInputChange}
+                    className={styles.inputField}
+                    required
+                  />
+                </label>
+                <label className={styles.inputLabel}>
+                  <FaUser className={styles.icon} /> Apellido Paterno:
+                  <input
+                    type="text"
+                    name="aPaterno"
+                    value={formData.aPaterno}
+                    onChange={handleInputChange}
+                    className={styles.inputField}
+                    required
+                  />
+                </label>
+                <label className={styles.inputLabel}>
+                  <FaUser className={styles.icon} /> Apellido Materno:
+                  <input
+                    type="text"
+                    name="aMaterno"
+                    value={formData.aMaterno}
+                    onChange={handleInputChange}
+                    className={styles.inputField}
+                  />
+                </label>
+              </div>
+
+              <div className={styles.inputRow}>
+                {/* Campo Sexo con Ícono de Género */}
+                <div className={styles.inputGroup}>
+                  <label htmlFor="sexo" className={styles.inputLabel}>
+                    <FaVenusMars className={styles.inputIcon} /> Sexo
+                  </label>
+                  <div className={styles.inputWithIcon}>
+                    <select
+                      id="sexo"
+                      name="sexo"
+                      value={formData.sexo}
+                      onChange={handleInputChange}
+                      className={styles.inputField}
+                    >
+                      <option value="">Seleccione</option>
+                      {sexoOptions.map((option) => (
+                        <option key={option.idSexo} value={option.idSexo}>
+                          {option.sexo}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Campo Fecha de Nacimiento */}
+                <div className={styles.inputGroup}>
+                  <label htmlFor="fNacimiento" className={styles.inputLabel}>
+                    <FaCalendarAlt className={styles.icon} /> Fecha de
+                    Nacimiento
+                  </label>
+                  <input
+                    type="date"
+                    id="fNacimiento"
+                    name="fNacimiento"
+                    value={formData.fNacimiento}
+                    onChange={(e) => {
+                      handleInputChange(e);
+
+                      const birthDate = new Date(e.target.value);
+                      const today = new Date();
+                      let age = today.getFullYear() - birthDate.getFullYear();
+                      const monthDiff = today.getMonth() - birthDate.getMonth();
+
+                      if (
+                        monthDiff < 0 ||
+                        (monthDiff === 0 &&
+                          today.getDate() < birthDate.getDate())
+                      ) {
+                        age--;
+                      }
+
+                      setFormData((prev) => ({
+                        ...prev,
+                        edad: age,
+                      }));
+
+                      const isHijo = formData.parentesco === "Hijo(a)";
+                      const isMayorOIgual16 = age >= 16;
+
+                      setFormData((prev) => ({
+                        ...prev,
+                        showCheckboxes: isHijo && isMayorOIgual16,
+                        esEstudiante: 0,
+                        esDiscapacitado: 0,
+                      }));
+                    }}
+                    className={styles.inputField}
+                    required
+                  />
+                </div>
+
+                {/* Mostrar Edad Dinámica */}
+                <div className={styles.ageDisplayWrapper}>
+                  {formData.edad && (
+                    <span className={styles.ageDisplay}>
+                      Edad: {formData.edad} años
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Parentesco, CURP y Alergias */}
+              <div className={styles.inputRow}>
+                <label className={styles.inputLabel}>
+                  <FaUsers className={styles.icon} /> Parentesco:
+                  <select
+                    name="parentesco"
+                    value={formData.parentesco}
+                    onChange={(e) => {
+                      const selectedId = e.target.value;
+                      const selectedOption = parentescoOptions.find(
+                        (option) =>
+                          String(option.ID_PARENTESCO) === String(selectedId)
+                      );
+                      const selectedParentescoText = selectedOption
+                        ? selectedOption.PARENTESCO
+                        : "";
+
+                      const isHijo = selectedParentescoText === "Hijo(a)";
+                      const isPadreOMadre =
+                        selectedParentescoText === "Padre" ||
+                        selectedParentescoText === "Madre";
+                      const isEsposo = selectedParentescoText === "Esposo(a)";
+
+                      setFormData((prev) => ({
+                        ...prev,
+                        parentesco: selectedId,
+                        showUploadFiles: isHijo || isPadreOMadre || isEsposo, // Mostrar inputs de archivo para Esposo(a), Hijo(a), Padre, Madre
+                        showEsposoFiles: isEsposo, // Mostrar campos exclusivos de Esposo(a)
+                        showCheckboxes: isHijo && prev.edad >= 16, // Checkboxes solo para Hijo(a) mayor o igual a 16 años
+                        esEstudiante: 0,
+                        esDiscapacitado: 0,
+                        actaNacimientoUrl: "",
+                        curpFileUrl: "",
+                      }));
+                    }}
+                    className={styles.inputField}
+                    required
+                  >
+                    <option value="">Selecciona</option>
+                    {parentescoOptions.map((option) => (
+                      <option
+                        key={option.ID_PARENTESCO}
+                        value={option.ID_PARENTESCO}
+                      >
+                        {option.PARENTESCO}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label className={styles.inputLabel}>
+                  <FaDisease className={styles.icon} /> Alergias:
+                  <input
+                    type="text"
+                    name="alergias"
+                    value={formData.alergias}
+                    onChange={handleInputChange}
+                    className={styles.inputField}
+                  />
+                </label>
+              </div>
+              {/* Mostrar campos de documentos requeridos si aplica */}
+              {formData.showUploadFiles && (
+                <fieldset className={styles.fieldset}>
+                  <legend>Documentos Requeridos</legend>
+
+                  {/* Subir Acta de Nacimiento */}
+                  <div className={styles.inputRow2}>
+                    <label className={styles.inputLabel2}>
+                      <FaFileUpload className={styles.icon} /> Acta de
+                      Nacimiento - SUBIR:
+                      <div className={styles.fileInputWrapper2}>
+                        <input
+                          type="file"
+                          name="actaNacimiento"
+                          accept="application/pdf"
+                          onChange={handleFileUploadActa}
+                          className={styles.fileInput2}
+                          id="acta-nacimiento-upload"
+                        />
+                        <label
+                          htmlFor="acta-nacimiento-upload"
+                          className={styles.uploadButton2}
+                        >
+                          Seleccionar archivo
+                        </label>
+                        <span className={styles.fileName2}>
+                          {formData.urlActaNac
+                            ? getFileNameFromURL(formData.urlActaNac)
+                            : "Sin archivo seleccionado"}
+                        </span>
+                      </div>
+                    </label>
+
+                    {/* Botón para ver el archivo actual del Acta de Nacimiento */}
+                    {formData.urlActaNac && (
+                      <button
+                        type="button"
+                        className={styles.viewButton2}
+                        onClick={() => {
+                          if (formData.urlActaNac) {
+                            window.open(formData.urlActaNac, "_blank");
+                          } else {
+                            Swal.fire(
+                              "Error",
+                              "No se encontró un Acta de Nacimiento válida.",
+                              "error"
+                            );
+                          }
+                        }}
+                      >
+                        Ver Acta Actual
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Subir CURP */}
+                  <div className={styles.inputRow2}>
+                    <label className={styles.inputLabel2}>
+                      <FaFileUpload className={styles.icon} /> CURP - SUBIR:
+                      <div className={styles.fileInputWrapper2}>
+                        <input
+                          type="file"
+                          name="curp"
+                          accept="application/pdf"
+                          onChange={handleFileUploadCurp}
+                          className={styles.fileInput2}
+                          id="curp-upload"
+                        />
+                        <label
+                          htmlFor="curp-upload"
+                          className={styles.uploadButton2}
+                        >
+                          Seleccionar archivo
+                        </label>
+                        <span className={styles.fileName2}>
+                          {formData.urlCurp
+                            ? getFileNameFromURL(formData.urlCurp)
+                            : "Sin archivo seleccionado"}
+                        </span>
+                      </div>
+                    </label>
+
+                    {formData.urlCurp && (
+                      <button
+                        type="button"
+                        className={styles.viewButton2}
+                        onClick={() => {
+                          if (formData.urlCurp) {
+                            window.open(formData.urlCurp, "_blank");
+                          } else {
+                            Swal.fire(
+                              "Error",
+                              "No se encontró un CURP válido.",
+                              "error"
+                            );
+                          }
+                        }}
+                      >
+                        Ver CURP Actual
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Campos adicionales para Esposo(a) */}
+                  {formData.showEsposoFiles && (
+                    <>
+                      {/* Subir Acta de Matrimonio */}
+                      <div className={styles.inputRow2}>
+                        <label className={styles.inputLabel2}>
+                          <FaFileUpload className={styles.icon} /> Acta de
+                          Matrimonio - SUBIR:
+                          <div className={styles.fileInputWrapper2}>
+                            <input
+                              type="file"
+                              name="actaMatrimonio"
+                              accept="application/pdf"
+                              onChange={handleFileUploadActaMatrimonio}
+                              className={styles.fileInput2}
+                              id="acta-matrimonio-upload"
+                            />
+                            <label
+                              htmlFor="acta-matrimonio-upload"
+                              className={styles.uploadButton2}
+                            >
+                              Seleccionar archivo
+                            </label>
+                            <span className={styles.fileName2}>
+                              {formData.actaMatrimonioUrl
+                                ? getFileNameFromURL(formData.actaMatrimonioUrl)
+                                : "Sin archivo seleccionado"}
+                            </span>
+                          </div>
+                        </label>
+
+                        {formData.actaMatrimonioUrl && (
+                          <button
+                            type="button"
+                            className={styles.viewButton2}
+                            onClick={() => {
+                              if (formData.actaMatrimonioUrl) {
+                                window.open(
+                                  formData.actaMatrimonioUrl,
+                                  "_blank"
+                                );
+                              } else {
+                                Swal.fire(
+                                  "Error",
+                                  "No se encontró un Acta de Matrimonio válida.",
+                                  "error"
+                                );
+                              }
+                            }}
+                          >
+                            Ver Acta de Matrimonio Actual
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Subir INE */}
+                      <div className={styles.inputRow2}>
+                        <label className={styles.inputLabel2}>
+                          <FaFileUpload className={styles.icon} /> INE - SUBIR:
+                          <div className={styles.fileInputWrapper2}>
+                            <input
+                              type="file"
+                              name="ine"
+                              accept="application/pdf"
+                              onChange={handleFileUploadINE}
+                              className={styles.fileInput2}
+                              id="ine-upload"
+                            />
+                            <label
+                              htmlFor="ine-upload"
+                              className={styles.uploadButton2}
+                            >
+                              Seleccionar archivo
+                            </label>
+                            <span className={styles.fileName2}>
+                              {formData.ineUrl
+                                ? getFileNameFromURL(formData.ineUrl)
+                                : "Sin archivo seleccionado"}
+                            </span>
+                          </div>
+                        </label>
+
+                        {formData.ineUrl && (
+                          <button
+                            type="button"
+                            className={styles.viewButton2}
+                            onClick={() => {
+                              if (formData.ineUrl) {
+                                window.open(formData.ineUrl, "_blank");
+                              } else {
+                                Swal.fire(
+                                  "Error",
+                                  "No se encontró un INE válido.",
+                                  "error"
+                                );
+                              }
+                            }}
+                          >
+                            Ver INE Actual
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Subir Carta de No Afiliación */}
+                      <div className={styles.inputRow2}>
+                        <label className={styles.inputLabel2}>
+                          <FaFileUpload className={styles.icon} /> Carta de No
+                          Afiliación - SUBIR:
+                          <div className={styles.fileInputWrapper2}>
+                            <input
+                              type="file"
+                              name="cartaNoAfiliacion"
+                              accept="application/pdf"
+                              onChange={handleFileUploadCartaNoAfiliacion}
+                              className={styles.fileInput2}
+                              id="carta-no-afiliacion-upload"
+                            />
+                            <label
+                              htmlFor="carta-no-afiliacion-upload"
+                              className={styles.uploadButton2}
+                            >
+                              Seleccionar archivo
+                            </label>
+                            <span className={styles.fileName2}>
+                              {formData.cartaNoAfiliacionUrl
+                                ? getFileNameFromURL(
+                                    formData.cartaNoAfiliacionUrl
+                                  )
+                                : "Sin archivo seleccionado"}
+                            </span>
+                          </div>
+                        </label>
+
+                        {formData.cartaNoAfiliacionUrl && (
+                          <button
+                            type="button"
+                            className={styles.viewButton2}
+                            onClick={() => {
+                              if (formData.cartaNoAfiliacionUrl) {
+                                window.open(
+                                  formData.cartaNoAfiliacionUrl,
+                                  "_blank"
+                                );
+                              } else {
+                                Swal.fire(
+                                  "Error",
+                                  "No se encontró una Carta de No Afiliación válida.",
+                                  "error"
+                                );
+                              }
+                            }}
+                          >
+                            Ver Carta de No Afiliación Actual
+                          </button>
+                        )}
+                      </div>
+                    </>
+                  )}
+                </fieldset>
+              )}
+
+              {/* Checkboxes dinámicos */}
+              {formData.showCheckboxes && (
+                <div className={styles.inputRow}>
+                  <label className={styles.checkboxWrapper}>
+                    <input
+                      type="checkbox"
+                      name="esEstudiante"
+                      checked={formData.esEstudiante}
+                      onChange={(e) => {
+                        setFormData((prev) => ({
+                          ...prev,
+                          esEstudiante: e.target.checked,
+                          esDiscapacitado: false,
+                          vigenciaEstudios: e.target.checked
+                            ? prev.vigenciaEstudios
+                            : "",
+                        }));
+                      }}
+                    />
+                    <span className={styles.checkmark}>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="currentColor"
+                        viewBox="0 0 16 16"
+                      >
+                        <path d="M10.854 5.146a.5.5 0 0 0-.708 0L7.5 7.793 6.354 6.646a.5.5 0 1 0-.708.708l1.5 1.5a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0 0-.708z" />
+                      </svg>
+                    </span>
+                    <span className={styles.label}>Es estudiante</span>
+                  </label>
+
+                  <label className={styles.checkboxWrapper}>
+                    <input
+                      type="checkbox"
+                      name="esDiscapacitado"
+                      checked={formData.esDiscapacitado}
+                      onChange={(e) => {
+                        setFormData((prev) => ({
+                          ...prev,
+                          esDiscapacitado: e.target.checked,
+                          esEstudiante: false,
+                          vigenciaEstudios: "",
+                        }));
+                      }}
+                    />
+                    <span className={styles.checkmark}>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="currentColor"
+                        viewBox="0 0 16 16"
+                      >
+                        <path d="M10.854 5.146a.5.5 0 0 0-.708 0L7.5 7.793 6.354 6.646a.5.5 0 1 0-.708.708l1.5 1.5a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0 0-.708z" />
+                      </svg>
+                    </span>
+                    <span className={styles.label}>Es discapacitado</span>
+                  </label>
+                </div>
+              )}
+
+              {/* Vigencia de Estudios */}
+              {formData.esEstudiante && (
+                <div className={styles.inputRow}>
+                  <label className={styles.inputLabel}>
+                    Vigencia de Estudios:
+                    <input
+                      type="datetime-local"
+                      name="vigenciaEstudios"
+                      value={formData.vigenciaEstudios}
+                      onChange={handleVigenciaChange} // Validación incluida aquí
+                      className={styles.inputField}
+                      required
+                    />
+                  </label>
+                </div>
+              )}
+
+              {formData.esEstudiante && (
+                <div className={styles.inputRow2}>
+                  <label className={styles.inputLabel2}>
+                    <FaFileUpload className={styles.icon} /> Constancia de
+                    Estudios - SUBIR:
+                    <div className={styles.fileInputWrapper2}>
+                      <input
+                        type="file"
+                        name="file"
+                        accept="application/pdf"
+                        onChange={handleFileUpload}
+                        className={styles.fileInput2}
+                        id="file-upload"
+                      />
+                      <label
+                        htmlFor="file-upload"
+                        className={styles.uploadButton2}
+                      >
+                        Seleccionar archivo
+                      </label>
+                      <span className={styles.fileName2}>
+                        {formData.fileName || "Sin archivo seleccionado"}
+                      </span>
+                    </div>
+                  </label>
+
+                  {isEditMode && formData.urlConstancia && (
+                    <span className={styles.fileInfo2}>
+                      {`Archivo actual: ${getFileNameFromURL(
+                        formData.urlConstancia
+                      )}`}
+                    </span>
+                  )}
+
+                  <div className={styles.inputRow2}>
+                    <button
+                      type="button"
+                      className={styles.viewButton2}
+                      onClick={() => {
+                        if (formData.urlConstancia) {
+                          window.open(formData.urlConstancia, "_blank");
+                        } else {
+                          Swal.fire(
+                            "Error",
+                            "No se encontró una constancia válida.",
+                            "error"
+                          );
+                        }
+                      }}
+                    >
+                      Ver Constancia Actual
+                    </button>
+                  </div>
+                </div>
+              )}
+            </fieldset>
+
+            {/*Subir Foto */}
+            <div className={styles.inputRow}>
+              <label className={styles.uploadLabel}>
+                <span className={styles.uploadButton}>
+                  <FaFileUpload className={styles.icon} /> Subir Foto
+                </span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className={styles.hiddenInput}
+                />
+              </label>
+            </div>
+
+            {/* Campo de Tipo de Sangre */}
+            <div className={styles.inputGroup}>
+              <label htmlFor="sangre" className={styles.inputLabel}>
+                Tipo de Sangre
+              </label>
+              <select
+                id="sangre"
+                name="sangre"
+                value={formData.sangre} // Enlazado al estado `formData.sangre`
+                onChange={handleInputChange} // Actualiza `formData.sangre` al cambiar
+                className={styles.inputField}
+              >
+                <option value="">Seleccione</option>
+                <option value="A+">A+</option>
+                <option value="A-">A-</option>
+                <option value="B+">B+</option>
+                <option value="B-">B-</option>
+                <option value="O+">O+</option>
+                <option value="O-">O-</option>
+                <option value="AB+">AB+</option>
+                <option value="AB-">AB-</option>
+              </select>
+            </div>
+
+            {/* Vista previa de la imagen */}
+            {formData.imageUrl && (
+              <div className={styles.imagePreview}>
+                <Image
+                  src={formData.imageUrl}
+                  alt="Vista previa de la foto"
+                  width={150} // Ajusta el ancho según sea necesario
+                  height={150} // Ajusta la altura según sea necesario
+                  className={styles.previewImage}
+                />
+              </div>
+            )}
+
+            <fieldset className={styles.fieldset}>
+              <legend>En caso de emergencia avisar a:</legend>
+              <div className={styles.inputRow}>
+                <label className={styles.inputLabel}>
+                  <FaPhone className={styles.icon} /> Teléfono:
+                  <input
+                    type="tel"
+                    name="telEmergencia"
+                    value={formData.telEmergencia}
+                    onChange={handleInputChange}
+                    className={styles.inputField}
+                    required
+                  />
+                </label>
+                <label className={styles.inputLabel}>
+                  <FaUser className={styles.icon} /> Nombre:
+                  <input
+                    type="text"
+                    name="nombreEmergencia"
+                    value={formData.nombreEmergencia}
+                    onChange={handleInputChange}
+                    className={styles.inputField}
+                    required
+                  />
+                </label>
+              </div>
+            </fieldset>
+
+            {/* Botones */}
+            <div className={styles.buttonGroup}>
+              <button
+                type="submit"
+                className={styles.submitButton}
+                disabled={isSaveDisabled} // Botón deshabilitado si la fecha es inválida
+              >
+                <FaSave className={`${styles.icon} ${styles.iconLarge}`} />{" "}
+                {isEditMode ? "Actualizar" : "Guardar"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(false)}
+                className={styles.cancelButton}
+              >
+                <FaTimes className={`${styles.icon} ${styles.iconLarge}`} />{" "}
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </Modal>
+
+        <Modal
+          key={isViewModalOpen ? "open" : "closed"} // Forzar un re-render al abrir/cerrar
+          isOpen={isViewModalOpen}
+          onRequestClose={() => {
+            setIsViewModalOpen(false); // Cerrar modal
+            setSelectedBeneficiary(null); // Limpiar beneficiario seleccionado
+          }}
+          overlayClassName={styles.modalOverlay}
+          className={styles.modal}
+        >
+          {selectedBeneficiary && (
+            <div className={styles.modalContent}>
+              {/* Imagen del Beneficiario */}
+              <div className={styles.imageSection}>
+                {selectedBeneficiary.FOTO_URL ? (
+                  <Image
+                    src={selectedBeneficiary.FOTO_URL}
+                    alt={`${selectedBeneficiary.NOMBRE} ${selectedBeneficiary.A_PATERNO}`}
+                    width={150}
+                    height={150}
+                    className={styles.beneficiaryImage}
+                  />
+                ) : (
+                  <p className={styles.noImageText}>Imagen no disponible</p>
+                )}
+              </div>
+
+              {/* Información Personal */}
+              <div className={styles.card}>
+                <h3 className={styles.cardTitle}>
+                  <FaUser size={20} /> Información Personal
+                </h3>
+                <ul className={styles.cardList}>
+                  <li>
+                    <strong>ID:</strong> {selectedBeneficiary.ID_BENEFICIARIO}
+                  </li>
+                  <li>
+                    <strong>Número de Nómina:</strong>{" "}
+                    {selectedBeneficiary.NO_NOMINA}
+                  </li>
+                  <li>
+                    <strong>Nombre Completo:</strong>{" "}
+                    {`${selectedBeneficiary.NOMBRE} ${selectedBeneficiary.A_PATERNO} ${selectedBeneficiary.A_MATERNO}`}
+                  </li>
+                  <li>
+                    <strong>CURP:</strong> {selectedBeneficiary.CURP}
+                  </li>
+                  <li>
+                    <strong>Sexo:</strong>{" "}
+                    {sexoOptions.find(
+                      (s) =>
+                        String(s.idSexo) === String(selectedBeneficiary.SEXO)
+                    )?.sexo || "Desconocido"}
+                  </li>
+                  <li>
+                    <strong>Fecha de Nacimiento:</strong>{" "}
+                    {new Date(
+                      selectedBeneficiary.F_NACIMIENTO
+                    ).toLocaleDateString("es-ES", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      year: "numeric",
+                    })}
+                  </li>
+                  <li>
+                    <strong>Edad:</strong>{" "}
+                    {calculateAge(new Date(selectedBeneficiary.F_NACIMIENTO))}
+                  </li>
+                  <li>
+                    <strong>Activo:</strong>{" "}
+                    {selectedBeneficiary.ACTIVO === "A" ? "Sí" : "No"}
+                  </li>
+                </ul>
+              </div>
+
+              {/* Información Adicional */}
+              <div className={styles.card}>
+                <h3 className={styles.cardTitle}>
+                  <FaInfoCircle size={20} /> Información Adicional
+                </h3>
+                <ul className={styles.cardList}>
+                  <li>
+                    <strong>Parentesco:</strong>{" "}
+                    {parentescoOptions.find(
+                      (p) => p.ID_PARENTESCO === selectedBeneficiary.PARENTESCO
+                    )?.PARENTESCO || "Desconocido"}
+                  </li>
+                  <li>
+                    <strong>Alergias:</strong>{" "}
+                    {selectedBeneficiary.ALERGIAS || "Ninguna"}
+                  </li>
+                  <li>
+                    <strong>Teléfono de Emergencia:</strong>{" "}
+                    {selectedBeneficiary.TEL_EMERGENCIA || "N/A"}
+                  </li>
+                  <li>
+                    <strong>Nombre de Contacto de Emergencia:</strong>{" "}
+                    {selectedBeneficiary.NOMBRE_EMERGENCIA || "N/A"}
+                  </li>
+                </ul>
+              </div>
+
+              {/* Botones */}
+              <div className={styles.buttonsContainer}>
+                <button
+                  onClick={() => handlePrintCredential(selectedBeneficiary)}
+                  className={`${styles.printButton} ${styles.greenButton}`}
+                >
+                  <FaIdCard size={16} /> Imprimir Credencial
+                </button>
+                <button
+                  onClick={async () => {
+                    try {
+                      await handleGenerateCard(selectedBeneficiary);
+                    } catch (error) {
+                      console.error("Error al generar el carnet:", error);
+                      Swal.fire(
+                        "Error",
+                        "No se pudo generar el carnet. Intenta nuevamente.",
+                        "error"
+                      );
+                    }
+                  }}
+                  className={`${styles.printButton} ${styles.blueButton}`}
+                >
+                  <FaPrint size={16} /> Imprimir Carnet
+                </button>
+
+                <button
+                  onClick={() => setIsDocumentsModalOpen(true)}
+                  className={`${styles.printButton} ${styles.purpleButton}`}
+                >
+                  <FaFileAlt size={16} /> Ver Documentos
+                </button>
+
+                <button
+                  onClick={() => setIsViewModalOpen(false)}
+                  className={`${styles.printButton} ${styles.redButton}`}
+                >
+                  <FaTimes size={16} /> Cerrar
+                </button>
+              </div>
+            </div>
           )}
+        </Modal>
 
-        <button
-          onClick={() => setIsViewModalOpen(false)}
-          className={`${styles.printButton} ${styles.redButton}`}
+        <Modal
+          isOpen={isDocumentsModalOpen}
+          onRequestClose={() => handleCloseModal()} // Llamamos a una función para cerrar con fadeOut
+          overlayClassName={`${styles.documentsModalOverlay}`}
+          className={`${styles.documentsModalContainer} ${
+            isFadingOut ? styles.documentsSlideOut : ""
+          }`}
         >
-          <FaTimes size={16} /> Cerrar
-        </button>
-      </div>
-    </div>
-  )}
-</Modal>
+          {selectedBeneficiary && (
+            <div className={styles.documentsModalContent}>
+              <h2 className={styles.documentsModalTitle}>Documentos Subidos</h2>
+
+              {/* Lista de botones para ver documentos */}
+              <div className={styles.documentsButtonsWrapper}>
+                {/* Acta de Nacimiento */}
+                {selectedBeneficiary.URL_ACTA_NAC && (
+                  <button
+                    className={styles.documentButton}
+                    onClick={() =>
+                      window.open(selectedBeneficiary.URL_ACTA_NAC, "_blank")
+                    }
+                  >
+                    <FaFileUpload size={20} />
+                    Acta de Nacimiento
+                  </button>
+                )}
+
+                {/* CURP */}
+                {selectedBeneficiary.URL_CURP && (
+                  <button
+                    className={styles.documentButton}
+                    onClick={() =>
+                      window.open(selectedBeneficiary.URL_CURP, "_blank")
+                    }
+                  >
+                    <FaFileAlt size={20} />
+                    Ver CURP
+                  </button>
+                )}
+
+                {/* Constancia */}
+                {selectedBeneficiary.URL_CONSTANCIA && (
+                  <button
+                    className={styles.documentButton}
+                    onClick={() =>
+                      window.open(selectedBeneficiary.URL_CONSTANCIA, "_blank")
+                    }
+                  >
+                    <FaFileAlt size={20} />
+                    Constancia de Estudios
+                  </button>
+                )}
+              </div>
+
+              {/* Botón para cerrar el modal */}
+              <button
+                className={styles.closeDocumentButton}
+                onClick={() => handleCloseModal()}
+              >
+                <FaTimes size={20} />
+                Cerrar
+              </button>
+            </div>
+          )}
+        </Modal>
 
         {/* Tabla de beneficiarios, solo se muestra si el empleado es encontrado */}
         {empleado &&
