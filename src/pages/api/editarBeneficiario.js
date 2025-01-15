@@ -7,29 +7,29 @@ export default async function handler(req, res) {
 
   const {
     idBeneficiario, // Es obligatorio para la edición
-    noNomina,       // Número de nómina
-    parentesco,     // ID del parentesco (smallint)
-    nombre,         // Nombre del beneficiario
-    aPaterno,       // Apellido paterno
-    aMaterno,       // Apellido materno
-    sexo,           // Sexo
-    fNacimiento,    // Fecha de nacimiento en formato ISO
-    escolaridad,    // Nivel de escolaridad (puede ser null)
-    activo,         // Estado del beneficiario ("A" o "I")
-    alergias,       // Información sobre alergias
-    sangre,         // Tipo de sangre
-    telEmergencia,  // Teléfono de emergencia
+    noNomina, // Número de nómina
+    parentesco, // ID del parentesco (smallint)
+    nombre, // Nombre del beneficiario
+    aPaterno, // Apellido paterno
+    aMaterno, // Apellido materno
+    sexo, // Sexo
+    fNacimiento, // Fecha de nacimiento en formato ISO
+    escolaridad, // Nivel de escolaridad (puede ser null)
+    activo, // Estado del beneficiario ("A" o "I")
+    alergias, // Información sobre alergias
+    sangre, // Tipo de sangre
+    telEmergencia, // Teléfono de emergencia
     nombreEmergencia, // Nombre del contacto de emergencia
-    esEstudiante,   // Si es estudiante (1 o 0)
+    esEstudiante, // Si es estudiante (1 o 0)
     esDiscapacitado, // Si es discapacitado (1 o 0)
     vigenciaEstudios, // Vigencia de estudios en formato ISO (puede ser null)
-    imageUrl,        // URL de la imagen del beneficiario
-    urlConstancia,   // Nuevo campo para la URL de la constancia
-    urlCurp,         // Nuevo campo para la URL del CURP
-    urlActaNac,      // Nuevo campo para la URL del Acta de Nacimiento
-    urlINE,          // Nuevo campo para la URL del INE
+    imageUrl, // URL de la imagen del beneficiario
+    urlConstancia, // Nuevo campo para la URL de la constancia
+    urlCurp, // Nuevo campo para la URL del CURP
+    urlActaNac, // Nuevo campo para la URL del Acta de Nacimiento
+    urlINE, // Nuevo campo para la URL del INE
     urlActaMatrimonio, // Nuevo campo para la URL del Acta de Matrimonio
-    urlCartaNoAfiliacion // Nuevo campo para la URL de la Carta de No Afiliación
+    urlCartaNoAfiliacion, // Nuevo campo para la URL de la Carta de No Afiliación
   } = req.body;
 
   // Validar datos obligatorios
@@ -57,7 +57,10 @@ export default async function handler(req, res) {
 
   // Validar formato de fechas
   const isValidDate = (date) => !isNaN(new Date(date).getTime());
-  if (!isValidDate(fNacimiento) || (vigenciaEstudios && !isValidDate(vigenciaEstudios))) {
+  if (
+    !isValidDate(fNacimiento) ||
+    (vigenciaEstudios && !isValidDate(vigenciaEstudios))
+  ) {
     return res.status(400).json({ message: "Formato de fecha inválido" });
   }
 
@@ -87,14 +90,17 @@ export default async function handler(req, res) {
       .input("nombreEmergencia", nombreEmergencia)
       .input("esEstudiante", estudianteValue) // Convertido a 1 o 0
       .input("esDiscapacitado", discapacitadoValue) // Convertido a 1 o 0
-      .input("vigenciaEstudios", vigenciaEstudios ? new Date(vigenciaEstudios).toISOString() : null) // Convertir a ISO si no es null
+      .input(
+        "vigenciaEstudios",
+        vigenciaEstudios ? new Date(vigenciaEstudios).toISOString() : null
+      ) // Convertir a ISO si no es null
       .input("imageUrl", imageUrl || null) // Puede ser null
       .input("urlConstancia", urlConstancia || null) // Nuevo campo URL_CONSTANCIA
       .input("urlCurp", urlCurp || null) // Nuevo campo URL_CURP
       .input("urlActaNac", urlActaNac || null) // Nuevo campo URL_ACTA_NAC
-      .input("urlINE", urlINE || null) // Nuevo campo URL_INE
-      .input("urlActaMatrimonio", urlActaMatrimonio || null) // Nuevo campo URL_ACTA_MATRIMONIO
-      .input("urlCartaNoAfiliacion", urlCartaNoAfiliacion || null) // Nuevo campo URL_NOISSTE
+      .input("urlINE", urlINE || null) // Correcto
+      .input("urlActaMatrimonio", urlActaMatrimonio || null) // Cambiado para coincidir
+      .input("urlCartaNoAfiliacion", urlCartaNoAfiliacion || null) // Correcto
       .query(`
         UPDATE BENEFICIARIO
         SET 
@@ -118,14 +124,16 @@ export default async function handler(req, res) {
           URL_CONSTANCIA = @urlConstancia,
           URL_CURP = @urlCurp,
           URL_ACTA_NAC = @urlActaNac,
-          URL_INE = @urlINE,
-          URL_ACTA_MATRIMONIO = @urlActaMatrimonio,
-          URL_NOISSTE = @urlCartaNoAfiliacion
+      URL_INE = @urlINE,
+      URL_ACTAMATRIMONIO = @urlActaMatrimonio, -- Cambiado
+      URL_NOISSTE = @urlCartaNoAfiliacion -- Correcto
         WHERE ID_BENEFICIARIO = @idBeneficiario
       `);
 
     if (result.rowsAffected[0] === 0) {
-      return res.status(404).json({ message: "Beneficiario no encontrado o sin cambios" });
+      return res
+        .status(404)
+        .json({ message: "Beneficiario no encontrado o sin cambios" });
     }
 
     return res
