@@ -8,6 +8,7 @@ export default async function handler(req, res) {
   }
 
   const { idBeneficiario } = req.query;
+
   if (!idBeneficiario) {
     return res
       .status(400)
@@ -16,32 +17,34 @@ export default async function handler(req, res) {
 
   try {
     const pool = await connectToDatabase();
-    const result = await pool.request().input("idBeneficiario", idBeneficiario)
+    
+    const result = await pool.request()
+      .input("idBeneficiario", idBeneficiario)
       .query(`
-         SELECT 
-            ID_BENEFICIARIO, 
-            NO_NOMINA, 
-            PARENTESCO, 
-            NOMBRE, 
-            A_PATERNO, 
-            A_MATERNO, 
-            SEXO, 
-            F_NACIMIENTO, 
-            ACTIVO, 
-            ALERGIAS, 
-            SANGRE,
-            ESESTUDIANTE,
-            ESDISCAPACITADO,
-            VIGENCIA_ESTUDIOS, 
-            TEL_EMERGENCIA, 
-            NOMBRE_EMERGENCIA,
-            FOTO_URL,
-            URL_CONSTANCIA,
-            URL_CURP,
-            URL_ACTA_NAC,
-            URL_INE,            -- Ajustado: URL_INE
-            URL_ACTAMATRIMONIO, -- Ajustado: URL_ACTAMATRIMONIO
-            URL_NOISSTE         -- Ajustado: URL_NOISSTE
+        SELECT 
+          ID_BENEFICIARIO, 
+          NO_NOMINA, 
+          PARENTESCO, 
+          NOMBRE, 
+          A_PATERNO, 
+          A_MATERNO, 
+          SEXO, 
+          F_NACIMIENTO, 
+          ACTIVO, 
+          ALERGIAS, 
+          SANGRE,
+          ESESTUDIANTE,
+          ESDISCAPACITADO,
+          VIGENCIA_ESTUDIOS, 
+          TEL_EMERGENCIA, 
+          NOMBRE_EMERGENCIA,
+          FOTO_URL,
+          URL_CONSTANCIA,
+          URL_CURP,
+          URL_ACTA_NAC,
+          URL_INE,
+          URL_ACTAMATRIMONIO,  -- Incluido para Acta de Matrimonio
+          URL_NOISSTE          -- Incluido para Carta de No Afiliación
         FROM BENEFICIARIO
         WHERE ID_BENEFICIARIO = @idBeneficiario
       `);
@@ -50,6 +53,7 @@ export default async function handler(req, res) {
       return res.status(404).json({ error: "Beneficiario no encontrado" });
     }
 
+    // Retornar el beneficiario encontrado
     res.status(200).json(result.recordset[0]);
   } catch (error) {
     console.error("Error al obtener el beneficiario:", error);

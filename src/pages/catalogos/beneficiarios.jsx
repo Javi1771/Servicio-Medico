@@ -638,10 +638,11 @@ export default function RegistroBeneficiario() {
   // Dentro de handleInputChange para actualizar el estado cuando cambie la fecha de nacimiento
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-
+  
     setFormData((prevData) => {
-      const updatedData = { ...prevData, [name]: value };
-
+      const updatedData = { ...prevData, [name]: value.trim() }; // Remover espacios adicionales
+  
+      // Validar el campo CURP
       if (name === "curp") {
         if (value.length > 18) {
           setCurpError("El CURP debe tener un máximo de 18 caracteres");
@@ -651,25 +652,30 @@ export default function RegistroBeneficiario() {
           setCurpError("");
         }
       }
-
+  
       // Calcular la edad si cambia la fecha de nacimiento
       if (name === "fNacimiento") {
         const birthDate = new Date(value);
         const age = calculateAge(birthDate);
         updatedData.edad = age;
-
+  
         // Revalidar checkboxes basados en el nuevo valor de edad
         updateCheckboxState(age, updatedData.parentesco);
       }
-
+  
       // Revalidar checkboxes si cambia el parentesco
       if (name === "parentesco") {
         updateCheckboxState(updatedData.edad, value);
       }
-
+  
+      // Validar y normalizar el valor del tipo de sangre
+      if (name === "sangre") {
+        updatedData.sangre = value.toUpperCase(); // Convertir a mayúsculas para asegurar compatibilidad
+      }
+  
       return updatedData;
     });
-
+  
     // Añadir o eliminar la clase 'hasText' según corresponda
     if (value) {
       e.target.classList.add(styles.hasText);
@@ -677,6 +683,7 @@ export default function RegistroBeneficiario() {
       e.target.classList.remove(styles.hasText);
     }
   };
+  
 
   const updateCheckboxState = (edad, parentescoId) => {
     const isHijo = parentescoId === "2"; // "Hijo(a)" tiene ID 2
@@ -1083,16 +1090,22 @@ export default function RegistroBeneficiario() {
       const date = new Date(fecha);
       return date.toISOString().split("T")[0]; // Formato YYYY-MM-DD
     };
-  
+
     const formatDateTimeLocal = (fecha) => {
       if (!fecha) return "";
       const date = new Date(fecha);
       return date.toISOString().slice(0, 16); // Formato YYYY-MM-DDTHH:MM
     };
-  
+
     // Calcular la edad a partir de la fecha de nacimiento
     const edad = calculateAge(new Date(beneficiario.F_NACIMIENTO));
-  
+
+    // Determinar el tipo de parentesco
+    const isHijo = beneficiario.PARENTESCO === 2; // Hijo(a) tiene ID 2
+    const isPadreOMadre =
+      beneficiario.PARENTESCO === 4 || beneficiario.PARENTESCO === 5; // Padre (4) o Madre (5)
+    const isEsposo = beneficiario.PARENTESCO === 1; // Esposo(a) tiene ID 1
+
     // Actualizar los datos en el formulario
     setFormData({
       parentesco: beneficiario.PARENTESCO || "",
@@ -1103,7 +1116,7 @@ export default function RegistroBeneficiario() {
       fNacimiento: formatFecha(beneficiario.F_NACIMIENTO) || "",
       edad, // Edad calculada
       alergias: beneficiario.ALERGIAS || "",
-      sangre: beneficiario.SANGRE || "",
+      sangre: beneficiario.SANGRE?.toUpperCase().trim() || "", // Normaliza y limpia el valor
       telEmergencia: beneficiario.TEL_EMERGENCIA || "",
       nombreEmergencia: beneficiario.NOMBRE_EMERGENCIA || "",
       activo: beneficiario.ACTIVO || "A",
@@ -1114,15 +1127,16 @@ export default function RegistroBeneficiario() {
       esEstudiante: Number(beneficiario.ESESTUDIANTE) === 1, // Convertir a booleano
       esDiscapacitado: Number(beneficiario.ESDISCAPACITADO) === 1, // Convertir a booleano
       urlConstancia: beneficiario.URL_CONSTANCIA || "",
-      urlActaNac: beneficiario.URL_ACTA_NAC || "", // Ajustado: Acta de Nacimiento
-      urlCurp: beneficiario.URL_CURP || "", // Ajustado: CURP
-      urlINE: beneficiario.URL_INE || "", // Ajustado: INE
-      urlActaMatrimonio: beneficiario.URL_ACTAMATRIMONIO || "", // Ajustado: Acta de Matrimonio
-      urlCartaNoAfiliacion: beneficiario.URL_NOISSTE || "", // Ajustado: Carta de No Afiliación
-      showCheckboxes: beneficiario.PARENTESCO === 2 && edad >= 16, // Mostrar checkboxes solo si aplica
-      showUploadFiles: beneficiario.PARENTESCO === 2, // Mostrar inputs para archivos si es hijo(a)
+      urlActaNac: beneficiario.URL_ACTA_NAC || "", // Acta de Nacimiento
+      urlCurp: beneficiario.URL_CURP || "", // CURP
+      actaMatrimonioUrl: beneficiario.URL_ACTAMATRIMONIO || "", // Acta de Matrimonio
+      ineUrl: beneficiario.URL_INE || "", // INE
+      cartaNoAfiliacionUrl: beneficiario.URL_NOISSTE || "", // Carta de No Afiliación
+      showCheckboxes: isHijo && edad >= 16, // Mostrar checkboxes si es Hijo(a) y tiene >= 16 años
+      showUploadFiles: isHijo || isPadreOMadre || isEsposo, // Mostrar inputs para archivos si aplica
+      showEsposoFiles: isEsposo, // Mostrar campos específicos de Esposo(a)
     });
-  
+
     setCurrentBeneficiaryId(beneficiario.ID_BENEFICIARIO);
     setIsEditMode(true); // Activar modo edición
     setIsModalOpen(true); // Abrir modal
@@ -1615,7 +1629,6 @@ export default function RegistroBeneficiario() {
                       </button>
                     )}
                   </div>
-
                   {/* Campos adicionales para Esposo(a) */}
                   {formData.showEsposoFiles && (
                     <>
@@ -2159,70 +2172,106 @@ export default function RegistroBeneficiario() {
         </Modal>
 
         <Modal
-          isOpen={isDocumentsModalOpen}
-          onRequestClose={() => handleCloseModal()} // Llamamos a una función para cerrar con fadeOut
-          overlayClassName={`${styles.documentsModalOverlay}`}
-          className={`${styles.documentsModalContainer} ${
-            isFadingOut ? styles.documentsSlideOut : ""
-          }`}
-        >
-          {selectedBeneficiary && (
-            <div className={styles.documentsModalContent}>
-              <h2 className={styles.documentsModalTitle}>Documentos Subidos</h2>
+  isOpen={isDocumentsModalOpen}
+  onRequestClose={() => handleCloseModal()} // Llamamos a una función para cerrar con fadeOut
+  overlayClassName={`${styles.documentsModalOverlay}`}
+  className={`${styles.documentsModalContainer} ${
+    isFadingOut ? styles.documentsSlideOut : ""
+  }`}
+>
+  {selectedBeneficiary && (
+    <div className={styles.documentsModalContent}>
+      <h2 className={styles.documentsModalTitle}>Documentos Subidos</h2>
 
-              {/* Lista de botones para ver documentos */}
-              <div className={styles.documentsButtonsWrapper}>
-                {/* Acta de Nacimiento */}
-                {selectedBeneficiary.URL_ACTA_NAC && (
-                  <button
-                    className={styles.documentButton}
-                    onClick={() =>
-                      window.open(selectedBeneficiary.URL_ACTA_NAC, "_blank")
-                    }
-                  >
-                    <FaFileUpload size={20} />
-                    Acta de Nacimiento
-                  </button>
-                )}
+      {/* Lista de botones para ver documentos */}
+      <div className={styles.documentsButtonsWrapper}>
+        {/* Acta de Nacimiento */}
+        {selectedBeneficiary.URL_ACTA_NAC && (
+          <button
+            className={styles.documentButton}
+            onClick={() =>
+              window.open(selectedBeneficiary.URL_ACTA_NAC, "_blank")
+            }
+          >
+            <FaFileUpload size={20} />
+            Acta de Nacimiento
+          </button>
+        )}
 
-                {/* CURP */}
-                {selectedBeneficiary.URL_CURP && (
-                  <button
-                    className={styles.documentButton}
-                    onClick={() =>
-                      window.open(selectedBeneficiary.URL_CURP, "_blank")
-                    }
-                  >
-                    <FaFileAlt size={20} />
-                    Ver CURP
-                  </button>
-                )}
+        {/* CURP */}
+        {selectedBeneficiary.URL_CURP && (
+          <button
+            className={styles.documentButton}
+            onClick={() => window.open(selectedBeneficiary.URL_CURP, "_blank")}
+          >
+            <FaFileAlt size={20} />
+            Ver CURP
+          </button>
+        )}
 
-                {/* Constancia */}
-                {selectedBeneficiary.URL_CONSTANCIA && (
-                  <button
-                    className={styles.documentButton}
-                    onClick={() =>
-                      window.open(selectedBeneficiary.URL_CONSTANCIA, "_blank")
-                    }
-                  >
-                    <FaFileAlt size={20} />
-                    Constancia de Estudios
-                  </button>
-                )}
-              </div>
+        {/* Constancia */}
+        {selectedBeneficiary.URL_CONSTANCIA && (
+          <button
+            className={styles.documentButton}
+            onClick={() =>
+              window.open(selectedBeneficiary.URL_CONSTANCIA, "_blank")
+            }
+          >
+            <FaFileAlt size={20} />
+            Constancia de Estudios
+          </button>
+        )}
 
-              {/* Botón para cerrar el modal */}
-              <button
-                className={styles.closeDocumentButton}
-                onClick={() => handleCloseModal()}
-              >
-                <FaTimes size={20} />
-                Cerrar
-              </button>
-            </div>
-          )}
-        </Modal>
+        {/* Acta de Matrimonio */}
+        {selectedBeneficiary.URL_ACTAMATRIMONIO && (
+          <button
+            className={styles.documentButton}
+            onClick={() =>
+              window.open(selectedBeneficiary.URL_ACTAMATRIMONIO, "_blank")
+            }
+          >
+            <FaFileUpload size={20} />
+            Acta de Matrimonio
+          </button>
+        )}
+
+        {/* INE */}
+        {selectedBeneficiary.URL_INE && (
+          <button
+            className={styles.documentButton}
+            onClick={() => window.open(selectedBeneficiary.URL_INE, "_blank")}
+          >
+            <FaFileAlt size={20} />
+            INE
+          </button>
+        )}
+
+        {/* Carta de No Afiliación */}
+        {selectedBeneficiary.URL_NOISSTE && (
+          <button
+            className={styles.documentButton}
+            onClick={() =>
+              window.open(selectedBeneficiary.URL_NOISSTE, "_blank")
+            }
+          >
+            <FaFileAlt size={20} />
+            Carta de No Afiliación
+          </button>
+        )}
+      </div>
+
+      {/* Botón para cerrar el modal */}
+      <button
+        className={styles.closeDocumentButton}
+        onClick={() => handleCloseModal()}
+      >
+        <FaTimes size={20} />
+        Cerrar
+      </button>
+    </div>
+  )}
+</Modal>
+
 
         {/* Tabla de beneficiarios, solo se muestra si el empleado es encontrado */}
         {empleado &&

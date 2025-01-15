@@ -32,9 +32,9 @@ export default async function handler(req, res) {
             URL_CONSTANCIA,
             URL_CURP,
             URL_ACTA_NAC,
-            URL_INE,            -- Nuevo campo URL_INE
-            URL_ACTAMATRIMONIO, -- Nuevo campo URL_ACTA_MATRIMONIO
-            URL_NOISSTE         -- Nuevo campo URL_NOISSTE
+            URL_INE,            
+            URL_ACTAMATRIMONIO,
+            URL_NOISSTE        
           FROM [PRESIDENCIA].[dbo].[BENEFICIARIO]
           WHERE NO_NOMINA = @num_nom
         `);
