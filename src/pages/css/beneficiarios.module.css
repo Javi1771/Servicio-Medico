@@ -1928,7 +1928,6 @@
 .fileInputWrapper2 {
   display: flex;
   align-items: center;
-  gap: 0.5rem; /* Menor espacio entre elementos */
   background-color: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 8px; /* Bordes redondeados */
@@ -2165,7 +2164,7 @@
   color: white;
   font-size: 16px;
   font-weight: 600;
-  padding: 0px 175px;
+  padding: 10px 175px;
   border-radius: 15px;
   border: none;
   margin-top: 16px;
@@ -2181,6 +2180,29 @@
 
 .closeDocumentButton svg {
   font-size: 20px;
+}
+
+/* Ajustes responsivos */
+@media (max-width: 768px) {
+  .closeDocumentButton {
+    font-size: 14px;
+    padding: 10px 100px; /* Reduce el padding horizontal */
+  }
+
+  .closeDocumentButton svg {
+    font-size: 18px; /* Reduce el tamaño del ícono */
+  }
+}
+
+@media (max-width: 480px) {
+  .closeDocumentButton {
+    font-size: 12px;
+    padding: 8px 134px; /* Reduce aún más el padding */
+  }
+
+  .closeDocumentButton svg {
+    font-size: 16px; /* Reduce el tamaño del ícono para pantallas más pequeñas */
+  }
 }
 
 /* Iconos en los botones */

@@ -28,9 +28,17 @@ export default async function handler(req, res) {
       return res.status(500).json({ message: "Error al obtener datos del endpoint externo." });
     }
 
-    // Filtrar el documento correspondiente
-    const actaMatrimonio = data.data.find(
-      (doc) => doc.nomina === numNomina && doc.documento === "actaMatrimonio.pdf"
+    // Buscar la nómina correspondiente
+    const employeeData = data.data.find((emp) => emp.nomina === numNomina);
+
+    if (!employeeData) {
+      console.log("[ERROR] Nómina no encontrada.");
+      return res.status(404).json({ message: "Nómina no encontrada." });
+    }
+
+    // Buscar el documento "actaMatrimonio.pdf"
+    const actaMatrimonio = employeeData.documentos.find(
+      (doc) => doc.documento === "actaMatrimonio.pdf"
     );
 
     console.log("[DEBUG] Resultado del filtro:", actaMatrimonio);

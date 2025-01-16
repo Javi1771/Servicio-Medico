@@ -78,66 +78,35 @@ export default function RegistroBeneficiario() {
     }, 300); // La duración del fadeOut debe coincidir con la animación CSS
   };
 
+  
+
   const getFileNameFromURL = (url) => {
     if (!url) return "Sin archivo";
     const segments = url.split("/");
     return segments[segments.length - 1]; // Obtener el nombre al final de la URL
   };
 
-  const handleFileUploadActaConcubinato = async (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const formData = new FormData();
-    formData.append("file", file);
-
-    try {
-      const response = await fetch("/api/beneficiarios/uploadActaConcubinato", {
-        method: "POST",
-        body: formData,
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        console.log("Acta de Concubinato subida exitosamente:", data.url);
-        setFormData((prev) => ({
-          ...prev,
-          actaConcubinatoUrl: data.url, // Guardar la URL correcta
-        }));
-      } else {
-        Swal.fire(
-          "Error",
-          "Error al subir el Acta de Concubinato. Intenta nuevamente.",
-          "error"
-        );
-      }
-    } catch (error) {
-      console.error("Error al subir el Acta de Concubinato:", error);
-      Swal.fire("Error", "No se pudo subir el Acta de Concubinato.", "error");
-    }
-  };
-
   const handleFileUploadINE = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
-
+  
     const formData = new FormData();
     formData.append("file", file);
-
+    formData.append("numNomina", numNomina); // Enviar el número de nómina desde el estado
+  
     try {
       const response = await fetch("/api/beneficiarios/uploadINE", {
         method: "POST",
         body: formData,
       });
-
+  
       const data = await response.json();
-
+  
       if (response.ok) {
         console.log("INE subida exitosamente:", data.url);
         setFormData((prev) => ({
           ...prev,
-          ineUrl: data.url, // Guardar la URL correcta
+          ineUrl: data.url, // Guardar la URL correcta en el estado
         }));
       } else {
         Swal.fire(
@@ -151,59 +120,24 @@ export default function RegistroBeneficiario() {
       Swal.fire("Error", "No se pudo subir el INE.", "error");
     }
   };
-
-  const handleFileUploadActaMatrimonio = async (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const formData = new FormData();
-    formData.append("file", file);
-
-    try {
-      const response = await fetch("/api/beneficiarios/uploadActaMatrimonio", {
-        method: "POST",
-        body: formData,
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        console.log("Acta de Matrimonio subida exitosamente:", data.url);
-        setFormData((prev) => ({
-          ...prev,
-          actaMatrimonioUrl: data.url, // Guardar la URL correcta
-        }));
-      } else {
-        Swal.fire(
-          "Error",
-          "Error al subir el Acta de Matrimonio. Intenta nuevamente.",
-          "error"
-        );
-      }
-    } catch (error) {
-      console.error("Error al subir el Acta de Matrimonio:", error);
-      Swal.fire("Error", "No se pudo subir el Acta de Matrimonio.", "error");
-    }
-  };
+  
 
   const handleFileUploadCartaNoAfiliacion = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
-
+  
     const formData = new FormData();
     formData.append("file", file);
-
+    formData.append("numNomina", numNomina); // Aquí usamos directamente el estado `numNomina`
+  
     try {
-      const response = await fetch(
-        "/api/beneficiarios/uploadCartaNoAfiliacion",
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
-
+      const response = await fetch("/api/beneficiarios/uploadCartaNoAfiliacion", {
+        method: "POST",
+        body: formData,
+      });
+  
       const data = await response.json();
-
+  
       if (response.ok) {
         console.log("Carta de No Afiliación subida exitosamente:", data.url);
         setFormData((prev) => ({
@@ -226,27 +160,30 @@ export default function RegistroBeneficiario() {
       );
     }
   };
+  
+  
 
   const handleFileUploadCurp = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
-
+  
     const formData = new FormData();
     formData.append("file", file);
-
+    formData.append("numNomina", numNomina); // Enviar el número de nómina desde el estado
+  
     try {
       const response = await fetch("/api/beneficiarios/uploadCurp", {
         method: "POST",
         body: formData,
       });
-
+  
       const data = await response.json();
-
+  
       if (response.ok) {
         console.log("CURP subida exitosamente:", data.url);
         setFormData((prev) => ({
           ...prev,
-          urlCurp: data.url, // Guardar la URL correcta
+          urlCurp: data.url, // Guardar la URL correcta en el estado
         }));
       } else {
         Swal.fire(
@@ -260,60 +197,64 @@ export default function RegistroBeneficiario() {
       Swal.fire("Error", "No se pudo subir la CURP.", "error");
     }
   };
+  
 
   const handleFileUploadActa = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
-
+  
     const formData = new FormData();
     formData.append("file", file);
-
+    formData.append("numNomina", numNomina); // Asegúrate de enviar el número de nómina
+  
     try {
       const response = await fetch("/api/beneficiarios/uploadActa", {
         method: "POST",
         body: formData,
       });
-
+  
       const data = await response.json();
-
+  
       if (response.ok) {
-        console.log("Acta subida exitosamente:", data.url);
+        console.log("Acta de Nacimiento subida exitosamente:", data.url);
         setFormData((prev) => ({
           ...prev,
-          urlActaNac: data.url, // Cambiar a `urlActaNac` para coincidir con la API
+          urlActaNac: data.url, // Guardar la URL del Acta de Nacimiento
         }));
       } else {
         Swal.fire(
           "Error",
-          "Error al subir el Acta. Intenta nuevamente.",
+          "Error al subir el Acta de Nacimiento. Intenta nuevamente.",
           "error"
         );
       }
     } catch (error) {
-      console.error("Error al subir el Acta:", error);
-      Swal.fire("Error", "No se pudo subir el Acta.", "error");
+      console.error("Error al subir el Acta de Nacimiento:", error);
+      Swal.fire("Error", "No se pudo subir el Acta de Nacimiento.", "error");
     }
   };
+  
 
   //SUBIR DOCUMENTO DE CONSTANCIA DE ESTUDIOS//
   const handleFileUpload = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
-
+  
     const formData = new FormData();
     formData.append("file", file);
-
+    formData.append("numNomina", numNomina); // Enviar el número de nómina desde el estado
+  
     try {
       const response = await fetch("/api/uploadConstancia", {
         method: "POST",
         body: formData,
       });
-
+  
       const data = await response.json();
-
+  
       if (response.ok) {
-        console.log("Archivo subido exitosamente:", data.url);
-
+        console.log("Constancia de Estudios subida exitosamente:", data.url);
+  
         // Guardar la URL pública en el estado
         setFormData((prev) => ({
           ...prev,
@@ -323,15 +264,16 @@ export default function RegistroBeneficiario() {
       } else {
         Swal.fire(
           "Error",
-          "Error al subir el archivo. Intenta nuevamente.",
+          "Error al subir la Constancia de Estudios. Intenta nuevamente.",
           "error"
         );
       }
     } catch (error) {
-      console.error("Error al subir el archivo:", error);
-      Swal.fire("Error", "No se pudo subir el archivo.", "error");
+      console.error("Error al subir la Constancia de Estudios:", error);
+      Swal.fire("Error", "No se pudo subir la Constancia de Estudios.", "error");
     }
   };
+  
 
   /**VIGENCIA DE ESTUDIOS VALIDACION */
   const handleVigenciaChange = (e) => {
@@ -677,17 +619,6 @@ export default function RegistroBeneficiario() {
     setFormData((prevData) => {
       const updatedData = { ...prevData, [name]: value.trim() }; // Remover espacios adicionales
 
-      // Validar el campo CURP
-      if (name === "curp") {
-        if (value.length > 18) {
-          setCurpError("El CURP debe tener un máximo de 18 caracteres");
-        } else if (value.length < 18) {
-          setCurpError("El CURP debe tener exactamente 18 caracteres");
-        } else {
-          setCurpError("");
-        }
-      }
-
       // Calcular la edad si cambia la fecha de nacimiento
       if (name === "fNacimiento") {
         const birthDate = new Date(value);
@@ -768,27 +699,38 @@ export default function RegistroBeneficiario() {
       reader.readAsDataURL(file);
       reader.onloadend = async () => {
         const base64Image = reader.result;
-
+  
         try {
           const response = await fetch("/api/uploadImage", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify({ image: base64Image }),
+            body: JSON.stringify({
+              image: base64Image,
+              numNomina, // Enviar el número de nómina desde el estado
+            }),
           });
-
+  
           const data = await response.json();
           if (data.imageUrl) {
             // Actualizar el estado con la URL de la imagen subida
             setFormData({ ...formData, imageUrl: data.imageUrl });
+          } else {
+            Swal.fire(
+              "Error",
+              "No se pudo subir la imagen. Intenta nuevamente.",
+              "error"
+            );
           }
         } catch (error) {
           console.error("Error al subir la imagen:", error);
+          Swal.fire("Error", "Error al subir la imagen.", "error");
         }
       };
     }
   };
+  
 
   const getSindicato = (grupoNomina, cuotaSindical) => {
     if (grupoNomina === "NS") {
@@ -2270,7 +2212,7 @@ export default function RegistroBeneficiario() {
                     {`${selectedBeneficiary.NOMBRE} ${selectedBeneficiary.A_PATERNO} ${selectedBeneficiary.A_MATERNO}`}
                   </li>
                   <li>
-                    <strong>CURP:</strong> {selectedBeneficiary.CURP}
+                    <strong>Tipo de sangre:</strong> {selectedBeneficiary.SANGRE}
                   </li>
                   <li>
                     <strong>Sexo:</strong>{" "}
