@@ -40,7 +40,7 @@ const AuthGuard = ({ children }) => {
                         setIsVerified(true);
                     }
                     break;
-                case '4': // Contadora
+                case '4': // Contadora aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
                     if (router.pathname !== '/dashboard-contadora') {
                         router.push('/dashboard-contadora');
                     } else {
