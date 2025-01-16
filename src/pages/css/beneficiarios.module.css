@@ -1957,6 +1957,22 @@
   background: linear-gradient(90deg, #0056b3, #003f7f);
 }
 
+.uploadButton3 {
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #ffffff;
+  background: linear-gradient(90deg, #ff7300, #b35c00);
+  border: none;
+  border-radius: 8px; /* Bordes redondeados */
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.uploadButto32:hover {
+  background: linear-gradient(90deg, #b35f00, #7f4400);
+}
+
 /* Nombre del archivo */
 .fileName2 {
   font-size: 0.85rem;
@@ -1991,6 +2007,23 @@
   background: rgba(255, 255, 255, 0.1);
   color: #1d72b8;
   border-color: #0056b3;
+}
+.viewButton3 {
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #ffffff;
+  background: transparent;
+  border: 1px solid #b8651d;
+  border-radius: 8px; /* Bordes redondeados */
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.viewButton3:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #b8721d;
+  border-color: #b36b00;
 }
 
 
