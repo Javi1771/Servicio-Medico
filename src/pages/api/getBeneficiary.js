@@ -43,8 +43,10 @@ export default async function handler(req, res) {
           URL_CURP,
           URL_ACTA_NAC,
           URL_INE,
-          URL_ACTAMATRIMONIO,  -- Incluido para Acta de Matrimonio
-          URL_NOISSTE          -- Incluido para Carta de No Afiliación
+          URL_ACTAMATRIMONIO,  
+          URL_NOISSTE,
+          URL_CONCUBINATO
+          
         FROM BENEFICIARIO
         WHERE ID_BENEFICIARIO = @idBeneficiario
       `);
