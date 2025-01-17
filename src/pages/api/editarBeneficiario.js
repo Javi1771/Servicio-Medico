@@ -6,31 +6,35 @@ export default async function handler(req, res) {
   }
 
   const {
-    idBeneficiario, // Es obligatorio para la edición
-    noNomina, // Número de nómina
-    parentesco, // ID del parentesco (smallint)
-    nombre, // Nombre del beneficiario
-    aPaterno, // Apellido paterno
-    aMaterno, // Apellido materno
-    sexo, // Sexo
-    fNacimiento, // Fecha de nacimiento en formato ISO
-    escolaridad, // Nivel de escolaridad (puede ser null)
-    activo, // Estado del beneficiario ("A" o "I")
-    alergias, // Información sobre alergias
-    sangre, // Tipo de sangre
-    telEmergencia, // Teléfono de emergencia
-    nombreEmergencia, // Nombre del contacto de emergencia
-    esEstudiante, // Si es estudiante (1 o 0)
-    esDiscapacitado, // Si es discapacitado (1 o 0)
-    vigenciaEstudios, // Vigencia de estudios en formato ISO (puede ser null)
-    imageUrl, // URL de la imagen del beneficiario
-    urlConstancia, // Nuevo campo para la URL de la constancia
-    urlCurp, // Nuevo campo para la URL del CURP
-    urlActaNac, // Nuevo campo para la URL del Acta de Nacimiento
-    urlINE, // Nuevo campo para la URL del INE
-    urlActaMatrimonio, // Nuevo campo para la URL del Acta de Matrimonio
-    urlCartaNoAfiliacion, // Nuevo campo para la URL de la Carta de No Afiliación
+    idBeneficiario,
+    noNomina,
+    parentesco,
+    nombre,
+    aPaterno,
+    aMaterno,
+    sexo,
+    fNacimiento,
+    escolaridad,
+    activo,
+    alergias,
+    sangre,
+    telEmergencia,
+    nombreEmergencia,
+    esEstudiante,
+    esDiscapacitado,
+    vigenciaEstudios,
+    imageUrl,
+    urlConstancia,
+    urlCurp,
+    urlActaNac,
+    urlINE,
+    urlActaMatrimonio,
+    urlCartaNoAfiliacion,
+    actaConcubinatoUrl, // Asegúrate de usar este nombre en el frontend
   } = req.body;
+
+  // Log para depuración: Verificar los datos recibidos
+  console.log("Datos recibidos en el backend:", req.body);
 
   // Validar datos obligatorios
   if (
@@ -72,35 +76,38 @@ export default async function handler(req, res) {
     const estudianteValue = esEstudiante ? 1 : 0;
     const discapacitadoValue = esDiscapacitado ? 1 : 0;
 
+    // Realizar la consulta de actualización
     const result = await pool
       .request()
       .input("idBeneficiario", idBeneficiario)
       .input("noNomina", noNomina)
-      .input("parentesco", parentesco) // ID del parentesco
+      .input("parentesco", parentesco)
       .input("nombre", nombre)
-      .input("aPaterno", aPaterno || null) // Puede ser null
-      .input("aMaterno", aMaterno || null) // Puede ser null
+      .input("aPaterno", aPaterno || null)
+      .input("aMaterno", aMaterno || null)
       .input("sexo", sexo)
-      .input("fNacimiento", new Date(fNacimiento).toISOString()) // Convertir a ISO
-      .input("escolaridad", escolaridad || null) // Puede ser null
+      .input("fNacimiento", new Date(fNacimiento).toISOString())
+      .input("escolaridad", escolaridad || null)
       .input("activo", activo)
       .input("alergias", alergias || "")
       .input("sangre", sangre || "")
       .input("telEmergencia", telEmergencia)
       .input("nombreEmergencia", nombreEmergencia)
-      .input("esEstudiante", estudianteValue) // Convertido a 1 o 0
-      .input("esDiscapacitado", discapacitadoValue) // Convertido a 1 o 0
+      .input("esEstudiante", estudianteValue)
+      .input("esDiscapacitado", discapacitadoValue)
       .input(
         "vigenciaEstudios",
         vigenciaEstudios ? new Date(vigenciaEstudios).toISOString() : null
-      ) // Convertir a ISO si no es null
-      .input("imageUrl", imageUrl || null) // Puede ser null
-      .input("urlConstancia", urlConstancia || null) // Nuevo campo URL_CONSTANCIA
-      .input("urlCurp", urlCurp || null) // Nuevo campo URL_CURP
-      .input("urlActaNac", urlActaNac || null) // Nuevo campo URL_ACTA_NAC
-      .input("urlINE", urlINE || null) // Correcto
-      .input("urlActaMatrimonio", urlActaMatrimonio || null) // Cambiado para coincidir
-      .input("urlCartaNoAfiliacion", urlCartaNoAfiliacion || null) // Correcto
+      )
+      .input("imageUrl", imageUrl || null)
+      .input("urlConstancia", urlConstancia || null)
+      .input("urlCurp", urlCurp || null)
+      .input("urlActaNac", urlActaNac || null)
+      .input("urlINE", urlINE || null)
+      .input("urlActaMatrimonio", urlActaMatrimonio || null)
+      .input("urlCartaNoAfiliacion", urlCartaNoAfiliacion || null)
+      .input("urlConcubinato", actaConcubinatoUrl || null) // Aquí se mapea correctamente
+
       .query(`
         UPDATE BENEFICIARIO
         SET 
@@ -124,11 +131,15 @@ export default async function handler(req, res) {
           URL_CONSTANCIA = @urlConstancia,
           URL_CURP = @urlCurp,
           URL_ACTA_NAC = @urlActaNac,
-      URL_INE = @urlINE,
-      URL_ACTAMATRIMONIO = @urlActaMatrimonio, -- Cambiado
-      URL_NOISSTE = @urlCartaNoAfiliacion -- Correcto
+          URL_INE = @urlINE,
+          URL_ACTAMATRIMONIO = @urlActaMatrimonio,
+          URL_NOISSTE = @urlCartaNoAfiliacion,
+          URL_CONCUBINATO = @urlConcubinato
         WHERE ID_BENEFICIARIO = @idBeneficiario
       `);
+
+    // Log para verificar filas afectadas
+    console.log("Filas afectadas por la consulta:", result.rowsAffected[0]);
 
     if (result.rowsAffected[0] === 0) {
       return res
@@ -136,6 +147,7 @@ export default async function handler(req, res) {
         .json({ message: "Beneficiario no encontrado o sin cambios" });
     }
 
+    // Respuesta exitosa
     return res
       .status(200)
       .json({ message: "Beneficiario actualizado correctamente" });

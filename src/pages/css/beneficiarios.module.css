@@ -562,7 +562,7 @@
 
 /* Títulos de las secciones */
 .fieldset legend {
-  font-size: 20px;
+  font-size: 20px; /* Tamaño por defecto */
   font-weight: bold;
   margin-bottom: 15px;
   color: #ffffff;
@@ -570,6 +570,23 @@
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
+
+/* Responsividad para pantallas medianas (tablets) */
+@media (max-width: 768px) {
+  .fieldset legend {
+    font-size: 18px; /* Reducir ligeramente el tamaño de fuente */
+    margin-bottom: 12px; /* Ajustar el margen inferior */
+  }
+}
+
+/* Responsividad para pantallas pequeñas (móviles) */
+@media (max-width: 480px) {
+  .fieldset legend {
+    font-size: 16px; /* Reducir aún más el tamaño de fuente */
+    margin-bottom: 10px; /* Reducir margen inferior */
+  }
+}
+
 
 /* Estilo para el select */
 .inputField {
@@ -683,23 +700,43 @@
 
 /* Botón de continuar */
 .submitButton {
-  width: 100%;
-  padding: 12px;
-  background: linear-gradient(135deg, #1818188a, #1818188a);
-  color: #ffffff;
-  border: none;
-  border-radius: 10px;
-  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #4caf50; /* Verde elegante */
+  color: white;
+  font-size: 1rem;
   font-weight: bold;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
   cursor: pointer;
-  transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
-  box-shadow: 0 0 15px rgb(30 95 255 / 40%), 0 0 25px rgb(30 100 255 / 30%);
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
 .submitButton:hover {
-  background: linear-gradient(135deg, #1c5fe4, #0088cc);
-  transform: scale(1.05);
-  box-shadow: 0 0 20px rgba(30, 101, 255, 0.6), 0 0 30px rgba(30, 101, 255, 0.5);
+  background-color: #45a049; /* Verde más oscuro */
+  transform: scale(1.05); /* Efecto de agrandamiento */
+}
+
+.submitButton:active {
+  transform: scale(0.95); /* Efecto de pulsación */
+}
+
+.submitButton:disabled {
+  background-color: #cccccc;
+  color: #666666;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.icon {
+  margin-right: 8px;
+}
+
+.iconLarge {
+  font-size: 1.5rem;
 }
 
 .cancelButton {
@@ -1373,19 +1410,40 @@
 
 /*boton de cancelar beneficiario vista*/
 .cancelButton {
-  background-color: #d32f2f; /* Rojo */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f44336; /* Rojo elegante */
   color: white;
+  font-size: 1rem;
+  font-weight: bold;
+  padding: 10px 20px;
   border: none;
-  border-radius: 5px;
-  padding: 10px 15px;
+  border-radius: 8px;
   cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.3s ease;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .cancelButton:hover {
-  background-color: #b71c1c; /* Rojo más oscuro */
+  background-color: #e53935; /* Rojo más oscuro */
+  transform: scale(1.05); /* Efecto de agrandamiento */
+  box-shadow: 0px 6px 8px rgba(0, 0, 0, 0.15); /* Más profundidad */
 }
+
+.cancelButton:active {
+  transform: scale(0.95); /* Efecto de pulsación */
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1); /* Menor profundidad */
+}
+
+.icon {
+  margin-right: 8px;
+}
+
+.iconLarge {
+  font-size: 1.5rem;
+}
+
 
 
 
@@ -1928,7 +1986,6 @@
 .fileInputWrapper2 {
   display: flex;
   align-items: center;
-  gap: 0.5rem; /* Menor espacio entre elementos */
   background-color: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 8px; /* Bordes redondeados */
@@ -1955,6 +2012,22 @@
 
 .uploadButton2:hover {
   background: linear-gradient(90deg, #0056b3, #003f7f);
+}
+
+.uploadButton3 {
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #ffffff;
+  background: linear-gradient(90deg, #ff7300, #b35c00);
+  border: none;
+  border-radius: 8px; /* Bordes redondeados */
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.uploadButto32:hover {
+  background: linear-gradient(90deg, #b35f00, #7f4400);
 }
 
 /* Nombre del archivo */
@@ -1991,6 +2064,23 @@
   background: rgba(255, 255, 255, 0.1);
   color: #1d72b8;
   border-color: #0056b3;
+}
+.viewButton3 {
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #ffffff;
+  background: transparent;
+  border: 1px solid #b8651d;
+  border-radius: 8px; /* Bordes redondeados */
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.viewButton3:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #b8721d;
+  border-color: #b36b00;
 }
 
 
@@ -2132,7 +2222,7 @@
   color: white;
   font-size: 16px;
   font-weight: 600;
-  padding: 0px 175px;
+  padding: 10px 175px;
   border-radius: 15px;
   border: none;
   margin-top: 16px;
@@ -2150,7 +2240,88 @@
   font-size: 20px;
 }
 
+/* Ajustes responsivos */
+@media (max-width: 768px) {
+  .closeDocumentButton {
+    font-size: 14px;
+    padding: 10px 100px; /* Reduce el padding horizontal */
+  }
+
+  .closeDocumentButton svg {
+    font-size: 18px; /* Reduce el tamaño del ícono */
+  }
+}
+
+@media (max-width: 480px) {
+  .closeDocumentButton {
+    font-size: 12px;
+    padding: 8px 134px; /* Reduce aún más el padding */
+  }
+
+  .closeDocumentButton svg {
+    font-size: 16px; /* Reduce el tamaño del ícono para pantallas más pequeñas */
+  }
+}
+
 /* Iconos en los botones */
 .documentsButtonsWrapper .documentButton svg {
   font-size: 20px;
+}
+
+
+/*estilos modal validacion esposo/concubino */
+/* Estilos personalizados para el modal */
+.custom-modal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 20px;
+  border-radius: 15px;
+  background-color: hwb(124 21% 52%);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  text-align: center;
+}
+
+.custom-modal-icon {
+  width: 60px;
+  height: 60px;
+  margin-bottom: 20px;
+}
+
+.custom-modal-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #e74c3c;
+  margin-bottom: 10px;
+}
+
+.custom-modal-message {
+  font-size: 16px;
+  color: #555555;
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+
+.custom-modal-button {
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: none;
+  background-color: #345e40;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.custom-modal-button:hover {
+  background-color: #434190;
+}
+
+.custom-modal-button:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(90, 103, 216, 0.5);
 }

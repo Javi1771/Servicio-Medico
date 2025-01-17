@@ -15,11 +15,19 @@ if (process.env.NODE_ENV === 'development') {
 
 export default async function handler(req, res) {
   if (req.method === 'POST') {
-    const { image } = req.body;
+    const { image, numNomina } = req.body; // Recibir la imagen y el número de nómina
+
+    if (!numNomina) {
+      return res.status(400).json({ error: 'El número de nómina es obligatorio.' });
+    }
 
     try {
+      // Definir la carpeta en Cloudinary
+      const folderPath = `beneficiarios/${numNomina}`;
+
+      // Subir la imagen a Cloudinary
       const result = await cloudinary.uploader.upload(image, {
-        folder: 'beneficiarios',
+        folder: folderPath,
       });
 
       res.status(200).json({ imageUrl: result.secure_url });

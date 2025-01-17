@@ -57,6 +57,7 @@ export default function RegistroBeneficiario() {
     actaMatrimonioUrl: "",
     ineUrl: "",
     cartaNoAfiliacionUrl: "",
+    actaConcubinatoUrl: "", // Nuevo campo para Acta de Concubinato
   });
 
   const [error, setError] = useState(null);
@@ -89,6 +90,7 @@ export default function RegistroBeneficiario() {
 
     const formData = new FormData();
     formData.append("file", file);
+    formData.append("numNomina", numNomina); // Enviar el número de nómina desde el estado
 
     try {
       const response = await fetch("/api/beneficiarios/uploadINE", {
@@ -102,7 +104,7 @@ export default function RegistroBeneficiario() {
         console.log("INE subida exitosamente:", data.url);
         setFormData((prev) => ({
           ...prev,
-          ineUrl: data.url, // Guardar la URL correcta
+          ineUrl: data.url, // Guardar la URL correcta en el estado
         }));
       } else {
         Swal.fire(
@@ -117,46 +119,13 @@ export default function RegistroBeneficiario() {
     }
   };
 
-  const handleFileUploadActaMatrimonio = async (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const formData = new FormData();
-    formData.append("file", file);
-
-    try {
-      const response = await fetch("/api/beneficiarios/uploadActaMatrimonio", {
-        method: "POST",
-        body: formData,
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        console.log("Acta de Matrimonio subida exitosamente:", data.url);
-        setFormData((prev) => ({
-          ...prev,
-          actaMatrimonioUrl: data.url, // Guardar la URL correcta
-        }));
-      } else {
-        Swal.fire(
-          "Error",
-          "Error al subir el Acta de Matrimonio. Intenta nuevamente.",
-          "error"
-        );
-      }
-    } catch (error) {
-      console.error("Error al subir el Acta de Matrimonio:", error);
-      Swal.fire("Error", "No se pudo subir el Acta de Matrimonio.", "error");
-    }
-  };
-
   const handleFileUploadCartaNoAfiliacion = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
 
     const formData = new FormData();
     formData.append("file", file);
+    formData.append("numNomina", numNomina); // Aquí usamos directamente el estado `numNomina`
 
     try {
       const response = await fetch(
@@ -198,6 +167,7 @@ export default function RegistroBeneficiario() {
 
     const formData = new FormData();
     formData.append("file", file);
+    formData.append("numNomina", numNomina); // Enviar el número de nómina desde el estado
 
     try {
       const response = await fetch("/api/beneficiarios/uploadCurp", {
@@ -211,7 +181,7 @@ export default function RegistroBeneficiario() {
         console.log("CURP subida exitosamente:", data.url);
         setFormData((prev) => ({
           ...prev,
-          urlCurp: data.url, // Guardar la URL correcta
+          urlCurp: data.url, // Guardar la URL correcta en el estado
         }));
       } else {
         Swal.fire(
@@ -232,6 +202,7 @@ export default function RegistroBeneficiario() {
 
     const formData = new FormData();
     formData.append("file", file);
+    formData.append("numNomina", numNomina); // Asegúrate de enviar el número de nómina
 
     try {
       const response = await fetch("/api/beneficiarios/uploadActa", {
@@ -242,21 +213,21 @@ export default function RegistroBeneficiario() {
       const data = await response.json();
 
       if (response.ok) {
-        console.log("Acta subida exitosamente:", data.url);
+        console.log("Acta de Nacimiento subida exitosamente:", data.url);
         setFormData((prev) => ({
           ...prev,
-          urlActaNac: data.url, // Cambiar a `urlActaNac` para coincidir con la API
+          urlActaNac: data.url, // Guardar la URL del Acta de Nacimiento
         }));
       } else {
         Swal.fire(
           "Error",
-          "Error al subir el Acta. Intenta nuevamente.",
+          "Error al subir el Acta de Nacimiento. Intenta nuevamente.",
           "error"
         );
       }
     } catch (error) {
-      console.error("Error al subir el Acta:", error);
-      Swal.fire("Error", "No se pudo subir el Acta.", "error");
+      console.error("Error al subir el Acta de Nacimiento:", error);
+      Swal.fire("Error", "No se pudo subir el Acta de Nacimiento.", "error");
     }
   };
 
@@ -267,6 +238,7 @@ export default function RegistroBeneficiario() {
 
     const formData = new FormData();
     formData.append("file", file);
+    formData.append("numNomina", numNomina); // Enviar el número de nómina desde el estado
 
     try {
       const response = await fetch("/api/uploadConstancia", {
@@ -277,7 +249,7 @@ export default function RegistroBeneficiario() {
       const data = await response.json();
 
       if (response.ok) {
-        console.log("Archivo subido exitosamente:", data.url);
+        console.log("Constancia de Estudios subida exitosamente:", data.url);
 
         // Guardar la URL pública en el estado
         setFormData((prev) => ({
@@ -288,13 +260,17 @@ export default function RegistroBeneficiario() {
       } else {
         Swal.fire(
           "Error",
-          "Error al subir el archivo. Intenta nuevamente.",
+          "Error al subir la Constancia de Estudios. Intenta nuevamente.",
           "error"
         );
       }
     } catch (error) {
-      console.error("Error al subir el archivo:", error);
-      Swal.fire("Error", "No se pudo subir el archivo.", "error");
+      console.error("Error al subir la Constancia de Estudios:", error);
+      Swal.fire(
+        "Error",
+        "No se pudo subir la Constancia de Estudios.",
+        "error"
+      );
     }
   };
 
@@ -638,44 +614,33 @@ export default function RegistroBeneficiario() {
   // Dentro de handleInputChange para actualizar el estado cuando cambie la fecha de nacimiento
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-  
+
     setFormData((prevData) => {
       const updatedData = { ...prevData, [name]: value.trim() }; // Remover espacios adicionales
-  
-      // Validar el campo CURP
-      if (name === "curp") {
-        if (value.length > 18) {
-          setCurpError("El CURP debe tener un máximo de 18 caracteres");
-        } else if (value.length < 18) {
-          setCurpError("El CURP debe tener exactamente 18 caracteres");
-        } else {
-          setCurpError("");
-        }
-      }
-  
+
       // Calcular la edad si cambia la fecha de nacimiento
       if (name === "fNacimiento") {
         const birthDate = new Date(value);
         const age = calculateAge(birthDate);
         updatedData.edad = age;
-  
+
         // Revalidar checkboxes basados en el nuevo valor de edad
         updateCheckboxState(age, updatedData.parentesco);
       }
-  
+
       // Revalidar checkboxes si cambia el parentesco
       if (name === "parentesco") {
         updateCheckboxState(updatedData.edad, value);
       }
-  
+
       // Validar y normalizar el valor del tipo de sangre
       if (name === "sangre") {
         updatedData.sangre = value.toUpperCase(); // Convertir a mayúsculas para asegurar compatibilidad
       }
-  
+
       return updatedData;
     });
-  
+
     // Añadir o eliminar la clase 'hasText' según corresponda
     if (value) {
       e.target.classList.add(styles.hasText);
@@ -683,7 +648,6 @@ export default function RegistroBeneficiario() {
       e.target.classList.remove(styles.hasText);
     }
   };
-  
 
   const updateCheckboxState = (edad, parentescoId) => {
     const isHijo = parentescoId === "2"; // "Hijo(a)" tiene ID 2
@@ -741,16 +705,26 @@ export default function RegistroBeneficiario() {
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify({ image: base64Image }),
+            body: JSON.stringify({
+              image: base64Image,
+              numNomina, // Enviar el número de nómina desde el estado
+            }),
           });
 
           const data = await response.json();
           if (data.imageUrl) {
             // Actualizar el estado con la URL de la imagen subida
             setFormData({ ...formData, imageUrl: data.imageUrl });
+          } else {
+            Swal.fire(
+              "Error",
+              "No se pudo subir la imagen. Intenta nuevamente.",
+              "error"
+            );
           }
         } catch (error) {
           console.error("Error al subir la imagen:", error);
+          Swal.fire("Error", "Error al subir la imagen.", "error");
         }
       };
     }
@@ -917,11 +891,12 @@ export default function RegistroBeneficiario() {
         vigenciaEstudios: "",
         imageUrl: "", // Limpia la vista previa de la imagen
         urlConstancia: "", // Limpia la constancia de estudios
-        urlActanac: "", // Nuevo: Limpia la URL del acta de nacimiento
-        urlCurp: "", // Nuevo: Limpia la URL del CURP
+        urlActanac: "", // Limpia la URL del acta de nacimiento
+        urlCurp: "", // Limpia la URL del CURP
         actaMatrimonioUrl: "", // Limpia la URL del acta de matrimonio
         ineUrl: "", // Limpia la URL del INE
         cartaNoAfiliacionUrl: "", // Limpia la URL de la carta de no afiliación
+        urlConcubinato: "", // Nuevo: Limpia la URL del acta de concubinato
       });
 
       // Establecer el modal en modo registro y abrirlo
@@ -930,30 +905,162 @@ export default function RegistroBeneficiario() {
     }, 0); // Asegura que el estado se limpie correctamente antes de abrir
   };
 
+  const validateUniqueParentesco = async (numNomina, parentesco) => {
+    try {
+      const response = await fetch(
+        "/api/beneficiarios/validarParentescoUnico",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ numNomina, parentesco }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.message || "Error en la validación de parentesco único"
+        );
+      }
+
+      return { conflict: data.conflict, message: data.message };
+    } catch (error) {
+      console.error("Error al validar parentesco único:", error.message);
+      throw error;
+    }
+  };
+
   const handleModalSubmit = async (e) => {
     e.preventDefault();
 
     console.log("Enviando formulario...");
 
-    // Validaciones de los campos necesarios
-    if (!formData.imageUrl || !formData.imageUrl.startsWith("http")) {
-      Swal.fire("Error", "Por favor, sube una imagen válida.", "error");
+    // Validar campos obligatorios según el backend
+    if (
+      (isEditMode && !currentBeneficiaryId) || // Validar idBeneficiario en modo edición
+      !numNomina ||
+      !formData.parentesco ||
+      !formData.nombre ||
+      !formData.sexo ||
+      !formData.fNacimiento ||
+      !formData.telEmergencia ||
+      !formData.nombreEmergencia
+    ) {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Todos los campos obligatorios deben completarse.",
+      });
       return;
     }
 
+    // ** Validar si ya existe un Padre o Madre registrado **
+    try {
+      const { conflict, message } = await validateUniqueParentesco(
+        numNomina,
+        formData.parentesco
+      );
+
+      if (conflict) {
+        Swal.fire({
+          icon: "error",
+          title: "Conflicto detectado",
+          text: message,
+        });
+        return;
+      }
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: error.message,
+      });
+      return;
+    }
+
+    // Validar la URL de la imagen
+    if (!formData.imageUrl || !formData.imageUrl.startsWith("http")) {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Por favor, sube una imagen válida.",
+      });
+      return;
+    }
+
+    // Validar constancia de estudios si aplica
     if (
       formData.esEstudiante &&
       (!formData.urlConstancia || !formData.urlConstancia.startsWith("http"))
     ) {
-      Swal.fire(
-        "Error",
-        "Por favor, sube una constancia de estudios válida.",
-        "error"
-      );
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Por favor, sube una constancia de estudios válida.",
+      });
       return;
     }
 
-    // Formatear las fechas
+    // Validar la URL del acta de concubinato (opcional)
+    if (
+      formData.actaConcubinatoUrl &&
+      !formData.actaConcubinatoUrl.startsWith("http")
+    ) {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Por favor, sube un enlace válido para el acta de concubinato.",
+      });
+      return;
+    }
+
+    // ** Validar relación exclusiva entre Esposo(a) y Concubino(a) **
+    try {
+      const validationResponse = await fetch(
+        "/api/beneficiarios/validarParentesco",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            numNomina,
+            parentesco: formData.parentesco,
+          }),
+        }
+      );
+
+      const validationData = await validationResponse.json();
+      if (!validationResponse.ok) {
+        throw new Error(validationData.message || "Error en la validación");
+      }
+
+      // Si existe un conflicto, detener el flujo
+      if (validationData.conflict) {
+        Swal.fire({
+          icon: "error",
+          title: "Conflicto detectado",
+          text: validationData.message,
+        });
+        return;
+      }
+    } catch (error) {
+      console.error(
+        "Error durante la validación de parentesco:",
+        error.message
+      );
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: error.message,
+      });
+      return;
+    }
+
+    // Formatear fechas a ISO
     const formattedNacimiento = formData.fNacimiento
       ? new Date(formData.fNacimiento).toISOString()
       : null;
@@ -962,14 +1069,15 @@ export default function RegistroBeneficiario() {
       ? new Date(formData.vigenciaEstudios).toISOString()
       : null;
 
+    // Determinar endpoint y método HTTP
     const endpoint = isEditMode
       ? "/api/editarBeneficiario"
       : "/api/crearBeneficiario";
     const method = isEditMode ? "PUT" : "POST";
 
     try {
-      // Depurar formData antes de enviarlo
-      console.log("Datos enviados al backend (antes del fetch):", {
+      // Crear payload para enviar al backend
+      const payload = {
         ...(isEditMode && { idBeneficiario: currentBeneficiaryId }),
         noNomina: numNomina,
         parentesco: formData.parentesco,
@@ -994,7 +1102,10 @@ export default function RegistroBeneficiario() {
         actaMatrimonioUrl: formData.actaMatrimonioUrl || null,
         ineUrl: formData.ineUrl || null,
         cartaNoAfiliacionUrl: formData.cartaNoAfiliacionUrl || null,
-      });
+        actaConcubinatoUrl: formData.actaConcubinatoUrl || null,
+      };
+
+      console.log("Datos enviados al backend (antes del fetch):", payload);
 
       // Realizar la solicitud al backend
       const response = await fetch(endpoint, {
@@ -1002,36 +1113,12 @@ export default function RegistroBeneficiario() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          ...(isEditMode && { idBeneficiario: currentBeneficiaryId }),
-          noNomina: numNomina,
-          parentesco: formData.parentesco,
-          nombre: formData.nombre,
-          aPaterno: formData.aPaterno,
-          aMaterno: formData.aMaterno,
-          sexo: formData.sexo,
-          fNacimiento: formattedNacimiento,
-          escolaridad: formData.escolaridad || null,
-          activo: formData.activo || "A",
-          alergias: formData.alergias || "",
-          sangre: formData.sangre || null,
-          telEmergencia: formData.telEmergencia,
-          nombreEmergencia: formData.nombreEmergencia,
-          esEstudiante: formData.esEstudiante || 0,
-          esDiscapacitado: formData.esDiscapacitado || 0,
-          vigenciaEstudios: formattedVigenciaEstudios,
-          imageUrl: formData.imageUrl,
-          urlConstancia: formData.urlConstancia || null,
-          urlActaNac: formData.urlActaNac || null,
-          urlCurp: formData.urlCurp || null,
-          actaMatrimonioUrl: formData.actaMatrimonioUrl || null,
-          ineUrl: formData.ineUrl || null,
-          cartaNoAfiliacionUrl: formData.cartaNoAfiliacionUrl || null,
-        }),
+        body: JSON.stringify(payload),
       });
 
+      // Validar respuesta del backend
       if (!response.ok) {
-        const errorData = await response.json(); // Intentar obtener más detalles del error
+        const errorData = await response.json();
         console.error("Error del backend:", errorData);
         throw new Error(
           isEditMode
@@ -1040,15 +1127,18 @@ export default function RegistroBeneficiario() {
         );
       }
 
-      Swal.fire(
-        "Éxito",
-        isEditMode
+      const responseData = await response.json();
+      console.log("Respuesta del backend:", responseData);
+
+      Swal.fire({
+        icon: "success",
+        title: "Éxito",
+        text: isEditMode
           ? "Beneficiario actualizado correctamente."
           : "Beneficiario registrado correctamente.",
-        "success"
-      );
+      });
 
-      // Resetear el formulario después de guardar o actualizar
+      // Resetear formulario tras guardar o actualizar
       setFormData({
         parentesco: "",
         nombre: "",
@@ -1069,16 +1159,21 @@ export default function RegistroBeneficiario() {
         urlConstancia: "",
         urlActaNac: "",
         urlCurp: "",
-        actaMatrimonioUrl: "", // Resetear Acta de Matrimonio
-        ineUrl: "", // Resetear INE
-        cartaNoAfiliacionUrl: "", // Resetear Carta de No Afiliación
+        actaMatrimonioUrl: "",
+        ineUrl: "",
+        cartaNoAfiliacionUrl: "",
+        actaConcubinatoUrl: "", // Reseteado correctamente
       });
 
       setIsModalOpen(false);
-      fetchBeneficiarios();
+      fetchBeneficiarios(); // Refrescar lista de beneficiarios
     } catch (error) {
       console.error("Error al enviar el formulario:", error.message);
-      Swal.fire("Error", error.message, "error");
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: error.message,
+      });
     }
   };
 
@@ -1105,6 +1200,7 @@ export default function RegistroBeneficiario() {
     const isPadreOMadre =
       beneficiario.PARENTESCO === 4 || beneficiario.PARENTESCO === 5; // Padre (4) o Madre (5)
     const isEsposo = beneficiario.PARENTESCO === 1; // Esposo(a) tiene ID 1
+    const isConcubino = beneficiario.PARENTESCO === 3; // Concubino(a) tiene ID 3
 
     // Actualizar los datos en el formulario
     setFormData({
@@ -1132,9 +1228,11 @@ export default function RegistroBeneficiario() {
       actaMatrimonioUrl: beneficiario.URL_ACTAMATRIMONIO || "", // Acta de Matrimonio
       ineUrl: beneficiario.URL_INE || "", // INE
       cartaNoAfiliacionUrl: beneficiario.URL_NOISSTE || "", // Carta de No Afiliación
+      actaConcubinatoUrl: beneficiario.URL_CONCUBINATO || "", // Acta de Concubinato
       showCheckboxes: isHijo && edad >= 16, // Mostrar checkboxes si es Hijo(a) y tiene >= 16 años
-      showUploadFiles: isHijo || isPadreOMadre || isEsposo, // Mostrar inputs para archivos si aplica
+      showUploadFiles: isHijo || isPadreOMadre || isEsposo || isConcubino, // Mostrar inputs para archivos si aplica
       showEsposoFiles: isEsposo, // Mostrar campos específicos de Esposo(a)
+      showConcubinoFiles: isConcubino, // Mostrar campos específicos de Concubino(a)
     });
 
     setCurrentBeneficiaryId(beneficiario.ID_BENEFICIARIO);
@@ -1310,7 +1408,6 @@ export default function RegistroBeneficiario() {
         <div className="modal">
           <div className="modal-content"></div>
         </div>
-
         <Modal
           isOpen={isModalOpen}
           onRequestClose={() => {
@@ -1337,6 +1434,7 @@ export default function RegistroBeneficiario() {
               actaMatrimonioUrl: "", // Limpiar URL del acta de matrimonio
               ineUrl: "", // Limpiar URL del INE
               cartaNoAfiliacionUrl: "", // Limpiar URL de la carta de no afiliación
+              actaConcubinatoUrl: "", // Nuevo: Limpiar URL del acta de concubinato
             });
           }}
           overlayClassName={styles.modalOverlay}
@@ -1483,22 +1581,28 @@ export default function RegistroBeneficiario() {
                         ? selectedOption.PARENTESCO
                         : "";
 
+                      // Verificar tipo de parentesco
                       const isHijo = selectedParentescoText === "Hijo(a)";
                       const isPadreOMadre =
                         selectedParentescoText === "Padre" ||
                         selectedParentescoText === "Madre";
                       const isEsposo = selectedParentescoText === "Esposo(a)";
+                      const isConcubino =
+                        selectedParentescoText === "Concubino(a)"; // Nuevo caso
 
                       setFormData((prev) => ({
                         ...prev,
                         parentesco: selectedId,
-                        showUploadFiles: isHijo || isPadreOMadre || isEsposo, // Mostrar inputs de archivo para Esposo(a), Hijo(a), Padre, Madre
-                        showEsposoFiles: isEsposo, // Mostrar campos exclusivos de Esposo(a)
+                        showUploadFiles:
+                          isHijo || isPadreOMadre || isEsposo || isConcubino, // Mostrar inputs para estos casos
+                        showEsposoFiles: isEsposo, // Mostrar campos específicos de Esposo(a)
+                        showConcubinoFiles: isConcubino, // Mostrar campo específico para Concubino(a)
                         showCheckboxes: isHijo && prev.edad >= 16, // Checkboxes solo para Hijo(a) mayor o igual a 16 años
                         esEstudiante: 0,
                         esDiscapacitado: 0,
                         actaNacimientoUrl: "",
                         curpFileUrl: "",
+                        actaConcubinatoUrl: "", // Limpia el nuevo campo
                       }));
                     }}
                     className={styles.inputField}
@@ -1635,27 +1739,82 @@ export default function RegistroBeneficiario() {
                       {/* Subir Acta de Matrimonio */}
                       <div className={styles.inputRow2}>
                         <label className={styles.inputLabel2}>
-                          <FaFileUpload className={styles.icon} /> Acta de
-                          Matrimonio - SUBIR:
+                          <FaFileUpload className={styles.icon} /> Cargar Acta
+                          de Matrimonio de Clave Única:
                           <div className={styles.fileInputWrapper2}>
-                            <input
-                              type="file"
-                              name="actaMatrimonio"
-                              accept="application/pdf"
-                              onChange={handleFileUploadActaMatrimonio}
-                              className={styles.fileInput2}
-                              id="acta-matrimonio-upload"
-                            />
-                            <label
-                              htmlFor="acta-matrimonio-upload"
-                              className={styles.uploadButton2}
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                if (!numNomina) {
+                                  console.error(
+                                    "[ERROR] Número de nómina no ingresado."
+                                  );
+                                  Swal.fire(
+                                    "Error",
+                                    "Por favor, ingresa un número de nómina válido.",
+                                    "error"
+                                  );
+                                  return;
+                                }
+
+                                try {
+                                  console.log(
+                                    `[INFO] Solicitando acta de matrimonio para nómina: ${numNomina}`
+                                  );
+
+                                  const response = await fetch(
+                                    "/api/beneficiarios/validarActaMatrimonio",
+                                    {
+                                      method: "POST",
+                                      headers: {
+                                        "Content-Type": "application/json",
+                                      },
+                                      body: JSON.stringify({ numNomina }), // Enviar la nómina
+                                    }
+                                  );
+
+                                  const result = await response.json();
+
+                                  console.log(
+                                    "[DEBUG] Respuesta de la API:",
+                                    result
+                                  );
+
+                                  if (!response.ok) {
+                                    console.error(
+                                      "[ERROR] Error en la respuesta de la API:",
+                                      result.message
+                                    );
+                                    throw new Error(result.message);
+                                  }
+
+                                  // Actualizar la URL del acta de matrimonio en el estado
+                                  setFormData((prev) => ({
+                                    ...prev,
+                                    actaMatrimonioUrl: result.url,
+                                  }));
+
+                                  Swal.fire(
+                                    "Éxito",
+                                    "Acta de Matrimonio cargada correctamente.",
+                                    "success"
+                                  );
+                                } catch (error) {
+                                  console.error(
+                                    "[ERROR] Error al cargar el acta de matrimonio:",
+                                    error.message
+                                  );
+                                  Swal.fire("Error", error.message, "error");
+                                }
+                              }}
+                              className={styles.uploadButton3}
                             >
-                              Seleccionar archivo
-                            </label>
+                              Cargar Acta de Matrimonio
+                            </button>
                             <span className={styles.fileName2}>
                               {formData.actaMatrimonioUrl
                                 ? getFileNameFromURL(formData.actaMatrimonioUrl)
-                                : "Sin archivo seleccionado"}
+                                : "Sin archivo cargado"}
                             </span>
                           </div>
                         </label>
@@ -1663,23 +1822,12 @@ export default function RegistroBeneficiario() {
                         {formData.actaMatrimonioUrl && (
                           <button
                             type="button"
-                            className={styles.viewButton2}
+                            className={styles.viewButton3}
                             onClick={() => {
-                              if (formData.actaMatrimonioUrl) {
-                                window.open(
-                                  formData.actaMatrimonioUrl,
-                                  "_blank"
-                                );
-                              } else {
-                                Swal.fire(
-                                  "Error",
-                                  "No se encontró un Acta de Matrimonio válida.",
-                                  "error"
-                                );
-                              }
+                              window.open(formData.actaMatrimonioUrl, "_blank");
                             }}
                           >
-                            Ver Acta de Matrimonio Actual
+                            Ver Acta de Matrimonio
                           </button>
                         )}
                       </div>
@@ -1788,6 +1936,102 @@ export default function RegistroBeneficiario() {
                     </>
                   )}
                 </fieldset>
+              )}
+
+              {formData.showConcubinoFiles && (
+                <div className={styles.inputRow2}>
+                  <label className={styles.inputLabel2}>
+                    <FaFileUpload className={styles.icon} /> Cargar Acta de
+                    Concubinato desde Clave Única:
+                    <div className={styles.fileInputWrapper2}>
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          // Validar que el número de nómina esté presente
+                          if (!numNomina) {
+                            console.error(
+                              "[ERROR] Número de nómina no ingresado."
+                            );
+                            Swal.fire(
+                              "Error",
+                              "Por favor, ingresa un número de nómina válido.",
+                              "error"
+                            );
+                            return;
+                          }
+
+                          try {
+                            console.log(
+                              `[INFO] Solicitando acta de concubinato para nómina: ${numNomina}`
+                            );
+
+                            const response = await fetch(
+                              "/api/beneficiarios/validarActaConcubinato",
+                              {
+                                method: "POST",
+                                headers: {
+                                  "Content-Type": "application/json",
+                                },
+                                body: JSON.stringify({ numNomina }), // Enviar la nómina al backend
+                              }
+                            );
+
+                            const result = await response.json();
+
+                            console.log("[DEBUG] Respuesta de la API:", result);
+
+                            if (!response.ok) {
+                              console.error(
+                                "[ERROR] Error en la respuesta de la API:",
+                                result.message
+                              );
+                              throw new Error(result.message);
+                            }
+
+                            // Actualizar el estado con la URL del acta de concubinato
+                            setFormData((prev) => ({
+                              ...prev,
+                              actaConcubinatoUrl: result.url,
+                            }));
+
+                            Swal.fire(
+                              "Éxito",
+                              "Acta de Concubinato cargada correctamente.",
+                              "success"
+                            );
+                          } catch (error) {
+                            console.error(
+                              "[ERROR] Error al cargar el acta de concubinato:",
+                              error.message
+                            );
+                            Swal.fire("Error", error.message, "error");
+                          }
+                        }}
+                        className={styles.uploadButton3}
+                      >
+                        Cargar Acta de Concubinato
+                      </button>
+                      <span className={styles.fileName2}>
+                        {formData.actaConcubinatoUrl
+                          ? getFileNameFromURL(formData.actaConcubinatoUrl)
+                          : "Sin archivo cargado"}
+                      </span>
+                    </div>
+                  </label>
+
+                  {/* Botón para ver el Acta de Concubinato cargada */}
+                  {formData.actaConcubinatoUrl && (
+                    <button
+                      type="button"
+                      className={styles.viewButton3}
+                      onClick={() => {
+                        window.open(formData.actaConcubinatoUrl, "_blank");
+                      }}
+                    >
+                      Ver Acta de Concubinato
+                    </button>
+                  )}
+                </div>
               )}
 
               {/* Checkboxes dinámicos */}
@@ -2007,18 +2251,21 @@ export default function RegistroBeneficiario() {
             <div className={styles.buttonGroup}>
               <button
                 type="submit"
-                className={styles.submitButton}
+                className={`${styles.submitButton} ${
+                  isSaveDisabled ? styles.disabled : ""
+                }`}
                 disabled={isSaveDisabled} // Botón deshabilitado si la fecha es inválida
               >
-                <FaSave className={`${styles.icon} ${styles.iconLarge}`} />{" "}
+                <FaSave className={`${styles.icon} ${styles.iconLarge}`} />
                 {isEditMode ? "Actualizar" : "Guardar"}
               </button>
+
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
                 className={styles.cancelButton}
               >
-                <FaTimes className={`${styles.icon} ${styles.iconLarge}`} />{" "}
+                <FaTimes className={`${styles.icon} ${styles.iconLarge}`} />
                 Cancelar
               </button>
             </div>
@@ -2070,7 +2317,8 @@ export default function RegistroBeneficiario() {
                     {`${selectedBeneficiary.NOMBRE} ${selectedBeneficiary.A_PATERNO} ${selectedBeneficiary.A_MATERNO}`}
                   </li>
                   <li>
-                    <strong>CURP:</strong> {selectedBeneficiary.CURP}
+                    <strong>Tipo de sangre:</strong>{" "}
+                    {selectedBeneficiary.SANGRE}
                   </li>
                   <li>
                     <strong>Sexo:</strong>{" "}
@@ -2172,106 +2420,125 @@ export default function RegistroBeneficiario() {
         </Modal>
 
         <Modal
-  isOpen={isDocumentsModalOpen}
-  onRequestClose={() => handleCloseModal()} // Llamamos a una función para cerrar con fadeOut
-  overlayClassName={`${styles.documentsModalOverlay}`}
-  className={`${styles.documentsModalContainer} ${
-    isFadingOut ? styles.documentsSlideOut : ""
-  }`}
->
-  {selectedBeneficiary && (
-    <div className={styles.documentsModalContent}>
-      <h2 className={styles.documentsModalTitle}>Documentos Subidos</h2>
+          isOpen={isDocumentsModalOpen}
+          onRequestClose={() => handleCloseModal()} // Llamamos a una función para cerrar con fadeOut
+          overlayClassName={`${styles.documentsModalOverlay}`}
+          className={`${styles.documentsModalContainer} ${
+            isFadingOut ? styles.documentsSlideOut : ""
+          }`}
+        >
+          {selectedBeneficiary && (
+            <div className={styles.documentsModalContent}>
+              <h2 className={styles.documentsModalTitle}>Documentos Subidos</h2>
 
-      {/* Lista de botones para ver documentos */}
-      <div className={styles.documentsButtonsWrapper}>
-        {/* Acta de Nacimiento */}
-        {selectedBeneficiary.URL_ACTA_NAC && (
-          <button
-            className={styles.documentButton}
-            onClick={() =>
-              window.open(selectedBeneficiary.URL_ACTA_NAC, "_blank")
-            }
-          >
-            <FaFileUpload size={20} />
-            Acta de Nacimiento
-          </button>
-        )}
+              {/* Lista de botones para ver documentos */}
+              <div className={styles.documentsButtonsWrapper}>
+                {/* Acta de Nacimiento */}
+                {selectedBeneficiary.URL_ACTA_NAC && (
+                  <button
+                    className={styles.documentButton}
+                    onClick={() =>
+                      window.open(selectedBeneficiary.URL_ACTA_NAC, "_blank")
+                    }
+                  >
+                    <FaFileUpload size={20} />
+                    Acta de Nacimiento
+                  </button>
+                )}
 
-        {/* CURP */}
-        {selectedBeneficiary.URL_CURP && (
-          <button
-            className={styles.documentButton}
-            onClick={() => window.open(selectedBeneficiary.URL_CURP, "_blank")}
-          >
-            <FaFileAlt size={20} />
-            Ver CURP
-          </button>
-        )}
+                {/* CURP */}
+                {selectedBeneficiary.URL_CURP && (
+                  <button
+                    className={styles.documentButton}
+                    onClick={() =>
+                      window.open(selectedBeneficiary.URL_CURP, "_blank")
+                    }
+                  >
+                    <FaFileAlt size={20} />
+                    Ver CURP
+                  </button>
+                )}
 
-        {/* Constancia */}
-        {selectedBeneficiary.URL_CONSTANCIA && (
-          <button
-            className={styles.documentButton}
-            onClick={() =>
-              window.open(selectedBeneficiary.URL_CONSTANCIA, "_blank")
-            }
-          >
-            <FaFileAlt size={20} />
-            Constancia de Estudios
-          </button>
-        )}
+                {/* Constancia */}
+                {selectedBeneficiary.URL_CONSTANCIA && (
+                  <button
+                    className={styles.documentButton}
+                    onClick={() =>
+                      window.open(selectedBeneficiary.URL_CONSTANCIA, "_blank")
+                    }
+                  >
+                    <FaFileAlt size={20} />
+                    Constancia de Estudios
+                  </button>
+                )}
 
-        {/* Acta de Matrimonio */}
-        {selectedBeneficiary.URL_ACTAMATRIMONIO && (
-          <button
-            className={styles.documentButton}
-            onClick={() =>
-              window.open(selectedBeneficiary.URL_ACTAMATRIMONIO, "_blank")
-            }
-          >
-            <FaFileUpload size={20} />
-            Acta de Matrimonio
-          </button>
-        )}
+                {/* Acta de Matrimonio */}
+                {selectedBeneficiary.URL_ACTAMATRIMONIO && (
+                  <button
+                    className={styles.documentButton}
+                    onClick={() =>
+                      window.open(
+                        selectedBeneficiary.URL_ACTAMATRIMONIO,
+                        "_blank"
+                      )
+                    }
+                  >
+                    <FaFileUpload size={20} />
+                    Acta de Matrimonio
+                  </button>
+                )}
 
-        {/* INE */}
-        {selectedBeneficiary.URL_INE && (
-          <button
-            className={styles.documentButton}
-            onClick={() => window.open(selectedBeneficiary.URL_INE, "_blank")}
-          >
-            <FaFileAlt size={20} />
-            INE
-          </button>
-        )}
+                {/* INE */}
+                {selectedBeneficiary.URL_INE && (
+                  <button
+                    className={styles.documentButton}
+                    onClick={() =>
+                      window.open(selectedBeneficiary.URL_INE, "_blank")
+                    }
+                  >
+                    <FaFileAlt size={20} />
+                    INE
+                  </button>
+                )}
 
-        {/* Carta de No Afiliación */}
-        {selectedBeneficiary.URL_NOISSTE && (
-          <button
-            className={styles.documentButton}
-            onClick={() =>
-              window.open(selectedBeneficiary.URL_NOISSTE, "_blank")
-            }
-          >
-            <FaFileAlt size={20} />
-            Carta de No Afiliación
-          </button>
-        )}
-      </div>
+                {/* Carta de No Afiliación */}
+                {selectedBeneficiary.URL_NOISSTE && (
+                  <button
+                    className={styles.documentButton}
+                    onClick={() =>
+                      window.open(selectedBeneficiary.URL_NOISSTE, "_blank")
+                    }
+                  >
+                    <FaFileAlt size={20} />
+                    Carta de No Afiliación
+                  </button>
+                )}
 
-      {/* Botón para cerrar el modal */}
-      <button
-        className={styles.closeDocumentButton}
-        onClick={() => handleCloseModal()}
-      >
-        <FaTimes size={20} />
-        Cerrar
-      </button>
-    </div>
-  )}
-</Modal>
+                {/* Acta de Concubinato */}
+                {selectedBeneficiary.URL_CONCUBINATO && (
+                  <button
+                    className={styles.documentButton}
+                    onClick={() =>
+                      window.open(selectedBeneficiary.URL_CONCUBINATO, "_blank")
+                    }
+                  >
+                    <FaFileUpload size={20} />
+                    Acta de Concubinato
+                  </button>
+                )}
+              </div>
 
+              {/* Botón para cerrar el modal */}
+              <button
+                className={styles.closeDocumentButton}
+                onClick={() => handleCloseModal()}
+              >
+                <FaTimes size={20} />
+                Cerrar
+              </button>
+            </div>
+          )}
+        </Modal>
 
         {/* Tabla de beneficiarios, solo se muestra si el empleado es encontrado */}
         {empleado &&

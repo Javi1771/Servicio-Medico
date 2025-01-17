@@ -34,7 +34,8 @@ export default async function handler(req, res) {
             URL_ACTA_NAC,
             URL_INE,            
             URL_ACTAMATRIMONIO,
-            URL_NOISSTE        
+            URL_NOISSTE,
+            URL_CONCUBINATO        
           FROM [PRESIDENCIA].[dbo].[BENEFICIARIO]
           WHERE NO_NOMINA = @num_nom
         `);

@@ -25,16 +25,26 @@ export default async function handler(req, res) {
     }
 
     const file = Array.isArray(files.file) ? files.file[0] : files.file;
+    const { numNomina } = fields; // Obtener el número de nómina del formulario
 
     if (!file) {
       console.error("Archivo no encontrado en la solicitud");
       return res.status(400).json({ error: "Archivo no encontrado en la solicitud." });
     }
 
+    if (!numNomina) {
+      console.error("Número de nómina no proporcionado");
+      return res.status(400).json({ error: "Número de nómina es obligatorio." });
+    }
+
     try {
+      // Definir la carpeta en Cloudinary
+      const folderPath = `actasNacimiento/${numNomina}`;
+
+      // Subir el archivo a Cloudinary
       const uploadResponse = await cloudinary.uploader.upload(file.filepath, {
         resource_type: "raw", // Subir como archivo raw (PDF)
-        folder: "actasNacimiento", // Carpeta en Cloudinary
+        folder: folderPath, // Carpeta con estructura específica
         use_filename: true, // Usar el nombre original del archivo
         unique_filename: false, // Permitir nombres duplicados
       });

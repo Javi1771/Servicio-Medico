@@ -30,7 +30,9 @@ export default async function handler(req, res) {
     actaMatrimonioUrl,
     ineUrl,
     cartaNoAfiliacionUrl,
+    actaConcubinatoUrl, // Asegúrate de recibir este campo
   } = req.body;
+
   try {
     // Validar longitud de los campos antes de la inserción
     const truncatedNombre = nombre?.substring(0, 50);
@@ -44,53 +46,57 @@ export default async function handler(req, res) {
     const truncatedUrlConstancia = urlConstancia?.substring(0, 255);
     const truncatedUrlCurp = urlCurp?.substring(0, 255);
     const truncatedUrlActaNac = urlActaNac?.substring(0, 255);
-    const truncatedActaMatrimonioUrl = actaMatrimonioUrl?.substring(0, 255); // Nuevo
-    const truncatedIneUrl = ineUrl?.substring(0, 255); // Nuevo
-    const truncatedCartaNoAfiliacionUrl = cartaNoAfiliacionUrl?.substring(0, 255); // Nuevo
+    const truncatedActaMatrimonioUrl = actaMatrimonioUrl?.substring(0, 255);
+    const truncatedIneUrl = ineUrl?.substring(0, 255);
+    const truncatedCartaNoAfiliacionUrl = cartaNoAfiliacionUrl?.substring(0, 255);
+    const truncatedActaConcubinatoUrl = actaConcubinatoUrl?.substring(0, 255); // Asegúrate de truncar este campo
 
     const pool = await connectToDatabase();
 
     // Inserción en la base de datos
     await pool.request()
-    .input("noNomina", noNomina)
-    .input("parentesco", parentesco)
-    .input("nombre", truncatedNombre)
-    .input("aPaterno", truncatedAPaterno)
-    .input("aMaterno", truncatedAMaterno)
-    .input("sexo", sexo)
-    .input("fNacimiento", fNacimiento)
-    .input("escolaridad", escolaridad || null)
-    .input("activo", activo)
-    .input("alergias", truncatedAlergias)
-    .input("sangre", truncatedSangre)
-    .input("telEmergencia", truncatedTelEmergencia)
-    .input("nombreEmergencia", truncatedNombreEmergencia)
-    .input("esEstudiante", esEstudiante)
-    .input("esDiscapacitado", esDiscapacitado)
-    .input("vigenciaEstudios", vigenciaEstudios || null)
-    .input("imageUrl", truncatedFotoUrl)
-    .input("urlConstancia", truncatedUrlConstancia)
-    .input("urlCurp", truncatedUrlCurp)
-    .input("urlActaNac", truncatedUrlActaNac)
-    .input("actaMatrimonioUrl", truncatedActaMatrimonioUrl)
-    .input("ineUrl", truncatedIneUrl)
-    .input("cartaNoAfiliacionUrl", truncatedCartaNoAfiliacionUrl)
-    .query(`
-      INSERT INTO BENEFICIARIO (
-        NO_NOMINA, PARENTESCO, NOMBRE, A_PATERNO, A_MATERNO, SEXO, 
-        F_NACIMIENTO, ESCOLARIDAD, ACTIVO, ALERGIAS, SANGRE, 
-        TEL_EMERGENCIA, NOMBRE_EMERGENCIA, ESESTUDIANTE, ESDISCAPACITADO, 
-        VIGENCIA_ESTUDIOS, FOTO_URL, URL_CONSTANCIA, 
-        URL_CURP, URL_ACTA_NAC, URL_ACTAMATRIMONIO, URL_INE, URL_NOISSTE
-      )
-      VALUES (
-        @noNomina, @parentesco, @nombre, @aPaterno, @aMaterno, @sexo, 
-        @fNacimiento, @escolaridad, @activo, @alergias, @sangre, 
-        @telEmergencia, @nombreEmergencia, @esEstudiante, @esDiscapacitado, 
-        @vigenciaEstudios, @imageUrl, @urlConstancia, 
-        @urlCurp, @urlActaNac, @actaMatrimonioUrl, @ineUrl, @cartaNoAfiliacionUrl
-      )
-    `);
+      .input("noNomina", noNomina)
+      .input("parentesco", parentesco)
+      .input("nombre", truncatedNombre)
+      .input("aPaterno", truncatedAPaterno)
+      .input("aMaterno", truncatedAMaterno)
+      .input("sexo", sexo)
+      .input("fNacimiento", fNacimiento)
+      .input("escolaridad", escolaridad || null)
+      .input("activo", activo)
+      .input("alergias", truncatedAlergias)
+      .input("sangre", truncatedSangre)
+      .input("telEmergencia", truncatedTelEmergencia)
+      .input("nombreEmergencia", truncatedNombreEmergencia)
+      .input("esEstudiante", esEstudiante)
+      .input("esDiscapacitado", esDiscapacitado)
+      .input("vigenciaEstudios", vigenciaEstudios || null)
+      .input("imageUrl", truncatedFotoUrl)
+      .input("urlConstancia", truncatedUrlConstancia)
+      .input("urlCurp", truncatedUrlCurp)
+      .input("urlActaNac", truncatedUrlActaNac)
+      .input("actaMatrimonioUrl", truncatedActaMatrimonioUrl)
+      .input("ineUrl", truncatedIneUrl)
+      .input("cartaNoAfiliacionUrl", truncatedCartaNoAfiliacionUrl)
+      .input("actaConcubinatoUrl", truncatedActaConcubinatoUrl) // Asegúrate de insertar este campo
+      .query(`
+        INSERT INTO BENEFICIARIO (
+          NO_NOMINA, PARENTESCO, NOMBRE, A_PATERNO, A_MATERNO, SEXO, 
+          F_NACIMIENTO, ESCOLARIDAD, ACTIVO, ALERGIAS, SANGRE, 
+          TEL_EMERGENCIA, NOMBRE_EMERGENCIA, ESESTUDIANTE, ESDISCAPACITADO, 
+          VIGENCIA_ESTUDIOS, FOTO_URL, URL_CONSTANCIA, 
+          URL_CURP, URL_ACTA_NAC, URL_ACTAMATRIMONIO, URL_INE, URL_NOISSTE, 
+          URL_CONCUBINATO
+        )
+        VALUES (
+          @noNomina, @parentesco, @nombre, @aPaterno, @aMaterno, @sexo, 
+          @fNacimiento, @escolaridad, @activo, @alergias, @sangre, 
+          @telEmergencia, @nombreEmergencia, @esEstudiante, @esDiscapacitado, 
+          @vigenciaEstudios, @imageUrl, @urlConstancia, 
+          @urlCurp, @urlActaNac, @actaMatrimonioUrl, @ineUrl, @cartaNoAfiliacionUrl, 
+          @actaConcubinatoUrl
+        )
+      `);
 
     res.status(200).json({ message: "Beneficiario agregado correctamente" });
   } catch (error) {

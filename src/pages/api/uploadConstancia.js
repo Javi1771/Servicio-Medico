@@ -29,23 +29,33 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: "Error al parsear el formulario" });
     }
 
-    console.log("Fields:", fields);
-    console.log("Files:", files);
-
     const file = Array.isArray(files.file) ? files.file[0] : files.file;
+    const { numNomina } = fields; // Obtener el número de nómina del formulario
 
     if (!file) {
       console.error("Archivo no encontrado en la solicitud");
-      return res.status(400).json({ error: "Archivo no encontrado en la solicitud" });
+      return res
+        .status(400)
+        .json({ error: "Archivo no encontrado en la solicitud" });
+    }
+
+    if (!numNomina) {
+      console.error("Número de nómina no proporcionado");
+      return res
+        .status(400)
+        .json({ error: "El número de nómina es obligatorio." });
     }
 
     const filePath = file.filepath;
-    console.log("Ruta del archivo:", filePath);
 
     try {
+      // Definir la carpeta en Cloudinary
+      const folderPath = `constancias/${numNomina}`;
+
+      // Subir el archivo a Cloudinary
       const uploadResponse = await cloudinary.uploader.upload(filePath, {
         resource_type: "raw", // Para subir archivos PDF
-        folder: "constancias", // Carpeta en Cloudinary
+        folder: folderPath, // Carpeta en Cloudinary
         use_filename: true, // Mantener el nombre original del archivo
         unique_filename: false, // Permitir nombres repetidos
       });
