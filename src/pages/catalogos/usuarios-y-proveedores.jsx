@@ -2,6 +2,19 @@
 import { useEffect, useState } from "react";
 import ReactDOM from "react-dom"; // Asegúrate de importar ReactDOM
 import styles from "../css/usuarios.module.css";
+import {
+  FaUser,
+  FaMapMarkerAlt,
+  FaMap,
+  FaPhone,
+  FaMobileAlt,
+  FaIdCard,
+  FaLock,
+  FaBriefcase,
+  FaUsers,
+  FaEye,
+  FaEyeSlash,
+} from "react-icons/fa";
 import Swal from "sweetalert2";
 import Image from "next/image"; // Asegúrate de importar Image desde next/image
 import { useRouter } from "next/router";
@@ -447,226 +460,233 @@ export default function UsuariosTable() {
                 <h2 className={styles.modalHeader}>
                   {selectedUsuario ? "Editar Usuario" : "Agregar Usuario"}
                 </h2>
+
                 <form className={styles.modalForm} onSubmit={handleSubmit}>
-                  {/* Campo para el nombre completo */}
-                  <div className={`${styles.inputContainer}`}>
-                    <label htmlFor="nombreusuario" className={styles.label}>
-                      Nombre completo
-                    </label>
-                    <input
-                      type="text"
-                      id="nombreusuario"
-                      name="nombreusuario"
-                      placeholder="Ingrese el nombre completo"
-                      onChange={handleInputChange}
-                      onBlur={() => {
-                        // Generar sugerencia de nombre de usuario al salir del campo de nombre
-                        const baseName = newUsuario.nombreusuario
-                          ?.toLowerCase()
-                          .trim()
-                          .replace(/[^a-z0-9]/g, "") // Remueve caracteres especiales
-                          ?.split(" ")
-                          ?.join(""); // Junta todas las palabras
-                        const suggestedUsername = `${baseName}${Math.floor(
-                          Math.random() * 100
-                        )}`;
-                        setNewUsuario((prev) => ({
-                          ...prev,
-                          usuario: suggestedUsername,
-                        }));
-                      }}
-                      value={newUsuario.nombreusuario || ""}
-                      className={styles.input}
-                      autoComplete="off" // Desactiva autocompletar
-                    />
-                  </div>
+  {/* Campo para el nombre completo */}
+  <div className={styles.inputGroup}>
+    <label htmlFor="nombreusuario" className={`${styles.label} flex items-center gap-2`}>
+      <FaUser className={styles.icon} /> Nombre completo
+    </label>
+    <input
+      type="text"
+      id="nombreusuario"
+      name="nombreusuario"
+      placeholder="Ingrese el nombre completo"
+      onChange={handleInputChange}
+      onBlur={() => {
+        const baseName = newUsuario.nombreusuario
+          ?.toLowerCase()
+          .trim()
+          .replace(/[^a-z0-9]/g, "")
+          ?.split(" ")
+          ?.join("");
+        const suggestedUsername = `${baseName}${Math.floor(Math.random() * 100)}`;
+        setNewUsuario((prev) => ({
+          ...prev,
+          usuario: suggestedUsername,
+        }));
+      }}
+      value={newUsuario.nombreusuario || ""}
+      className={styles.input}
+      autoComplete="off"
+    />
+  </div>
 
-                  {/* Resto de campos (dirección, colonia, etc.) */}
-                  <div className={styles.inputContainer}>
-                    <label htmlFor="direcciousuario" className={styles.label}>
-                      Calle
-                    </label>
-                    <input
-                      type="text"
-                      id="direcciousuario"
-                      name="direcciousuario"
-                      placeholder="Ingrese la dirección"
-                      onChange={handleInputChange}
-                      value={newUsuario.direcciousuario || ""}
-                      className={styles.input}
-                      autoComplete="off" // Desactiva autocompletar
-                    />
-                  </div>
+  {/* Campo de dirección */}
+  <div className={styles.inputGroup}>
+    <label htmlFor="direcciousuario" className={`${styles.label} flex items-center gap-2`}>
+      <FaMapMarkerAlt className={styles.icon} /> Calle
+    </label>
+    <input
+      type="text"
+      id="direcciousuario"
+      name="direcciousuario"
+      placeholder="Ingrese la dirección"
+      onChange={handleInputChange}
+      value={newUsuario.direcciousuario || ""}
+      className={styles.input}
+      autoComplete="off"
+    />
+  </div>
 
-                  <div className={styles.inputContainer}>
-                    <label htmlFor="coloniausuario" className={styles.label}>
-                      Colonia
-                    </label>
-                    <input
-                      type="text"
-                      id="coloniausuario"
-                      name="coloniausuario"
-                      placeholder="Ingrese la colonia"
-                      onChange={handleInputChange}
-                      value={newUsuario.coloniausuario || ""}
-                      className={styles.input}
-                      autoComplete="off" // Desactiva autocompletar
-                    />
-                  </div>
+  {/* Campo de colonia */}
+  <div className={styles.inputGroup}>
+    <label htmlFor="coloniausuario" className={`${styles.label} flex items-center gap-2`}>
+      <FaMap className={styles.icon} /> Colonia
+    </label>
+    <input
+      type="text"
+      id="coloniausuario"
+      name="coloniausuario"
+      placeholder="Ingrese la colonia"
+      onChange={handleInputChange}
+      value={newUsuario.coloniausuario || ""}
+      className={styles.input}
+      autoComplete="off"
+    />
+  </div>
 
-                  <div className={styles.inputContainer}>
-                    <label htmlFor="telefonousuario" className={styles.label}>
-                      Teléfono
-                    </label>
-                    <input
-                      type="text"
-                      id="telefonousuario"
-                      name="telefonousuario"
-                      placeholder="Ingrese el teléfono"
-                      onChange={handleInputChange}
-                      value={newUsuario.telefonousuario || ""}
-                      className={styles.input}
-                      autoComplete="off" // Desactiva autocompletar
-                    />
-                  </div>
+  {/* Campo de teléfono */}
+  <div className={styles.inputGroup}>
+    <label htmlFor="telefonousuario" className={`${styles.label} flex items-center gap-2`}>
+      <FaPhone className={styles.icon} /> Teléfono
+    </label>
+    <input
+      type="text"
+      id="telefonousuario"
+      name="telefonousuario"
+      placeholder="Ingrese el teléfono"
+      onChange={handleInputChange}
+      value={newUsuario.telefonousuario || ""}
+      className={styles.input}
+      autoComplete="off"
+    />
+  </div>
 
-                  <div className={styles.inputContainer}>
-                    <label htmlFor="celularusuario" className={styles.label}>
-                      Celular
-                    </label>
-                    <input
-                      type="text"
-                      id="celularusuario"
-                      name="celularusuario"
-                      placeholder="Ingrese el celular"
-                      onChange={handleInputChange}
-                      value={newUsuario.celularusuario || ""}
-                      className={styles.input}
-                      autoComplete="off" // Desactiva autocompletar
-                    />
-                  </div>
+  {/* Campo de celular */}
+  <div className={styles.inputGroup}>
+    <label htmlFor="celularusuario" className={`${styles.label} flex items-center gap-2`}>
+      <FaMobileAlt className={styles.icon} /> Celular
+    </label>
+    <input
+      type="text"
+      id="celularusuario"
+      name="celularusuario"
+      placeholder="Ingrese el celular"
+      onChange={handleInputChange}
+      value={newUsuario.celularusuario || ""}
+      className={styles.input}
+      autoComplete="off"
+    />
+  </div>
 
-                  <div className={styles.inputContainer}>
-                    <label htmlFor="cedulausuario" className={styles.label}>
-                      Cédula
-                    </label>
-                    <input
-                      type="text"
-                      id="cedulausuario"
-                      name="cedulausuario"
-                      placeholder="Ingrese la cédula"
-                      onChange={handleInputChange}
-                      value={newUsuario.cedulausuario || ""}
-                      className={styles.input}
-                      autoComplete="off" // Desactiva autocompletar
-                    />
-                  </div>
+  {/* Campo de cédula */}
+  <div className={styles.inputGroup}>
+    <label htmlFor="cedulausuario" className={`${styles.label} flex items-center gap-2`}>
+      <FaIdCard className={styles.icon} /> Cédula
+    </label>
+    <input
+      type="text"
+      id="cedulausuario"
+      name="cedulausuario"
+      placeholder="Ingrese la cédula"
+      onChange={handleInputChange}
+      value={newUsuario.cedulausuario || ""}
+      className={styles.input}
+      autoComplete="off"
+    />
+  </div>
 
-                  {/* Dropdown de especialidad */}
-                  <div className={styles.inputContainer}>
-                    <label htmlFor="claveespecialidad" className={styles.label}>
-                      Especialidad
-                    </label>
-                    <select
-                      id="claveespecialidad"
-                      name="claveespecialidad"
-                      onChange={handleInputChange}
-                      value={newUsuario.claveespecialidad || ""}
-                      className={styles.dropdown}
-                    >
-                      <option value="">Seleccionar Especialidad</option>
-                      {Array.isArray(especialidades) &&
-                        especialidades.map((especialidad) => (
-                          <option
-                            key={especialidad.claveespecialidad}
-                            value={especialidad.claveespecialidad}
-                          >
-                            {especialidad.especialidad}
-                          </option>
-                        ))}
-                    </select>
-                  </div>
+  {/* Dropdown de especialidad */}
+  <div className={styles.inputGroup}>
+    <label htmlFor="claveespecialidad" className={`${styles.label} flex items-center gap-2`}>
+      <FaBriefcase className={styles.icon} /> Especialidad
+    </label>
+    <select
+      id="claveespecialidad"
+      name="claveespecialidad"
+      onChange={handleInputChange}
+      value={newUsuario.claveespecialidad || ""}
+      className={styles.dropdown}
+    >
+      <option value="">Seleccionar Especialidad</option>
+      {Array.isArray(especialidades) &&
+        especialidades.map((especialidad) => (
+          <option key={especialidad.claveespecialidad} value={especialidad.claveespecialidad}>
+            {especialidad.especialidad}
+          </option>
+        ))}
+    </select>
+  </div>
 
-                  {/* Campo para el nombre de usuario */}
-                  <div className={`${styles.inputContainer}`}>
-                    <label htmlFor="usuario" className={styles.label}>
-                      Nombre de usuario
-                    </label>
-                    <input
-                      type="text"
-                      id="usuario"
-                      name="usuario"
-                      placeholder="Ingrese un nombre de usuario"
-                      onChange={handleInputChange}
-                      onBlur={handleBlur} // Genera sugerencia si está vacío
-                      value={newUsuario.usuario || ""}
-                      className={`${styles.input} ${
-                        usuarioError ? styles.inputError : styles.inputSuccess
-                      }`}
-                      autoComplete="off" // Desactiva autocompletar
-                    />
-                    {usuarioError && (
-                      <p className={`${styles.errorMessage} ${styles.fadeIn}`}>
-                        {usuarioError}
-                      </p>
-                    )}
-                  </div>
+  {/* Campo de nombre de usuario */}
+  <div className={styles.inputGroup}>
+    <label htmlFor="usuario" className={`${styles.label} flex items-center gap-2`}>
+      <FaUser className={styles.icon} /> Nombre de usuario
+    </label>
+    <input
+      type="text"
+      id="usuario"
+      name="usuario"
+      placeholder="Ingrese un nombre de usuario"
+      onChange={handleInputChange}
+      onBlur={handleBlur}
+      value={newUsuario.usuario || ""}
+      className={`${styles.input} ${
+        usuarioError ? styles.inputError : styles.inputSuccess
+      }`}
+      autoComplete="off"
+    />
+    {usuarioError && (
+      <p className={`${styles.errorMessage} ${styles.fadeIn}`}>{usuarioError}</p>
+    )}
+  </div>
 
-                  {/* Campo de contraseña */}
-                  <div className={styles.inputContainer}>
-                    <label htmlFor="password" className={styles.label}>
-                      Contraseña
-                    </label>
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      id="password"
-                      name="password"
-                      placeholder="Ingrese la contraseña"
-                      onChange={handleInputChange}
-                      value={newUsuario.password || ""}
-                      className={styles.input}
-                      autoComplete="new-password" // Desactiva autocompletar y evita que use contraseñas guardadas
-                    />
-                    <button
-                      onClick={togglePasswordVisibility}
-                      className={styles.eyeIcon}
-                      type="button"
-                    >
-                      {showPassword ? (
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="20"
-                          height="20"
-                          fill="currentColor"
-                          viewBox="0 0 16 16"
-                        >
-                          <path d="M8 3a5.977 5.977 0 0 0-5.623 4H2a6 6 0 1 0 0 6h.377A5.977 5.977 0 0 0 8 13a5.977 5.977 0 0 0 5.623-4H14a6 6 0 0 0 0-6h-.377A5.977 5.977 0 0 0 8 3zM1 8a7 7 0 0 1 14 0 7 7 0 0 1-14 0z" />
-                        </svg>
-                      ) : (
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="20"
-                          height="20"
-                          fill="currentColor"
-                          viewBox="0 0 16 16"
-                        >
-                          <path d="M8 3a5.977 5.977 0 0 0-5.623 4H2a6 6 0 1 0 0 6h.377A5.977 5.977 0 0 0 8 13a5.977 5.977 0 0 0 5.623-4H14a6 6 0 0 0 0-6h-.377A5.977 5.977 0 0 0 8 3zM1 8a7 7 0 0 1 14 0 7 7 0 0 1-14 0z" />
-                        </svg>
-                      )}
-                    </button>
-                  </div>
+  {/* Campo de contraseña */}
+  <div className={styles.inputGroup}>
+    <label htmlFor="password" className={`${styles.label} flex items-center gap-2`}>
+      <FaLock className={styles.icon} /> Contraseña
+    </label>
+    <div className="relative">
+      <input
+        type={showPassword ? "text" : "password"}
+        id="password"
+        name="password"
+        placeholder="Ingrese la contraseña"
+        onChange={handleInputChange}
+        value={newUsuario.password || ""}
+        className={styles.input}
+        autoComplete="new-password"
+      />
+      <button
+        onClick={togglePasswordVisibility}
+        className={styles.eyeIcon}
+        type="button"
+      >
+        {showPassword ? <FaEyeSlash /> : <FaEye />}
+      </button>
+    </div>
+  </div>
 
-                  {/* Botón de envío */}
-                  <button
-                    type="submit"
-                    className={`${styles.formSubmitBtn} ${
-                      !isUsuarioValido ? styles.buttonDisabled : ""
-                    }`}
-                    disabled={!isUsuarioValido}
-                  >
-                    {selectedUsuario ? "Actualizar Usuario" : "Agregar Usuario"}
-                  </button>
-                </form>
+  {/* Dropdown para tipo de usuario */}
+  <div className={styles.inputGroup}>
+    <label htmlFor="clavetipousuario" className={`${styles.label} flex items-center gap-2`}>
+      <FaUsers className={styles.icon} /> Tipo de usuario
+    </label>
+    <select
+      id="clavetipousuario"
+      name="clavetipousuario"
+      onChange={handleInputChange}
+      value={newUsuario.clavetipousuario || ""}
+      className={styles.dropdown}
+    >
+      <option value="">Seleccionar tipo de usuario</option>
+      {Array.isArray(tiposUsuarios) &&
+        tiposUsuarios.map((tipo) => (
+          <option key={tipo.clavetipousuario} value={tipo.clavetipousuario}>
+            {tipo.tipousuario}
+          </option>
+        ))}
+    </select>
+    {newUsuario.clavetipousuario === "" && (
+      <p className={`${styles.errorMessage} ${styles.fadeIn}`}>
+        Por favor, seleccione un tipo de usuario.
+      </p>
+    )}
+  </div>
+
+  {/* Botón de envío */}
+  <button
+    type="submit"
+    className={`${styles.formSubmitBtn} ${
+      !isUsuarioValido ? styles.buttonDisabled : ""
+    }`}
+    disabled={!isUsuarioValido}
+  >
+    {selectedUsuario ? "Actualizar Usuario" : "Agregar Usuario"}
+  </button>
+</form>
+
 
                 <button className={styles.closeButton} onClick={toggleModal}>
                   Cerrar
