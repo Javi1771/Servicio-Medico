@@ -78,8 +78,6 @@ export default function RegistroBeneficiario() {
     }, 300); // La duración del fadeOut debe coincidir con la animación CSS
   };
 
-  
-
   const getFileNameFromURL = (url) => {
     if (!url) return "Sin archivo";
     const segments = url.split("/");
@@ -89,19 +87,19 @@ export default function RegistroBeneficiario() {
   const handleFileUploadINE = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
-  
+
     const formData = new FormData();
     formData.append("file", file);
     formData.append("numNomina", numNomina); // Enviar el número de nómina desde el estado
-  
+
     try {
       const response = await fetch("/api/beneficiarios/uploadINE", {
         method: "POST",
         body: formData,
       });
-  
+
       const data = await response.json();
-  
+
       if (response.ok) {
         console.log("INE subida exitosamente:", data.url);
         setFormData((prev) => ({
@@ -120,24 +118,26 @@ export default function RegistroBeneficiario() {
       Swal.fire("Error", "No se pudo subir el INE.", "error");
     }
   };
-  
 
   const handleFileUploadCartaNoAfiliacion = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
-  
+
     const formData = new FormData();
     formData.append("file", file);
     formData.append("numNomina", numNomina); // Aquí usamos directamente el estado `numNomina`
-  
+
     try {
-      const response = await fetch("/api/beneficiarios/uploadCartaNoAfiliacion", {
-        method: "POST",
-        body: formData,
-      });
-  
+      const response = await fetch(
+        "/api/beneficiarios/uploadCartaNoAfiliacion",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
       const data = await response.json();
-  
+
       if (response.ok) {
         console.log("Carta de No Afiliación subida exitosamente:", data.url);
         setFormData((prev) => ({
@@ -160,25 +160,23 @@ export default function RegistroBeneficiario() {
       );
     }
   };
-  
-  
 
   const handleFileUploadCurp = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
-  
+
     const formData = new FormData();
     formData.append("file", file);
     formData.append("numNomina", numNomina); // Enviar el número de nómina desde el estado
-  
+
     try {
       const response = await fetch("/api/beneficiarios/uploadCurp", {
         method: "POST",
         body: formData,
       });
-  
+
       const data = await response.json();
-  
+
       if (response.ok) {
         console.log("CURP subida exitosamente:", data.url);
         setFormData((prev) => ({
@@ -197,24 +195,23 @@ export default function RegistroBeneficiario() {
       Swal.fire("Error", "No se pudo subir la CURP.", "error");
     }
   };
-  
 
   const handleFileUploadActa = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
-  
+
     const formData = new FormData();
     formData.append("file", file);
     formData.append("numNomina", numNomina); // Asegúrate de enviar el número de nómina
-  
+
     try {
       const response = await fetch("/api/beneficiarios/uploadActa", {
         method: "POST",
         body: formData,
       });
-  
+
       const data = await response.json();
-  
+
       if (response.ok) {
         console.log("Acta de Nacimiento subida exitosamente:", data.url);
         setFormData((prev) => ({
@@ -233,28 +230,27 @@ export default function RegistroBeneficiario() {
       Swal.fire("Error", "No se pudo subir el Acta de Nacimiento.", "error");
     }
   };
-  
 
   //SUBIR DOCUMENTO DE CONSTANCIA DE ESTUDIOS//
   const handleFileUpload = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
-  
+
     const formData = new FormData();
     formData.append("file", file);
     formData.append("numNomina", numNomina); // Enviar el número de nómina desde el estado
-  
+
     try {
       const response = await fetch("/api/uploadConstancia", {
         method: "POST",
         body: formData,
       });
-  
+
       const data = await response.json();
-  
+
       if (response.ok) {
         console.log("Constancia de Estudios subida exitosamente:", data.url);
-  
+
         // Guardar la URL pública en el estado
         setFormData((prev) => ({
           ...prev,
@@ -270,10 +266,13 @@ export default function RegistroBeneficiario() {
       }
     } catch (error) {
       console.error("Error al subir la Constancia de Estudios:", error);
-      Swal.fire("Error", "No se pudo subir la Constancia de Estudios.", "error");
+      Swal.fire(
+        "Error",
+        "No se pudo subir la Constancia de Estudios.",
+        "error"
+      );
     }
   };
-  
 
   /**VIGENCIA DE ESTUDIOS VALIDACION */
   const handleVigenciaChange = (e) => {
@@ -699,7 +698,7 @@ export default function RegistroBeneficiario() {
       reader.readAsDataURL(file);
       reader.onloadend = async () => {
         const base64Image = reader.result;
-  
+
         try {
           const response = await fetch("/api/uploadImage", {
             method: "POST",
@@ -711,7 +710,7 @@ export default function RegistroBeneficiario() {
               numNomina, // Enviar el número de nómina desde el estado
             }),
           });
-  
+
           const data = await response.json();
           if (data.imageUrl) {
             // Actualizar el estado con la URL de la imagen subida
@@ -730,7 +729,6 @@ export default function RegistroBeneficiario() {
       };
     }
   };
-  
 
   const getSindicato = (grupoNomina, cuotaSindical) => {
     if (grupoNomina === "NS") {
@@ -907,40 +905,39 @@ export default function RegistroBeneficiario() {
     }, 0); // Asegura que el estado se limpie correctamente antes de abrir
   };
 
-
   const validateUniqueParentesco = async (numNomina, parentesco) => {
     try {
-      const response = await fetch("/api/beneficiarios/validarParentescoUnico", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ numNomina, parentesco }),
-      });
-  
+      const response = await fetch(
+        "/api/beneficiarios/validarParentescoUnico",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ numNomina, parentesco }),
+        }
+      );
+
       const data = await response.json();
-  
+
       if (!response.ok) {
-        throw new Error(data.message || "Error en la validación de parentesco único");
+        throw new Error(
+          data.message || "Error en la validación de parentesco único"
+        );
       }
-  
+
       return { conflict: data.conflict, message: data.message };
     } catch (error) {
       console.error("Error al validar parentesco único:", error.message);
       throw error;
     }
   };
-  
-  
-
-
-
 
   const handleModalSubmit = async (e) => {
     e.preventDefault();
-  
+
     console.log("Enviando formulario...");
-  
+
     // Validar campos obligatorios según el backend
     if (
       (isEditMode && !currentBeneficiaryId) || // Validar idBeneficiario en modo edición
@@ -961,29 +958,29 @@ export default function RegistroBeneficiario() {
     }
 
     // ** Validar si ya existe un Padre o Madre registrado **
-  try {
-    const { conflict, message } = await validateUniqueParentesco(
-      numNomina,
-      formData.parentesco
-    );
+    try {
+      const { conflict, message } = await validateUniqueParentesco(
+        numNomina,
+        formData.parentesco
+      );
 
-    if (conflict) {
+      if (conflict) {
+        Swal.fire({
+          icon: "error",
+          title: "Conflicto detectado",
+          text: message,
+        });
+        return;
+      }
+    } catch (error) {
       Swal.fire({
         icon: "error",
-        title: "Conflicto detectado",
-        text: message,
+        title: "Error",
+        text: error.message,
       });
       return;
     }
-  } catch (error) {
-    Swal.fire({
-      icon: "error",
-      title: "Error",
-      text: error.message,
-    });
-    return;
-  }
-  
+
     // Validar la URL de la imagen
     if (!formData.imageUrl || !formData.imageUrl.startsWith("http")) {
       Swal.fire({
@@ -993,7 +990,7 @@ export default function RegistroBeneficiario() {
       });
       return;
     }
-  
+
     // Validar constancia de estudios si aplica
     if (
       formData.esEstudiante &&
@@ -1006,7 +1003,7 @@ export default function RegistroBeneficiario() {
       });
       return;
     }
-  
+
     // Validar la URL del acta de concubinato (opcional)
     if (
       formData.actaConcubinatoUrl &&
@@ -1019,7 +1016,7 @@ export default function RegistroBeneficiario() {
       });
       return;
     }
-  
+
     // ** Validar relación exclusiva entre Esposo(a) y Concubino(a) **
     try {
       const validationResponse = await fetch(
@@ -1035,12 +1032,12 @@ export default function RegistroBeneficiario() {
           }),
         }
       );
-  
+
       const validationData = await validationResponse.json();
       if (!validationResponse.ok) {
         throw new Error(validationData.message || "Error en la validación");
       }
-  
+
       // Si existe un conflicto, detener el flujo
       if (validationData.conflict) {
         Swal.fire({
@@ -1051,7 +1048,10 @@ export default function RegistroBeneficiario() {
         return;
       }
     } catch (error) {
-      console.error("Error durante la validación de parentesco:", error.message);
+      console.error(
+        "Error durante la validación de parentesco:",
+        error.message
+      );
       Swal.fire({
         icon: "error",
         title: "Error",
@@ -1059,26 +1059,26 @@ export default function RegistroBeneficiario() {
       });
       return;
     }
-  
+
     // Formatear fechas a ISO
     const formattedNacimiento = formData.fNacimiento
       ? new Date(formData.fNacimiento).toISOString()
       : null;
-  
+
     const formattedVigenciaEstudios = formData.vigenciaEstudios
       ? new Date(formData.vigenciaEstudios).toISOString()
       : null;
-  
+
     // Determinar endpoint y método HTTP
     const endpoint = isEditMode
       ? "/api/editarBeneficiario"
       : "/api/crearBeneficiario";
     const method = isEditMode ? "PUT" : "POST";
-  
+
     try {
       // Crear payload para enviar al backend
       const payload = {
-        ...(isEditMode && { idBeneficiaryId: currentBeneficiaryId }),
+        ...(isEditMode && { idBeneficiario: currentBeneficiaryId }),
         noNomina: numNomina,
         parentesco: formData.parentesco,
         nombre: formData.nombre,
@@ -1104,9 +1104,9 @@ export default function RegistroBeneficiario() {
         cartaNoAfiliacionUrl: formData.cartaNoAfiliacionUrl || null,
         actaConcubinatoUrl: formData.actaConcubinatoUrl || null,
       };
-  
+
       console.log("Datos enviados al backend (antes del fetch):", payload);
-  
+
       // Realizar la solicitud al backend
       const response = await fetch(endpoint, {
         method,
@@ -1115,8 +1115,7 @@ export default function RegistroBeneficiario() {
         },
         body: JSON.stringify(payload),
       });
-  
-  
+
       // Validar respuesta del backend
       if (!response.ok) {
         const errorData = await response.json();
@@ -1127,10 +1126,10 @@ export default function RegistroBeneficiario() {
             : "Error al registrar el beneficiario."
         );
       }
-  
+
       const responseData = await response.json();
       console.log("Respuesta del backend:", responseData);
-  
+
       Swal.fire({
         icon: "success",
         title: "Éxito",
@@ -1138,7 +1137,7 @@ export default function RegistroBeneficiario() {
           ? "Beneficiario actualizado correctamente."
           : "Beneficiario registrado correctamente.",
       });
-  
+
       // Resetear formulario tras guardar o actualizar
       setFormData({
         parentesco: "",
@@ -1165,7 +1164,7 @@ export default function RegistroBeneficiario() {
         cartaNoAfiliacionUrl: "",
         actaConcubinatoUrl: "", // Reseteado correctamente
       });
-  
+
       setIsModalOpen(false);
       fetchBeneficiarios(); // Refrescar lista de beneficiarios
     } catch (error) {
@@ -1177,9 +1176,6 @@ export default function RegistroBeneficiario() {
       });
     }
   };
-  
-
-  
 
   //EDITAR BENEFICIAROS//
   const handleEditBeneficiary = (beneficiario) => {
@@ -2255,18 +2251,21 @@ export default function RegistroBeneficiario() {
             <div className={styles.buttonGroup}>
               <button
                 type="submit"
-                className={styles.submitButton}
+                className={`${styles.submitButton} ${
+                  isSaveDisabled ? styles.disabled : ""
+                }`}
                 disabled={isSaveDisabled} // Botón deshabilitado si la fecha es inválida
               >
-                <FaSave className={`${styles.icon} ${styles.iconLarge}`} />{" "}
+                <FaSave className={`${styles.icon} ${styles.iconLarge}`} />
                 {isEditMode ? "Actualizar" : "Guardar"}
               </button>
+
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
                 className={styles.cancelButton}
               >
-                <FaTimes className={`${styles.icon} ${styles.iconLarge}`} />{" "}
+                <FaTimes className={`${styles.icon} ${styles.iconLarge}`} />
                 Cancelar
               </button>
             </div>
@@ -2318,7 +2317,8 @@ export default function RegistroBeneficiario() {
                     {`${selectedBeneficiary.NOMBRE} ${selectedBeneficiary.A_PATERNO} ${selectedBeneficiary.A_MATERNO}`}
                   </li>
                   <li>
-                    <strong>Tipo de sangre:</strong> {selectedBeneficiary.SANGRE}
+                    <strong>Tipo de sangre:</strong>{" "}
+                    {selectedBeneficiary.SANGRE}
                   </li>
                   <li>
                     <strong>Sexo:</strong>{" "}
