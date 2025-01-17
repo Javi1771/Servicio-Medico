@@ -2209,3 +2209,61 @@
 .documentsButtonsWrapper .documentButton svg {
   font-size: 20px;
 }
+
+
+/*estilos modal validacion esposo/concubino */
+/* Estilos personalizados para el modal */
+.custom-modal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 20px;
+  border-radius: 15px;
+  background-color: #ffffff;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  text-align: center;
+}
+
+.custom-modal-icon {
+  width: 60px;
+  height: 60px;
+  margin-bottom: 20px;
+}
+
+.custom-modal-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #e74c3c;
+  margin-bottom: 10px;
+}
+
+.custom-modal-message {
+  font-size: 16px;
+  color: #555555;
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+
+.custom-modal-button {
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: none;
+  background-color: #5a67d8;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.custom-modal-button:hover {
+  background-color: #434190;
+}
+
+.custom-modal-button:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(90, 103, 216, 0.5);
+}

@@ -906,11 +906,41 @@ export default function RegistroBeneficiario() {
       setIsModalOpen(true);
     }, 0); // Asegura que el estado se limpie correctamente antes de abrir
   };
+
+
+  const validateUniqueParentesco = async (numNomina, parentesco) => {
+    try {
+      const response = await fetch("/api/beneficiarios/validarParentescoUnico", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ numNomina, parentesco }),
+      });
+  
+      const data = await response.json();
+  
+      if (!response.ok) {
+        throw new Error(data.message || "Error en la validación de parentesco único");
+      }
+  
+      return { conflict: data.conflict, message: data.message };
+    } catch (error) {
+      console.error("Error al validar parentesco único:", error.message);
+      throw error;
+    }
+  };
+  
+  
+
+
+
+
   const handleModalSubmit = async (e) => {
     e.preventDefault();
-
+  
     console.log("Enviando formulario...");
-
+  
     // Validar campos obligatorios según el backend
     if (
       (isEditMode && !currentBeneficiaryId) || // Validar idBeneficiario en modo edición
@@ -922,65 +952,133 @@ export default function RegistroBeneficiario() {
       !formData.telEmergencia ||
       !formData.nombreEmergencia
     ) {
-      Swal.fire(
-        "Error",
-        "Todos los campos obligatorios deben completarse.",
-        "error"
-      );
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Todos los campos obligatorios deben completarse.",
+      });
       return;
     }
 
+    // ** Validar si ya existe un Padre o Madre registrado **
+  try {
+    const { conflict, message } = await validateUniqueParentesco(
+      numNomina,
+      formData.parentesco
+    );
+
+    if (conflict) {
+      Swal.fire({
+        icon: "error",
+        title: "Conflicto detectado",
+        text: message,
+      });
+      return;
+    }
+  } catch (error) {
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: error.message,
+    });
+    return;
+  }
+  
     // Validar la URL de la imagen
     if (!formData.imageUrl || !formData.imageUrl.startsWith("http")) {
-      Swal.fire("Error", "Por favor, sube una imagen válida.", "error");
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Por favor, sube una imagen válida.",
+      });
       return;
     }
-
+  
     // Validar constancia de estudios si aplica
     if (
       formData.esEstudiante &&
       (!formData.urlConstancia || !formData.urlConstancia.startsWith("http"))
     ) {
-      Swal.fire(
-        "Error",
-        "Por favor, sube una constancia de estudios válida.",
-        "error"
-      );
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Por favor, sube una constancia de estudios válida.",
+      });
       return;
     }
-
+  
     // Validar la URL del acta de concubinato (opcional)
     if (
       formData.actaConcubinatoUrl &&
       !formData.actaConcubinatoUrl.startsWith("http")
     ) {
-      Swal.fire(
-        "Error",
-        "Por favor, sube un enlace válido para el acta de concubinato.",
-        "error"
-      );
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Por favor, sube un enlace válido para el acta de concubinato.",
+      });
       return;
     }
-
+  
+    // ** Validar relación exclusiva entre Esposo(a) y Concubino(a) **
+    try {
+      const validationResponse = await fetch(
+        "/api/beneficiarios/validarParentesco",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            numNomina,
+            parentesco: formData.parentesco,
+          }),
+        }
+      );
+  
+      const validationData = await validationResponse.json();
+      if (!validationResponse.ok) {
+        throw new Error(validationData.message || "Error en la validación");
+      }
+  
+      // Si existe un conflicto, detener el flujo
+      if (validationData.conflict) {
+        Swal.fire({
+          icon: "error",
+          title: "Conflicto detectado",
+          text: validationData.message,
+        });
+        return;
+      }
+    } catch (error) {
+      console.error("Error durante la validación de parentesco:", error.message);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: error.message,
+      });
+      return;
+    }
+  
     // Formatear fechas a ISO
     const formattedNacimiento = formData.fNacimiento
       ? new Date(formData.fNacimiento).toISOString()
       : null;
-
+  
     const formattedVigenciaEstudios = formData.vigenciaEstudios
       ? new Date(formData.vigenciaEstudios).toISOString()
       : null;
-
+  
     // Determinar endpoint y método HTTP
     const endpoint = isEditMode
       ? "/api/editarBeneficiario"
       : "/api/crearBeneficiario";
     const method = isEditMode ? "PUT" : "POST";
-
+  
     try {
       // Crear payload para enviar al backend
       const payload = {
-        ...(isEditMode && { idBeneficiario: currentBeneficiaryId }), // Corregido
+        ...(isEditMode && { idBeneficiaryId: currentBeneficiaryId }),
         noNomina: numNomina,
         parentesco: formData.parentesco,
         nombre: formData.nombre,
@@ -1004,11 +1102,11 @@ export default function RegistroBeneficiario() {
         actaMatrimonioUrl: formData.actaMatrimonioUrl || null,
         ineUrl: formData.ineUrl || null,
         cartaNoAfiliacionUrl: formData.cartaNoAfiliacionUrl || null,
-        actaConcubinatoUrl: formData.actaConcubinatoUrl || null, // Incluido siempre
+        actaConcubinatoUrl: formData.actaConcubinatoUrl || null,
       };
-
+  
       console.log("Datos enviados al backend (antes del fetch):", payload);
-
+  
       // Realizar la solicitud al backend
       const response = await fetch(endpoint, {
         method,
@@ -1017,10 +1115,11 @@ export default function RegistroBeneficiario() {
         },
         body: JSON.stringify(payload),
       });
-
+  
+  
       // Validar respuesta del backend
       if (!response.ok) {
-        const errorData = await response.json(); // Obtener detalles del error
+        const errorData = await response.json();
         console.error("Error del backend:", errorData);
         throw new Error(
           isEditMode
@@ -1028,18 +1127,18 @@ export default function RegistroBeneficiario() {
             : "Error al registrar el beneficiario."
         );
       }
-
-      const responseData = await response.json(); // Obtener respuesta del backend
+  
+      const responseData = await response.json();
       console.log("Respuesta del backend:", responseData);
-
-      Swal.fire(
-        "Éxito",
-        isEditMode
+  
+      Swal.fire({
+        icon: "success",
+        title: "Éxito",
+        text: isEditMode
           ? "Beneficiario actualizado correctamente."
           : "Beneficiario registrado correctamente.",
-        "success"
-      );
-
+      });
+  
       // Resetear formulario tras guardar o actualizar
       setFormData({
         parentesco: "",
@@ -1066,14 +1165,21 @@ export default function RegistroBeneficiario() {
         cartaNoAfiliacionUrl: "",
         actaConcubinatoUrl: "", // Reseteado correctamente
       });
-
+  
       setIsModalOpen(false);
       fetchBeneficiarios(); // Refrescar lista de beneficiarios
     } catch (error) {
       console.error("Error al enviar el formulario:", error.message);
-      Swal.fire("Error", error.message, "error");
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: error.message,
+      });
     }
   };
+  
+
+  
 
   //EDITAR BENEFICIAROS//
   const handleEditBeneficiary = (beneficiario) => {
