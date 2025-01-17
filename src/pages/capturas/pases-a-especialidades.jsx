@@ -47,7 +47,7 @@ const PasesAEspecialidad = () => {
   };
 
   const handleRowClick = (folio, estatus) => {
-    if (estatus === "ATENDIDA") {
+    if (estatus === "LISTA PARA PASAR CON EL ESPECIALISTA") {
       return;
     }
     router.push(`/capturas/pases/crear-pase?claveconsulta=${folio}`);
@@ -86,7 +86,7 @@ const PasesAEspecialidad = () => {
       </section>
 
       {/* Tabla de resultados */}
-      <section className="overflow-x-auto px-4 md:px-10">
+      <section className="px-4 md:px-10">
         <table className="w-full text-left border-collapse bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl shadow-2xl">
           <thead className="bg-gradient-to-r from-gray-700 to-gray-800 text-teal-300">
             <tr>
@@ -123,12 +123,12 @@ const PasesAEspecialidad = () => {
                 <tr
                   key={item.folio}
                   className={`relative group ${
-                    item.estatus === "ATENDIDA"
+                    item.estatus === "LISTA PARA PASAR CON EL ESPECIALISTA"
                       ? "bg-gray-700 bg-opacity-50 text-gray-400 cursor-default"
                       : "hover:bg-gray-700 cursor-pointer"
                   } transition-all`}
                   onClick={() =>
-                    item.estatus !== "ATENDIDA" &&
+                    item.estatus !== "LISTA PARA PASAR CON EL ESPECIALISTA" &&
                     handleRowClick(item.folio, item.estatus)
                   }
                 >
@@ -142,24 +142,25 @@ const PasesAEspecialidad = () => {
                   <td className="p-4 border-b border-gray-700">
                     {item.nomina}
                   </td>
-
                   <td
                     className={`relative p-4 border-b border-gray-700 font-bold ${
-                      item.estatus === "EN ESPERA"
+                      item.estatus ===
+                      "EN ESPERA PARA ASIGNACIÓN DE FECHA DE CITA"
                         ? "text-red-400"
                         : "text-teal-400"
                     } group`}
                   >
                     {item.estatus}
 
-                    {/* Tooltip visible al pasar el cursor para ATENDIDA */}
-                    {item.estatus === "ATENDIDA" && (
+                    {/* Tooltip visible al pasar el cursor */}
+                    {item.estatus ===
+                      "LISTA PARA PASAR CON EL ESPECIALISTA" && (
                       <div
                         className={`absolute invisible opacity-0 group-hover:visible group-hover:opacity-100 ${
                           datos.indexOf(item) === 0 || datos.indexOf(item) === 1
                             ? "top-full translate-y-2"
                             : "bottom-full -translate-y-2"
-                        } right-0 transform w-72 transition-all duration-300 ease-out z-50`}
+                        } left-1/2 transform -translate-x-1/2 w-auto max-w-xs transition-all duration-300 ease-out z-50`}
                       >
                         <div className="relative p-4 bg-gradient-to-br from-gray-900/95 to-gray-800/95 backdrop-blur-md rounded-2xl border border-white/10 shadow-[0_0_30px_rgba(79,70,229,0.5)]">
                           <div className="absolute inset-0 rounded-2xl blur-xl opacity-75 animate-pulse bg-gradient-to-r from-indigo-500/30 via-purple-500/30 to-pink-500/30"></div>
@@ -182,11 +183,11 @@ const PasesAEspecialidad = () => {
                                 No editable
                               </h3>
                             </div>
-
                             <div className="space-y-2">
                               <p className="text-sm text-gray-300">
-                                Esta consulta no se puede editar porque ya ha sido
-                                atendida.
+                                Esta consulta no se puede editar porque ya ha
+                                sido atendida y está lista para pasar con el
+                                especialista.
                               </p>
                             </div>
                           </div>
@@ -195,8 +196,8 @@ const PasesAEspecialidad = () => {
                             className={`absolute ${
                               datos.indexOf(item) === 0 ||
                               datos.indexOf(item) === 1
-                                ? "top-0 right-3 transform -translate-y-1/2 rotate-45"
-                                : "bottom-0 right-3 transform translate-y-1/2 rotate-45"
+                                ? "top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rotate-45"
+                                : "bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 rotate-45"
                             } w-3 h-3 bg-gradient-to-br from-gray-900/95 to-gray-800/95 border-r border-b border-white/10`}
                           ></div>
                         </div>

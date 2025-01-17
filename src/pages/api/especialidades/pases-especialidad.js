@@ -16,8 +16,8 @@ export default async function handler(req, res) {
           FORMAT(c.fechaconsulta, 'yyyy-MM-dd HH:mm:ss') AS fecha,
           c.clavenomina AS nomina,
           CASE 
-            WHEN de.estatus = 1 THEN 'EN ESPERA' 
-            WHEN de.estatus = 2 THEN 'ATENDIDA' 
+            WHEN de.estatus = 1 THEN 'EN ESPERA PARA ASIGNACIÓN DE FECHA DE CITA' 
+            WHEN de.estatus = 2 THEN 'LISTA PARA PASAR CON EL ESPECIALISTA' 
             ELSE 'SIN ESTATUS' 
           END AS estatus
         FROM consultas c

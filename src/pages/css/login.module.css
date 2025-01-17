@@ -1,6 +1,6 @@
 /* Estilos del fondo de pantalla con gradiente */
 .body {
-  background-image: url('/fondo_login.png');
+  background-image: url("/fondo_login.png");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -52,7 +52,7 @@
 
 /* Título del formulario */
 .formTitle {
-  font-family: 'Poppins-Bold', sans-serif;
+  font-family: "Poppins-Bold", sans-serif;
   font-size: 28px;
   color: #ffffff;
   margin-bottom: 20px;
@@ -68,7 +68,7 @@
 
 /* Ajuste de simetría en los campos de entrada */
 .label {
-  font-family: 'Poppins-Regular', sans-serif;
+  font-family: "Poppins-Regular", sans-serif;
   color: #ffffff;
   display: flex;
   flex-direction: column;
@@ -76,20 +76,53 @@
 }
 
 .input {
-  font-family: 'Poppins-Regular', sans-serif;
+  font-family: "Poppins-Regular", sans-serif;
   padding: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: none;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.2);
-  color: #ffffff;
+  background: rgba(0, 0, 0, 0.5); /* Fondo oscuro translúcido */
+  color: #ffffff; /* Texto blanco */
   width: 100%;
   box-sizing: border-box;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.input::placeholder {
+  color: rgba(255, 255, 255, 0.6); /* Placeholder en blanco translúcido */
+  opacity: 1;
 }
 
 .input:focus {
+  background: rgba(
+    0,
+    0,
+    0,
+    0.7
+  ); /* Fondo ligeramente más oscuro al recibir foco */
   outline: none;
-  border-color: #046363;
-  box-shadow: 0 4px 8px rgba(87, 184, 70, 0.3);
+}
+
+.inputContainer {
+  position: relative;
+  transition: box-shadow 0.3s ease-in-out, transform 0.2s ease-in-out;
+  border-radius: 8px;
+}
+
+.inputContainer:focus-within {
+  box-shadow: 0 0 15px rgba(0, 114, 255, 0.8), 0 0 25px rgba(0, 114, 255, 0.6);
+  transform: scale(1.02); /* Leve ampliación al recibir foco */
+  animation: neon-pulse-dark-blue 1.5s infinite alternate;
+}
+
+.icon {
+  font-size: 1.5rem;
+  color: rgba(255, 255, 255, 0.8); /* Iconos ligeramente más visibles */
+  margin-left: 10px;
+  transition: color 0.3s ease;
+}
+
+.inputContainer:focus-within .icon {
+  color: #0072ff; /* Cambiar color del icono al recibir foco */
 }
 
 /* Botón de envío */
@@ -144,7 +177,6 @@
   border-right: 3px solid #fff;
 }
 
-
 .hoverEffect {
   position: absolute;
   bottom: 0;
@@ -189,7 +221,6 @@
   }
 }
 
-
 @keyframes rotate {
   0% {
     transform: rotateY(180deg);
@@ -199,10 +230,21 @@
     transform: rotateY(360deg);
   }
 }
+
+/* Animación neón adaptada al azul oscuro */
+@keyframes neon-pulse-dark-blue {
+  0% {
+    box-shadow: 0 0 15px rgba(0, 114, 255, 0.8), 0 0 30px rgba(0, 114, 255, 0.6);
+  }
+  100% {
+    box-shadow: 0 0 25px rgba(0, 114, 255, 1), 0 0 45px rgba(0, 114, 255, 0.9);
+  }
+}
+
 /* Mensaje de error */
 .errorMessage {
   color: #ff4f4f;
-  font-family: 'Poppins-Medium', sans-serif;
+  font-family: "Poppins-Medium", sans-serif;
   margin-top: 10px;
 }
 

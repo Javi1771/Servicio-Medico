@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState, useEffect } from "react";
 import useFetchConsulta from "../../hooks/surtimientosHook/useFetchConsulta";
 import useFetchEmpleado from "../../hooks/surtimientosHook/useFetchEmpleado";
@@ -31,7 +32,7 @@ export default function Surtimientos() {
 
   const [isDiagnosticoEditable, setIsDiagnosticoEditable] = useState(true);
 
-  const [setClaveusuario] = useState("");
+  const [claveusuario, setClaveusuario] = useState("");
 
   //const para mostrar informacion del medico especialista
 

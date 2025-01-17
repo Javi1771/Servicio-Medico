@@ -481,7 +481,7 @@ const CostoDeSurtimientos = () => {
             </Grid>
           </Grid>
 
-          <Box sx={{ mt: 5 }}>
+          <Box sx={{ mt: 10 }}>
             {/* Título */}
             <div className="w-full max-w-[120rem] mt-8 bg-gray-800 p-6 rounded-lg">
               <Typography

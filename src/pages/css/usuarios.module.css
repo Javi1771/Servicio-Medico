@@ -1,5 +1,3 @@
-
-
 /* Fondo de pantalla completa */
 .body {
   background-color: #1e1e2d;
@@ -40,7 +38,6 @@
   margin-top: 10px;
 }
 
-
 /** Estilos de tabla */
 .table-wrapper {
   background-color: #1a1a1d; /* Fondo oscuro debajo de la tabla */
@@ -49,7 +46,6 @@
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.5); /* Sombra */
   margin: 20px auto; /* Centrado y margen superior */
   max-width: 1480px;
-  
 }
 
 /** Estilos de tabla */
@@ -155,10 +151,6 @@
 
 /*FIN ESTILOS TABLE*/
 
-
-
-
-
 .buttonContainer {
   margin-bottom: 20px;
   display: flex; /* Usar flexbox para alinear botones */
@@ -178,26 +170,20 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Sombra para dar profundidad (opcional) */
 }
 
-
 /* Responsive Styles */
 @media (max-width: 768px) {
   .buttonContainer {
-      flex-direction: column; /* Botones en columna en pantallas pequeñas */
-      align-items: flex-start; /* Alinear los botones a la izquierda */
+    flex-direction: column; /* Botones en columna en pantallas pequeñas */
+    align-items: flex-start; /* Alinear los botones a la izquierda */
   }
 
   .button {
-      margin-bottom: 10px; /* Espacio entre botones en columna */
-      width: 100%; /* Botones ocupan el 100% del ancho */
+    margin-bottom: 10px; /* Espacio entre botones en columna */
+    width: 100%; /* Botones ocupan el 100% del ancho */
   }
 }
 
-
-
-
-
-
-/* From Uiverse.io by TaniaDou */ 
+/* From Uiverse.io by TaniaDou */
 .button {
   padding: 1rem 2rem;
   border-radius: 0.5rem;
@@ -211,7 +197,6 @@
   flex: 1; /* Permitir que los botones crezcan */
   min-width: 100px; /* Ancho mínimo para cada botón */
   margin: 0 0.5rem; /* Agregar un margen horizontal entre los botones */
-
 }
 
 .button::before {
@@ -293,9 +278,6 @@
   color: rgb(255, 255, 255);
 }
 
-
-
-
 /* Fondo oscuro sólido para el overlay del modal */
 .modalOverlay {
   position: fixed;
@@ -341,7 +323,8 @@
   /* Glow Effect */
   box-shadow: 0 0 80px rgba(0, 247, 255, 0.155),
     -46px 42px 79px rgba(0, 166, 255, 0.153),
-    14px -35px 35px rgba(115, 0, 255, 0.183), 47px 5px 35px rgba(102, 0, 255, 0.146);
+    14px -35px 35px rgba(115, 0, 255, 0.183),
+    47px 5px 35px rgba(102, 0, 255, 0.146);
 }
 
 /* Encabezado del modal */
@@ -386,7 +369,8 @@
 }
 
 /* Efecto al enfocar los inputs */
-.modalForm input:focus, .modalForm select:focus {
+.modalForm input:focus,
+.modalForm select:focus {
   border-color: #00bcd4; /* Borde cian al enfocar */
   background: #333333; /* Fondo ligeramente más oscuro */
 }
@@ -425,7 +409,6 @@
   background-color: #d32f2f;
 }
 
-
 /** ESTILOS MODAL SUCCES USUARIO **/
 .successModal {
   position: absolute;
@@ -445,21 +428,27 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+    transform: translateY(-10%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-@keyframes fadeOut {
-  from { opacity: 1; }
-  to { opacity: 0; }
+.buttonDisabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+  pointer-events: none;
+  opacity: 0.6;
 }
-
 
 /**ESTILOS ICONO INPPUT**/
 .inputContainer {
   position: relative;
-  display: flex;
-  align-items: center;
+  margin-bottom: 15px;
 }
 
 .icon {
@@ -471,9 +460,6 @@
 .inputWithIcon {
   padding-left: 60px; /* Espacio para el icono */
 }
-
-
-
 
 /**estilos editar y eliminar**/
 .editbutton {
@@ -507,11 +493,7 @@
   transform: scale(0.9);
 }
 
-
-
-
-
-/* From Uiverse.io by vinodjangid07 */ 
+/* From Uiverse.io by vinodjangid07 */
 .editButton {
   background-color: rgb(255, 208, 0); /* Color amarillo */
   border: none;
@@ -525,7 +507,9 @@
 }
 
 .editButton:hover {
-  transform: translateY(-2px); /* Mueve el botón hacia arriba al pasar el mouse */
+  transform: translateY(
+    -2px
+  ); /* Mueve el botón hacia arriba al pasar el mouse */
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3); /* Aumenta la sombra */
 }
 
@@ -541,10 +525,11 @@
 }
 
 .binButton:hover {
-  transform: translateY(-2px); /* Mueve el botón hacia arriba al pasar el mouse */
+  transform: translateY(
+    -2px
+  ); /* Mueve el botón hacia arriba al pasar el mouse */
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3); /* Aumenta la sombra */
 }
-
 
 /* Button.module.css */
 .backButton {
@@ -562,11 +547,6 @@
   background-color: #45a049;
 }
 
-
-
-
-
-
 /*SELECT BUTTONS OPTIOS*/
 .searchAndActionsContainer {
   display: flex;
@@ -574,7 +554,6 @@
   margin-top: 10px;
   gap: 20px;
   padding-bottom: 30px;
-
 }
 
 .radioContainer {
@@ -584,14 +563,43 @@
 }
 
 .label {
-  display: flex;
-  align-items: center;
-  border-radius: 100px;
-  padding: 8px 12px;
-  cursor: pointer;
-  transition: .3s;
+  display: block;
+  font-weight: bold;
+  margin-bottom: 5px;
+  color: #f1f1f1;
 }
 
+.input {
+  width: 100%;
+  padding: 10px;
+  font-size: 1rem;
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  outline: none;
+  transition: all 0.3s ease;
+  background: rgba(0, 0, 0, 0.2);
+  color: #e1e4eb;
+}
+
+.input:focus {
+  border-color: #00bcd4;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.inputError {
+  border-color: #dc3545;
+}
+
+.inputSuccess {
+  border-color: #28a745;
+}
+
+.errorMessage {
+  font-size: 0.875rem;
+  color: #dc3545;
+  margin-top: 5px;
+  animation: fadeIn 0.3s ease-in-out;
+}
 
 .radioInput {
   position: absolute;
@@ -607,25 +615,28 @@
   width: 20px;
   height: 20px;
   border-radius: 100px;
-  background: linear-gradient(to right bottom, hsl(154, 97%, 62%), hsl(225, 97%, 62%));
+  background: linear-gradient(
+    to right bottom,
+    hsl(154, 97%, 62%),
+    hsl(225, 97%, 62%)
+  );
   position: relative;
 }
 
 .radioDesign::before {
-  content: '';
+  content: "";
   display: inline-block;
   width: inherit;
   height: inherit;
   border-radius: inherit;
   background: hsl(0, 0%, 100%);
   transform: scale(1.1);
-  transition: .3s;
+  transition: 0.3s;
 }
 
 .radioInput:checked + .radioDesign::before {
   transform: scale(0);
 }
-
 
 .labelText {
   color: hsl(192, 100%, 89%);
@@ -633,17 +644,12 @@
   letter-spacing: 1px;
   font-size: 14px;
   font-weight: 500;
-  transition: .3s;
+  transition: 0.3s;
 }
 
 .radioInput:checked ~ .labelText {
   color: hsl(172, 100%, 50%);
 }
-
-
-
-
-
 
 /* Ajustes responsivos */
 @media (max-width: 768px) {
@@ -661,9 +667,6 @@
     font-size: 0.8rem;
   }
 }
-
-
-
 
 .button-border::before {
   content: "";
@@ -707,11 +710,6 @@
   }
 }
 
-
-
-
-
-
 /** SEARCH BOX STYLES **/
 .searchBox {
   display: flex;
@@ -741,16 +739,19 @@
   width: 50px;
   height: 50px;
   border-radius: 50%;
-  background: var(--gradient-2, linear-gradient(90deg, #2AF598 0%, #009EFD 100%));
+  background: var(
+    --gradient-2,
+    linear-gradient(90deg, #2af598 0%, #009efd 100%)
+  );
   border: 0;
   display: inline-block;
-  transition: all 300ms cubic-bezier(.23, 1, 0.32, 1);
+  transition: all 300ms cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 /* Button hover and active effects */
 .searchButton:hover {
   color: #fff;
-  background-color: #1A1A1A;
+  background-color: #1a1a1a;
   box-shadow: rgba(0, 0, 0, 0.5) 0 10px 20px;
   transform: translateY(-3px);
 }
@@ -789,16 +790,19 @@
   width: 50px;
   height: 50px;
   border-radius: 50%;
-  background: var(--gradient-2, linear-gradient(90deg, #2AF598 0%, #009EFD 100%));
+  background: var(
+    --gradient-2,
+    linear-gradient(90deg, #2af598 0%, #009efd 100%)
+  );
   border: 0;
   display: inline-block;
-  transition: all 300ms cubic-bezier(.23, 1, 0.32, 1);
+  transition: all 300ms cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 /* Button hover and active effects */
 .searchButton:hover {
   color: #3e3e3e;
-  background-color: #1A1A1A;
+  background-color: #1a1a1a;
   box-shadow: rgba(0, 0, 0, 0.5) 0 10px 20px;
   transform: translateY(-3px);
 }

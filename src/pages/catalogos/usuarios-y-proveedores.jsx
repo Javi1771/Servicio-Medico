@@ -15,7 +15,9 @@ export default function UsuariosTable() {
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [showModal, setShowModal] = useState(false);
-  
+
+  const [isUsuarioValido, setIsUsuarioValido] = useState(true); // estado para validar si el usuario es válido
+  const [usuarioError, setUsuarioError] = useState(""); // mensaje de error para el usuario
 
   const [showPassword, setShowPassword] = useState(false); // Estado para el ojo de visibilidad
   const togglePasswordVisibility = () => {
@@ -79,22 +81,22 @@ export default function UsuariosTable() {
       cancelButtonColor: "#d33",
       confirmButtonText: "Sí, desactivar",
     });
-  
+
     if (confirmDelete.isConfirmed) {
       try {
         const response = await fetch(`/api/eliminarUser?usuario=${usuario}`, {
           method: "PUT",
         });
-  
+
         if (!response.ok) {
           throw new Error("Error al desactivar el usuario");
         }
-  
+
         // Actualizar la lista de usuarios
         const usuariosResponse = await fetch("/api/usuario");
         const usuariosData = await usuariosResponse.json();
         setUsuarios(usuariosData);
-  
+
         Swal.fire("Desactivado", "El usuario ha sido desactivado.", "success");
       } catch (error) {
         console.error("Error al desactivar el usuario:", error);
@@ -102,17 +104,15 @@ export default function UsuariosTable() {
       }
     }
   };
-  
 
   const filteredUsuarios = Array.isArray(usuarios)
-  ? usuarios.filter(
-      (usuario) =>
-        usuario.activo === "S" && // Solo incluir usuarios activos
-        usuario.nombreusuario &&
-        usuario.nombreusuario.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-  : [];
-
+    ? usuarios.filter(
+        (usuario) =>
+          usuario.activo === "S" && // Solo incluir usuarios activos
+          usuario.nombreusuario &&
+          usuario.nombreusuario.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    : [];
 
   const getEspecialidadNombre = (clave) => {
     if (!Array.isArray(especialidades) || especialidades.length === 0) {
@@ -144,6 +144,31 @@ export default function UsuariosTable() {
     }
   };
 
+  const checkUsuarioDisponibilidad = async (usuario) => {
+    if (!usuario) {
+      setUsuarioError("El campo de usuario no puede estar vacío.");
+      setIsUsuarioValido(false);
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/usuario?usuario=${usuario}`);
+      const data = await response.json();
+
+      if (data.length > 0) {
+        setUsuarioError("El nombre de usuario ya está en uso.");
+        setIsUsuarioValido(false);
+      } else {
+        setUsuarioError("");
+        setIsUsuarioValido(true);
+      }
+    } catch (error) {
+      console.error("Error al verificar el nombre de usuario:", error);
+      setUsuarioError("Error al verificar el nombre de usuario.");
+      setIsUsuarioValido(false);
+    }
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setNewUsuario({
@@ -153,6 +178,28 @@ export default function UsuariosTable() {
           ? parseInt(value, 10)
           : value,
     });
+
+    if (name === "usuario") {
+      checkUsuarioDisponibilidad(value);
+    }
+  };
+
+  const handleBlur = () => {
+    const baseName = newUsuario.nombreusuario
+      ?.toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]/g, "") // Remueve caracteres especiales
+      ?.split(" ")
+      ?.join(""); // Une las palabras
+    const suggestedUsername = `${baseName}${Math.floor(Math.random() * 100)}`;
+
+    if (!newUsuario.usuario) {
+      setNewUsuario((prev) => ({
+        ...prev,
+        usuario: suggestedUsername,
+      }));
+      checkUsuarioDisponibilidad(suggestedUsername);
+    }
   };
 
   const handleEditUser = async (usuario) => {
@@ -171,6 +218,15 @@ export default function UsuariosTable() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!isUsuarioValido) {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "El nombre de usuario no es válido.",
+      });
+      return;
+    }
 
     const usuarioData = {
       ...newUsuario,
@@ -392,97 +448,190 @@ export default function UsuariosTable() {
                   {selectedUsuario ? "Editar Usuario" : "Agregar Usuario"}
                 </h2>
                 <form className={styles.modalForm} onSubmit={handleSubmit}>
-                  <div className={styles.inputContainer}>
+                  {/* Campo para el nombre completo */}
+                  <div className={`${styles.inputContainer}`}>
+                    <label htmlFor="nombreusuario" className={styles.label}>
+                      Nombre completo
+                    </label>
                     <input
                       type="text"
+                      id="nombreusuario"
                       name="nombreusuario"
-                      placeholder="Nombre"
+                      placeholder="Ingrese el nombre completo"
                       onChange={handleInputChange}
-                      value={newUsuario.nombreusuario}
+                      onBlur={() => {
+                        // Generar sugerencia de nombre de usuario al salir del campo de nombre
+                        const baseName = newUsuario.nombreusuario
+                          ?.toLowerCase()
+                          .trim()
+                          .replace(/[^a-z0-9]/g, "") // Remueve caracteres especiales
+                          ?.split(" ")
+                          ?.join(""); // Junta todas las palabras
+                        const suggestedUsername = `${baseName}${Math.floor(
+                          Math.random() * 100
+                        )}`;
+                        setNewUsuario((prev) => ({
+                          ...prev,
+                          usuario: suggestedUsername,
+                        }));
+                      }}
+                      value={newUsuario.nombreusuario || ""}
+                      className={styles.input}
+                      autoComplete="off" // Desactiva autocompletar
                     />
                   </div>
-                  <input
-                    type="text"
-                    name="direcciousuario"
-                    placeholder="Dirección"
-                    onChange={handleInputChange}
-                    value={newUsuario.direcciousuario}
-                  />
-                  <input
-                    type="text"
-                    name="coloniausuario"
-                    placeholder="Colonia"
-                    onChange={handleInputChange}
-                    value={newUsuario.coloniausuario}
-                  />
-                  <input
-                    type="text"
-                    name="telefonousuario"
-                    placeholder="Teléfono"
-                    onChange={handleInputChange}
-                    value={newUsuario.telefonousuario}
-                  />
-                  <input
-                    type="text"
-                    name="celularusuario"
-                    placeholder="Celular"
-                    onChange={handleInputChange}
-                    value={newUsuario.celularusuario}
-                  />
-                  <input
-                    type="text"
-                    name="cedulausuario"
-                    placeholder="Cédula"
-                    onChange={handleInputChange}
-                    value={newUsuario.cedulausuario}
-                  />
 
-                  <label htmlFor="claveespecialidad">Especialidad</label>
-                  <select
-                    name="claveespecialidad"
-                    onChange={handleInputChange}
-                    value={newUsuario.claveespecialidad}
-                    className={styles.dropdown}
-                  >
-                    <option value="">Seleccionar Especialidad</option>
-                    {Array.isArray(especialidades) &&
-                      especialidades.map((especialidad) => (
-                        <option
-                          key={especialidad.claveespecialidad}
-                          value={especialidad.claveespecialidad}
-                        >
-                          {especialidad.especialidad}
-                        </option>
-                      ))}
-                  </select>
-
-                  {/* Campo de usuario */}
+                  {/* Resto de campos (dirección, colonia, etc.) */}
                   <div className={styles.inputContainer}>
+                    <label htmlFor="direcciousuario" className={styles.label}>
+                      Calle
+                    </label>
                     <input
                       type="text"
-                      name="usuario"
-                      placeholder="Usuario"
+                      id="direcciousuario"
+                      name="direcciousuario"
+                      placeholder="Ingrese la dirección"
                       onChange={handleInputChange}
-                      value={newUsuario.usuario || ""} // Asegúrate de inicializar el valor correctamente
-                      readOnly={!!selectedUsuario} // Si hay un usuario seleccionado, el campo será solo de lectura
+                      value={newUsuario.direcciousuario || ""}
+                      className={styles.input}
+                      autoComplete="off" // Desactiva autocompletar
                     />
+                  </div>
+
+                  <div className={styles.inputContainer}>
+                    <label htmlFor="coloniausuario" className={styles.label}>
+                      Colonia
+                    </label>
+                    <input
+                      type="text"
+                      id="coloniausuario"
+                      name="coloniausuario"
+                      placeholder="Ingrese la colonia"
+                      onChange={handleInputChange}
+                      value={newUsuario.coloniausuario || ""}
+                      className={styles.input}
+                      autoComplete="off" // Desactiva autocompletar
+                    />
+                  </div>
+
+                  <div className={styles.inputContainer}>
+                    <label htmlFor="telefonousuario" className={styles.label}>
+                      Teléfono
+                    </label>
+                    <input
+                      type="text"
+                      id="telefonousuario"
+                      name="telefonousuario"
+                      placeholder="Ingrese el teléfono"
+                      onChange={handleInputChange}
+                      value={newUsuario.telefonousuario || ""}
+                      className={styles.input}
+                      autoComplete="off" // Desactiva autocompletar
+                    />
+                  </div>
+
+                  <div className={styles.inputContainer}>
+                    <label htmlFor="celularusuario" className={styles.label}>
+                      Celular
+                    </label>
+                    <input
+                      type="text"
+                      id="celularusuario"
+                      name="celularusuario"
+                      placeholder="Ingrese el celular"
+                      onChange={handleInputChange}
+                      value={newUsuario.celularusuario || ""}
+                      className={styles.input}
+                      autoComplete="off" // Desactiva autocompletar
+                    />
+                  </div>
+
+                  <div className={styles.inputContainer}>
+                    <label htmlFor="cedulausuario" className={styles.label}>
+                      Cédula
+                    </label>
+                    <input
+                      type="text"
+                      id="cedulausuario"
+                      name="cedulausuario"
+                      placeholder="Ingrese la cédula"
+                      onChange={handleInputChange}
+                      value={newUsuario.cedulausuario || ""}
+                      className={styles.input}
+                      autoComplete="off" // Desactiva autocompletar
+                    />
+                  </div>
+
+                  {/* Dropdown de especialidad */}
+                  <div className={styles.inputContainer}>
+                    <label htmlFor="claveespecialidad" className={styles.label}>
+                      Especialidad
+                    </label>
+                    <select
+                      id="claveespecialidad"
+                      name="claveespecialidad"
+                      onChange={handleInputChange}
+                      value={newUsuario.claveespecialidad || ""}
+                      className={styles.dropdown}
+                    >
+                      <option value="">Seleccionar Especialidad</option>
+                      {Array.isArray(especialidades) &&
+                        especialidades.map((especialidad) => (
+                          <option
+                            key={especialidad.claveespecialidad}
+                            value={especialidad.claveespecialidad}
+                          >
+                            {especialidad.especialidad}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+
+                  {/* Campo para el nombre de usuario */}
+                  <div className={`${styles.inputContainer}`}>
+                    <label htmlFor="usuario" className={styles.label}>
+                      Nombre de usuario
+                    </label>
+                    <input
+                      type="text"
+                      id="usuario"
+                      name="usuario"
+                      placeholder="Ingrese un nombre de usuario"
+                      onChange={handleInputChange}
+                      onBlur={handleBlur} // Genera sugerencia si está vacío
+                      value={newUsuario.usuario || ""}
+                      className={`${styles.input} ${
+                        usuarioError ? styles.inputError : styles.inputSuccess
+                      }`}
+                      autoComplete="off" // Desactiva autocompletar
+                    />
+                    {usuarioError && (
+                      <p className={`${styles.errorMessage} ${styles.fadeIn}`}>
+                        {usuarioError}
+                      </p>
+                    )}
                   </div>
 
                   {/* Campo de contraseña */}
                   <div className={styles.inputContainer}>
+                    <label htmlFor="password" className={styles.label}>
+                      Contraseña
+                    </label>
                     <input
                       type={showPassword ? "text" : "password"}
+                      id="password"
                       name="password"
-                      placeholder="Contraseña"
+                      placeholder="Ingrese la contraseña"
                       onChange={handleInputChange}
-                      value={newUsuario.password || ""} // Muestra la contraseña desencriptada en el formulario
+                      value={newUsuario.password || ""}
+                      className={styles.input}
+                      autoComplete="new-password" // Desactiva autocompletar y evita que use contraseñas guardadas
                     />
                     <button
                       onClick={togglePasswordVisibility}
                       className={styles.eyeIcon}
-                      type="button" // Evitar que el botón envíe el formulario
+                      type="button"
                     >
-                      {/* SVG para mostrar/ocultar contraseña */}
                       {showPassword ? (
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -491,7 +640,7 @@ export default function UsuariosTable() {
                           fill="currentColor"
                           viewBox="0 0 16 16"
                         >
-                          <path d="M8 3a5.977 5.977 0 0 0-5.623 4H2a6 6 0 1 0 0 6h.377A5.977 5.977 0 0 0 8 13a5.977 5.977 0 0 0 5.623-4H14a6 6 0 0 0 0-6h-.377A5.977 5.977 0 0 0 8 3zM8 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6zM8 4a2 2 0 1 0 0 4 2 2 0 0 0 0-4z" />
+                          <path d="M8 3a5.977 5.977 0 0 0-5.623 4H2a6 6 0 1 0 0 6h.377A5.977 5.977 0 0 0 8 13a5.977 5.977 0 0 0 5.623-4H14a6 6 0 0 0 0-6h-.377A5.977 5.977 0 0 0 8 3zM1 8a7 7 0 0 1 14 0 7 7 0 0 1-14 0z" />
                         </svg>
                       ) : (
                         <svg
@@ -506,28 +655,19 @@ export default function UsuariosTable() {
                       )}
                     </button>
                   </div>
-                  <label htmlFor="clavetipousuario">Tipo de Usuario</label>
-                  <select
-                    name="clavetipousuario"
-                    onChange={handleInputChange}
-                    value={newUsuario.clavetipousuario}
-                    className={styles.dropdown}
-                  >
-                    <option value="">Seleccionar Tipo de Usuario</option>
-                    {tiposUsuarios.map((tipo) => (
-                      <option
-                        key={tipo.clavetipousuario}
-                        value={tipo.clavetipousuario}
-                      >
-                        {tipo.tipousuario}
-                      </option>
-                    ))}
-                  </select>
 
-                  <button type="submit" className={styles.formSubmitBtn}>
+                  {/* Botón de envío */}
+                  <button
+                    type="submit"
+                    className={`${styles.formSubmitBtn} ${
+                      !isUsuarioValido ? styles.buttonDisabled : ""
+                    }`}
+                    disabled={!isUsuarioValido}
+                  >
                     {selectedUsuario ? "Actualizar Usuario" : "Agregar Usuario"}
                   </button>
                 </form>
+
                 <button className={styles.closeButton} onClick={toggleModal}>
                   Cerrar
                 </button>
