@@ -5,6 +5,7 @@ import Modal from "react-modal";
 import styles from "../css/beneficiarios.module.css";
 import { useRouter } from "next/router";
 import { jsPDF } from "jspdf";
+import { FaCamera } from "react-icons/fa";
 
 import {
   FaIdCard,
@@ -70,6 +71,12 @@ export default function RegistroBeneficiario() {
 
   const [isFadingOut, setIsFadingOut] = useState(false);
 
+  const [imagePreview, setImagePreview] = useState(null);
+  const [loading, setLoading] = useState(false); // Estado para mostrar si está cargando
+
+
+
+
   const handleCloseModal = () => {
     setIsFadingOut(true); // Activamos la animación de salida
     setTimeout(() => {
@@ -77,6 +84,130 @@ export default function RegistroBeneficiario() {
       setIsDocumentsModalOpen(false); // Cerramos el modal
     }, 300); // La duración del fadeOut debe coincidir con la animación CSS
   };
+
+  const handleCapturePhoto = async () => {
+    try {
+      let isVideoReady = false; // Bandera para saber si el video está listo
+  
+      const result = await Swal.fire({
+        title: "Captura una foto",
+        html: '<video id="video" autoplay></video>',
+        showCancelButton: true,
+        confirmButtonText: "Capturar",
+        willOpen: () => {
+          const video = document.getElementById("video");
+  
+          // Inicializar la cámara
+          navigator.mediaDevices
+            .getUserMedia({ video: true })
+            .then((stream) => {
+              video.srcObject = stream;
+              window.localStream = stream;
+  
+              // Escuchar el evento `loadedmetadata` para asegurarnos de que el video está listo
+              video.addEventListener("loadedmetadata", () => {
+                isVideoReady = true;
+              });
+            })
+            .catch((error) => {
+              console.error("Error al acceder a la cámara:", error);
+              Swal.fire(
+                "Error",
+                "No se pudo acceder a tu cámara. Verifica los permisos.",
+                "error"
+              );
+            });
+        },
+        willClose: () => {
+          // Detener la cámara al cerrar el modal
+          if (window.localStream) {
+            window.localStream.getTracks().forEach((track) => track.stop());
+          }
+        },
+      });
+  
+      if (result.isConfirmed) {
+        const video = document.getElementById("video");
+        const canvas = document.createElement("canvas");
+  
+        // Validar que el video esté listo
+        if (!isVideoReady || !video.videoWidth || !video.videoHeight) {
+          Swal.fire(
+            "Error",
+            "La cámara no estaba lista. Intenta nuevamente.",
+            "error"
+          );
+          return;
+        }
+  
+        // Ajustar el tamaño del canvas al tamaño del video
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+  
+        // Capturar la imagen del video
+        const context = canvas.getContext("2d");
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+  
+        // Convertir la imagen a formato Base64
+        const base64Image = canvas.toDataURL("image/jpeg");
+  
+        // Guardar la imagen en el estado para previsualización
+        setImagePreview(base64Image);
+  
+        // Subir la imagen al servidor o almacenamiento en la nube
+        await uploadImage(base64Image);
+      }
+    } catch (error) {
+      console.error("Error al capturar/subir la foto:", error);
+      Swal.fire("Error", "Ocurrió un problema al capturar la foto.", "error");
+    }
+  };
+  
+  
+  
+  // Función para subir la imagen capturada
+  const uploadImage = async (base64Image) => {
+    if (!numNomina) {
+      Swal.fire(
+        "Error",
+        "Por favor, ingresa el número de nómina antes de continuar.",
+        "error"
+      );
+      return;
+    }
+  
+    try {
+      const response = await fetch("/api/uploadImage", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          image: base64Image,
+          numNomina, // Aquí se envía correctamente
+        }),
+      });
+  
+      const data = await response.json();
+  
+      if (response.ok && data.imageUrl) {
+        setFormData((prev) => ({ ...prev, imageUrl: data.imageUrl }));
+        Swal.fire("Éxito", "Imagen subida correctamente.", "success");
+      } else {
+        Swal.fire("Error", data.error || "No se pudo subir la imagen.", "error");
+      }
+    } catch (error) {
+      console.error("Error al subir la imagen:", error);
+      Swal.fire("Error", "Error al subir la imagen.", "error");
+    }
+  };
+  
+  
+  
+  
+
+  
+  
 
   const getFileNameFromURL = (url) => {
     if (!url) return "Sin archivo";
@@ -2167,20 +2298,43 @@ export default function RegistroBeneficiario() {
               )}
             </fieldset>
 
-            {/*Subir Foto */}
-            <div className={styles.inputRow}>
-              <label className={styles.uploadLabel}>
-                <span className={styles.uploadButton}>
-                  <FaFileUpload className={styles.icon} /> Subir Foto
-                </span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className={styles.hiddenInput}
-                />
-              </label>
-            </div>
+       {/* Contenedor para alinear ambos botones */}
+<div className={`${styles.inputRow} ${styles.flexRow}`}>
+  {/* Botón para subir foto */}
+  <label className={styles.uploadLabel}>
+    <span className={styles.uploadButton}>
+      <FaFileUpload className={styles.icon} /> Subir Foto
+    </span>
+    <input
+      type="file"
+      accept="image/*"
+      onChange={handleImageUpload}
+      className={styles.hiddenInput}
+    />
+  </label>
+
+ {/* Botón para capturar foto */}
+<div className={styles.cameraContainer}>
+  <button
+    type="button"
+    onClick={handleCapturePhoto}
+    className={styles.cameraButton}
+    disabled={loading}
+  >
+    {loading ? (
+      "Cargando..."
+    ) : (
+      <>
+        <FaCamera className={styles.cameraIcon} />
+        Capturar Foto
+      </>
+    )}
+  </button>
+</div>
+
+</div>
+
+
 
             {/* Campo de Tipo de Sangre */}
             <div className={styles.inputGroup}>

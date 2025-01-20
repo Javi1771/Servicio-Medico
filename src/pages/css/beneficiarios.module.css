@@ -2325,3 +2325,75 @@
   outline: none;
   box-shadow: 0 0 0 3px rgba(90, 103, 216, 0.5);
 }
+
+
+
+/* Contenedor principal del botón */
+.cameraContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px;
+}
+
+/* Estilos principales del botón */
+.cameraButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background-color: #4a4a4a; /* Color gris elegante */
+  color: white;
+  font-size: 1rem;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Hover: animación de brillo */
+.cameraButton:hover {
+  background-color: #636363; /* Gris más claro al pasar el cursor */
+  transform: scale(1.05); /* Efecto de agrandamiento */
+}
+
+/* Estilo del ícono de cámara */
+.cameraIcon {
+  font-size: 1.2rem; /* Ajustar tamaño del ícono */
+  transition: transform 0.3s ease, color 0.3s ease;
+}
+
+/* Efecto animado al hacer hover en el ícono */
+.cameraButton:hover .cameraIcon {
+  transform: scale(1.2); /* Aumentar ligeramente el ícono */
+  color: #f5f5f5; /* Color más claro para resaltar */
+}
+
+/* Animación pulsante al hacer clic */
+.cameraButton:active {
+  transform: scale(0.95); /* Reducir tamaño momentáneamente */
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Estado deshabilitado del botón */
+.cameraButton:disabled {
+  background-color: #a1a1a1;
+  color: #e0e0e0;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+
+
+.imagePreview {
+  margin-top: 20px;
+  text-align: center;
+}
+.imagePreview img {
+  border-radius: 5px;
+}
