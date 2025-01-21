@@ -61,7 +61,8 @@ export default async function handler(req, res) {
       FROM 
         proveedores 
       WHERE 
-        claveespecialidad = ${claveEspecialidad}
+        claveespecialidad = ${claveEspecialidad} AND
+        activo = 'S'
         ORDER BY nombreproveedor ASC;`
 
     const result = await queryWithRetries(pool, query);

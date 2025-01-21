@@ -28,7 +28,8 @@ export const getDetallesConsultas = async (fechaHoraInicio, fechaHoraFin) => {
     WHERE c.especialidadinterconsulta IS NULL
       AND c.clavestatus = 2
       AND c.fechaconsulta >= @fechaHoraInicio
-      AND c.fechaconsulta <= @fechaHoraFin;
+      AND c.fechaconsulta <= @fechaHoraFin
+    ORDER BY c.fechaconsulta ASC;
     `;
 
     console.log("Ejecutando consulta con parámetros:", {
@@ -36,7 +37,7 @@ export const getDetallesConsultas = async (fechaHoraInicio, fechaHoraFin) => {
       fechaHoraFin,
     });
 
-    // Usa las cadenas directamente sin convertirlas a UTC
+    //* Usa las cadenas directamente sin convertirlas a UTC
     const result = await pool
       .request()
       .input("fechaHoraInicio", fechaHoraInicio)
@@ -61,10 +62,10 @@ export default async function handler(req, res) {
   }
 
   try {
-    // No convierte a UTC, utiliza las fechas directamente
+    //! No convierte a UTC, utiliza las fechas directamente
     console.log(`Obteniendo detalles de consultas entre ${start} y ${end}`);
 
-    // Pasar directamente las fechas recibidas
+    //* Pasar directamente las fechas recibidas
     const detalles = await getDetallesConsultas(start, end);
 
     console.log("Cantidad de registros obtenidos:", detalles.length);

@@ -40,7 +40,7 @@ const InicioPresidente = () => {
       title: "Intervalos de Consultas Generales",
       image: "/grafica-azul.png",
       path: "/estadisticas/intervalos-de-consultas",
-      gradient: "from-blue-500 to-blue-900",
+      gradient: "from-teal-500 to-teal-900",
     },
     {
       title: "Análisis de Costos de Surtimientos",
@@ -107,8 +107,8 @@ const InicioPresidente = () => {
                 {/* Borde de neón */}
                 <div
                   className={`absolute inset-0 rounded-3xl border-4 border-transparent transition-all duration-300 pointer-events-none ${
-                    card.gradient.includes("blue")
-                      ? "group-hover:border-blue-400 group-hover:shadow-[0_0_30px_10px_rgba(59,130,246,1)]"
+                    card.gradient.includes("teal")
+                      ? "group-hover:border-teal-400 group-hover:shadow-[0_0_30px_10px_rgba(56,178,172,1)]"
                       : card.gradient.includes("purple")
                       ? "group-hover:border-purple-400 group-hover:shadow-[0_0_30px_10px_rgba(139,92,246,1)]"
                       : card.gradient.includes("pink")
@@ -121,8 +121,8 @@ const InicioPresidente = () => {
                 <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-70 p-4 rounded-b-3xl">
                   <h3
                     className={`text-lg font-bold text-center text-white transition-all duration-300 ${
-                      card.gradient.includes("blue")
-                        ? "group-hover:text-blue-400"
+                      card.gradient.includes("teal")
+                        ? "group-hover:text-teal-400"
                         : card.gradient.includes("purple")
                         ? "group-hover:text-purple-400"
                         : card.gradient.includes("pink")

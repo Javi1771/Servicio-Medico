@@ -282,7 +282,6 @@ const CostoDeSurtimientos = () => {
               </Button>
             ))}
           </Box>
-
           <Grid container spacing={4}>
             {/* Gráfica Pie */}
             <Grid item xs={12} md={6}>
@@ -377,7 +376,37 @@ const CostoDeSurtimientos = () => {
                       })}
                     </Box>
                     {/* Gráfica de pastel */}
-                    <Pie data={pieData} options={chartOptions} />
+                    <Pie
+                      data={pieData}
+                      options={{
+                        ...chartOptions,
+                        responsive: true,
+                        plugins: {
+                          legend: {
+                            display: false,
+                          },
+                          tooltip: {
+                            backgroundColor: "rgba(43, 13, 79, 0.9)",
+                            titleColor: "rgb(230, 0, 255)",
+                            bodyColor: "#FFF0F9",
+                            titleFont: { size: 16, weight: "bold" },
+                            bodyFont: { size: 14 },
+                            borderWidth: 2,
+                            borderColor: "rgba(230, 0, 255, 0.9)",
+                            padding: 12,
+                            callbacks: {
+                              label: (context) => {
+                                const value = context.raw;
+                                return `Costo Total: $${value.toLocaleString(
+                                  "es-MX"
+                                )}`;
+                              },
+                            },
+                          },
+                        },
+                        cutout: "60%", // Hace que el gráfico sea más limpio
+                      }}
+                    />
                   </>
                 )}
               </Box>
@@ -391,8 +420,8 @@ const CostoDeSurtimientos = () => {
                   backgroundColor: "#1C1F2F",
                   borderRadius: "12px",
                   boxShadow: "0px 5px 15px rgba(0, 0, 0, 0.5)",
-                  minHeight: "1500px", // Altura mínima aumentada
-                  height: "1500px", // Altura fija para mantener simetría
+                  minHeight: "1500px",
+                  height: "1500px",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -418,17 +447,18 @@ const CostoDeSurtimientos = () => {
                   </Box>
                 ) : (
                   <Bar
-                    data={barData}
+                    data={{
+                      ...barData,
+                      datasets: barData.datasets.map((dataset) => ({
+                        ...dataset,
+                        backgroundColor: pieData.datasets[0].backgroundColor, // Usar colores de la gráfica de pastel
+                      })),
+                    }}
                     options={{
                       ...chartOptions,
-                      maintainAspectRatio: false, // Permite que la gráfica ocupe todo el espacio disponible
+                      maintainAspectRatio: false,
                       layout: {
-                        padding: {
-                          top: 20, // Ajusta el espacio superior
-                          bottom: 20, // Ajusta el espacio inferior
-                          left: 10, // Ajusta el espacio izquierdo
-                          right: 10, // Ajusta el espacio derecho
-                        },
+                        padding: { top: 20, bottom: 20, left: 10, right: 10 },
                       },
                       scales: {
                         x: {
@@ -442,11 +472,11 @@ const CostoDeSurtimientos = () => {
                           grid: { color: "rgba(255, 255, 255, 0.1)" },
                           ticks: {
                             color: "#FFE3F5",
-                            font: { size: 14, family: "Poppins" }, // Fuente más grande
+                            font: { size: 14, family: "Poppins" },
                           },
                         },
                       },
-                      barThickness: 60, // Aumenta el grosor de las barras
+                      barThickness: 60,
                       plugins: {
                         legend: { display: false },
                         tooltip: {
@@ -461,16 +491,11 @@ const CostoDeSurtimientos = () => {
                           intersect: false,
                           mode: "index",
                           callbacks: {
-                            title: (context) => {
-                              const rawKey = context[0].label;
-                              return `Paciente: ${rawKey}`;
-                            },
-                            label: (context) => {
-                              const value = context.raw;
-                              return `Costo Total: $${value.toLocaleString(
+                            title: (context) => `Paciente: ${context[0].label}`,
+                            label: (context) =>
+                              `Costo Total: $${context.raw.toLocaleString(
                                 "es-MX"
-                              )}`;
-                            },
+                              )}`,
                           },
                         },
                       },

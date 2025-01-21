@@ -1,48 +1,48 @@
-// pages/api/usuario.js
-
-import { connectToDatabase } from './connectToDatabase'; // Asegúrate de que la ruta sea correcta
+import { connectToDatabase } from './connectToDatabase';
 import sql from 'mssql';
-import bcrypt from 'bcrypt'; // Importar bcrypt
+import bcrypt from 'bcrypt';
 
 export default async function handler(req, res) {
   if (req.method === 'POST') {
     const { 
-      nombreusuario,
-      direcciousuario,
-      coloniausuario,
-      telefonousuario,
-      celularusuario,
-      cedulausuario,
+      nombreproveedor,
+      direccionproveedor,
+      coloniaproveedor,
+      telefonoproveedor,
+      celularproveedor,
+      cedulaproveedor,
       claveespecialidad,
       usuario,
       password,
-      clavetipousuario 
+      clavetipousuario,
+      costo
     } = req.body;
 
     try {
-      const pool = await connectToDatabase(); // Conectar a la base de datos
+      const pool = await connectToDatabase(); //* Conectar a la base de datos
 
-      // Encriptar la contraseña antes de almacenarla
+      //? Encriptar la contraseña antes de almacenarla
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      // Realizar la inserción con el campo activo por defecto como 'S'
+      //* Realizar la inserción con el campo activo por defecto como 'S'
       await pool.request()
-        .input('nombreusuario', sql.VarChar, nombreusuario)
-        .input('direcciousuario', sql.VarChar, direcciousuario)
-        .input('coloniausuario', sql.VarChar, coloniausuario)
-        .input('telefonousuario', sql.VarChar, telefonousuario)
-        .input('celularusuario', sql.VarChar, celularusuario)
-        .input('cedulausuario', sql.VarChar, cedulausuario)
-        .input('claveespecialidad', sql.Int, claveespecialidad) // Asegúrate de que esté en formato entero
+        .input('nombreproveedor', sql.VarChar, nombreproveedor)
+        .input('direccionproveedor', sql.VarChar, direccionproveedor)
+        .input('coloniaproveedor', sql.VarChar, coloniaproveedor)
+        .input('telefonoproveedor', sql.VarChar, telefonoproveedor)
+        .input('celularproveedor', sql.VarChar, celularproveedor)
+        .input('cedulaproveedor', sql.VarChar, cedulaproveedor)
+        .input('claveespecialidad', sql.Int, claveespecialidad) //* Asegúrate de que esté en formato entero
         .input('usuario', sql.VarChar, usuario)
-        .input('password', sql.VarChar, hashedPassword) // Guardar la contraseña encriptada
-        .input('clavetipousuario', sql.Int, clavetipousuario) // Asegúrate de que esté en formato entero
-        .input('activo', sql.VarChar, 'S') // Establecer el campo activo como 'S'
+        .input('password', sql.VarChar, hashedPassword) //* Guardar la contraseña encriptada
+        .input('clavetipousuario', sql.Int, clavetipousuario) //* Asegúrate de que esté en formato entero
+        .input('activo', sql.VarChar, 'S') //* Establecer el campo activo como 'S'
+        .input('costo', sql.Money, costo)
         .query(`
-          INSERT INTO USUARIOS 
-            (nombreusuario, direcciousuario, coloniausuario, telefonousuario, celularusuario, cedulausuario, claveespecialidad, usuario, password, clavetipousuario, activo)
+          INSERT INTO proveedores 
+            (nombreproveedor, direccionproveedor, coloniaproveedor, telefonoproveedor, celularproveedor, cedulaproveedor, claveespecialidad, usuario, password, clavetipousuario, activo, costo)
           VALUES 
-            (@nombreusuario, @direcciousuario, @coloniausuario, @telefonousuario, @celularusuario, @cedulausuario, @claveespecialidad, @usuario, @password, @clavetipousuario, @activo)
+            (@nombreproveedor, @direccionproveedor, @coloniaproveedor, @telefonoproveedor, @celularproveedor, @cedulaproveedor, @claveespecialidad, @usuario, @password, @clavetipousuario, @activo, @costo)
         `);
 
       res.status(201).json({ message: 'Usuario agregado exitosamente' });

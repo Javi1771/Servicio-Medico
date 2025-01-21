@@ -23,6 +23,7 @@ export const getConsultasPorEspecialidad = async (claveEspecialidad, startDate, 
       WHERE c.especialidadinterconsulta = @claveEspecialidad
         AND c.clavestatus = 2
         ${startDate && endDate ? "AND c.fechaconsulta BETWEEN @startDate AND @endDate" : ""}
+      ORDER BY c.fechaconsulta ASC;
     `;
 
     console.log("Ejecutando consulta con parámetros:", {

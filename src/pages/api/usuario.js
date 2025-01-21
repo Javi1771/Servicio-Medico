@@ -8,7 +8,7 @@ export default async function handler(req, res) {
     const { usuario } = req.query;
 
     //* Construir la consulta SQL según la presencia del parámetro "usuario"
-    let query = 'SELECT * FROM USUARIOS WHERE activo = \'S\'';
+    let query = 'SELECT * FROM proveedores WHERE activo = \'S\'';
     if (usuario) {
       query += ` AND usuario = '${usuario}'`; //* Filtrar por usuario exacto
     }

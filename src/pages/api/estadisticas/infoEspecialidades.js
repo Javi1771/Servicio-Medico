@@ -4,7 +4,7 @@ export const getDetallesConsultas = async (fechaHoraInicio, fechaHoraFin) => {
   try {
     const pool = await connectToDatabase();
 
-    // Nueva consulta:
+    //* Nueva consulta:
     // - Se agrega LEFT JOIN con tabla "especialidades" para traer la columna "especialidad".
     // - Se filtra por c.especialidadinterconsulta IS NOT NULL y c.clavestatus=2.
     // - Se omiten las consultas que no tengan un id de especialidad.
@@ -38,7 +38,8 @@ export const getDetallesConsultas = async (fechaHoraInicio, fechaHoraFin) => {
       WHERE c.especialidadinterconsulta IS NOT NULL
         AND c.clavestatus = 2
         AND c.fechaconsulta >= @fechaHoraInicio
-        AND c.fechaconsulta <= @fechaHoraFin;
+        AND c.fechaconsulta <= @fechaHoraFin
+      ORDER BY c.fechaconsulta ASC;
     `;
 
     console.log("Ejecutando consulta con parámetros:", {
@@ -68,7 +69,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Se usan las fechas directamente sin convertir a UTC
+    //* Se usan las fechas directamente sin convertir a UTC
     console.log(`Obteniendo detalles de consultas entre ${start} y ${end}`);
 
     const detalles = await getDetallesConsultas(start, end);

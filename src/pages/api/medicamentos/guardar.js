@@ -11,7 +11,7 @@ export default async function handler(req, res) {
 
   const { medicamentos = [], folioReceta, decisionTomada } = req.body;
 
-  // Validar que el payload tenga los campos esperados
+  //* Validar que el payload tenga los campos esperados
   if (!folioReceta || decisionTomada === undefined) {
     console.error("❌ Faltan datos obligatorios en el payload.");
     return res.status(400).json({
@@ -36,7 +36,7 @@ export default async function handler(req, res) {
     const resultados = [];
 
     if (decisionTomada === "no") {
-      // Insertar valores predeterminados si la decisión es "No"
+      //! Insertar valores predeterminados si la decisión es "No"
       console.log("⚠️ Decisión tomada: No. Insertando valores predeterminados.");
       await transaction.request()
         .input("folioReceta", sql.Int, parseInt(folioReceta, 10))
@@ -60,7 +60,7 @@ export default async function handler(req, res) {
         message: "Registro predeterminado insertado.",
       });
     } else {
-      // Insertar medicamentos reales
+      //* Insertar medicamentos reales
       for (const med of medicamentos) {
         const { descMedicamento, indicaciones, cantidad } = med;
 

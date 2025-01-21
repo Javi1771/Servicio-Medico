@@ -127,6 +127,7 @@ export default async function handler(req, res) {
       SELECT claveproveedor, nombreproveedor, costo
       FROM proveedores
       WHERE claveespecialidad = @claveEspecialidad
+      AND activo = 'S'
       ORDER BY nombreproveedor ASC
     `;
     const especialistasResult = await pool

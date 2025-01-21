@@ -17,7 +17,7 @@ export default async function handler(req, res) {
     await pool
       .request()
       .input("usuario", sql.VarChar, usuario)
-      .query("UPDATE usuarios SET activo = 'N' WHERE usuario = @usuario");
+      .query("UPDATE proveedores SET activo = 'N' WHERE usuario = @usuario");
 
     res.status(200).json({ message: "Usuario desactivado correctamente" });
   } catch (error) {

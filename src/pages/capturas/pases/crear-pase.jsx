@@ -296,6 +296,7 @@ const CrearPase = () => {
                   }}
                   value={fechaCita}
                   className="bg-gradient-to-br from-gray-900 via-black to-gray-800 rounded-lg text-cyan-300 mx-auto mb-6 hover:shadow-xl"
+                  tileDisabled={({ date }) => date < new Date().setHours(0, 0, 0, 0)} //* Deshabilitar días pasados
                   tileClassName={() =>
                     "text-gray-500 bg-gray-800 border border-gray-700 rounded-md hover:border-cyan-400"
                   }
