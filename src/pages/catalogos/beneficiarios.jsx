@@ -1508,9 +1508,9 @@ export default function RegistroBeneficiario() {
         urlConstancia: formData.urlConstancia || null,
         urlActaNac: formData.urlActaNac || null,
         urlCurp: formData.urlCurp || null,
-        actaMatrimonioUrl: formData.actaMatrimonioUrl || null,
-        ineUrl: formData.ineUrl || null,
-        cartaNoAfiliacionUrl: formData.cartaNoAfiliacionUrl || null,
+        urlActaMatrimonio: formData.actaMatrimonioUrl,
+        urlINE: formData.ineUrl,
+        urlCartaNoAfiliacion: formData.cartaNoAfiliacionUrl,
         actaConcubinatoUrl: formData.actaConcubinatoUrl || null,
         urlIncap: formData.urlIncap || null, // Añadido el campo URL_INCAP
       };
@@ -1589,7 +1589,6 @@ export default function RegistroBeneficiario() {
   };
 
   //EDITAR BENEFICIAROS//
-  // EDITAR BENEFICIARIOS
   const handleEditBeneficiary = (beneficiario) => {
     // Formatear fechas
     const formatFecha = (fecha) => {
