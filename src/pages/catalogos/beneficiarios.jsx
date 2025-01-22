@@ -1265,8 +1265,65 @@ export default function RegistroBeneficiario() {
     }
   };
 
+
+
+  function validateDocuments(formData) {
+    const parentescoId = Number(formData.parentesco);
+  
+    // 1. Si es Hijo(a) (ID 2) y mayor o igual a 16 años, 
+    //    debe marcarse al menos "esEstudiante" o "esDiscapacitado".
+    if (parentescoId === 2 && formData.edad >= 16) {
+      if (!formData.esEstudiante && !formData.esDiscapacitado) {
+        return {
+          success: false,
+          message: "Debes marcar 'Es estudiante' o 'Es discapacitado' para un Hijo(a) mayor de 16 años.",
+        };
+      }
+    }
+  
+    // 2. Validaciones genéricas de documentos
+    if (!formData.urlActaNac) {
+      return { success: false, message: "El Acta de Nacimiento es obligatoria." };
+    }
+    if (!formData.urlCurp) {
+      return { success: false, message: "La CURP es obligatoria." };
+    }
+  
+    // 3. Ejemplo: Esposo(a) (ID 1)
+    if (parentescoId === 1) {
+      if (!formData.actaMatrimonioUrl) {
+        return { success: false, message: "Falta el Acta de Matrimonio." };
+      }
+      if (!formData.ineUrl) {
+        return { success: false, message: "Falta el INE." };
+      }
+      if (!formData.cartaNoAfiliacionUrl) {
+        return { success: false, message: "Falta la Carta de No Afiliación." };
+      }
+    }
+  
+    // 4. Ejemplo: Concubino(a) (ID 3)
+    if (parentescoId === 3) {
+      if (!formData.actaConcubinatoUrl) {
+        return { success: false, message: "Falta el Acta de Concubinato." };
+      }
+    }
+  
+    // Si todo está correcto
+    return { success: true, message: "" };
+  }
+
+
   const handleModalSubmit = async (e) => {
     e.preventDefault();
+
+
+     // Llamamos a la función validateDocuments
+  const { success, message } = validateDocuments(formData);
+  if (!success) {
+    Swal.fire("Error", message, "error");
+    return; // Detenemos el proceso si falta algún documento obligatorio
+  }
 
     console.log("Enviando formulario...");
 

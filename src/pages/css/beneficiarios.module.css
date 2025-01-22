@@ -532,24 +532,7 @@
   }
 }
 
-/* Animación de neón en el borde */
-@keyframes neonGlow {
-  0% {
-    box-shadow: 0 0 20px 4px #0202021e, 0 0 40px 8px rgba(0, 238, 255, 0.11);
-  }
-  25% {
-    box-shadow: 0 0 20px 4px #0202021e, 0 0 40px 8px rgba(0, 200, 255, 0.11);
-  }
-  50% {
-    box-shadow: 0 0 20px 4px #0202021e, 0 0 40px 8px rgba(0, 98, 255, 0.11);
-  }
-  75% {
-    box-shadow: 0 0 20px 4px #0202021e, 0 0 40px 8px rgba(0, 30, 255, 0.11);
-  }
-  100% {
-    box-shadow: 0 0 20px 4px #0202021e, 0 0 40px 8px rgba(93, 0, 255, 0.11);
-  }
-}
+
 
 
 /* Formulario interno - Organización */
