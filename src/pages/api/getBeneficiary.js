@@ -45,7 +45,8 @@ export default async function handler(req, res) {
           URL_INE,
           URL_ACTAMATRIMONIO,  
           URL_NOISSTE,
-          URL_CONCUBINATO
+          URL_CONCUBINATO,
+          URL_INCAP 
           
         FROM BENEFICIARIO
         WHERE ID_BENEFICIARIO = @idBeneficiario

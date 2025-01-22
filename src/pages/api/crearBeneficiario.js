@@ -30,7 +30,8 @@ export default async function handler(req, res) {
     actaMatrimonioUrl,
     ineUrl,
     cartaNoAfiliacionUrl,
-    actaConcubinatoUrl, // Asegúrate de recibir este campo
+    actaConcubinatoUrl,
+    urlIncap, // Añadir este campo
   } = req.body;
 
   try {
@@ -39,7 +40,7 @@ export default async function handler(req, res) {
     const truncatedAPaterno = aPaterno?.substring(0, 50);
     const truncatedAMaterno = aMaterno?.substring(0, 50);
     const truncatedAlergias = alergias?.substring(0, 99);
-    const truncatedSangre = sangre?.substring(0, 10); // Validar tipo de sangre
+    const truncatedSangre = sangre?.substring(0, 10);
     const truncatedTelEmergencia = telEmergencia?.substring(0, 12);
     const truncatedNombreEmergencia = nombreEmergencia?.substring(0, 99);
     const truncatedFotoUrl = imageUrl?.substring(0, 255);
@@ -49,7 +50,8 @@ export default async function handler(req, res) {
     const truncatedActaMatrimonioUrl = actaMatrimonioUrl?.substring(0, 255);
     const truncatedIneUrl = ineUrl?.substring(0, 255);
     const truncatedCartaNoAfiliacionUrl = cartaNoAfiliacionUrl?.substring(0, 255);
-    const truncatedActaConcubinatoUrl = actaConcubinatoUrl?.substring(0, 255); // Asegúrate de truncar este campo
+    const truncatedActaConcubinatoUrl = actaConcubinatoUrl?.substring(0, 255);
+    const truncatedUrlIncap = urlIncap?.substring(0, 255); // Truncar URL_INCAP
 
     const pool = await connectToDatabase();
 
@@ -78,7 +80,8 @@ export default async function handler(req, res) {
       .input("actaMatrimonioUrl", truncatedActaMatrimonioUrl)
       .input("ineUrl", truncatedIneUrl)
       .input("cartaNoAfiliacionUrl", truncatedCartaNoAfiliacionUrl)
-      .input("actaConcubinatoUrl", truncatedActaConcubinatoUrl) // Asegúrate de insertar este campo
+      .input("actaConcubinatoUrl", truncatedActaConcubinatoUrl)
+      .input("urlIncap", truncatedUrlIncap) // Insertar nuevo campo
       .query(`
         INSERT INTO BENEFICIARIO (
           NO_NOMINA, PARENTESCO, NOMBRE, A_PATERNO, A_MATERNO, SEXO, 
@@ -86,7 +89,7 @@ export default async function handler(req, res) {
           TEL_EMERGENCIA, NOMBRE_EMERGENCIA, ESESTUDIANTE, ESDISCAPACITADO, 
           VIGENCIA_ESTUDIOS, FOTO_URL, URL_CONSTANCIA, 
           URL_CURP, URL_ACTA_NAC, URL_ACTAMATRIMONIO, URL_INE, URL_NOISSTE, 
-          URL_CONCUBINATO
+          URL_CONCUBINATO, URL_INCAP -- Incluir nuevo campo
         )
         VALUES (
           @noNomina, @parentesco, @nombre, @aPaterno, @aMaterno, @sexo, 
@@ -94,11 +97,11 @@ export default async function handler(req, res) {
           @telEmergencia, @nombreEmergencia, @esEstudiante, @esDiscapacitado, 
           @vigenciaEstudios, @imageUrl, @urlConstancia, 
           @urlCurp, @urlActaNac, @actaMatrimonioUrl, @ineUrl, @cartaNoAfiliacionUrl, 
-          @actaConcubinatoUrl
+          @actaConcubinatoUrl, @urlIncap -- Nuevo campo
         )
       `);
 
-    res.status(200).json({ message: "Beneficiario agregado correctamente" });
+    res.status(200).json({ message: "Beneficiario agregado correctamente con URL_INCAP" });
   } catch (error) {
     console.error("Error al agregar beneficiario:", error);
     res.status(500).json({ error: "Error al agregar beneficiario" });

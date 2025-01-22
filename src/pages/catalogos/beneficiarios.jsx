@@ -74,9 +74,6 @@ export default function RegistroBeneficiario() {
   const [imagePreview, setImagePreview] = useState(null);
   const [loading, setLoading] = useState(false); // Estado para mostrar si está cargando
 
-
-
-
   const handleCloseModal = () => {
     setIsFadingOut(true); // Activamos la animación de salida
     setTimeout(() => {
@@ -85,10 +82,107 @@ export default function RegistroBeneficiario() {
     }, 300); // La duración del fadeOut debe coincidir con la animación CSS
   };
 
+  const calcularVigencia = (
+    parentesco,
+    edad,
+    vigenciaEstudios,
+    fechaNacimiento,
+    esDiscapacitado
+  ) => {
+    if (parentesco === 2) {
+      // Hijo(a)
+      if (esDiscapacitado) {
+        return "30/09/2027"; // Vigencia fija para hijos discapacitados
+      } else if (edad < 16) {
+        const fechaCumple16 = calculateTimeUntil16(fechaNacimiento);
+        return fechaCumple16
+          ? fechaCumple16.toLocaleDateString("es-ES", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+            })
+          : "Sin vigencia definida";
+      } else {
+        return vigenciaEstudios
+          ? formatFecha(vigenciaEstudios) // Asegúrate de formatear la fecha de vigencia de estudios
+          : "Sin vigencia definida";
+      }
+    } else {
+      return "30/09/2027"; // Otros parentescos
+    }
+  };
+  
+
+  const handleFileUploadIncap = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("numNomina", numNomina); // Enviar el número de nómina desde el estado
+
+    try {
+      const response = await fetch("/api/beneficiarios/uploadIncap", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        console.log("Acta de incapacidad subida exitosamente:", data.url);
+        setFormData((prev) => ({
+          ...prev,
+          urlIncap: data.url, // Guardar la URL en el estado
+        }));
+        Swal.fire(
+          "Éxito",
+          "Acta de Incapacidad subida correctamente.",
+          "success"
+        );
+      } else {
+        Swal.fire(
+          "Error",
+          "Error al subir el Acta de Incapacidad. Intenta nuevamente.",
+          "error"
+        );
+      }
+    } catch (error) {
+      console.error("Error al subir el Acta de Incapacidad:", error);
+      Swal.fire("Error", "No se pudo subir el Acta de Incapacidad.", "error");
+    }
+  };
+
+  /**VALIDACION SI EL BENEFICIARIO NO ES MAYOR A 16 ANOS */
+  const calculateTimeUntil16 = (birthDate) => {
+    if (!birthDate) return null;
+
+    const birthDateObject = new Date(birthDate);
+    birthDateObject.setUTCHours(12, 0, 0, 0); // Asegurar que la fecha se mantenga fija
+
+    const today = new Date();
+    today.setUTCHours(12, 0, 0, 0);
+
+    // Calcular la fecha en que cumple 16 años
+    const sixteenYearsDate = new Date(
+      birthDateObject.getFullYear() + 16,
+      birthDateObject.getMonth(),
+      birthDateObject.getDate()
+    );
+    sixteenYearsDate.setUTCHours(12, 0, 0, 0); // Ajustar horas para evitar desplazamientos
+
+    // Si ya tiene 16 años, no hay tiempo restante
+    if (sixteenYearsDate <= today) {
+      return null;
+    }
+
+    return sixteenYearsDate; // Devuelve la fecha en que cumple 16 años
+  };
+
   const handleCapturePhoto = async () => {
     try {
       let isVideoReady = false; // Bandera para saber si el video está listo
-  
+
       const result = await Swal.fire({
         title: "Captura una foto",
         html: '<video id="video" autoplay></video>',
@@ -96,14 +190,14 @@ export default function RegistroBeneficiario() {
         confirmButtonText: "Capturar",
         willOpen: () => {
           const video = document.getElementById("video");
-  
+
           // Inicializar la cámara
           navigator.mediaDevices
             .getUserMedia({ video: true })
             .then((stream) => {
               video.srcObject = stream;
               window.localStream = stream;
-  
+
               // Escuchar el evento `loadedmetadata` para asegurarnos de que el video está listo
               video.addEventListener("loadedmetadata", () => {
                 isVideoReady = true;
@@ -125,11 +219,11 @@ export default function RegistroBeneficiario() {
           }
         },
       });
-  
+
       if (result.isConfirmed) {
         const video = document.getElementById("video");
         const canvas = document.createElement("canvas");
-  
+
         // Validar que el video esté listo
         if (!isVideoReady || !video.videoWidth || !video.videoHeight) {
           Swal.fire(
@@ -139,21 +233,21 @@ export default function RegistroBeneficiario() {
           );
           return;
         }
-  
+
         // Ajustar el tamaño del canvas al tamaño del video
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
-  
+
         // Capturar la imagen del video
         const context = canvas.getContext("2d");
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
-  
+
         // Convertir la imagen a formato Base64
         const base64Image = canvas.toDataURL("image/jpeg");
-  
+
         // Guardar la imagen en el estado para previsualización
         setImagePreview(base64Image);
-  
+
         // Subir la imagen al servidor o almacenamiento en la nube
         await uploadImage(base64Image);
       }
@@ -162,9 +256,7 @@ export default function RegistroBeneficiario() {
       Swal.fire("Error", "Ocurrió un problema al capturar la foto.", "error");
     }
   };
-  
-  
-  
+
   // Función para subir la imagen capturada
   const uploadImage = async (base64Image) => {
     if (!numNomina) {
@@ -175,7 +267,7 @@ export default function RegistroBeneficiario() {
       );
       return;
     }
-  
+
     try {
       const response = await fetch("/api/uploadImage", {
         method: "POST",
@@ -187,27 +279,24 @@ export default function RegistroBeneficiario() {
           numNomina, // Aquí se envía correctamente
         }),
       });
-  
+
       const data = await response.json();
-  
+
       if (response.ok && data.imageUrl) {
         setFormData((prev) => ({ ...prev, imageUrl: data.imageUrl }));
         Swal.fire("Éxito", "Imagen subida correctamente.", "success");
       } else {
-        Swal.fire("Error", data.error || "No se pudo subir la imagen.", "error");
+        Swal.fire(
+          "Error",
+          data.error || "No se pudo subir la imagen.",
+          "error"
+        );
       }
     } catch (error) {
       console.error("Error al subir la imagen:", error);
       Swal.fire("Error", "Error al subir la imagen.", "error");
     }
   };
-  
-  
-  
-  
-
-  
-  
 
   const getFileNameFromURL = (url) => {
     if (!url) return "Sin archivo";
@@ -476,7 +565,6 @@ export default function RegistroBeneficiario() {
   };
 
   const handleGenerateCard = async (beneficiary) => {
-    // Verificar que el beneficiario esté activo
     if (beneficiary.ACTIVO !== "A") {
       Swal.fire("Error", "El beneficiario no está activo.", "error");
       return;
@@ -489,8 +577,21 @@ export default function RegistroBeneficiario() {
       A_PATERNO,
       A_MATERNO,
       F_NACIMIENTO,
-      VIGENCIA_ESTUDIOS, // Cambiado de VIGENCIA
+      VIGENCIA_ESTUDIOS,
+      ESDISCAPACITADO, // Nuevo campo para verificar discapacidad
     } = beneficiary;
+
+    
+    console.log("Datos recibidos del beneficiario:", {
+      NO_NOMINA,
+      PARENTESCO,
+      NOMBRE,
+      A_PATERNO,
+      A_MATERNO,
+      F_NACIMIENTO,
+      VIGENCIA_ESTUDIOS,
+      ESDISCAPACITADO,
+    });
 
     // Función para obtener la descripción del parentesco
     const getParentescoDescripcion = (parentescoId) => {
@@ -501,15 +602,34 @@ export default function RegistroBeneficiario() {
     };
 
     const parentescoDescripcion = getParentescoDescripcion(PARENTESCO);
-    const edadConAnios = `${calculateAge(F_NACIMIENTO)} años`; // Edad calculada
+    const edad = calculateAge(F_NACIMIENTO); // Calcular la edad
+    console.log("Edad calculada:", edad);
+
+    const edadConAnios = `${edad} años`; // Texto para la edad
+
+    // Calcular vigencia
+    const vigencia = calcularVigencia(
+      PARENTESCO,
+      edad,
+      VIGENCIA_ESTUDIOS,
+      F_NACIMIENTO,
+      ESDISCAPACITADO
+    );
+    console.log("Parámetros para calcularVigencia:", {
+      parentesco: PARENTESCO,
+      edad,
+      vigenciaEstudios: VIGENCIA_ESTUDIOS,
+      fechaNacimiento: F_NACIMIENTO,
+      ESDISCAPACITADO,
+    });
+    console.log("Vigencia final:", vigencia);
+
+    console.log("Vigencia final asignada:", vigencia);
 
     try {
-      // Consumir la API del web service para obtener datos del empleado
       const response = await fetch("/api/empleado", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ num_nom: NO_NOMINA }),
       });
 
@@ -517,7 +637,8 @@ export default function RegistroBeneficiario() {
 
       const employeeData = await response.json();
 
-      // Datos del empleado
+      console.log("Datos del empleado obtenidos:", employeeData);
+
       const EMPLEADO_NOMBRE = employeeData?.nombre
         ? `${employeeData.nombre} ${employeeData.a_paterno || ""} ${
             employeeData.a_materno || ""
@@ -526,47 +647,49 @@ export default function RegistroBeneficiario() {
       const NUM_NOMINA = employeeData?.num_nom || "N/A";
       const DEPARTAMENTO = employeeData?.departamento || "N/A";
 
-      // Configuración para jsPDF
+      console.log("Datos del empleado para carnet:", {
+        EMPLEADO_NOMBRE,
+        NUM_NOMINA,
+        DEPARTAMENTO,
+      });
+
+      // Configuración de jsPDF
       const doc = new jsPDF({
         orientation: "landscape",
         unit: "cm",
         format: "a4",
       });
 
-      // Cargar las imágenes del carnet
-      const frontTemplateUrl = `/CARNET_FRONTAL.png`;
-      const backTemplateUrl = `/CARNET_FRONTAL2.png`;
+      const frontTemplate = await loadImageBase64(`/CARNET_FRONTAL.png`);
+      const backTemplate = await loadImageBase64(`/CARNET_FRONTAL2.png`);
 
-      const frontTemplate = await loadImageBase64(frontTemplateUrl);
-      const backTemplate = await loadImageBase64(backTemplateUrl);
-
-      // Página Frontal del Carnet
+      // Página Frontal
       doc.addImage(frontTemplate, "PNG", 0, 0, 29.7, 21);
-
       doc.setFont("helvetica", "bold");
       doc.setTextColor("#19456a");
 
-      // Colocar texto en el carnet
       doc.setFontSize(14);
       doc.text(
         `${NOMBRE || ""} ${A_PATERNO || ""} ${A_MATERNO || ""}`,
         18.5,
         6.0
-      ); // Nombre del Beneficiario
+      ); // Nombre
       doc.text(parentescoDescripcion, 18.5, 7.5); // Parentesco
       doc.text(edadConAnios, 24, 7.6); // Edad
-      doc.text(formatFecha(VIGENCIA_ESTUDIOS), 18.5, 8.8); // Vigencia
+      doc.text(vigencia, 18.5, 8.8); // Vigencia
 
-      doc.text(EMPLEADO_NOMBRE, 18.5, 10.5); // Nombre del Empleado
-      doc.text(NUM_NOMINA, 18.5, 11.6); // Número de Nómina
+      doc.text(EMPLEADO_NOMBRE, 18.5, 10.5); // Nombre del empleado
+      doc.text(NUM_NOMINA, 18.5, 11.6); // Número de nómina
       const departamentoText = doc.splitTextToSize(DEPARTAMENTO, 10);
       doc.text(departamentoText, 18.5, 12.8); // Departamento
 
-      // Página Trasera del Carnet
+      // Página Trasera
       doc.addPage();
       doc.addImage(backTemplate, "PNG", 0, 0, 29.7, 21);
 
+      // Guardar el PDF
       doc.save(`Carnet_${NOMBRE}_${A_PATERNO}.pdf`);
+      console.log("Carnet generado exitosamente");
     } catch (error) {
       console.error("Error al generar el carnet:", error.message);
       Swal.fire(
@@ -578,53 +701,76 @@ export default function RegistroBeneficiario() {
   };
 
   const handlePrintCredential = async (beneficiary) => {
-    // Verificar que el beneficiario esté activo
-    if (beneficiary.ACTIVO !== "A") {
-      Swal.fire("Error", "El beneficiario no está activo.", "error");
-      return;
-    }
-
-    const {
-      NO_NOMINA,
-      PARENTESCO,
-      NOMBRE,
-      A_PATERNO,
-      A_MATERNO,
-      F_NACIMIENTO,
-      VIGENCIA_ESTUDIOS, // Cambiado de VIGENCIA
-      TEL_EMERGENCIA,
-      NOMBRE_EMERGENCIA,
-      FOTO_URL,
-      SANGRE,
-      ALERGIAS,
-    } = beneficiary;
-
-    // Función para obtener la descripción del parentesco
-    const getParentescoDescripcion = (parentescoId) => {
-      const parentesco = parentescoOptions.find(
-        (option) => option.ID_PARENTESCO === parentescoId
-      );
-      return parentesco ? parentesco.PARENTESCO : "Desconocido";
-    };
-
-    const parentescoDescripcion = getParentescoDescripcion(PARENTESCO);
-    const edadConAnios = `${calculateAge(F_NACIMIENTO)} años`; // Edad calculada
-
     try {
+      // Verificar que el beneficiario esté activo
+      if (beneficiary.ACTIVO !== "A") {
+        Swal.fire("Error", "El beneficiario no está activo.", "error");
+        return;
+      }
+
+      const {
+        NO_NOMINA,
+        PARENTESCO,
+        NOMBRE,
+        A_PATERNO,
+        A_MATERNO,
+        F_NACIMIENTO,
+        VIGENCIA_ESTUDIOS,
+        TEL_EMERGENCIA,
+        NOMBRE_EMERGENCIA,
+        FOTO_URL,
+        SANGRE,
+        ALERGIAS,
+        ESDISCAPACITADO, // Nuevo campo para verificar discapacidad
+      } = beneficiary;
+
+      console.log("Datos recibidos del beneficiario:", beneficiary);
+
+      // Función para obtener la descripción del parentesco
+      const getParentescoDescripcion = (parentescoId) => {
+        const parentesco = parentescoOptions.find(
+          (option) => option.ID_PARENTESCO === parentescoId
+        );
+        return parentesco ? parentesco.PARENTESCO : "Desconocido";
+      };
+
+      const formatFechaLocal = (fecha) => {
+        if (!fecha) return "";
+        const dateParts = fecha.split("T")[0].split("-");
+        const [year, month, day] = dateParts;
+        return `${day}/${month}/${year}`;
+      };
+
+      const parentescoDescripcion = getParentescoDescripcion(PARENTESCO);
+      const edad = calculateAge(F_NACIMIENTO);
+
+      console.log("Descripción del parentesco:", parentescoDescripcion);
+      console.log("Edad calculada:", edad);
+
+      // Calcular vigencia
+      const vigencia = calcularVigencia(
+        PARENTESCO,
+        edad,
+        VIGENCIA_ESTUDIOS,
+        F_NACIMIENTO,
+        ESDISCAPACITADO
+      );
+
+      console.log("Vigencia final asignada:", vigencia);
+
       // Consumir la API del web service para obtener datos del empleado
       const response = await fetch("/api/empleado", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ num_nom: NO_NOMINA }),
       });
 
       if (!response.ok) throw new Error("Empleado no encontrado");
 
       const employeeData = await response.json();
-
       const DEPARTAMENTO = employeeData?.departamento || "N/A";
+
+      console.log("Datos del empleado obtenidos:", employeeData);
 
       // Configuración para jsPDF
       const doc = new jsPDF({
@@ -657,7 +803,7 @@ export default function RegistroBeneficiario() {
 
           // Añadir un marco redondeado alrededor de la foto
           doc.setLineWidth(0.25);
-          doc.setDrawColor(255, 255, 255); // Color del marco (blanco)
+          doc.setDrawColor(255, 255, 255);
           doc.roundedRect(
             photoX,
             photoY,
@@ -674,48 +820,88 @@ export default function RegistroBeneficiario() {
 
       // Texto en la página frontal
       doc.setFont("helvetica", "bold");
-      doc.setTextColor("#19456a"); // Azul
+      doc.setTextColor("#19456a");
 
       doc.setFontSize(21);
-      doc.text(NO_NOMINA?.toString() || "", 18.3, 9.5);
+      if (NO_NOMINA) {
+        doc.text(NO_NOMINA.toString(), 18.3, 9.5);
+      } else {
+        console.error("Error: NO_NOMINA no es válido:", NO_NOMINA);
+      }
 
       doc.setFontSize(18);
-      doc.text(parentescoDescripcion, 19.8, 11.16);
+      if (parentescoDescripcion) {
+        doc.text(parentescoDescripcion, 19.8, 11.16);
+      } else {
+        console.error(
+          "Error: parentescoDescripcion no es válido:",
+          parentescoDescripcion
+        );
+      }
 
       doc.setFontSize(15);
-      doc.text(
-        `${NOMBRE || ""} ${A_PATERNO || ""} ${A_MATERNO || ""}`,
-        18.4,
-        12.6
-      );
+      const nombreCompleto = `${NOMBRE || ""} ${A_PATERNO || ""} ${
+        A_MATERNO || ""
+      }`;
+      if (nombreCompleto.trim()) {
+        doc.text(nombreCompleto, 18.4, 12.6);
+      } else {
+        console.error("Error: Nombre completo no es válido:", nombreCompleto);
+      }
 
       doc.setFontSize(18);
-      doc.text(edadConAnios, 17.2, 14.3);
+      const edadTexto = `${edad} años`;
+      if (edadTexto) {
+        doc.text(edadTexto, 17.2, 14.3);
+      } else {
+        console.error("Error: Edad no es válida:", edadTexto);
+      }
 
       doc.setFontSize(14.5);
-      const departamentoText = doc.splitTextToSize(DEPARTAMENTO, 8.5); // Ajustar texto largo
+      const departamentoText = doc.splitTextToSize(DEPARTAMENTO, 8.5);
       let departamentoY = 15.4;
       departamentoText.forEach((line) => {
-        doc.text(line, 21.3, departamentoY);
-        departamentoY += 0.6; // Ajustar el espaciado entre líneas
+        if (line.trim()) {
+          doc.text(line, 21.3, departamentoY);
+          departamentoY += 0.6;
+        } else {
+          console.error(
+            "Error: Línea del texto del departamento no es válida:",
+            line
+          );
+        }
       });
 
       doc.setFontSize(18);
-      doc.text(formatFecha(VIGENCIA_ESTUDIOS), 18.8, 19.0);
+      if (vigencia) {
+        doc.text(vigencia, 18.8, 19.0);
+      } else {
+        console.error("Error: Vigencia no es válida:", vigencia);
+      }
 
       // Página Trasera
       doc.addPage();
       doc.addImage(backTemplate, "PNG", 0, 0, 29.7, 21);
 
       doc.setFontSize(18);
-      doc.text(formatFecha(F_NACIMIENTO), 12.5, 2.8);
-      doc.text(SANGRE || "", 9.8, 5.2);
-      doc.text(ALERGIAS || "", 7.0, 7.6);
-      doc.text(TEL_EMERGENCIA || "", 14, 9.8);
-      doc.text(NOMBRE_EMERGENCIA || "", 13.1, 12);
+      const fechaNacimientoTexto = formatFechaLocal(F_NACIMIENTO);
+      if (fechaNacimientoTexto) {
+        doc.text(fechaNacimientoTexto, 12.5, 2.8);
+      } else {
+        console.error(
+          "Error: Fecha de nacimiento no es válida:",
+          fechaNacimientoTexto
+        );
+      }
+
+      doc.text(SANGRE || "Sin información", 9.8, 5.2);
+      doc.text(ALERGIAS || "Sin información", 7.0, 7.6);
+      doc.text(TEL_EMERGENCIA || "Sin información", 14, 9.8);
+      doc.text(NOMBRE_EMERGENCIA || "Sin información", 13.1, 12);
 
       // Guardar como PDF
       doc.save(`Credencial_${NOMBRE || ""}_${A_PATERNO || ""}.pdf`);
+      console.log("Credencial generada exitosamente");
     } catch (error) {
       console.error("Error al generar la credencial:", error.message);
       Swal.fire(
@@ -747,37 +933,52 @@ export default function RegistroBeneficiario() {
     const { name, value } = e.target;
 
     setFormData((prevData) => {
-      const updatedData = { ...prevData, [name]: value.trim() }; // Remover espacios adicionales
+      const updatedData = { ...prevData, [name]: value.trim() };
 
-      // Calcular la edad si cambia la fecha de nacimiento
+      // Si cambia la fecha de nacimiento, calcular edad y vigencia
       if (name === "fNacimiento") {
         const birthDate = new Date(value);
+        birthDate.setUTCHours(12, 0, 0, 0); // Evitar problemas de zona horaria
         const age = calculateAge(birthDate);
+
         updatedData.edad = age;
 
-        // Revalidar checkboxes basados en el nuevo valor de edad
-        updateCheckboxState(age, updatedData.parentesco);
+        if (updatedData.parentesco === 2 && age < 16) {
+          // Usar número en comparación
+          const sixteenYearsDate = calculateTimeUntil16(value);
+          updatedData.vigenciaEstudios = sixteenYearsDate
+            ? sixteenYearsDate.toLocaleDateString("es-ES", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+              })
+            : "";
+        } else {
+          updatedData.vigenciaEstudios = ""; // Limpiar vigencia si no aplica
+        }
       }
 
-      // Revalidar checkboxes si cambia el parentesco
+      // Si cambia el parentesco, recalcular lógica
       if (name === "parentesco") {
-        updateCheckboxState(updatedData.edad, value);
-      }
+        const isHijo = Number(value) === 2; // Comparar correctamente con número
+        const isMenor16 = prevData.edad < 16;
 
-      // Validar y normalizar el valor del tipo de sangre
-      if (name === "sangre") {
-        updatedData.sangre = value.toUpperCase(); // Convertir a mayúsculas para asegurar compatibilidad
+        if (isHijo && isMenor16) {
+          const sixteenYearsDate = calculateTimeUntil16(prevData.fNacimiento);
+          updatedData.vigenciaEstudios = sixteenYearsDate
+            ? sixteenYearsDate.toLocaleDateString("es-ES", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+              })
+            : "";
+        } else {
+          updatedData.vigenciaEstudios = ""; // Limpiar vigencia si no aplica
+        }
       }
 
       return updatedData;
     });
-
-    // Añadir o eliminar la clase 'hasText' según corresponda
-    if (value) {
-      e.target.classList.add(styles.hasText);
-    } else {
-      e.target.classList.remove(styles.hasText);
-    }
   };
 
   const updateCheckboxState = (edad, parentescoId) => {
@@ -1148,6 +1349,19 @@ export default function RegistroBeneficiario() {
       return;
     }
 
+    // Validar la URL del acta de incapacidad si aplica
+    if (
+      formData.esDiscapacitado &&
+      (!formData.urlIncap || !formData.urlIncap.startsWith("http"))
+    ) {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Por favor, sube un acta de incapacidad válida.",
+      });
+      return;
+    }
+
     // ** Validar relación exclusiva entre Esposo(a) y Concubino(a) **
     try {
       const validationResponse = await fetch(
@@ -1196,8 +1410,15 @@ export default function RegistroBeneficiario() {
       ? new Date(formData.fNacimiento).toISOString()
       : null;
 
-    const formattedVigenciaEstudios = formData.vigenciaEstudios
-      ? new Date(formData.vigenciaEstudios).toISOString()
+      const formattedVigenciaEstudios = formData.vigenciaEstudios
+      ? (() => {
+          const parsedDate = new Date(formData.vigenciaEstudios);
+          if (isNaN(parsedDate.getTime())) {
+            console.error("Vigencia de estudios tiene un valor inválido:", formData.vigenciaEstudios);
+            return null; // Devuelve null si la fecha no es válida
+          }
+          return parsedDate.toISOString();
+        })()
       : null;
 
     // Determinar endpoint y método HTTP
@@ -1234,6 +1455,7 @@ export default function RegistroBeneficiario() {
         ineUrl: formData.ineUrl || null,
         cartaNoAfiliacionUrl: formData.cartaNoAfiliacionUrl || null,
         actaConcubinatoUrl: formData.actaConcubinatoUrl || null,
+        urlIncap: formData.urlIncap || null, // Añadido el campo URL_INCAP
       };
 
       console.log("Datos enviados al backend (antes del fetch):", payload);
@@ -1293,7 +1515,8 @@ export default function RegistroBeneficiario() {
         actaMatrimonioUrl: "",
         ineUrl: "",
         cartaNoAfiliacionUrl: "",
-        actaConcubinatoUrl: "", // Reseteado correctamente
+        actaConcubinatoUrl: "",
+        urlIncap: "", // Reseteo del campo URL_INCAP
       });
 
       setIsModalOpen(false);
@@ -1309,6 +1532,7 @@ export default function RegistroBeneficiario() {
   };
 
   //EDITAR BENEFICIAROS//
+  // EDITAR BENEFICIARIOS
   const handleEditBeneficiary = (beneficiario) => {
     // Formatear fechas
     const formatFecha = (fecha) => {
@@ -1360,6 +1584,7 @@ export default function RegistroBeneficiario() {
       ineUrl: beneficiario.URL_INE || "", // INE
       cartaNoAfiliacionUrl: beneficiario.URL_NOISSTE || "", // Carta de No Afiliación
       actaConcubinatoUrl: beneficiario.URL_CONCUBINATO || "", // Acta de Concubinato
+      urlIncap: beneficiario.URL_INCAP || "", // Nuevo campo: Acta de Incapacidad
       showCheckboxes: isHijo && edad >= 16, // Mostrar checkboxes si es Hijo(a) y tiene >= 16 años
       showUploadFiles: isHijo || isPadreOMadre || isEsposo || isConcubino, // Mostrar inputs para archivos si aplica
       showEsposoFiles: isEsposo, // Mostrar campos específicos de Esposo(a)
@@ -1566,6 +1791,7 @@ export default function RegistroBeneficiario() {
               ineUrl: "", // Limpiar URL del INE
               cartaNoAfiliacionUrl: "", // Limpiar URL de la carta de no afiliación
               actaConcubinatoUrl: "", // Nuevo: Limpiar URL del acta de concubinato
+              urlIncap: "", // Nuevo campo para el archivo de incapacidad
             });
           }}
           overlayClassName={styles.modalOverlay}
@@ -2177,7 +2403,7 @@ export default function RegistroBeneficiario() {
                         setFormData((prev) => ({
                           ...prev,
                           esEstudiante: e.target.checked,
-                          esDiscapacitado: false,
+                          esDiscapacitado: false, // Desmarcar "Es discapacitado" si se selecciona "Es estudiante"
                           vigenciaEstudios: e.target.checked
                             ? prev.vigenciaEstudios
                             : "",
@@ -2202,11 +2428,18 @@ export default function RegistroBeneficiario() {
                       name="esDiscapacitado"
                       checked={formData.esDiscapacitado}
                       onChange={(e) => {
+                        const isChecked = e.target.checked;
+                        console.log(
+                          "Checkbox 'Es Discapacitado' actualizado:",
+                          isChecked
+                        );
+
                         setFormData((prev) => ({
                           ...prev,
-                          esDiscapacitado: e.target.checked,
-                          esEstudiante: false,
-                          vigenciaEstudios: "",
+                          esDiscapacitado: isChecked,
+                          esEstudiante: false, // Desmarcar "Es estudiante" si se selecciona "Es discapacitado"
+                          vigenciaEstudios: isChecked ? "30/09/2027" : "", // Asignar vigencia fija o limpiar si se desmarca
+                          urlIncap: isChecked ? prev.urlIncap : "", // Limpiar URL si se desmarca
                         }));
                       }}
                     />
@@ -2221,6 +2454,58 @@ export default function RegistroBeneficiario() {
                     </span>
                     <span className={styles.label}>Es discapacitado</span>
                   </label>
+                </div>
+              )}
+
+              {/* Campo para subir el acta de incapacidad */}
+              {formData.esDiscapacitado && (
+                <div className={styles.inputRow2}>
+                  <label className={styles.inputLabel2}>
+                    <FaFileUpload className={styles.icon} /> Acta de Incapacidad
+                    - SUBIR:
+                    <div className={styles.fileInputWrapper2}>
+                      <input
+                        type="file"
+                        name="actaIncapacidad"
+                        accept="application/pdf"
+                        onChange={handleFileUploadIncap} // Asignar la nueva función
+                        className={styles.fileInput2}
+                        id="acta-incapacidad-upload"
+                      />
+                      <label
+                        htmlFor="acta-incapacidad-upload"
+                        className={styles.uploadButton2}
+                      >
+                        Seleccionar archivo
+                      </label>
+                      <span className={styles.fileName2}>
+                        {formData.urlIncap
+                          ? getFileNameFromURL(formData.urlIncap)
+                          : "Sin archivo seleccionado"}
+                      </span>
+                    </div>
+                  </label>
+
+                  {/* Botón para ver el archivo cargado */}
+                  {formData.urlIncap && (
+                    <button
+                      type="button"
+                      className={styles.viewButton2}
+                      onClick={() => {
+                        if (formData.urlIncap) {
+                          window.open(formData.urlIncap, "_blank");
+                        } else {
+                          Swal.fire(
+                            "Error",
+                            "No se encontró un Acta de Incapacidad válida.",
+                            "error"
+                          );
+                        }
+                      }}
+                    >
+                      Ver Acta Actual
+                    </button>
+                  )}
                 </div>
               )}
 
@@ -2298,43 +2583,40 @@ export default function RegistroBeneficiario() {
               )}
             </fieldset>
 
-       {/* Contenedor para alinear ambos botones */}
-<div className={`${styles.inputRow} ${styles.flexRow}`}>
-  {/* Botón para subir foto */}
-  <label className={styles.uploadLabel}>
-    <span className={styles.uploadButton}>
-      <FaFileUpload className={styles.icon} /> Subir Foto
-    </span>
-    <input
-      type="file"
-      accept="image/*"
-      onChange={handleImageUpload}
-      className={styles.hiddenInput}
-    />
-  </label>
+            {/* Contenedor para alinear ambos botones */}
+            <div className={`${styles.inputRow} ${styles.flexRow}`}>
+              {/* Botón para subir foto */}
+              <label className={styles.uploadLabel}>
+                <span className={styles.uploadButton}>
+                  <FaFileUpload className={styles.icon} /> Subir Foto
+                </span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className={styles.hiddenInput}
+                />
+              </label>
 
- {/* Botón para capturar foto */}
-<div className={styles.cameraContainer}>
-  <button
-    type="button"
-    onClick={handleCapturePhoto}
-    className={styles.cameraButton}
-    disabled={loading}
-  >
-    {loading ? (
-      "Cargando..."
-    ) : (
-      <>
-        <FaCamera className={styles.cameraIcon} />
-        Capturar Foto
-      </>
-    )}
-  </button>
-</div>
-
-</div>
-
-
+              {/* Botón para capturar foto */}
+              <div className={styles.cameraContainer}>
+                <button
+                  type="button"
+                  onClick={handleCapturePhoto}
+                  className={styles.cameraButton}
+                  disabled={loading}
+                >
+                  {loading ? (
+                    "Cargando..."
+                  ) : (
+                    <>
+                      <FaCamera className={styles.cameraIcon} />
+                      Capturar Foto
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
 
             {/* Campo de Tipo de Sangre */}
             <div className={styles.inputGroup}>
@@ -2678,6 +2960,19 @@ export default function RegistroBeneficiario() {
                   >
                     <FaFileUpload size={20} />
                     Acta de Concubinato
+                  </button>
+                )}
+
+                {/* Acta de Incapacidad */}
+                {selectedBeneficiary.URL_INCAP && (
+                  <button
+                    className={styles.documentButton}
+                    onClick={() =>
+                      window.open(selectedBeneficiary.URL_INCAP, "_blank")
+                    }
+                  >
+                    <FaFileAlt size={20} />
+                    Acta de Incapacidad
                   </button>
                 )}
               </div>

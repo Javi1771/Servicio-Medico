@@ -30,10 +30,10 @@ export default async function handler(req, res) {
     urlINE,
     urlActaMatrimonio,
     urlCartaNoAfiliacion,
-    actaConcubinatoUrl, // Asegúrate de usar este nombre en el frontend
+    actaConcubinatoUrl,
+    urlIncap, // Nuevo campo agregado
   } = req.body;
 
-  // Log para depuración: Verificar los datos recibidos
   console.log("Datos recibidos en el backend:", req.body);
 
   // Validar datos obligatorios
@@ -106,8 +106,8 @@ export default async function handler(req, res) {
       .input("urlINE", urlINE || null)
       .input("urlActaMatrimonio", urlActaMatrimonio || null)
       .input("urlCartaNoAfiliacion", urlCartaNoAfiliacion || null)
-      .input("urlConcubinato", actaConcubinatoUrl || null) // Aquí se mapea correctamente
-
+      .input("urlConcubinato", actaConcubinatoUrl || null)
+      .input("urlIncap", urlIncap || null) // Nuevo campo incluido
       .query(`
         UPDATE BENEFICIARIO
         SET 
@@ -134,11 +134,11 @@ export default async function handler(req, res) {
           URL_INE = @urlINE,
           URL_ACTAMATRIMONIO = @urlActaMatrimonio,
           URL_NOISSTE = @urlCartaNoAfiliacion,
-          URL_CONCUBINATO = @urlConcubinato
+          URL_CONCUBINATO = @urlConcubinato,
+          URL_INCAP = @urlIncap -- Nuevo campo actualizado
         WHERE ID_BENEFICIARIO = @idBeneficiario
       `);
 
-    // Log para verificar filas afectadas
     console.log("Filas afectadas por la consulta:", result.rowsAffected[0]);
 
     if (result.rowsAffected[0] === 0) {
@@ -147,7 +147,6 @@ export default async function handler(req, res) {
         .json({ message: "Beneficiario no encontrado o sin cambios" });
     }
 
-    // Respuesta exitosa
     return res
       .status(200)
       .json({ message: "Beneficiario actualizado correctamente" });
