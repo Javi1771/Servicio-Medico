@@ -67,9 +67,9 @@ export default function UsuariosTable() {
           especialidadesResponse,
           tiposUsuariosResponse,
         ] = await Promise.all([
-          fetch("/api/usuario"),
+          fetch("/api/usuarios-proveedores/usuario"),
           fetch("/api/especialidades/especialidades"),
-          fetch("/api/tiposusuarios"),
+          fetch("/api/usuarios-proveedores/tiposusuarios"),
         ]);
 
         const usuariosData = await usuariosResponse.json();
@@ -113,7 +113,7 @@ export default function UsuariosTable() {
 
     if (confirmDelete.isConfirmed) {
       try {
-        const response = await fetch(`/api/eliminarUser?usuario=${usuario}`, {
+        const response = await fetch(`/api/usuarios-proveedores/eliminarUser?usuario=${usuario}`, {
           method: "PUT",
         });
 
@@ -122,7 +122,7 @@ export default function UsuariosTable() {
         }
 
         //* Actualizar la lista de usuarios
-        const usuariosResponse = await fetch("/api/usuario");
+        const usuariosResponse = await fetch("/api/usuarios-proveedores/usuario");
         const usuariosData = await usuariosResponse.json();
         setUsuarios(usuariosData);
 
@@ -210,7 +210,7 @@ export default function UsuariosTable() {
     }
 
     try {
-      const response = await fetch(`/api/usuario?usuario=${usuario}`);
+      const response = await fetch(`/api/usuarios-proveedores/usuario?usuario=${usuario}`);
       const data = await response.json();
 
       if (data.length > 0) {
@@ -300,8 +300,14 @@ export default function UsuariosTable() {
 
   const handleEditUser = (usuario) => {
     setSelectedUsuario(usuario);
-    setNewUsuario({ ...usuario }); //* Limpiamos el campo de contraseña
-    setShowModal(true); //* Mostrar el modal
+  
+    // Copiamos todos los campos y añadimos "usuarioOriginal"
+    setNewUsuario({
+      ...usuario,
+      usuarioOriginal: usuario.usuario, // <-- clave para identificar el registro en la BD
+    });
+  
+    setShowModal(true);
   };
 
   const handleSubmit = async (e) => {
@@ -354,7 +360,7 @@ export default function UsuariosTable() {
     try {
       if (selectedUsuario) {
         //* Si hay un usuario seleccionado, hacemos un PUT
-        const response = await fetch("/api/editUser", {
+        const response = await fetch("/api/usuarios-proveedores/editUser", {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
@@ -370,7 +376,7 @@ export default function UsuariosTable() {
         console.log("Usuario actualizado:", result);
 
         //* Actualizar la lista de usuarios después de editar
-        const usuariosResponse = await fetch("/api/usuario");
+        const usuariosResponse = await fetch("/api/usuarios-proveedores/usuario");
         const usuariosData = await usuariosResponse.json();
         setUsuarios(usuariosData);
 
@@ -423,7 +429,7 @@ export default function UsuariosTable() {
         }
 
         //* Aquí va tu lógica para crear un nuevo usuario
-        const response = await fetch("/api/crearUser", {
+        const response = await fetch("/api/usuarios-proveedores/crearUser", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -439,7 +445,7 @@ export default function UsuariosTable() {
         console.log("Usuario agregado:", result);
 
         //* Actualizar la lista de usuarios después de agregar
-        const usuariosResponse = await fetch("/api/usuario");
+        const usuariosResponse = await fetch("/api/usuarios-proveedores/usuario");
         const usuariosData = await usuariosResponse.json();
         setUsuarios(usuariosData);
 

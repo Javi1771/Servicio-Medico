@@ -551,7 +551,7 @@ const CostoDeSurtimientos = () => {
                             {item.NOMINA}
                           </td>
                           <td className="px-4 py-3 border-b border-gray-700">
-                            {new Date(item.FECHA_EMISION).toLocaleDateString()}
+                            {item.FECHA_EMISION}
                           </td>
                           <td className="px-4 py-3 border-b border-gray-700">
                             ${item.TOTAL_COSTO.toLocaleString()}

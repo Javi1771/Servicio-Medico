@@ -1,4 +1,4 @@
-import { connectToDatabase } from './connectToDatabase';
+import { connectToDatabase } from '../connectToDatabase';
 import sql from 'mssql';
 import bcrypt from 'bcrypt';
 

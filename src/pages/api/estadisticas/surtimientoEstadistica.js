@@ -1,5 +1,31 @@
 import { connectToDatabase } from "../connectToDatabase";
 
+//* Función para formatear la fecha con día de la semana
+function formatFecha(fecha) {
+  const date = new Date(fecha);
+
+  const diasSemana = [
+    "Domingo",
+    "Lunes",
+    "Martes",
+    "Miércoles",
+    "Jueves",
+    "Viernes",
+    "Sábado",
+  ];
+
+  const diaSemana = diasSemana[date.getUTCDay()];
+  const dia = String(date.getUTCDate()).padStart(2, "0");
+  const mes = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const año = date.getUTCFullYear();
+  const horas = date.getUTCHours();
+  const minutos = String(date.getUTCMinutes()).padStart(2, "0");
+  const periodo = horas >= 12 ? "p.m." : "a.m.";
+  const horas12 = horas % 12 === 0 ? 12 : horas % 12;
+
+  return `${diaSemana}, ${dia}/${mes}/${año}, ${horas12}:${minutos} ${periodo}`;
+}
+
 export default async function handler(req, res) {
   if (req.method !== "GET") {
     return res.status(405).json({ error: "Only GET method is allowed" });
@@ -38,7 +64,19 @@ export default async function handler(req, res) {
         ORDER BY TOTAL_COSTO DESC
       `);
 
-    res.status(200).json(result.recordset);
+    //* Formatear la fecha de emisión en los resultados
+    const formattedResults = result.recordset.map((record) => {
+      console.log("Fecha original (FECHA_EMISION):", record.FECHA_EMISION);
+      const formattedDate = formatFecha(record.FECHA_EMISION);
+      console.log("Fecha formateada (FECHA_EMISION):", formattedDate);
+
+      return {
+        ...record,
+        FECHA_EMISION: formattedDate,
+      };
+    });
+
+    res.status(200).json(formattedResults);
   } catch (error) {
     console.error("Database query error:", error);
     res.status(500).json({ error: "Error fetching grouped data" });

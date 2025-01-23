@@ -1,5 +1,5 @@
 import sql from "mssql";
-import { connectToDatabase } from "./connectToDatabase";
+import { connectToDatabase } from "../connectToDatabase";
 
 export default async function handler(req, res) {
   if (req.method !== "PUT") {

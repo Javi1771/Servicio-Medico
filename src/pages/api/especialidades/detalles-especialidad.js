@@ -3,21 +3,21 @@ import sql from "mssql";
 
 export default async function handler(req, res) {
   if (req.method === "GET") {
-    const { claveConsulta } = req.query;
+    const { claveconsulta } = req.query;
 
-    if (!claveConsulta) {
+    if (!claveconsulta) {
       return res.status(400).json({ message: "Clave de consulta requerida" });
     }
 
     try {
-      // Conexión a la base de datos
+      //* Conexión a la base de datos
       const pool = await connectToDatabase();
 
       // Crear una nueva solicitud
       const request = pool.request();
-      request.input("claveConsulta", sql.VarChar, claveConsulta);
+      request.input("claveConsulta", sql.VarChar, claveconsulta);
 
-      // Consulta principal con la lógica de parentesco
+      //* Consulta principal con la lógica de parentesco
       const consultaQuery = `
         SELECT
           c.*, 
@@ -31,17 +31,17 @@ export default async function handler(req, res) {
         LEFT JOIN PARENTESCO p ON c.parentesco = p.parentesco
         LEFT JOIN proveedores pr ON c.claveusuario = pr.claveproveedor
         LEFT JOIN especialidades e ON pr.claveespecialidad = e.claveespecialidad
-        WHERE c.claveconsulta = @claveConsulta
+        WHERE c.claveconsulta = @claveconsulta
       `;
 
-      // Ejecutar la consulta
+      //* Ejecutar la consulta
       const result = await request.query(consultaQuery);
 
       if (result.recordset.length === 0) {
         return res.status(404).json({ message: "Consulta no encontrada" });
       }
 
-      // Retornar los datos procesados
+      //* Retornar los datos procesados
       res.status(200).json({ data: result.recordset[0] });
     } catch (error) {
       console.error("Error al obtener detalles de la consulta:", error);

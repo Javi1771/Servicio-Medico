@@ -264,7 +264,58 @@ const CrearPaseNuevo = () => {
   };
 
   const handleBeneficiarySelect = (index) => {
-    setSelectedBeneficiary(beneficiaryData[index]);
+    const selected = beneficiaryData[index];
+
+    if (selected.VIGENCIA_ESTUDIOS) {
+      const vigenciaEstudios = new Date(selected.VIGENCIA_ESTUDIOS);
+      const fechaActual = new Date();
+
+      if (vigenciaEstudios < fechaActual) {
+        //! Mostrar alerta si la constancia está vencida
+        MySwal.fire({
+          icon: "warning",
+          title:
+            "<span style='color: #ff9800; font-weight: bold; font-size: 1.5em;'>⚠️ Constancia vencida</span>",
+          html: `<p style='color: #fff; font-size: 1.1em;'>El beneficiario <strong>${selected.NOMBRE} ${selected.A_PATERNO} ${selected.A_MATERNO}</strong> tiene la constancia de estudios vencida. Seleccionando un beneficiario válido...</p>`,
+          background: "linear-gradient(145deg, #4a2600, #220f00)",
+          confirmButtonColor: "#ff9800",
+          confirmButtonText:
+            "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
+          customClass: {
+            popup:
+              "border border-yellow-600 shadow-[0px_0px_20px_5px_rgba(255,152,0,0.9)] rounded-lg",
+          },
+        });
+
+        //* Buscar el siguiente beneficiario válido
+        const validBeneficiaryIndex = beneficiaryData.findIndex(
+          (beneficiary) => {
+            if (beneficiary.VIGENCIA_ESTUDIOS) {
+              const vigenciaEstudios = new Date(beneficiary.VIGENCIA_ESTUDIOS);
+              const fechaActual = new Date();
+              return vigenciaEstudios >= fechaActual; //* Beneficiario con vigencia válida
+            }
+            return true; //* Beneficiario sin validación de vigencia
+          }
+        );
+
+        if (validBeneficiaryIndex !== -1) {
+          //* Seleccionar automáticamente el primer beneficiario válido
+          setSelectedBeneficiary(beneficiaryData[validBeneficiaryIndex]);
+          document.querySelector("select").value = validBeneficiaryIndex; //* Actualizar el select
+        } else {
+          //* Si no hay beneficiarios válidos, limpiar todo
+          setSelectedBeneficiary(null);
+          setBeneficiaryData([]);
+          setConsultaSeleccionada("empleado"); //! Cambiar a "empleado" si no hay beneficiarios
+        }
+
+        return;
+      }
+    }
+
+    //* Si el beneficiario es válido, actualizar la selección
+    setSelectedBeneficiary(selected);
   };
 
   const obtenerSindicato = (grupoNomina, cuotaSindical) => {
@@ -294,7 +345,15 @@ const CrearPaseNuevo = () => {
 
     try {
       const fechaActual = new Date();
-      const fechaconsulta = fechaActual.toISOString().split("T")[0];
+
+      //* Formatear la fecha y hora en formato ISO sin convertir a Zulu time (UTC)
+      const fechaconsulta = `${
+        fechaActual.toISOString().split("T")[0]
+      } ${String(fechaActual.getHours()).padStart(2, "0")}:${String(
+        fechaActual.getMinutes()
+      ).padStart(2, "0")}:${String(fechaActual.getSeconds()).padStart(2, "0")}`;
+
+      console.log("Fecha y hora en formato 24 hrs:", fechaconsulta);
 
       let claveproveedor = selectedProveedor;
       let clavenomina = nomina;
@@ -382,7 +441,7 @@ const CrearPaseNuevo = () => {
         "Consulta Guardada",
         "La consulta se ha guardado correctamente.",
         claveConsulta
-      );      
+      );
 
       //* Aquí puedes realizar otras acciones con la claveConsulta
       console.log("Clave consulta generada:", claveConsulta);
@@ -678,7 +737,9 @@ const CrearPaseNuevo = () => {
                       }}
                       value={fechaCita}
                       className="bg-gradient-to-br from-gray-900 via-black to-gray-800 rounded-lg text-cyan-300 mx-auto mb-6 hover:shadow-xl"
-                      tileDisabled={({ date }) => date < new Date().setHours(0, 0, 0, 0)} //* Deshabilitar días pasados
+                      tileDisabled={({ date }) =>
+                        date < new Date().setHours(0, 0, 0, 0)
+                      } //* Deshabilitar días pasados
                       tileClassName={() =>
                         "text-gray-500 bg-gray-800 border border-gray-700 rounded-md hover:border-cyan-400"
                       }

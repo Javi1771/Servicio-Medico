@@ -20,7 +20,7 @@ export default async function handler(req, res) {
             B.F_NACIMIENTO, 
             B.ESDISCAPACITADO,
             B.ESESTUDIANTE,
-            FORMAT(B.VIGENCIA_ESTUDIOS, 'yyyy-MM-dd') AS VIGENCIA_ESTUDIOS, -- Formatear la fecha
+            FORMAT(B.VIGENCIA_ESTUDIOS, 'yyyy-MM-dd') AS VIGENCIA_ESTUDIOS, 
             B.ACTIVO,
             P.ID_PARENTESCO AS ID_PARENTESCO,
             P.PARENTESCO AS PARENTESCO_DESC,

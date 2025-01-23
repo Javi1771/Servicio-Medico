@@ -20,7 +20,7 @@ const formatearFecha = (fecha) => {
 
 const DetallesEspecialidad = () => {
   const router = useRouter();
-  const { claveConsulta } = router.query;
+  const { claveconsulta } = router.query;
 
   const [paciente, setPaciente] = useState(null);
   const [subPantalla, setSubPantalla] = useState("Diagnóstico");
@@ -35,21 +35,21 @@ const DetallesEspecialidad = () => {
   const [nombreMedico, setNombreMedico] = useState("");
 
   useEffect(() => {
-    if (claveConsulta) {
-      obtenerDatosPaciente(claveConsulta);
+    if (claveconsulta) {
+      obtenerDatosPaciente(claveconsulta);
     }
-  }, [claveConsulta]);
+  }, [claveconsulta]);
 
-  const obtenerDatosPaciente = async (claveConsulta) => {
+  const obtenerDatosPaciente = async (claveconsulta) => {
     try {
       const response = await fetch(
-        `/api/especialidades/detalles-especialidad?claveConsulta=${claveConsulta}`
+        `/api/especialidades/detalles-especialidad?claveconsulta=${claveconsulta}`
       );
       const data = await response.json();
 
       if (response.ok) {
         setPaciente(data.data);
-        setPacienteSeleccionado(data.data); // Ajustar para subpantallas
+        setPacienteSeleccionado(data.data); //* Ajustar para subpantallas
         setLoading(false);
       } else {
         mostrarError("Error al obtener los datos del paciente.");
@@ -135,7 +135,7 @@ const DetallesEspecialidad = () => {
         <DatosAdicionales
           subPantalla={subPantalla}
           handleSubPantallaChange={setSubPantalla}
-          claveConsulta={claveConsulta}
+          claveConsulta={claveconsulta}
           numeroDeNomina={paciente.clavenomina}
           clavepaciente={paciente.clavepaciente}
           nombrePaciente={paciente.nombrepaciente}
@@ -154,7 +154,7 @@ const DetallesEspecialidad = () => {
         <AccionesConsulta
           formCompleto={formCompleto}
           limpiarFormulario={limpiarFormulario}
-          claveConsulta={claveConsulta}
+          claveConsulta={claveconsulta}
           clavepaciente={paciente.clavepaciente}
           clavenomina={paciente.clavenomina}
         />
