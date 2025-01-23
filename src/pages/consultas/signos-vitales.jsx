@@ -90,8 +90,61 @@ const SignosVitales = () => {
     (value) => value.trim() !== ""
   );
 
+  const [isSaving, setIsSaving] = useState(false);
+
   const handleBeneficiarySelect = (index) => {
-    setSelectedBeneficiary(beneficiaryData[index]);
+    const selected = beneficiaryData[index];
+
+    if (selected.VIGENCIA_ESTUDIOS) {
+      const vigenciaEstudios = new Date(selected.VIGENCIA_ESTUDIOS);
+      const fechaActual = new Date();
+
+      if (vigenciaEstudios < fechaActual) {
+        //! Mostrar alerta si la constancia está vencida
+        MySwal.fire({
+          icon: "warning",
+          title:
+            "<span style='color: #ff9800; font-weight: bold; font-size: 1.5em;'>⚠️ Constancia vencida</span>",
+          html: `<p style='color: #fff; font-size: 1.1em;'>El beneficiario <strong>${selected.NOMBRE} ${selected.A_PATERNO} ${selected.A_MATERNO}</strong> tiene la constancia de estudios vencida. Seleccionando un beneficiario válido...</p>`,
+          background: "linear-gradient(145deg, #4a2600, #220f00)",
+          confirmButtonColor: "#ff9800",
+          confirmButtonText:
+            "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
+          customClass: {
+            popup:
+              "border border-yellow-600 shadow-[0px_0px_20px_5px_rgba(255,152,0,0.9)] rounded-lg",
+          },
+        });
+
+        //* Buscar el siguiente beneficiario válido
+        const validBeneficiaryIndex = beneficiaryData.findIndex(
+          (beneficiary) => {
+            if (beneficiary.VIGENCIA_ESTUDIOS) {
+              const vigenciaEstudios = new Date(beneficiary.VIGENCIA_ESTUDIOS);
+              const fechaActual = new Date();
+              return vigenciaEstudios >= fechaActual; //* Beneficiario con vigencia válida
+            }
+            return true; //* Beneficiario sin validación de vigencia
+          }
+        );
+
+        if (validBeneficiaryIndex !== -1) {
+          //* Seleccionar automáticamente el primer beneficiario válido
+          setSelectedBeneficiary(beneficiaryData[validBeneficiaryIndex]);
+          document.querySelector("select").value = validBeneficiaryIndex; //* Actualizar el select
+        } else {
+          //* Si no hay beneficiarios válidos, limpiar todo
+          setSelectedBeneficiary(null);
+          setBeneficiaryData([]);
+          setConsultaSeleccionada("empleado"); //! Cambiar a "empleado" si no hay beneficiarios
+        }
+
+        return;
+      }
+    }
+
+    //* Si el beneficiario es válido, actualizar la selección
+    setSelectedBeneficiary(selected);
   };
 
   //* Función para cargar la lista de espera
@@ -170,8 +223,10 @@ const SignosVitales = () => {
 
   const [beneficiaryData, setBeneficiaryData] = useState([]);
 
-  //! handleSave: Utiliza 'dbFormat' solo para el guardado en la base de datos
   const handleSave = async () => {
+    if (isSaving) return; //! Evitar múltiples ejecuciones si ya está en curso
+    setIsSaving(true); //* Activar el estado de guardando
+
     if (!nomina) {
       MySwal.fire({
         icon: "error",
@@ -187,6 +242,7 @@ const SignosVitales = () => {
             "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
         },
       });
+      setIsSaving(false); //! Desactivar el estado de guardando si falla
       return;
     }
 
@@ -286,6 +342,8 @@ const SignosVitales = () => {
             "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
         },
       });
+    } finally {
+      setIsSaving(false); //* Finalizar el estado de guardando
     }
   };
 
@@ -498,10 +556,7 @@ const SignosVitales = () => {
 
       setPacientes((prevPacientes) => {
         // Filtrar si la consulta cambia de estado y ya no pertenece a la lista de espera
-        if (
-          data.clavestatus === 0 ||
-          data.clavestatus === 2
-        ) {
+        if (data.clavestatus === 0 || data.clavestatus === 2) {
           return prevPacientes.filter(
             (paciente) => paciente.claveconsulta !== data.claveConsulta
           );
@@ -913,14 +968,14 @@ const SignosVitales = () => {
                 <div className="mt-6">
                   <button
                     onClick={handleSave}
-                    disabled={!isFormComplete}
+                    disabled={!isFormComplete || isSaving}
                     className={`px-4 md:px-5 py-2 rounded-lg font-semibold w-full transition duration-200 ${
-                      isFormComplete
+                      isFormComplete && !isSaving
                         ? "bg-yellow-600 hover:bg-yellow-500"
                         : "bg-gray-400 cursor-not-allowed"
                     }`}
                   >
-                    Guardar Signos Vitales
+                    {isSaving ? "Guardando..." : "Guardar Signos Vitales"}
                   </button>
                 </div>
               </div>
