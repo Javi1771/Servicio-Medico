@@ -11,6 +11,7 @@ import {
   FaCapsules,
   FaBan,
   FaChartLine,
+  FaFacebook,
 } from "react-icons/fa";
 import { MdLogout } from "react-icons/md";
 import Cookies from "js-cookie";
@@ -145,6 +146,15 @@ const PresidenteLayout: React.FC<PresidenteLayoutProps> = ({ children }) => {
       options: [
         { name: "Incapacidades", path: "/reportes/incapacidades" },
         { name: "Costos", path: "/reportes/costos" },
+      ],
+    },
+    {
+      title: "Reconocimiento",
+      icon: (
+        <FaFacebook className="text-blue-400 text-3xl group-hover:scale-110 transition-transform duration-300" />
+      ),
+      options: [
+        { name: "Reconocimiento", path: "/reconocimiento/reconocimiento_facial" },
       ],
     },
   ];

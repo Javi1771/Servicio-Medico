@@ -5,6 +5,7 @@ import Pusher from "pusher-js";
 import withReactContent from "sweetalert2-react-content";
 import DatosAdicionales from "./datos-adicionales/datos-adicionales";
 import Cookies from "js-cookie";
+import { useRouter } from 'next/router';
 import React, { useState, useEffect, useRef, useContext } from "react";
 import { FormularioContext } from "/src/context/FormularioContext";
 import AccionesConsulta from "./AccionesConsulta";
@@ -26,6 +27,13 @@ const formatearFecha = (fecha) => {
 };
 
 const Diagnostico = () => {
+
+  const router = useRouter();
+
+  const handleRegresar = () => {
+    router.back(); //* Navegar a la pantalla anterior
+  };
+
   const { formCompleto } = useContext(FormularioContext);
   const subPantallaRef = useRef(null);
   const [nombreMedico, setNombreMedico] = useState("Cargando...");
@@ -54,28 +62,15 @@ const Diagnostico = () => {
   const [empleadoData, setEmpleadoData] = useState(null);
   const [selectedBeneficiary, setSelectedBeneficiary] = useState(null);
   const [consultaSeleccionada, setConsultaSeleccionada] = useState("empleado");
-  const [pasarEspecialidad, setPasarEspecialidad] = useState('');
+  const [pasarEspecialidad, setPasarEspecialidad] = useState("");
   const [formularioCompleto, setFormularioCompleto] = useState(false);
 
   const [especialidadSeleccionada, setEspecialidadSeleccionada] = useState("");
   const [observaciones, setObservaciones] = useState("");
-  const [medicamentos, setMedicamentos] = useState("");
-  const [incapacidades, setIncapacidades] = useState([]);
-  const [historialConsultas, setHistorialConsultas] = useState([]);
-  const [padecimientosCriticos, setPadecimientosCriticos] = useState([]);
-  const [antecedentes, setAntecedentes] = useState([]);
   const [datosEditados, setDatosEditados] = useState({
     signosVitales: {},
     alergias: "",
   });
-
-  const [guardadoExitoso, setGuardadoExitoso] = useState(false);
-  const [historialMedicamentos, setHistorialMedicamentos] = useState([]);
-  const [historialEspecialidades, setHistorialEspecialidades] = useState([]);
-  const [historialIncapacidades, setHistorialIncapacidades] = useState([]);
-  const [medicamentosRecibidos, setMedicamentosRecibidos] = useState(false);
-  const [especialidadesRecibidas, setEspecialidadesRecibidas] = useState(false);
-  const [incapacidadesRecibidas, setIncapacidadesRecibidas] = useState(false);
 
   //* Leer nombre del médico desde las cookies
   useEffect(() => {
@@ -108,7 +103,7 @@ const Diagnostico = () => {
 
   useEffect(() => {
     console.log("Estado de validación del formulario:", formCompleto);
-  }, [formCompleto]); 
+  }, [formCompleto]);
 
   useEffect(() => {
     const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY, {
@@ -368,77 +363,93 @@ const Diagnostico = () => {
   ]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-900 to-black text-white px-4 py-8 md:px-12">
-      <div className="flex flex-col md:flex-row justify-between items-center mb-6">
-        <div className="flex items-center space-x-4">
+<div className="min-h-screen bg-gradient-to-b from-blue-900 via-black to-gray-900 text-white px-6 py-8 md:px-16">
+  {/* Encabezado */}
+  <div className="relative bg-gradient-to-r from-cyan-900 via-blue-800 to-cyan-900 rounded-2xl shadow-[0_0_40px_rgba(0,255,255,0.5)] p-8 mb-12 border border-cyan-300">
+    <div className="flex flex-col md:flex-row justify-between items-center">
+      <div className="flex items-center space-x-6">
+        <div className="relative">
           <Image
             src="/consulta.png"
             alt="Consulta Icono"
             width={150}
             height={150}
-            className="h-24 w-24 md:h-36 md:w-36"
+            className="h-36 w-36 rounded-full shadow-[0px_0px_30px_10px_rgba(255,255,255,0.3)]"
           />
-          <h1 className="text-3xl md:text-5xl font-extrabold">
+          <div className="absolute top-0 left-0 w-full h-full rounded-full border-4 border-dotted border-cyan-400 animate-spin-slow"></div>
+        </div>
+        <div>
+          <h1 className="text-5xl font-extrabold text-cyan-300 tracking-wider drop-shadow-lg">
             Consulta General
           </h1>
+          <p className="text-lg mt-2 text-gray-300 tracking-wide italic">
+            Innovación Médica Inteligente
+          </p>
         </div>
-        <div className="text-sm md:text-lg mt-4 md:mt-0">
-          <span className="font-semibold">Médico: </span>
+      </div>
+      <div className="mt-6 md:mt-0 text-center md:text-right">
+        <p className="text-lg font-semibold text-gray-400">Médico:</p>
+        <p className="text-2xl font-bold text-cyan-300 tracking-wide">
           {nombreMedico}
-        </div>
+        </p>
       </div>
+    </div>
+  </div>
 
-      <div className="mb-8 w-full overflow-x-auto p-6 bg-gradient-to-b from-gray-900 to-gray-800 rounded-xl shadow-lg">
-        <h1 className="text-3xl font-bold mb-6 text-center text-yellow-300 tracking-wide">
-          Pacientes En Espera
-        </h1>
-        <table className="min-w-full text-gray-300 border-separate border-spacing-y-3">
-          <thead>
-            <tr className="bg-gray-800 bg-opacity-80 text-sm uppercase tracking-wider font-semibold">
-              <th className="py-4 px-6 rounded-l-lg">Número de Nómina</th>
-              <th className="py-4 px-6">Paciente</th>
-              <th className="py-4 px-6">Edad</th>
-              <th className="py-4 px-6 rounded-r-lg">Secretaría</th>
+  {/* Botón regresar */}
+  <div className="flex justify-start mb-12">
+    <button
+      onClick={handleRegresar}
+      className="relative px-6 py-3 text-lg font-semibold rounded-full bg-gradient-to-r from-red-600 via-pink-600 to-purple-700 shadow-[0px_0px_15px_5px_rgba(255,0,0,0.5)] hover:shadow-[0px_0px_30px_10px_rgba(255,0,0,0.7)] text-white hover:brightness-125 transition-all duration-300"
+    >
+      ← Regresar
+    </button>
+  </div>
+
+  {/* Tabla de Pacientes */}
+  <div className="relative bg-gradient-to-b from-gray-900 to-gray-800 p-8 rounded-2xl shadow-[0_0_40px_rgba(0,255,255,0.3)] border border-cyan-400">
+    <h2 className="text-4xl font-bold text-yellow-300 text-center mb-8 tracking-wide drop-shadow-lg">
+      Pacientes En Espera
+    </h2>
+    <table className="w-full table-auto bg-gradient-to-b from-gray-900 to-gray-800 rounded-lg overflow-hidden shadow-lg">
+      <thead>
+        <tr className="bg-gradient-to-r from-cyan-800 via-teal-700 to-cyan-800 text-gray-100 font-bold">
+          <th className="py-4 px-6 text-left">NÚMERO DE NÓMINA</th>
+          <th className="py-4 px-6 text-left">PACIENTE</th>
+          <th className="py-4 px-6 text-left">EDAD</th>
+          <th className="py-4 px-6 text-left">SECRETARÍA</th>
+        </tr>
+      </thead>
+      <tbody>
+        {pacientes.length > 0 ? (
+          pacientes.map((paciente, index) => (
+            <tr
+              key={paciente.claveconsulta}
+              className={`${
+                index % 2 === 0 ? "bg-gray-800" : "bg-gray-700"
+              } hover:bg-gradient-to-r hover:from-yellow-500 hover:to-yellow-700 transition duration-300 ease-in-out cursor-pointer`}
+              onClick={() => handlePacienteClick(paciente)}
+            >
+              <td className="py-4 px-6 text-gray-200">{paciente.clavenomina || "N/A"}</td>
+              <td className="py-4 px-6 text-gray-200">{paciente.nombrepaciente || "No disponible"}</td>
+              <td className="py-4 px-6 text-gray-200">{paciente.edad || "Desconocida"}</td>
+              <td className="py-4 px-6 text-gray-200">{paciente.departamento || "No asignado"}</td>
             </tr>
-          </thead>
-          <tbody>
-            {pacientes.length > 0 ? (
-              pacientes.map((paciente, index) => (
-                <tr
-                  key={paciente.claveconsulta}
-                  className={`bg-gray-700 bg-opacity-50 ${
-                    index === 0 || index === 1 || index === 2
-                      ? "hover:bg-gradient-to-r from-yellow-500 to-yellow-700 transition duration-300 ease-in-out cursor-pointer"
-                      : "cursor-not-allowed opacity-50"
-                  } rounded-lg shadow-md`}
-                  onClick={() => {
-                    if (index === 0 || index === 1 || index === 2) handlePacienteClick(paciente);
-                  }}
-                >
-                  <td className="py-4 px-6 font-medium text-center text-gray-200">
-                    {paciente.clavenomina || "N/A"}
-                  </td>
-                  <td className="py-4 px-6 text-center text-gray-200">
-                    {paciente.nombrepaciente || "No disponible"}
-                  </td>
-                  <td className="py-4 px-6 text-center text-gray-200">
-                    {paciente.edad || "Desconocida"}
-                  </td>
-                  <td className="py-4 px-6 text-center text-gray-200">
-                    {paciente.departamento || "No asignado"}
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="4" className="text-center py-4 text-gray-400">
-                  No hay consultas para el día de hoy.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+          ))
+        ) : (
+          <tr>
+            <td
+              colSpan="4"
+              className="text-center py-6 text-gray-400 bg-gradient-to-r from-gray-800 via-gray-700 to-gray-800"
+            >
+              No hay consultas para el día de hoy.
+            </td>
+          </tr>
+        )}
+      </tbody>
+    </table>
+  </div>
+
 
       {pacienteSeleccionado && (
         <div
@@ -532,7 +543,7 @@ const Diagnostico = () => {
               nombrePaciente={pacienteSeleccionado?.nombrepaciente}
               nombreMedico={nombreMedico}
               claveEspecialidad={claveEspecialidad}
-              pasarEspecialidad={pasarEspecialidad} 
+              pasarEspecialidad={pasarEspecialidad}
               setPasarEspecialidad={setPasarEspecialidad}
               especialidadSeleccionada={especialidadSeleccionada}
               setEspecialidadSeleccionada={setEspecialidadSeleccionada}
@@ -546,7 +557,7 @@ const Diagnostico = () => {
               claveConsulta={claveConsulta}
               clavepaciente={pacienteSeleccionado?.clavepaciente}
               clavenomina={pacienteSeleccionado?.clavenomina}
-              />
+            />
           </div>
         </div>
       )}

@@ -26,6 +26,7 @@
     "cookie": "^1.0.2",
     "dayjs": "^1.11.13",
     "dotenv": "^16.4.7",
+    "face-api.js": "^0.22.2",
     "file-saver": "^2.0.5",
     "formidable": "^3.5.2",
     "framer-motion": "^11.12.0",

@@ -3,7 +3,13 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import Swal from "sweetalert2";
-import { FaUser, FaHeartbeat, FaUserMd, FaCalendarAlt, FaChevronLeft } from "react-icons/fa";
+import {
+  FaUser,
+  FaHeartbeat,
+  FaUserMd,
+  FaCalendarAlt,
+  FaChevronLeft,
+} from "react-icons/fa";
 import DatosAdicionales from "../consultas/datos-adicionales/datos-adicionales";
 import AccionesConsulta from "../consultas/AccionesConsulta";
 
@@ -88,46 +94,80 @@ const DetallesEspecialidad = () => {
   if (!paciente) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black flex items-center justify-center">
-        <p className="text-white text-lg">No se encontró información del paciente.</p>
+        <p className="text-white text-lg">
+          No se encontró información del paciente.
+        </p>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 via-black to-gray-800 text-gray-200 px-4 py-8 md:px-16">
-      <header className="bg-gradient-to-r from-purple-700 via-blue-500 to-teal-400 rounded-xl shadow-xl p-8 mb-12 text-center">
+      {/* Header */}
+      <header className="bg-gradient-to-r from-purple-700 via-blue-500 to-teal-400 rounded-xl shadow-xl p-8 mb-12">
         <h1 className="text-5xl font-extrabold text-white flex items-center justify-center gap-4">
           <FaHeartbeat className="text-teal-300" />
           Detalles del Paciente
         </h1>
       </header>
 
+      {/* Botón Regresar */}
+      <div className="text-center mb-12">
+        <button
+          onClick={() => router.push("/especialista/consulta-especialista")}
+          className="bg-red-500 hover:bg-red-600 text-white font-semibold py-3 px-8 rounded-lg shadow-lg flex items-center gap-2 transition-all duration-300"
+        >
+          <FaChevronLeft /> Regresar
+        </button>
+      </div>
+
+      {/* Contenido */}
       <section className="mb-12">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
             <h2 className="text-2xl font-bold text-yellow-300 mb-4 flex items-center gap-2">
               <FaUser className="text-yellow-300" /> Datos del Paciente
             </h2>
-            <p><span className="font-semibold">Nombre:</span> {paciente.nombrepaciente || "No disponible"}</p>
-            <p><span className="font-semibold">Edad:</span> {paciente.edad || "No disponible"}</p>
-            <p><span className="font-semibold">Parentesco:</span> {paciente.parentesco_desc || "No disponible"}</p>
+            <p>
+              <span className="font-semibold">Nombre:</span>{" "}
+              {paciente.nombrepaciente || "No disponible"}
+            </p>
+            <p>
+              <span className="font-semibold">Edad:</span>{" "}
+              {paciente.edad || "No disponible"}
+            </p>
+            <p>
+              <span className="font-semibold">Parentesco:</span>{" "}
+              {paciente.parentesco_desc || "No disponible"}
+            </p>
           </div>
           <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
             <h2 className="text-2xl font-bold text-yellow-300 mb-4 flex items-center gap-2">
-              <FaCalendarAlt className="text-yellow-300" /> Detalles de la Consulta
+              <FaCalendarAlt className="text-yellow-300" /> Detalles de la
+              Consulta
             </h2>
-            <p><span className="font-semibold">Fecha de Consulta:</span> {formatearFecha(paciente.fechaconsulta)}</p>
+            <p>
+              <span className="font-semibold">Fecha de Consulta:</span>{" "}
+              {formatearFecha(paciente.fechaconsulta)}
+            </p>
           </div>
         </div>
       </section>
 
+      {/* Información adicional */}
       <section className="mb-12">
         <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
           <h2 className="text-2xl font-bold text-yellow-300 mb-4 flex items-center gap-2">
             <FaUserMd className="text-yellow-300" /> Información del Proveedor
           </h2>
-          <p><span className="font-semibold">Nombre del Proveedor:</span> {paciente.nombreproveedor || "No disponible"}</p>
-          <p><span className="font-semibold">Especialidad:</span> {paciente.especialidad || "No disponible"}</p>
+          <p>
+            <span className="font-semibold">Nombre del Proveedor:</span>{" "}
+            {paciente.nombreproveedor || "No disponible"}
+          </p>
+          <p>
+            <span className="font-semibold">Especialidad:</span>{" "}
+            {paciente.especialidad || "No disponible"}
+          </p>
         </div>
       </section>
 
@@ -159,15 +199,6 @@ const DetallesEspecialidad = () => {
           clavenomina={paciente.clavenomina}
         />
       </section>
-
-      <div className="text-center mt-10">
-        <button
-          onClick={() => router.push("/especialista/consulta-especialista")}
-          className="bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2 px-6 rounded-lg shadow-lg flex items-center gap-2 justify-center"
-        >
-          <FaChevronLeft /> Regresar
-        </button>
-      </div>
     </div>
   );
 };

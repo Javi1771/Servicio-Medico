@@ -31,26 +31,11 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
   const [verDetalleKPI, setVerDetalleKPI] = useState(false);
   const [detalleKPI, setDetalleKPI] = useState(null);
 
-  // const cargarNombreEnfermedad = async (idEnfCronica) => {
-  //   try {
-  //     if (!idEnfCronica) {
-  //       console.error("ID de enfermedad crónica no proporcionado");
-  //       return;
-  //     }
-
-  //     const response = await fetch(
-  //       `/api/enfermedades-kpis/obtenerNombreEnfermedad?id=${idEnfCronica}`
-  //     );
-  //     if (!response.ok) {
-  //       throw new Error("Error al obtener el nombre de la enfermedad");
-  //     }
-
-  //     const data = await response.json();
-  //     setNombreEnfermedad(data.cronica || "Desconocido");
-  //   } catch (error) {
-  //     console.error("Error al obtener el nombre de la enfermedad:", error);
-  //   }
-  // };
+  const resetFormulario = () => {
+    setValorAlcanzado("");
+    setCalificacion("");
+    setObservaciones("");
+  };
 
   const handleRowClick = async (kpi) => {
     try {
@@ -306,12 +291,6 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
           popup:
             "border border-yellow-600 shadow-[0px_0px_20px_5px_rgba(255,204,0,0.9)] rounded-lg",
         },
-        showClass: {
-          popup: "animate__animated animate__fadeInDown",
-        },
-        hideClass: {
-          popup: "animate__animated animate__fadeOutUp",
-        },
       });
       return;
     }
@@ -346,7 +325,9 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
       const responseData = await response.json();
       console.log("Respuesta del servidor al actualizar KPI:", responseData);
 
+      //* Cerrar la ventana y limpiar el formulario
       setMostrarVentanaKPI(false);
+      resetFormulario();
 
       MySwal.fire({
         icon: "success",
@@ -390,6 +371,11 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
         },
       });
     }
+  };
+
+  const handleCancelar = () => {
+    resetFormulario(); //! Resetear el formulario
+    setMostrarVentanaKPI(false); //* Cerrar ventana
   };
 
   const handleAgregarEnfermedad = () => {
@@ -1171,18 +1157,18 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
               <button
                 onClick={handleGuardarKPIDetalles}
                 className="bg-gradient-to-r from-green-900 to-teal-700 text-white font-bold px-6 py-3 rounded-xl 
-               transition-all duration-300 border-green-500 border-b-4 
-               hover:brightness-125 hover:translate-y-[-2px] hover:border-b-6 hover:shadow-xl hover:shadow-teal-300 
-               active:translate-y-[2px] active:border-b-2 active:brightness-90 active:shadow-none"
+    transition-all duration-300 border-green-500 border-b-4 
+    hover:brightness-125 hover:translate-y-[-2px] hover:border-b-6 hover:shadow-xl hover:shadow-teal-300 
+    active:translate-y-[2px] active:border-b-2 active:brightness-90 active:shadow-none"
               >
                 Guardar
               </button>
               <button
-                onClick={() => setMostrarVentanaKPI(false)}
+                onClick={handleCancelar}
                 className="bg-gradient-to-r from-red-900 to-pink-700 text-white font-bold px-6 py-3 rounded-xl 
-               transition-all duration-300 border-pink-500 border-b-4 
-               hover:brightness-125 hover:translate-y-[-2px] hover:border-b-6 hover:shadow-xl hover:shadow-pink-300 
-               active:translate-y-[2px] active:border-b-2 active:brightness-90 active:shadow-none"
+    transition-all duration-300 border-pink-500 border-b-4 
+    hover:brightness-125 hover:translate-y-[-2px] hover:border-b-6 hover:shadow-xl hover:shadow-pink-300 
+    active:translate-y-[2px] active:border-b-2 active:brightness-90 active:shadow-none"
               >
                 Cancelar
               </button>
