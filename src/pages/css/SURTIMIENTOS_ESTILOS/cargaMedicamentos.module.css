@@ -108,3 +108,93 @@
     box-shadow: 0px 8px 20px rgba(59, 130, 246, 0.5);
   }
   
+  /*ESTILOS DE TABLA MEDICAMENTOS*/
+  /* cargaMedicamentos.module.css */
+
+/* Contenedor principal del formulario */
+
+/* Título del formulario */
+.title {
+  margin-bottom: 1.5rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+/* Grupo de entrada de datos: label + input/select */
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1rem;
+}
+
+.inputGroup label {
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+/* Estilos para el select e input de texto */
+.select,
+.input {
+  padding: 0.5rem;
+  border: 1px solid #24203d;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.select:focus,
+.input:focus {
+  outline: none;
+  border-color: #0070f3;
+  box-shadow: 0 0 0 2px rgba(0, 112, 243, 0.2);
+}
+
+/* Botones */
+.addButton,
+.saveButton {
+  background-color: #0070f3;
+  color: #16184d;
+  border: none;
+  border-radius: 4px;
+  padding: 0.75rem 1.25rem;
+  font-size: 1rem;
+  cursor: pointer;
+  margin: 0.5rem 1rem 0.5rem 0;
+  transition: background-color 0.2s ease;
+}
+
+.addButton:hover,
+.saveButton:hover {
+  background-color: #005bb5;
+}
+
+/* Tabla */
+.table {
+  width: 100%;
+  border-collapse: collapse; /* Quita las separaciones dobles entre celdas */
+  margin-top: 1rem;
+}
+
+/* Encabezados de la tabla */
+.table thead th {
+  background-color: #2b2b2b;
+  font-weight: bold;
+}
+
+/* Celdas de encabezados y cuerpo */
+.table th,
+.table td {
+  border: 1px solid #dddddd;
+  padding: 0.75rem;
+  text-align: left;
+  vertical-align: middle;
+}
+
+/* Filas alternadas */
+.table tbody tr:nth-of-type(even) {
+  background-color: #fafafa;
+}
+
+/* Efecto hover en las filas */
+.table tbody tr:hover {
+  background-color: #f3f3f3;
+}
