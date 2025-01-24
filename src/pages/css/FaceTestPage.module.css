@@ -1,0 +1,66 @@
+/* styles/FaceTestPage.module.css */
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #1e3a8a, #2563eb);
+    font-family: 'Roboto', sans-serif;
+    color: #ffffff;
+  }
+  
+  .title {
+    font-size: 2.5rem;
+    margin-bottom: 1.5rem;
+    text-shadow: 0px 4px 6px rgba(0, 0, 0, 0.3);
+  }
+  
+  .faceAuthContainer {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    max-width: 600px;
+    text-align: center;
+    color: #1e3a8a;
+  }
+  
+  .faceAuthContainer h2 {
+    font-size: 1.8rem;
+    margin-bottom: 1rem;
+  }
+  
+  .faceAuthContainer p {
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+    color: #475569;
+  }
+  
+  .faceAuthContainer img {
+    width: 100%;
+    max-width: 300px;
+    border-radius: 8px;
+    margin: 0 auto;
+  }
+  
+  .faceAuthContainer button {
+    background: #2563eb;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .faceAuthContainer button:hover {
+    background: #1e40af;
+  }
+  
+  .faceAuthContainer button:active {
+    transform: scale(0.98);
+  }
+  

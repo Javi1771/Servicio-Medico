@@ -6,6 +6,8 @@ import styles from "../css/beneficiarios.module.css";
 import { useRouter } from "next/router";
 import { jsPDF } from "jspdf";
 import { FaCamera } from "react-icons/fa";
+import * as faceapi from "face-api.js";
+
 
 import {
   FaIdCard,
@@ -59,6 +61,8 @@ export default function RegistroBeneficiario() {
     ineUrl: "",
     cartaNoAfiliacionUrl: "",
     actaConcubinatoUrl: "", // Nuevo campo para Acta de Concubinato
+    descriptorFacial: "",
+
   });
 
   const [error, setError] = useState(null);
@@ -81,6 +85,52 @@ export default function RegistroBeneficiario() {
       setIsDocumentsModalOpen(false); // Cerramos el modal
     }, 300); // La duración del fadeOut debe coincidir con la animación CSS
   };
+
+  /**const de modelo facial */
+  const [modelsLoaded, setModelsLoaded] = useState(false);
+
+  useEffect(() => {
+    // Cargamos los modelos de face-api al montar el componente (sólo se hace 1 vez)
+    async function loadFaceApiModels() {
+      try {
+        const MODEL_URL = "/models"; // Asegúrate de tenerlos en /public/models
+        await faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL);
+        await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
+        await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
+        setModelsLoaded(true);
+        console.log("[face-api] Modelos cargados correctamente en el front");
+      } catch (err) {
+        console.error("[face-api] Error al cargar modelos:", err);
+      }
+    }
+    loadFaceApiModels();
+  }, []);
+
+
+
+
+   // Función para convertir una imagen base64 a un descriptor
+   async function computeDescriptorFromBase64(base64Image) {
+    try {
+      if (!modelsLoaded) {
+        console.warn("Modelos face-api no están listos todavía");
+        return null;
+      }
+      // Creamos un objeto <img> a partir de la base64
+      const img = await faceapi.fetchImage(base64Image);
+      const detection = await faceapi
+        .detectSingleFace(img)
+        .withFaceLandmarks()
+        .withFaceDescriptor();
+
+      return detection ? detection.descriptor : null;
+    } catch (error) {
+      console.error("[computeDescriptorFromBase64] Error:", error);
+      return null;
+    }
+  }
+  /*********************************** */
+
 
   const calcularVigencia = (
     parentesco,
@@ -181,7 +231,7 @@ export default function RegistroBeneficiario() {
 
   const handleCapturePhoto = async () => {
     try {
-      let isVideoReady = false; // Bandera para saber si el video está listo
+      let isVideoReady = false;
 
       const result = await Swal.fire({
         title: "Captura una foto",
@@ -190,15 +240,11 @@ export default function RegistroBeneficiario() {
         confirmButtonText: "Capturar",
         willOpen: () => {
           const video = document.getElementById("video");
-
-          // Inicializar la cámara
           navigator.mediaDevices
             .getUserMedia({ video: true })
             .then((stream) => {
               video.srcObject = stream;
               window.localStream = stream;
-
-              // Escuchar el evento `loadedmetadata` para asegurarnos de que el video está listo
               video.addEventListener("loadedmetadata", () => {
                 isVideoReady = true;
               });
@@ -213,7 +259,6 @@ export default function RegistroBeneficiario() {
             });
         },
         willClose: () => {
-          // Detener la cámara al cerrar el modal
           if (window.localStream) {
             window.localStream.getTracks().forEach((track) => track.stop());
           }
@@ -224,32 +269,36 @@ export default function RegistroBeneficiario() {
         const video = document.getElementById("video");
         const canvas = document.createElement("canvas");
 
-        // Validar que el video esté listo
         if (!isVideoReady || !video.videoWidth || !video.videoHeight) {
-          Swal.fire(
-            "Error",
-            "La cámara no estaba lista. Intenta nuevamente.",
-            "error"
-          );
+          Swal.fire("Error", "La cámara no estaba lista. Intenta nuevamente.", "error");
           return;
         }
 
-        // Ajustar el tamaño del canvas al tamaño del video
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
-
-        // Capturar la imagen del video
         const context = canvas.getContext("2d");
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-        // Convertir la imagen a formato Base64
+        // Convertir la imagen a Base64
         const base64Image = canvas.toDataURL("image/jpeg");
-
-        // Guardar la imagen en el estado para previsualización
         setImagePreview(base64Image);
 
-        // Subir la imagen al servidor o almacenamiento en la nube
+        // 1) Subimos la imagen a Cloudinary (como ya tenías)
         await uploadImage(base64Image);
+
+        // 2) Calculamos el descriptor y lo guardamos en formData
+        const descriptor = await computeDescriptorFromBase64(base64Image);
+        if (!descriptor) {
+          console.warn("No se detectó un rostro o ocurrió un error");
+        } else {
+          // Convertimos el Float32Array en un array normal y luego a string JSON
+          const descriptorArray = Array.from(descriptor);
+          const descriptorJSON = JSON.stringify(descriptorArray);
+
+          // Guardamos en formData
+          setFormData((prev) => ({ ...prev, descriptorFacial: descriptorJSON }));
+          console.log("Descriptor facial calculado y guardado en formData:", descriptorJSON);
+        }
       }
     } catch (error) {
       console.error("Error al capturar/subir la foto:", error);
@@ -1513,6 +1562,9 @@ export default function RegistroBeneficiario() {
         urlCartaNoAfiliacion: formData.cartaNoAfiliacionUrl,
         actaConcubinatoUrl: formData.actaConcubinatoUrl || null,
         urlIncap: formData.urlIncap || null, // Añadido el campo URL_INCAP
+        /** descriptor facial*/
+        descriptorFacial: formData.descriptorFacial || "", // AÑADIRLO
+
       };
 
       console.log("Datos enviados al backend (antes del fetch):", payload);
