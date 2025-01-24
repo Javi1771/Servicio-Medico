@@ -1,139 +1,171 @@
-.body{
-  background: linear-gradient(135deg, #1e1e2f, #2a2a45);
+/* Ajusta estos estilos a tu gusto. */
 
-}
+/* Fondo gradiente oscuro para la página entera */
 .container {
-  font-family: 'Arial', sans-serif;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.7), rgba(20, 20, 20, 0.95));
   padding: 20px;
-  background: linear-gradient(135deg, #1e1e2f, #2a2a45);
-  min-height: 100vh;
-  color: #f0f0f0;
+  color: #fff;
 }
 
+/* Título */
 .subtitle {
+  margin-bottom: 20px;
   font-size: 24px;
-  font-weight: bold;
-  color: #00ffff;
-  text-shadow: 0 0 10px #00ffff, 0 0 20px #00baba;
-  margin-bottom: 20px;
 }
 
+/* Card con glasmorphism y animación de altura */
 .card {
-  background: rgba(30, 30, 47, 0.8);
-  border-radius: 15px;
-  padding: 20px;
-  box-shadow: 0 4px 20px rgba(0, 255, 255, 0.2), 0 0 30px rgba(0, 255, 255, 0.4);
-  width: 80%;
-  max-width: 500px;
-  text-align: center;
   position: relative;
-  animation: fadeIn 1s ease-in-out;
+  width: 90%;
+  max-width: 400px;
+  padding: 20px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  text-align: center;
+
+  /* TRANSICIÓN DE ALTURA */
+  max-height: 400px; /* Altura por defecto */
+  overflow: hidden;
+  transition: max-height 0.7s ease;
 }
 
+/* Cuando la card está expandida */
+.card.expanded {
+  max-height: 700px; /* Altura mayor para mostrar la info */
+}
+
+/* Mensajes */
 .statusMessage {
-  font-size: 16px;
-  color: #f0f0f0;
-  margin-bottom: 15px;
-}
-
-.resultBox {
-  background: rgba(0, 255, 255, 0.1);
-  border-radius: 10px;
-  padding: 15px;
-  margin-bottom: 20px;
-  box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
-}
-
-.resultTitle {
-  font-size: 18px;
   font-weight: bold;
   margin-bottom: 10px;
-  color: #00ffff;
 }
 
-.resultText {
-  font-size: 14px;
-  margin: 5px 0;
-}
-
+/* Contenedor del video + canvas */
 .videoCanvasContainer {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  margin: 20px 0;
   position: relative;
+  width: 320px;
+  height: 240px;
+  margin: 0 auto 20px auto;
 }
 
+/* video wrapper */
+.videoWrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #000;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* El video */
 .video {
   width: 100%;
-  max-width: 480px;
-  border-radius: 10px;
-  box-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
+  height: 100%;
+  object-fit: cover;
 }
 
+/* Icon overlay */
+.faceIconOverlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0.15;
+  pointer-events: none;
+}
+
+.faceIconImage {
+  width: 100px;
+  height: 100px;
+}
+
+/* Canvas (oculto si no quieres mostrarlo) */
 .canvas {
   display: none;
 }
 
-.buttonContainer {
-  display: flex;
-  justify-content: center;
-  margin-top: 15px;
-}
-
+/* Botón */
 .button {
-  background: linear-gradient(45deg, #00ffff, #00baba);
-  border: none;
+  display: inline-block;
+  padding: 12px 24px;
   border-radius: 25px;
-  padding: 10px 20px;
-  color: #1e1e2f;
-  font-weight: bold;
+  border: none;
+  background-color: #2252ff;
+  color: #fff;
+  font-size: 16px;
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
+  margin-bottom: 10px;
+  transition: background-color 0.3s ease;
 }
 
 .button:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 4px 10px rgba(0, 255, 255, 0.5);
+  background-color: #4e63ff;
+}
+
+/* Contenedor de la info del beneficiario */
+.infoContainer {
+  margin-top: 20px;
+  text-align: left;
+  padding: 0 10px;
+  animation: fadeIn 0.5s forwards;
+}
+
+/* Pequeña animación de aparición */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 
-
-.scannerFrame {
-  position: relative;
-  display: inline-block;
-  overflow: hidden;
-  border: 3px solid #00ffff;
-  border-radius: 10px;
-  box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+/* Alertas (verde para éxito, rojo para error) */
+.alert {
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 5px;
+  font-size: 14px;
+  font-weight: bold;
+  animation: fadeIn 0.5s ease-out;
+  text-align: center;
 }
 
-.scannerFrame::after {
-  content: "";
+.alert.success {
+  background-color: rgba(46, 204, 113, 0.8); /* Verde éxito */
+  color: #fff;
+}
+
+.alert.error {
+  background-color: rgba(231, 76, 60, 0.8); /* Rojo error */
+  color: #fff;
+}
+
+/* Overlay de la silueta en la cámara */
+.faceIconOverlay {
   position: absolute;
-  top: -100%;
-  left: 0;
-  width: 100%;
-  height: 5px;
-  background: rgba(0, 255, 255, 0.8);
-  box-shadow: 0 0 15px rgba(0, 255, 255, 0.8);
-  animation: none;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0.2;
+  pointer-events: none;
 }
 
-.scannerActive::after {
-  animation: scannerMove 1.5s linear infinite;
+.faceIconImage {
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
 }
 
-@keyframes scannerMove {
-  0% {
-    top: -100%;
-  }
-  100% {
-    top: 100%;
-  }
-}
+/* Otros estilos ya existentes */

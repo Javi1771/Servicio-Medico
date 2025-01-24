@@ -1,7 +1,6 @@
 import { useRef, useState, useEffect } from "react";
 import useFaceRecognition from "../../../hooks/hookReconocimiento/useFaceRecognition";
 import * as faceapi from "face-api.js";
-import Swal from "sweetalert2";
 import styles from "../../css/FaceTestPage.module.css";
 
 export default function FaceAuth({ beneficiaries }) {
@@ -12,15 +11,28 @@ export default function FaceAuth({ beneficiaries }) {
   const [message, setMessage] = useState("");
   const [isScanning, setIsScanning] = useState(false);
 
+  const successSound = "/assets/applepay.mp3"; // Ruta desde la carpeta public
+const errorSound = "/assets/error.mp3";
+
+const playSound = (isSuccess) => {
+  const audio = new Audio(isSuccess ? successSound : errorSound);
+  audio.play();
+};
+
+  // Beneficiario reconocido
+  const [recognizedBeneficiary, setRecognizedBeneficiary] = useState(null);
+
   const { modelsLoaded, getDescriptorFromCanvas } = useFaceRecognition();
 
   useEffect(() => {
     const startCamera = async () => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        videoRef.current.srcObject = stream;
-        videoRef.current.play();
-        setCameraActive(true);
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          videoRef.current.play();
+          setCameraActive(true);
+        }
       } catch (error) {
         console.error("No se pudo acceder a la cámara:", error);
         setMessage("Permiso de cámara denegado o no disponible.");
@@ -29,6 +41,7 @@ export default function FaceAuth({ beneficiaries }) {
     };
     startCamera();
 
+    // Apagar cámara al desmontar
     return () => {
       if (videoRef.current?.srcObject) {
         videoRef.current.srcObject.getTracks().forEach((track) => track.stop());
@@ -36,28 +49,29 @@ export default function FaceAuth({ beneficiaries }) {
     };
   }, []);
 
+  // Capturar foto
   const capturePhoto = () => {
     if (!cameraActive || !canvasRef.current || !videoRef.current) {
       setMessage("No se puede capturar foto: cámara inactiva.");
-      return;
+      return false;
     }
-
     const width = videoRef.current.videoWidth;
     const height = videoRef.current.videoHeight;
-    const ctx = canvasRef.current.getContext("2d");
 
+    const ctx = canvasRef.current.getContext("2d");
     canvasRef.current.width = width;
     canvasRef.current.height = height;
     ctx.drawImage(videoRef.current, 0, 0, width, height);
 
-    // Iniciar animación de escáner
     setIsScanning(true);
-    setTimeout(() => setIsScanning(false), 1500); // Duración del escaneo
+    setTimeout(() => setIsScanning(false), 1500);
 
     setMessage("Foto capturada.");
+    return true;
   };
 
-  const handleVerify = async () => {
+  // Verificar rostro
+  const verifyPhoto = async () => {
     if (!modelsLoaded) {
       setMessage("Los modelos no están listos. Espera un momento.");
       return;
@@ -71,85 +85,98 @@ export default function FaceAuth({ beneficiaries }) {
       return;
     }
 
-    setMessage("Obteniendo descriptor de la foto tomada...");
+    setMessage("Comparando rostro...");
     const descriptorCaptured = await getDescriptorFromCanvas(canvasRef.current);
 
     if (!descriptorCaptured) {
+      playSound(false);
       setMessage("No se detectó un rostro en la foto tomada.");
       return;
     }
 
-    setMessage("Comparando descriptores...");
     let bestMatch = null;
     let minDistance = Infinity;
     const threshold = 0.6;
 
     for (const beneficiary of beneficiaries) {
-      const jsonArray = JSON.parse(beneficiary.DESCRIPTOR_FACIAL);
-      const storedDescriptor = new Float32Array(jsonArray);
-      const distance = faceapi.euclideanDistance(descriptorCaptured, storedDescriptor);
+      try {
+        const jsonArray = JSON.parse(beneficiary.DESCRIPTOR_FACIAL);
+        const storedDescriptor = new Float32Array(jsonArray);
 
-      if (distance < threshold && distance < minDistance) {
-        minDistance = distance;
-        bestMatch = beneficiary;
+        const distance = faceapi.euclideanDistance(descriptorCaptured, storedDescriptor);
+        if (distance < threshold && distance < minDistance) {
+          minDistance = distance;
+          bestMatch = beneficiary;
+        }
+      } catch (err) {
+        console.error("Error parseando descriptor:", err);
       }
     }
 
     if (bestMatch) {
-      Swal.fire({
-        title: "¡Beneficiario Encontrado!",
-        html: `
-          <p><b>ID:</b> ${bestMatch.ID_BENEFICIARIO}</p>
-          <p><b>NO_NOMINA:</b> ${bestMatch.NO_NOMINA}</p>
-          <p><b>Nombre:</b> ${bestMatch.NOMBRE} ${bestMatch.A_PATERNO} ${bestMatch.A_MATERNO}</p>
-        `,
-        icon: "success",
-        showClass: {
-          popup: "swal2-show",
-        },
-        hideClass: {
-          popup: "swal2-hide",
-        },
-        timer: 3000,
-      });
+      setRecognizedBeneficiary({ ...bestMatch, distance: minDistance });
+      playSound(true);
+      setMessage("¡Beneficiario reconocido!");
     } else {
-      Swal.fire({
-        title: "No se encontraron coincidencias",
-        text: "Intenta nuevamente.",
-        icon: "error",
-        showClass: {
-          popup: "swal2-show",
-        },
-        hideClass: {
-          popup: "swal2-hide",
-        },
-        timer: 3000,
-      });
+      playSound(false);
+      setRecognizedBeneficiary(null);
+      setMessage("No se encontraron coincidencias.");
     }
   };
+
+  const handleCaptureAndVerify = async () => {
+    const success = capturePhoto();
+    if (success) {
+      setTimeout(() => {
+        verifyPhoto();
+      }, 500);
+    }
+  };
+
+  const isExpanded = recognizedBeneficiary ? styles.expanded : "";
 
   return (
     <div className={styles.container}>
       <h2 className={styles.subtitle}>Verificación de Rostro</h2>
 
-      <div className={styles.card}>
-        {message && <p className={styles.statusMessage}>{message}</p>}
+      <div className={`${styles.card} ${isExpanded}`}>
+        {message && (
+          <div
+            className={`${styles.alert} ${
+              recognizedBeneficiary ? styles.success : styles.error
+            }`}
+          >
+            {message}
+          </div>
+        )}
 
         <div className={styles.videoCanvasContainer}>
-          <div className={`${styles.scannerFrame} ${isScanning ? styles.scannerActive : ""}`}>
+          <div className={styles.videoWrapper}>
             <video ref={videoRef} className={styles.video} muted />
+            {!recognizedBeneficiary && (
+              <div className={styles.faceIconOverlay}>
+                <img src="/faceIcon.png" alt="Face Icon" className={styles.faceIconImage} />
+              </div>
+            )}
           </div>
           <canvas ref={canvasRef} className={styles.canvas} />
         </div>
 
-        <div className={styles.buttonContainer}>
-          <button onClick={capturePhoto} className={styles.button}>
-            Capturar Foto
-          </button>
-          <button onClick={handleVerify} className={`${styles.button}`} style={{ marginLeft: "10px" }}>
-            Verificar
-          </button>
-        </div>
+        <button onClick={handleCaptureAndVerify} className={styles.button}>
+          Capturar y Verificar
+        </button>
+
+        {recognizedBeneficiary && (
+          <div className={styles.infoContainer}>
+            <h3>Beneficiario Reconocido</h3>
+            <p><strong>ID:</strong> {recognizedBeneficiary.ID_BENEFICIARIO}</p>
+            <p><strong>No. Nómina:</strong> {recognizedBeneficiary.NO_NOMINA}</p>
+            <p>
+              <strong>Nombre:</strong> {recognizedBeneficiary.NOMBRE}{" "}
+              {recognizedBeneficiary.A_PATERNO} {recognizedBeneficiary.A_MATERNO}
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

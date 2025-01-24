@@ -32,6 +32,7 @@ export default async function handler(req, res) {
     urlCartaNoAfiliacion,
     actaConcubinatoUrl,
     urlIncap, // Nuevo campo agregado
+    descriptorFacial, // <-- NUEVO
   } = req.body;
 
   console.log("Datos recibidos en el backend:", req.body);
@@ -108,6 +109,7 @@ export default async function handler(req, res) {
       .input("urlCartaNoAfiliacion", urlCartaNoAfiliacion || null)
       .input("urlConcubinato", actaConcubinatoUrl || null)
       .input("urlIncap", urlIncap || null) // Nuevo campo incluido
+      .input("descriptorFacial", descriptorFacial || "") // <- nuevo
       .query(`
         UPDATE BENEFICIARIO
         SET 
@@ -135,9 +137,11 @@ export default async function handler(req, res) {
           URL_ACTAMATRIMONIO = @urlActaMatrimonio,
           URL_NOISSTE = @urlCartaNoAfiliacion,
           URL_CONCUBINATO = @urlConcubinato,
-          URL_INCAP = @urlIncap -- Nuevo campo actualizado
+          URL_INCAP = @urlIncap, -- Nuevo campo actualizado
+          DESCRIPTOR_FACIAL = @descriptorFacial -- <- nuevo
         WHERE ID_BENEFICIARIO = @idBeneficiario
       `);
+
 
     console.log("Filas afectadas por la consulta:", result.rowsAffected[0]);
 

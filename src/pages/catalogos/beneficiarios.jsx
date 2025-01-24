@@ -1697,6 +1697,7 @@ export default function RegistroBeneficiario() {
       showUploadFiles: isHijo || isPadreOMadre || isEsposo || isConcubino, // Mostrar inputs para archivos si aplica
       showEsposoFiles: isEsposo, // Mostrar campos específicos de Esposo(a)
       showConcubinoFiles: isConcubino, // Mostrar campos específicos de Concubino(a)
+      descriptorFacial: beneficiario.DESCRIPTOR_FACIAL || "", // <-- Nuevo
     });
 
     setCurrentBeneficiaryId(beneficiario.ID_BENEFICIARIO);
