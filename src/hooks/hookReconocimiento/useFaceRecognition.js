@@ -1,6 +1,6 @@
 // hooks/useFaceRecognition.js
 import { useState, useEffect } from "react";
-import * as faceapi from "face-api.js";
+import * as faceapi from 'face-api.js';
 
 export default function useFaceRecognition() {
   const [modelsLoaded, setModelsLoaded] = useState(false);
