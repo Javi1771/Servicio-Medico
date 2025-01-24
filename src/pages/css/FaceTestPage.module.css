@@ -1,66 +1,139 @@
-/* styles/FaceTestPage.module.css */
+.body{
+  background: linear-gradient(135deg, #1e1e2f, #2a2a45);
+
+}
 .container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-    background: linear-gradient(135deg, #1e3a8a, #2563eb);
-    font-family: 'Roboto', sans-serif;
-    color: #ffffff;
+  font-family: 'Arial', sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: linear-gradient(135deg, #1e1e2f, #2a2a45);
+  min-height: 100vh;
+  color: #f0f0f0;
+}
+
+.subtitle {
+  font-size: 24px;
+  font-weight: bold;
+  color: #00ffff;
+  text-shadow: 0 0 10px #00ffff, 0 0 20px #00baba;
+  margin-bottom: 20px;
+}
+
+.card {
+  background: rgba(30, 30, 47, 0.8);
+  border-radius: 15px;
+  padding: 20px;
+  box-shadow: 0 4px 20px rgba(0, 255, 255, 0.2), 0 0 30px rgba(0, 255, 255, 0.4);
+  width: 80%;
+  max-width: 500px;
+  text-align: center;
+  position: relative;
+  animation: fadeIn 1s ease-in-out;
+}
+
+.statusMessage {
+  font-size: 16px;
+  color: #f0f0f0;
+  margin-bottom: 15px;
+}
+
+.resultBox {
+  background: rgba(0, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 15px;
+  margin-bottom: 20px;
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+}
+
+.resultTitle {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: #00ffff;
+}
+
+.resultText {
+  font-size: 14px;
+  margin: 5px 0;
+}
+
+.videoCanvasContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 20px 0;
+  position: relative;
+}
+
+.video {
+  width: 100%;
+  max-width: 480px;
+  border-radius: 10px;
+  box-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
+}
+
+.canvas {
+  display: none;
+}
+
+.buttonContainer {
+  display: flex;
+  justify-content: center;
+  margin-top: 15px;
+}
+
+.button {
+  background: linear-gradient(45deg, #00ffff, #00baba);
+  border: none;
+  border-radius: 25px;
+  padding: 10px 20px;
+  color: #1e1e2f;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 10px rgba(0, 255, 255, 0.5);
+}
+
+
+
+.scannerFrame {
+  position: relative;
+  display: inline-block;
+  overflow: hidden;
+  border: 3px solid #00ffff;
+  border-radius: 10px;
+  box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+}
+
+.scannerFrame::after {
+  content: "";
+  position: absolute;
+  top: -100%;
+  left: 0;
+  width: 100%;
+  height: 5px;
+  background: rgba(0, 255, 255, 0.8);
+  box-shadow: 0 0 15px rgba(0, 255, 255, 0.8);
+  animation: none;
+}
+
+.scannerActive::after {
+  animation: scannerMove 1.5s linear infinite;
+}
+
+@keyframes scannerMove {
+  0% {
+    top: -100%;
   }
-  
-  .title {
-    font-size: 2.5rem;
-    margin-bottom: 1.5rem;
-    text-shadow: 0px 4px 6px rgba(0, 0, 0, 0.3);
+  100% {
+    top: 100%;
   }
-  
-  .faceAuthContainer {
-    background: #ffffff;
-    border-radius: 16px;
-    padding: 2rem;
-    box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.2);
-    width: 100%;
-    max-width: 600px;
-    text-align: center;
-    color: #1e3a8a;
-  }
-  
-  .faceAuthContainer h2 {
-    font-size: 1.8rem;
-    margin-bottom: 1rem;
-  }
-  
-  .faceAuthContainer p {
-    font-size: 1rem;
-    margin-bottom: 1.5rem;
-    color: #475569;
-  }
-  
-  .faceAuthContainer img {
-    width: 100%;
-    max-width: 300px;
-    border-radius: 8px;
-    margin: 0 auto;
-  }
-  
-  .faceAuthContainer button {
-    background: #2563eb;
-    color: #ffffff;
-    border: none;
-    border-radius: 8px;
-    padding: 0.75rem 1.5rem;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-  }
-  
-  .faceAuthContainer button:hover {
-    background: #1e40af;
-  }
-  
-  .faceAuthContainer button:active {
-    transform: scale(0.98);
-  }
-  
+}
