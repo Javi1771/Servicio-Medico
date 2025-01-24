@@ -148,15 +148,6 @@ const PresidenteLayout: React.FC<PresidenteLayoutProps> = ({ children }) => {
         { name: "Costos", path: "/reportes/costos" },
       ],
     },
-    {
-      title: "Reconocimiento",
-      icon: (
-        <FaFacebook className="text-blue-400 text-3xl group-hover:scale-110 transition-transform duration-300" />
-      ),
-      options: [
-        { name: "Reconocimiento", path: "/reconocimiento/reconocimiento_facial" },
-      ],
-    },
   ];
 
   return (

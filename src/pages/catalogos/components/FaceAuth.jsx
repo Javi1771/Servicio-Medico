@@ -1,26 +1,26 @@
-// components/FaceAuth.jsx (versión depurada)
+// components/FaceAuth.jsx
 import { useRef, useState, useEffect } from "react";
 import useFaceRecognition from "../../../hooks/hookReconocimiento/useFaceRecognition";
+import * as faceapi from "face-api.js";
 
-export default function FaceAuth({ storedImageUrl }) {
-  console.log("[FaceAuth] Recibimos storedImageUrl:", storedImageUrl);
-
+export default function FaceAuth({ beneficiaries }) {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
+
   const [cameraActive, setCameraActive] = useState(false);
   const [message, setMessage] = useState("");
-  const { modelsLoaded, compareFaces } = useFaceRecognition();
+  const [matchedBeneficiary, setMatchedBeneficiary] = useState(null);
 
+  const { modelsLoaded, getDescriptorFromCanvas } = useFaceRecognition();
+
+  // 1. Iniciar cámara
   useEffect(() => {
-    // Activar la cámara
     const startCamera = async () => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          videoRef.current.play();
-          setCameraActive(true);
-        }
+        videoRef.current.srcObject = stream;
+        videoRef.current.play();
+        setCameraActive(true);
       } catch (error) {
         console.error("No se pudo acceder a la cámara:", error);
         setMessage("Permiso de cámara denegado o no disponible.");
@@ -29,15 +29,14 @@ export default function FaceAuth({ storedImageUrl }) {
     };
     startCamera();
 
-    // Al desmontar, apagar la cámara
     return () => {
       if (videoRef.current?.srcObject) {
-        const tracks = videoRef.current.srcObject.getTracks();
-        tracks.forEach(track => track.stop());
+        videoRef.current.srcObject.getTracks().forEach((track) => track.stop());
       }
     };
   }, []);
 
+  // 2. Capturar foto en <canvas>
   const capturePhoto = () => {
     if (!cameraActive || !canvasRef.current || !videoRef.current) {
       setMessage("No se puede capturar foto: cámara inactiva.");
@@ -52,84 +51,181 @@ export default function FaceAuth({ storedImageUrl }) {
     ctx.drawImage(videoRef.current, 0, 0, width, height);
 
     setMessage("Foto capturada.");
-    console.log("[capturePhoto] Foto capturada en el canvas");
   };
 
+  // 3. Comparar la foto capturada con todos los beneficiarios (DESCRIPTOR_FACIAL)
   const handleVerify = async () => {
-    console.log("[handleVerify] Iniciando verificación con URL:", storedImageUrl);
-
-    if (!storedImageUrl) {
-      setMessage("No hay URL de imagen almacenada para comparar.");
-      console.log("[handleVerify] storedImageUrl está vacío");
+    if (!modelsLoaded) {
+      setMessage("Los modelos no están listos. Espera un momento.");
       return;
     }
     if (!canvasRef.current) {
       setMessage("No hay imagen capturada en el canvas.");
-      console.log("[handleVerify] No hay canvas con foto capturada");
       return;
     }
-    if (!modelsLoaded) {
-      setMessage("Los modelos no están listos. Espera un momento.");
-      console.log("[handleVerify] Los modelos face-api aún no se han cargado");
+    if (!beneficiaries || beneficiaries.length === 0) {
+      setMessage("No hay beneficiarios disponibles para comparar.");
       return;
     }
 
-    setMessage("Comparando rostros...");
-    try {
-      const result = await compareFaces(storedImageUrl, canvasRef.current);
-      console.log("[handleVerify] Resultado de compareFaces:", result);
+    setMatchedBeneficiary(null);
+    setMessage("Obteniendo descriptor de la foto tomada...");
 
-      if (result.match) {
-        setMessage(
-          `¡Coincide! Distancia: ${result.distance?.toFixed(4)}`
-        );
-      } else {
-        setMessage(
-          `No coincide. Distancia: ${result.distance?.toFixed(4)}`
-        );
+    // 3.1 Obtener descriptor de la foto tomada
+    const descriptorCaptured = await getDescriptorFromCanvas(canvasRef.current);
+    if (!descriptorCaptured) {
+      setMessage("No se detectó un rostro en la foto tomada.");
+      return;
+    }
+
+    // 3.2 Iterar sobre cada beneficiario
+    setMessage("Comparando descriptores...");
+    let bestMatch = null;
+    let minDistance = Infinity;
+    const threshold = 0.6;
+
+    for (const beneficiary of beneficiaries) {
+      // 'DESCRIPTOR_FACIAL' es un string JSON. Lo parseamos a Float32Array.
+      const jsonArray = JSON.parse(beneficiary.DESCRIPTOR_FACIAL); // Devuelve array JS
+      const storedDescriptor = new Float32Array(jsonArray); // Convertimos array JS a Float32Array
+
+      // Calculamos la distancia euclidiana
+      const distance = faceapi.euclideanDistance(descriptorCaptured, storedDescriptor);
+
+      // Si es menor al threshold y además es la menor distancia encontrada, lo guardamos
+      if (distance < threshold && distance < minDistance) {
+        minDistance = distance;
+        bestMatch = beneficiary;
       }
-    } catch (error) {
-      console.error("[handleVerify] Error en la comparación:", error);
-      setMessage("Ocurrió un error al comparar.");
+    }
+
+    // 3.3 Mostrar resultado
+    if (bestMatch) {
+      setMatchedBeneficiary(bestMatch);
+      setMessage(
+        `¡Coincide con ID: ${bestMatch.ID_BENEFICIARIO}, distancia: ${minDistance.toFixed(
+          4
+        )}`
+      );
+    } else {
+      setMessage("No se encontraron coincidencias (threshold = 0.6).");
     }
   };
 
   return (
-    <div style={{ padding: 16 }}>
-      <h2>Verificación de Rostro (Depurada)</h2>
+    <div style={styles.container}>
+      <h2 style={styles.subtitle}>Verificación de Rostro</h2>
 
-      {/* Mostramos la URL a comparar en pantalla */}
-      <p style={{ color: "gray", fontSize: "0.9em" }}>
-        URL a comparar: <strong>{storedImageUrl || "N/A"}</strong>
-      </p>
+      <div style={styles.card}>
+        {message && <p style={styles.statusMessage}>{message}</p>}
 
-      {/* Mensaje general en pantalla */}
-      {message && <p>{message}</p>}
+        {matchedBeneficiary && (
+          <div style={styles.resultBox}>
+            <h3 style={styles.resultTitle}>Beneficiario Coincidente</h3>
+            <p style={styles.resultText}>
+              <b>ID:</b> {matchedBeneficiary.ID_BENEFICIARIO}
+            </p>
+            <p style={styles.resultText}>
+              <b>NO_NOMINA:</b> {matchedBeneficiary.NO_NOMINA}
+            </p>
+            <p style={styles.resultText}>
+              <b>Nombre:</b> {matchedBeneficiary.NOMBRE}{" "}
+              {matchedBeneficiary.A_PATERNO} {matchedBeneficiary.A_MATERNO}
+            </p>
+          </div>
+        )}
 
-      <div style={{ display: "flex", gap: 10 }}>
-        {/* VIDEO en vivo */}
-        <div>
-          <video
-            ref={videoRef}
-            style={{ width: "320px", height: "240px", background: "#000" }}
-            muted
-          />
+        <div style={styles.videoCanvasContainer}>
+          <video ref={videoRef} style={styles.video} muted />
+          <canvas ref={canvasRef} style={styles.canvas} />
         </div>
-        {/* CANVAS donde capturamos la foto */}
-        <div>
-          <canvas
-            ref={canvasRef}
-            style={{ width: "320px", height: "240px", border: "1px solid #ccc" }}
-          />
-        </div>
-      </div>
 
-      <div style={{ marginTop: 10 }}>
-        <button onClick={capturePhoto}>Capturar Foto</button>
-        <button onClick={handleVerify} style={{ marginLeft: 10 }}>
-          Verificar
-        </button>
+        <div style={styles.buttonContainer}>
+          <button onClick={capturePhoto} style={styles.button}>
+            Capturar Foto
+          </button>
+          <button onClick={handleVerify} style={{ ...styles.button, marginLeft: 10 }}>
+            Verificar
+          </button>
+        </div>
       </div>
     </div>
   );
 }
+
+const styles = {
+  container: {
+    maxWidth: "700px",
+    margin: "0 auto",
+    textAlign: "center",
+    fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+  },
+  subtitle: {
+    color: "#444",
+    marginBottom: 20,
+    fontSize: "1.5rem",
+  },
+  card: {
+    backgroundColor: "#fff",
+    borderRadius: "8px",
+    padding: "20px 30px",
+    boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
+  },
+  statusMessage: {
+    margin: "10px 0",
+    padding: "10px",
+    backgroundColor: "#EFEFEF",
+    borderRadius: "4px",
+    color: "#333",
+    fontWeight: "bold",
+  },
+  resultBox: {
+    textAlign: "left",
+    margin: "20px 0",
+    padding: "15px",
+    border: "1px solid #e0e0e0",
+    borderRadius: "5px",
+    background: "#fafafa",
+  },
+  resultTitle: {
+    fontSize: "1.1rem",
+    marginBottom: "10px",
+    color: "#333",
+  },
+  resultText: {
+    margin: "5px 0",
+  },
+  videoCanvasContainer: {
+    display: "flex",
+    justifyContent: "center",
+    gap: "10px",
+    marginTop: 20,
+    flexWrap: "wrap",
+  },
+  video: {
+    width: 320,
+    height: 240,
+    background: "#000",
+    borderRadius: "6px",
+  },
+  canvas: {
+    width: 320,
+    height: 240,
+    border: "1px solid #ccc",
+    borderRadius: "6px",
+  },
+  buttonContainer: {
+    marginTop: 20,
+  },
+  button: {
+    backgroundColor: "#0070f3",
+    color: "#fff",
+    padding: "10px 16px",
+    border: "none",
+    borderRadius: "4px",
+    cursor: "pointer",
+    fontWeight: "bold",
+    fontSize: "0.9rem",
+    transition: "background 0.3s",
+  },
+};
