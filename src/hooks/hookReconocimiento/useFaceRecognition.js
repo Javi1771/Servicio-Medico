@@ -14,7 +14,7 @@ export default function useFaceRecognition() {
         await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
         setModelsLoaded(true);
       } catch (error) {
-        console.error("Error cargando modelos de face-api:", error);
+        console.error("Error cargando modeloss de face-api:", error);
       }
     };
     loadModels();

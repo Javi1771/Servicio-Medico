@@ -35,7 +35,7 @@ export async function getServerSideProps() {
 
     return { props: { beneficiaries } };
   } catch (error) {
-    console.error("Error al consultar la base de datos:", error);
+    console.error("Error al consultar la base de datoss:", error);
     return { props: { beneficiaries: [] } };
   }
 }

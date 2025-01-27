@@ -34,7 +34,7 @@ const playSound = (isSuccess) => {
           setCameraActive(true);
         }
       } catch (error) {
-        console.error("No se pudo acceder a la cámara:", error);
+        console.error("No se pudo acceder a la cámaraa:", error);
         setMessage("Permiso de cámara denegado o no disponible.");
         setCameraActive(false);
       }
