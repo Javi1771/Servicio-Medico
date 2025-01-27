@@ -1,4 +1,3 @@
-// hooks/useFaceRecognition.js
 import { useState, useEffect } from "react";
 import * as faceapi from 'face-api.js';
 
@@ -8,19 +7,19 @@ export default function useFaceRecognition() {
   useEffect(() => {
     const loadModels = async () => {
       try {
-        const MODEL_URL = "/models"; // asumiendo que los tienes en /public/models
+        const MODEL_URL = "/models"; //* asumiendo que los tienes en /public/models
         await faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL);
         await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
         await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
         setModelsLoaded(true);
       } catch (error) {
-        console.error("Error cargando modelos de face-api:", error);
+        console.error("Error cargando modeloss de face-api:", error);
       }
     };
     loadModels();
   }, []);
 
-  // Obtener descriptor desde un <canvas> con una sola cara
+  //* Obtener descriptor desde un <canvas> con una sola cara
   const getDescriptorFromCanvas = async (canvas) => {
     try {
       const detection = await faceapi

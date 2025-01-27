@@ -1,6 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import FaceAuth from "../catalogos/components/FaceAuth";
 import { connectToDatabase } from "../api/connectToDatabase";
-import styles from "../css/FaceTestPage.module.css";
 
 export default function FaceTestPage({ beneficiaries }) {
   return (
@@ -35,7 +35,7 @@ export async function getServerSideProps() {
 
     return { props: { beneficiaries } };
   } catch (error) {
-    console.error("Error al consultar la base de datos:", error);
+    console.error("Error al consultar la base de datoss:", error);
     return { props: { beneficiaries: [] } };
   }
 }

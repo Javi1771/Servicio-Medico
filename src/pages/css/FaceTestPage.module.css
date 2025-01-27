@@ -7,7 +7,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.7), rgba(20, 20, 20, 0.95));
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.662), rgba(20, 20, 20, 0.95));
   padding: 20px;
   color: #fff;
 }
