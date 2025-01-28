@@ -1,6 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import FaceAuth from "../catalogos/components/FaceAuth";
 import { connectToDatabase } from "../api/connectToDatabase";
-import styles from "../css/FaceTestPage.module.css";
 
 export default function FaceTestPage({ beneficiaries }) {
   return (

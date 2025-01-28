@@ -1,7 +1,10 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useRef, useState, useEffect } from "react";
 import useFaceRecognition from "../../../hooks/hookReconocimiento/useFaceRecognition";
 import * as faceapi from "face-api.js";
 import styles from "../../css/FaceTestPage.module.css";
+import Image from "next/image";
 
 export default function FaceAuth({ beneficiaries }) {
   const videoRef = useRef(null);
@@ -155,7 +158,7 @@ const playSound = (isSuccess) => {
             <video ref={videoRef} className={styles.video} muted />
             {!recognizedBeneficiary && (
               <div className={styles.faceIconOverlay}>
-                <img src="/faceIcon.png" alt="Face Icon" className={styles.faceIconImage} />
+                <Image src="/faceIcon.png" alt="Face Icon" className={styles.faceIconImage} width={100} height={100}/>
               </div>
             )}
           </div>
