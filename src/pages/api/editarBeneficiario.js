@@ -27,12 +27,13 @@ export default async function handler(req, res) {
     urlConstancia,
     urlCurp,
     urlActaNac,
-    urlINE,
-    urlActaMatrimonio,
-    urlCartaNoAfiliacion,
-    actaConcubinatoUrl,
-    urlIncap, // Nuevo campo agregado
-    descriptorFacial, // <-- NUEVO
+    urlIncap,           // Nuevo campo para incapacidad
+    descriptorFacial,   // Descriptor facial
+    // ÉSTAS SON LAS CLAVES UNIFICADAS:
+    actaMatrimonioUrl,
+    ineUrl,
+    cartaNoAfiliacionUrl,
+    actaConcubinatoUrl, // si la necesitas
   } = req.body;
 
   console.log("Datos recibidos en el backend:", req.body);
@@ -104,12 +105,15 @@ export default async function handler(req, res) {
       .input("urlConstancia", urlConstancia || null)
       .input("urlCurp", urlCurp || null)
       .input("urlActaNac", urlActaNac || null)
-      .input("urlINE", urlINE || null)
-      .input("urlActaMatrimonio", urlActaMatrimonio || null)
-      .input("urlCartaNoAfiliacion", urlCartaNoAfiliacion || null)
-      .input("urlConcubinato", actaConcubinatoUrl || null)
-      .input("urlIncap", urlIncap || null) // Nuevo campo incluido
-      .input("descriptorFacial", descriptorFacial || "") // <- nuevo
+      .input("urlIncap", urlIncap || null) // Acta de incapacidad
+      .input("descriptorFacial", descriptorFacial || "")
+
+      // Aquí unificamos con las mismas props:
+      .input("actaMatrimonioUrl", actaMatrimonioUrl || null)
+      .input("ineUrl", ineUrl || null)
+      .input("cartaNoAfiliacionUrl", cartaNoAfiliacionUrl || null)
+      .input("actaConcubinatoUrl", actaConcubinatoUrl || null)
+
       .query(`
         UPDATE BENEFICIARIO
         SET 
@@ -133,15 +137,16 @@ export default async function handler(req, res) {
           URL_CONSTANCIA = @urlConstancia,
           URL_CURP = @urlCurp,
           URL_ACTA_NAC = @urlActaNac,
-          URL_INE = @urlINE,
-          URL_ACTAMATRIMONIO = @urlActaMatrimonio,
-          URL_NOISSTE = @urlCartaNoAfiliacion,
-          URL_CONCUBINATO = @urlConcubinato,
-          URL_INCAP = @urlIncap, -- Nuevo campo actualizado
-          DESCRIPTOR_FACIAL = @descriptorFacial -- <- nuevo
+          URL_INCAP = @urlIncap,
+          DESCRIPTOR_FACIAL = @descriptorFacial,
+          -- Aquí amarramos las mismas variables al nombre de columna
+          URL_ACTAMATRIMONIO = @actaMatrimonioUrl,
+          URL_INE = @ineUrl,
+          URL_NOISSTE = @cartaNoAfiliacionUrl,
+          URL_CONCUBINATO = @actaConcubinatoUrl
+
         WHERE ID_BENEFICIARIO = @idBeneficiario
       `);
-
 
     console.log("Filas afectadas por la consulta:", result.rowsAffected[0]);
 
