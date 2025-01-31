@@ -1,6 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import { FaSearch, FaUserMd, FaCalendarAlt, FaUser, FaFileAlt } from "react-icons/fa";
+import {
+  FaSearch,
+  FaUserMd,
+  FaCalendarAlt,
+  FaUser,
+  FaFileAlt,
+  FaCheckCircle,
+  FaTimesCircle,
+  FaExclamationTriangle,
+} from "react-icons/fa";
 
 const PasesNuevoEspecialista = () => {
   const [datos, setDatos] = useState([]);
@@ -40,21 +49,24 @@ const PasesNuevoEspecialista = () => {
     setFilteredData(filtered);
   };
 
-  //* Manejo de clic en una fila
-  const handleRowClick = (claveconsulta) => {
-    //* Redirige a la página de detalles con la clave de consulta como parámetro
-    router.push(`/especialista/detalles-especialidad?claveconsulta=${claveconsulta}`);
+  //* Manejo de clic en una fila (solo si no ha sido atendido)
+  const handleRowClick = (claveconsulta, atendido) => {
+    if (!atendido) {
+      router.push(
+        `/especialista/detalles-especialidad?claveconsulta=${claveconsulta}`
+      );
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 via-black to-gray-800 text-gray-200 px-4 sm:px-8 lg:px-16 xl:px-32 py-6">
+    <div className="min-h-screen bg-black text-gray-200 px-4 sm:px-8 lg:px-16 xl:px-32 py-6">
       <header className="bg-gradient-to-r from-purple-700 via-blue-500 to-teal-400 rounded-xl shadow-xl p-8 mb-12 text-center">
         <h1 className="text-4xl sm:text-5xl font-extrabold text-white flex justify-center items-center gap-4">
           <FaUserMd className="text-white text-6xl" />
           Pases a Especialidades
         </h1>
       </header>
-  
+
       <section className="mb-10">
         <div className="relative max-w-2xl mx-auto">
           <div className="absolute inset-y-0 left-4 flex items-center">
@@ -69,36 +81,39 @@ const PasesNuevoEspecialista = () => {
           />
         </div>
       </section>
-  
+
       <section className="overflow-x-auto">
-        <table className="w-full table-auto bg-gradient-to-b from-gray-900 to-gray-800 text-left rounded-xl shadow-lg">
+        <table className="w-full table-auto bg-black text-left rounded-xl shadow-lg border border-purple-600 shadow-[0_0_30px_rgba(139,92,246,0.6)]">
           <thead className="bg-gradient-to-r from-purple-900 via-blue-700 to-teal-600 text-white shadow-md">
             <tr>
-              <th className="p-5 text-sm sm:text-lg font-bold uppercase">
+              <th className="p-5">
                 <FaCalendarAlt className="inline mr-2" /> Fecha de la Cita
               </th>
-              <th className="p-5 text-sm sm:text-lg font-bold uppercase">
+              <th className="p-5">
                 <FaFileAlt className="inline mr-2" /> Nómina
               </th>
-              <th className="p-5 text-sm sm:text-lg font-bold uppercase">
+              <th className="p-5">
                 <FaUser className="inline mr-2" /> Paciente
               </th>
-              <th className="p-5 text-sm sm:text-lg font-bold uppercase">
+              <th className="p-5">
                 <FaUser className="inline mr-2" /> Sindicato
               </th>
-              <th className="p-5 text-sm sm:text-lg font-bold uppercase">
+              <th className="p-5">
                 <FaUserMd className="inline mr-2" /> Médico Referente
               </th>
-              <th className="p-5 text-sm sm:text-lg font-bold uppercase">
-                <FaFileAlt className="inline mr-2" /> Especialidad del Médico Referente
+              <th className="p-5">
+                <FaFileAlt className="inline mr-2" /> Especialidad
+              </th>
+              <th className="p-5">
+                <FaExclamationTriangle className="inline mr-2" /> Estatus
               </th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              Array.from({ length: 5 }, (_, index) => (
+              [...Array(5)].map((_, index) => (
                 <tr key={index} className="animate-pulse">
-                  {[...Array(6)].map((_, i) => (
+                  {[...Array(7)].map((_, i) => (
                     <td key={i} className="p-5">
                       <div className="h-6 w-32 bg-gray-700 rounded-md"></div>
                     </td>
@@ -109,39 +124,129 @@ const PasesNuevoEspecialista = () => {
               filteredData.map((item, index) => (
                 <tr
                   key={index}
-                  className={`hover:bg-gray-700 hover:shadow-md transition-all duration-300 cursor-pointer border-b ${
-                    index % 2 === 0 ? "bg-gray-900" : "bg-gray-800"
-                  }`}
-                  onClick={() => handleRowClick(item.claveconsulta)}
-                  >
-                  <td className="p-5 text-gray-300 font-medium text-sm sm:text-base">
-                    {item.fechacita || "No disponible"}
-                  </td>
-                  <td className="p-5 text-gray-300 font-medium text-sm sm:text-base">
-                    {item.clavenomina || "No disponible"}
-                  </td>
-                  <td className="p-5 text-gray-300 font-medium text-sm sm:text-base">
+                  className={`relative group ${
+                    item.atendido
+                      ? "bg-gray-800 text-gray-500 cursor-default"
+                      : "hover:bg-gray-800 cursor-pointer"
+                  } transition-all duration-300 border-b border-purple-500`}
+                  onClick={() =>
+                    handleRowClick(item.claveconsulta, item.atendido)
+                  }
+                >
+                  <td className="p-5">{item.fechacita || "No disponible"}</td>
+                  <td className="p-5">{item.clavenomina || "No disponible"}</td>
+                  <td className="p-5">
                     {item.nombrepaciente || "No disponible"}
                   </td>
+
                   <td
-                    className={`p-5 font-bold text-sm sm:text-base ${
-                      item.sindicato ? "text-teal-400" : "text-red-500 italic"
+                    className={`p-5 ${
+                      item.atendido
+                        ? "text-gray-500" //* Si ya fue atendido, gris
+                        : item.sindicato
+                        ? "text-[#00FFFF]" //* Azul neón si tiene sindicato
+                        : "text-white" //* Blanco si no tiene sindicato
                     }`}
                   >
                     {item.sindicato || "No disponible"}
                   </td>
-                  <td className="p-5 text-gray-300 font-medium text-sm sm:text-base">
+
+                  <td className="p-5">
                     {item.nombreUsuarioProveedor || "No disponible"}
                   </td>
-                  <td className="p-5 text-gray-300 font-medium text-sm sm:text-base">
+                  <td className="p-5">
                     {item.nombreEspecialidadUsuario || "Sin especialidad"}
+                  </td>
+
+                  {/* Columna de estatus con tooltip */}
+                  <td className="p-5 relative group">
+                    <div className="flex items-center gap-2">
+                      {item.atendido ? (
+                        <>
+                          <FaCheckCircle className="text-green-400 text-lg" />
+                          <span className="text-green-400 font-semibold">
+                            Atendido
+                          </span>
+
+                          {/* Determinar la posición del tooltip según la fila */}
+                          <div
+                            className={`absolute invisible opacity-0 group-hover:visible group-hover:opacity-100 
+                  ${
+                    index < 3 ? "top-full" : "bottom-full"
+                  } right-0 w-[350px] max-w-[400px] transition-all duration-300 ease-out z-50`}
+                            style={{
+                              whiteSpace: "normal",
+                              overflow: "visible",
+                              paddingTop: index < 3 ? "10px" : "0",
+                              paddingBottom: index >= 3 ? "10px" : "0",
+                            }}
+                          >
+                            <div className="relative px-8 py-5 bg-gradient-to-br from-gray-900/95 to-gray-800/95 backdrop-blur-md rounded-2xl border border-white/10 shadow-[0_0_50px_rgba(79,70,229,0.9)]">
+                              {/* Fondo animado de brillo */}
+                              <div className="absolute inset-0 rounded-2xl blur-xl opacity-75 animate-pulse bg-gradient-to-r from-indigo-500/30 via-purple-500/30 to-pink-500/30"></div>
+
+                              {/* Contenido del tooltip */}
+                              <div className="relative text-center">
+                                <div className="flex items-center gap-3 mb-3 justify-center">
+                                  {/* Icono informativo */}
+                                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-indigo-500/20">
+                                    <svg
+                                      viewBox="0 0 20 20"
+                                      fill="currentColor"
+                                      className="w-5 h-5 text-indigo-400"
+                                    >
+                                      <path
+                                        clipRule="evenodd"
+                                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                                        fillRule="evenodd"
+                                      ></path>
+                                    </svg>
+                                  </div>
+
+                                  {/* Título del tooltip */}
+                                  <h3 className="text-lg font-bold text-white">
+                                    No editable
+                                  </h3>
+                                </div>
+
+                                {/* Texto explicativo */}
+                                <p className="text-base text-gray-300 leading-relaxed">
+                                  Esta consulta ya ha sido atendida y está lista
+                                  para pasar con el especialista.
+                                </p>
+                              </div>
+
+                              {/* Fondo decorativo adicional */}
+                              <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-indigo-500/10 to-purple-500/10 blur-xl opacity-50"></div>
+
+                              {/* Flecha del tooltip (cambia según la orientación) */}
+                              <div
+                                className={`absolute right-5 transform w-4 h-4 bg-gradient-to-br from-gray-900/95 to-gray-800/95 border-r border-b border-white/10 
+                      ${
+                        index < 3
+                          ? "bottom-full translate-y-2"
+                          : "top-full -translate-y-2"
+                      } rotate-45`}
+                              ></div>
+                            </div>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <FaTimesCircle className="text-red-400 text-lg" />
+                          <span className="text-red-400 font-semibold">
+                            Pendiente
+                          </span>
+                        </>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
                 <td
-                  colSpan="6"
+                  colSpan="7"
                   className="p-5 text-center text-gray-500 bg-gray-800 italic"
                 >
                   No se encontraron resultados.
@@ -151,15 +256,8 @@ const PasesNuevoEspecialista = () => {
           </tbody>
         </table>
       </section>
-  
-      <footer className="text-center mt-10">
-        <p className="text-gray-500 text-sm">
-          © 2025 Pases a Especialidades. Todos los derechos reservados.
-        </p>
-      </footer>
     </div>
   );
-  
 };
 
 export default PasesNuevoEspecialista;

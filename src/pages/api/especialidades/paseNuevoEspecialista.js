@@ -51,7 +51,7 @@ export default async function handler(req, res) {
     //* Conectar a la base de datos
     const pool = await connectToDatabase();
 
-    //* Consulta SQL actualizada
+    //* Consulta SQL actualizada con el campo diagnostico
     const query = `
       SELECT 
         c.fechacita,
@@ -66,7 +66,8 @@ export default async function handler(req, res) {
         pu.claveespecialidad AS claveEspecialidadUsuario,
         esp.especialidad AS nombreEspecialidadUsuario,
         e.especialidad, 
-        c.especialidadinterconsulta
+        c.especialidadinterconsulta,
+        c.diagnostico  
       FROM consultas c
       INNER JOIN especialidades e ON c.especialidadinterconsulta = e.claveespecialidad
       INNER JOIN proveedores p ON c.claveproveedor = p.claveproveedor
@@ -85,14 +86,14 @@ export default async function handler(req, res) {
       .input("claveusuario", claveusuario)
       .query(query);
 
-    //* Log de la fecha original y formateada
+    //* Procesar los resultados
     const formattedResults = result.recordset.map((record) => {
-      console.log("Fecha original:", record.fechacita);
       const formattedDate = formatFecha(record.fechacita);
-      console.log("Fecha formateada:", formattedDate);
       return {
         ...record,
         fechacita: formattedDate,
+        atendido: record.diagnostico ? true : false,  //* Booleano si fue atendido o no
+        estadoPaciente: record.diagnostico ? "Paciente Atendido" : "Paciente No Atendido" //* Mensaje solicitado
       };
     });
 

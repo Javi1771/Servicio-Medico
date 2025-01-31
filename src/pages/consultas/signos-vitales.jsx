@@ -6,6 +6,7 @@ import Pusher from "pusher-js";
 import { AiOutlineUserAdd } from "react-icons/ai";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
+import { useRouter } from "next/router";
 //import AtendiendoActualmente from "./consultas-adicionales/atendiendo-actualmente";
 import ConsultasCanceladas from "./consultas-adicionales/consultas-canceladas";
 import ConsultasAtendidas from "./consultas-adicionales/consultas-atendidas";
@@ -57,6 +58,7 @@ const calcularEdad = (fechaNacimiento) => {
 };
 
 const SignosVitales = () => {
+  const router = useRouter();
   const [patientData, setPatientData] = useState({
     photo: "/user_icon_.png",
     name: "",
@@ -91,6 +93,10 @@ const SignosVitales = () => {
   );
 
   const [isSaving, setIsSaving] = useState(false);
+
+  const handleFaceRecognition = () => {
+    router.push("/consultas/face-test");
+  };
 
   const handleBeneficiarySelect = (index) => {
     const selected = beneficiaryData[index];
@@ -555,14 +561,14 @@ const SignosVitales = () => {
       console.log("Actualización de estatus recibida:", data);
 
       setPacientes((prevPacientes) => {
-        // Filtrar si la consulta cambia de estado y ya no pertenece a la lista de espera
+        //* Filtrar si la consulta cambia de estado y ya no pertenece a la lista de espera
         if (data.clavestatus === 0 || data.clavestatus === 2) {
           return prevPacientes.filter(
             (paciente) => paciente.claveconsulta !== data.claveConsulta
           );
         }
 
-        // Si es un paciente en espera actualizado, modificar su estado
+        //* Si es un paciente en espera actualizado, modificar su estado
         const index = prevPacientes.findIndex(
           (paciente) => paciente.claveconsulta === data.claveConsulta
         );
@@ -600,17 +606,61 @@ const SignosVitales = () => {
           </h1>
         </div>
 
-        <div className="flex space-x-4 md:space-x-6 mt-4 md:mt-0">
+        <div className="flex space-x-4 mt-4">
+          {/* Botón de Agregar Paciente - Compacto */}
           <button
             onClick={handleAdd}
-            className="flex items-center bg-gradient-to-r from-indigo-600 to-purple-800 hover:from-blue-500 hover:to-purple-600 px-8 py-4 md:px-12 md:py-5 rounded-full shadow-[0_0_20px_rgba(138,43,226,0.5),0_0_15px_rgba(75,0,130,0.5)] transform transition-all duration-300 hover:scale-110 hover:shadow-[0_0_30px_rgba(138,43,226,0.7),0_0_20px_rgba(75,0,130,0.7)] relative overflow-hidden neon-effect"
+            className="relative flex items-center justify-center px-6 py-3 md:px-8 md:py-4 rounded-full text-white font-bold text-sm md:text-lg uppercase 
+      bg-gradient-to-r from-[#6b00ff] via-[#b400ff] to-[#ff00ff] shadow-[0px_0px_15px_5px_rgba(180,0,255,0.6)] 
+      transition-all duration-300 hover:scale-105 hover:shadow-[0px_0px_30px_10px_rgba(255,0,255,1)]"
           >
-            <AiOutlineUserAdd className="mr-3 text-2xl md:text-3xl text-white glow-icon" />
-            <span className="text-lg md:text-xl font-bold text-white tracking-wide z-10 glow-text">
-              Agregar Paciente
+            <span className="relative z-10 flex items-center space-x-2">
+              {/* Icono - Usuario agregado */}
+              <svg
+                className="w-6 h-6 text-white animate-pulse"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M16 11c2.485 0 4.5-2.015 4.5-4.5S18.485 2 16 2s-4.5 2.015-4.5 4.5S13.515 11 16 11zM6 20h16a1 1 0 001-1v-1c0-2.5-3-5-8-5s-8 2.5-8 5v1a1 1 0 001 1z"
+                />
+              </svg>
+              <span className="drop-shadow-md glow-text">
+                Agregar Paciente Por Nómina
+              </span>
             </span>
-            <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-600 opacity-30 rounded-full animate-pulse-neon" />
-            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 opacity-0 transition-all duration-500 neon-hover" />
+          </button>
+
+          {/* Botón de Reconocimiento Facial - Compacto */}
+          <button
+            onClick={handleFaceRecognition}
+            className="relative flex items-center justify-center px-6 py-3 md:px-8 md:py-4 rounded-full text-white font-bold text-sm md:text-lg uppercase 
+      bg-gradient-to-r from-[#00ff87] via-[#00d4ff] to-[#0095ff] shadow-[0px_0px_15px_5px_rgba(0,212,255,0.6)] 
+      transition-all duration-300 hover:scale-105 hover:shadow-[0px_0px_30px_10px_rgba(0,149,255,1)]"
+          >
+            <span className="relative z-10 flex items-center space-x-2">
+              {/* Icono - Escaneo facial */}
+              <svg
+                className="w-6 h-6 text-white animate-spin-slow"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M3 3h6v6H3zM15 3h6v6h-6zM3 15h6v6H3zM15 15h6v6h-6zM9 9h6v6H9z"
+                />
+              </svg>
+              <span className="drop-shadow-md glow-text">
+                Agregar Paciente Por Escaneo Facial
+              </span>
+            </span>
           </button>
         </div>
       </div>

@@ -15,7 +15,7 @@ export default async function handler(req, res) {
     try {
       const pool = await connectToDatabase();
 
-      // Buscar claveconsulta en la tabla consultas, limitado al último mes
+      //* Buscar claveconsulta en la tabla consultas, limitado al último mes
       const queryConsultas = `
         SELECT claveconsulta
         FROM [PRESIDENCIA].[dbo].[consultas]
@@ -38,7 +38,7 @@ export default async function handler(req, res) {
         return res.status(200).json({ ok: true, historial: [] });
       }
 
-      // Buscar en la tabla detalleReceta usando las claves de consulta encontradas
+      //* Buscar en la tabla detalleReceta usando las claves de consulta encontradas
       const queryDetalleReceta = `
         SELECT 
           folioReceta,
@@ -58,12 +58,12 @@ export default async function handler(req, res) {
         return res.status(200).json({ ok: true, historial: [] });
       }
 
-      // Obtener los IDs únicos de descMedicamento
+      //* Obtener los IDs únicos de descMedicamento
       const descMedicamentoIds = [
         ...new Set(detalleRecetas.map((receta) => receta.descMedicamento)),
       ];
 
-      // Buscar nombres de medicamentos en la tabla MEDICAMENTOS
+      //* Buscar nombres de medicamentos en la tabla MEDICAMENTOS
       let medicamentosMap = {};
       if (descMedicamentoIds.length > 0) {
         const queryMedicamentos = `
@@ -78,14 +78,14 @@ export default async function handler(req, res) {
 
         const medicamentos = medicamentosResult.recordset;
 
-        // Crear un mapa de medicamentos
+        //* Crear un mapa de medicamentos
         medicamentosMap = medicamentos.reduce((acc, med) => {
           acc[med.CLAVEMEDICAMENTO] = med.MEDICAMENTO;
           return acc;
         }, {});
       }
 
-      // Combinar los datos del historial
+      //* Combinar los datos del historial
       const historial = detalleRecetas.map((receta) => ({
         folioReceta: receta.folioReceta,
         indicaciones: receta.indicaciones,

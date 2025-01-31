@@ -1,171 +1,173 @@
-/* Ajusta estos estilos a tu gusto. */
-
-/* Fondo gradiente oscuro para la página entera */
+/* Fondo dinámico con efectos de neón */
 .container {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.662), rgba(20, 20, 20, 0.95));
+  justify-content: center;
+  background: radial-gradient(circle at center, rgba(0, 10, 25, 1), rgba(0, 5, 15, 1));
   padding: 20px;
   color: #fff;
+  font-family: 'Poppins', sans-serif;
+  overflow: hidden;
+  position: relative;
 }
 
-/* Título */
+/* Efecto de resplandor dinámico en el fondo */
+.container::before {
+  content: "";
+  position: absolute;
+  width: 400px;
+  height: 400px;
+  background: rgba(0, 140, 255, 0.3);
+  filter: blur(100px);
+  top: 20%;
+  left: 10%;
+  animation: backgroundGlow 5s infinite alternate;
+}
+
+@keyframes backgroundGlow {
+  0% { transform: scale(1); opacity: 0.5; }
+  100% { transform: scale(1.3); opacity: 0.8; }
+}
+
+/* Título con efecto de neón animado */
 .subtitle {
   margin-bottom: 20px;
-  font-size: 24px;
+  font-size: 34px;
+  font-weight: bold;
+  text-transform: uppercase;
+  text-shadow: 0px 0px 40px rgba(0, 140, 255, 1);
+  animation: neonGlow 2s infinite alternate;
 }
 
-/* Card con glasmorphism y animación de altura */
+@keyframes neonGlow {
+  0% { text-shadow: 0px 0px 15px rgba(0, 140, 255, 0.6); }
+  100% { text-shadow: 0px 0px 40px rgba(0, 140, 255, 1); }
+}
+
+/* Tarjeta con efecto de vidrio futurista y resplandor dinámico */
 .card {
   position: relative;
   width: 90%;
-  max-width: 400px;
-  padding: 20px;
+  max-width: 500px;
+  padding: 30px;
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border: 2px solid rgba(0, 140, 255, 0.9);
+  box-shadow: 0px 10px 100px rgba(0, 140, 255, 0.7);
   text-align: center;
-
-  /* TRANSICIÓN DE ALTURA */
-  max-height: 400px; /* Altura por defecto */
   overflow: hidden;
-  transition: max-height 0.7s ease;
+  transition: box-shadow 0.5s ease, transform 0.3s ease;
 }
 
-/* Cuando la card está expandida */
-.card.expanded {
-  max-height: 700px; /* Altura mayor para mostrar la info */
+.card:hover {
+  transform: scale(1.05);
+  box-shadow: 0px 15px 120px rgba(0, 140, 255, 1);
 }
 
-/* Mensajes */
-.statusMessage {
-  font-weight: bold;
-  margin-bottom: 10px;
-}
-
-/* Contenedor del video + canvas */
+/* Contenedor del video con efectos visuales avanzados y marco brillante */
 .videoCanvasContainer {
   position: relative;
-  width: 320px;
-  height: 240px;
+  width: 400px;
+  height: 300px;
   margin: 0 auto 20px auto;
-}
-
-/* video wrapper */
-.videoWrapper {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  background: #000;
-  border-radius: 12px;
+  border: 3px solid rgba(0, 140, 255, 1);
+  border-radius: 20px;
   overflow: hidden;
+  box-shadow: 0px 0px 40px rgba(0, 140, 255, 1);
+  background: url('/faceIcon.png') no-repeat center;
+  background-size: cover;
+  animation: frameGlow 2s infinite alternate;
 }
 
-/* El video */
+@keyframes frameGlow {
+  0% { box-shadow: 0px 0px 30px rgba(0, 140, 255, 0.7); }
+  100% { box-shadow: 0px 0px 50px rgba(0, 140, 255, 1); }
+}
+
+/* Video con efecto de transparencia y luz ambiental */
 .video {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  filter: brightness(1.3) contrast(1.2);
+  opacity: 0.95;
 }
 
-/* Icon overlay */
-.faceIconOverlay {
+/* Escáner láser con animación compleja */
+.scanLine {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  opacity: 0.15;
-  pointer-events: none;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 6px;
+  background: linear-gradient(to right, rgba(0, 140, 255, 1), rgba(0, 0, 255, 0.8), rgba(0, 140, 255, 1));
+  box-shadow: 0px 0px 30px rgba(0, 140, 255, 1);
+  animation: scanAnimation 1.5s infinite linear alternate, scanFlash 0.7s infinite alternate;
 }
 
-.faceIconImage {
-  width: 100px;
-  height: 100px;
+@keyframes scanAnimation {
+  0% { top: 0%; }
+  25% { top: 25%; }
+  50% { top: 50%; }
+  75% { top: 75%; }
+  100% { top: 100%; }
 }
 
-/* Canvas (oculto si no quieres mostrarlo) */
-.canvas {
-  display: none;
+@keyframes scanFlash {
+  0% { opacity: 0.7; }
+  100% { opacity: 1; }
 }
 
-/* Botón */
+/* Botón con animaciones y brillo dinámico */
 .button {
-  display: inline-block;
-  padding: 12px 24px;
-  border-radius: 25px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 18px 40px;
+  border-radius: 40px;
   border: none;
-  background-color: #2252ff;
+  background: linear-gradient(90deg, rgba(0, 140, 255, 1), rgba(0, 100, 255, 1));
   color: #fff;
-  font-size: 16px;
+  font-size: 18px;
   cursor: pointer;
   margin-bottom: 10px;
-  transition: background-color 0.3s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  text-transform: uppercase;
+  font-weight: bold;
+  box-shadow: 0px 0px 50px rgba(0, 140, 255, 0.9);
 }
 
 .button:hover {
-  background-color: #4e63ff;
+  transform: scale(1.1);
+  box-shadow: 0px 0px 60px rgba(0, 140, 255, 1);
 }
 
-/* Contenedor de la info del beneficiario */
-.infoContainer {
-  margin-top: 20px;
-  text-align: left;
-  padding: 0 10px;
-  animation: fadeIn 0.5s forwards;
-}
-
-/* Pequeña animación de aparición */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-
-/* Alertas (verde para éxito, rojo para error) */
+/* Alertas con efecto de entrada y sombras futuristas */
 .alert {
-  padding: 10px;
+  padding: 16px;
   margin-bottom: 10px;
-  border-radius: 5px;
-  font-size: 14px;
+  border-radius: 10px;
+  font-size: 16px;
   font-weight: bold;
-  animation: fadeIn 0.5s ease-out;
   text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  animation: fadeIn 0.5s ease-out;
 }
 
 .alert.success {
-  background-color: rgba(46, 204, 113, 0.8); /* Verde éxito */
+  background-color: rgba(0, 140, 255, 0.8);
   color: #fff;
+  text-shadow: 0px 0px 20px rgba(255, 255, 255, 0.8);
 }
 
 .alert.error {
-  background-color: rgba(231, 76, 60, 0.8); /* Rojo error */
+  background-color: rgba(255, 40, 40, 0.8);
   color: #fff;
+  text-shadow: 0px 0px 20px rgba(255, 255, 255, 0.8);
 }
-
-/* Overlay de la silueta en la cámara */
-.faceIconOverlay {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  opacity: 0.2;
-  pointer-events: none;
-}
-
-.faceIconImage {
-  width: 100px;
-  height: 100px;
-  object-fit: contain;
-}
-
-/* Otros estilos ya existentes */

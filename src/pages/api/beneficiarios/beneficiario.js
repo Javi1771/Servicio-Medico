@@ -8,9 +8,7 @@ export default async function handler(req, res) {
 
     try {
       const pool = await connectToDatabase();
-      const result = await pool
-        .request()
-        .input("nomina", sql.VarChar, nomina)
+      const result = await pool.request().input("nomina", sql.VarChar, nomina)
         .query(`
           SELECT 
             B.ID_BENEFICIARIO, 
@@ -20,6 +18,7 @@ export default async function handler(req, res) {
             B.F_NACIMIENTO, 
             B.ESDISCAPACITADO,
             B.ESESTUDIANTE,
+            B.FOTO_URL,
             FORMAT(B.VIGENCIA_ESTUDIOS, 'yyyy-MM-dd') AS VIGENCIA_ESTUDIOS, 
             B.ACTIVO,
             P.ID_PARENTESCO AS ID_PARENTESCO,
@@ -67,7 +66,9 @@ export default async function handler(req, res) {
                 }
 
                 //* Validar vigencia de estudios
-                const vigenciaEstudios = new Date(beneficiary.VIGENCIA_ESTUDIOS); // Convertir a Date
+                const vigenciaEstudios = new Date(
+                  beneficiary.VIGENCIA_ESTUDIOS
+                ); // Convertir a Date
                 const fechaActual = new Date(); // Obtener fecha actual como objeto Date
 
                 console.log(
@@ -125,12 +126,17 @@ export default async function handler(req, res) {
             return beneficiarioFinal;
           });
 
-        console.log("Lista de beneficiarios después de procesar:", beneficiaries);
+        console.log(
+          "Lista de beneficiarios después de procesar:",
+          beneficiaries
+        );
         res.status(200).json({ beneficiarios: beneficiaries });
       } else {
         res
           .status(404)
-          .json({ message: "No se encontraron beneficiarios para esta nómina" });
+          .json({
+            message: "No se encontraron beneficiarios para esta nómina",
+          });
       }
     } catch (error) {
       console.error("Error al buscar beneficiarios:", error);

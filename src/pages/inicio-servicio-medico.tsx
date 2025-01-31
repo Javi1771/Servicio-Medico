@@ -76,7 +76,8 @@ const Home = () => {
           ],
         },
         { title: "Cancelaciones", options: ["Formatos"] },
-        { title: "Reportes", options: ["Incapacidades", "Costos"] }
+        { title: "Reportes", options: ["Incapacidades", "Costos"] },
+        { title: "Farmacia", options: ["Medicamentos"] }
       );
     }
 
