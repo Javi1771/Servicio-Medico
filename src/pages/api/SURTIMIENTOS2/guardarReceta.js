@@ -110,7 +110,11 @@ export default async function handler(req, res) {
     `;
 
     for (const medicamento of medicamentos) {
-      console.log("Insertando medicamento:", medicamento);
+      if (!medicamento.claveMedicamento) {
+        console.error("claveMedicamento es null o vacío para el medicamento:", medicamento);
+        continue; // Salta este medicamento si la clave es inválida
+      }
+    
       await pool
         .request()
         .input("folioSurtimiento", sql.Int, nuevoFolio)
@@ -119,6 +123,7 @@ export default async function handler(req, res) {
         .input("cantidad", sql.NVarChar(70), medicamento.cantidad)
         .query(insertDetalleQuery);
     }
+    
 
     console.log("Todos los medicamentos insertados exitosamente.");
 

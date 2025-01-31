@@ -1,7 +1,6 @@
 /* Contenedor principal del formulario */
 .formContainer {
-    background: linear-gradient(to right, #1f1f2e, #16162b);
-    padding: 20px;
+  background: linear-gradient(to right, #242637, #1b1c2b);    padding: 20px;
     border-radius: 12px;
     box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.25);
     color: #ffffff;

@@ -21,7 +21,8 @@ export async function getServerSideProps() {
         A_MATERNO,
         DESCRIPTOR_FACIAL
       FROM BENEFICIARIO
-      WHERE DESCRIPTOR_FACIAL IS NOT NULL
+      WHERE DESCRIPTOR_FACIAL IS NOT NULL AND
+      ACTIVO = 'A'
     `);
 
     const beneficiaries = result.recordset.map((row) => ({

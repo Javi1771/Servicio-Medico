@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import useFetchEmpleado from "../../hooks/hookSURTIMIENTOS2/useFetchEmpleado";
 import useFetchPaciente from "../../hooks/hookSURTIMIENTOS2/useFetchPaciente";
@@ -12,13 +13,22 @@ import InformacionEspecialista from "./components2/informacionEspecialista";
 import CargaMedicamentosForm from "./components2/cargaMedicamentosForm";
 import styles from "../css/SURTIMIENTOS_ESTILOS/surtimientos2.module.css";
 
+import useFetchMedicamentosReceta from "../../hooks/hookSURTIMIENTOS2/useFetchMedicamentosReceta";
+import TablaMedicamentos from "./components2/TablaMedicamentos"; // Extensión .jsx
+import Swal from "sweetalert2";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
+
 const SurtimientosBanner = () => {
+  // Fecha actual en formato "dd/mm/aaaa"
   const fechaActual = new Date().toLocaleDateString("es-ES");
+
+  // Estados locales
   const [folio, setFolio] = useState("");
   const [receta, setReceta] = useState([]);
   const [diagnostico, setDiagnostico] = useState(""); // Diagnóstico editable
 
-  // Hooks personalizados
+  // Hooks para obtener datos
   const {
     empleado,
     loading: loadingEmpleado,
@@ -53,43 +63,151 @@ const SurtimientosBanner = () => {
     error: errorMedicamentos,
   } = useFetchMedicamentos();
 
-  // Buscar datos relacionados al folio
+  const {
+    medicamentos: medicamentosReceta,
+    loading: loadingReceta,
+    error: errorReceta,
+    fetchMedicamentosReceta,
+  } = useFetchMedicamentosReceta();
+
+  // Función que se ejecuta al pulsar "Buscar"
   const handleSearch = () => {
     if (folio.trim()) {
+      // Llamamos a cada fetch asociado al folio
       fetchEmpleado(folio);
       fetchPaciente(folio);
       fetchSindicato(folio);
       fetchEspecialista(folio);
+      // Importante: también llamamos a la función del hook para obtener la receta
+      fetchMedicamentosReceta(folio);
     }
   };
 
-  // Añadir medicamento a la receta
+  // Añadir medicamento a la receta local
   const handleAddMedicamento = (medicamento) => {
     setReceta((prevReceta) => [...prevReceta, medicamento]);
   };
 
-  // Guardar receta
+  // Guardar la receta en la BD o generar surtimiento
   const handleSaveReceta = async () => {
-    try {
-      const response = await fetch("/api/SURTIMIENTOS2/guardarReceta", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ folio, medicamentos: receta, diagnostico }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Error al guardar la receta.");
+    if (medicamentosReceta.length > 0) {
+      // **Caso 1:** Ya existen medicamentos en detalleReceta, generar surtimiento
+      try {
+        const folioNumero = parseInt(folio, 10);
+        if (isNaN(folioNumero)) {
+          throw new Error("Folio inválido. Debe ser un número.");
+        }
+  
+        const response = await fetch("/api/SURTIMIENTOS2/generarSurtimiento", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            folioReceta: folioNumero,
+            medicamentos: medicamentosReceta,
+            diagnostico: diagnostico,
+          }),
+        });
+  
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || "Error al generar surtimiento");
+        }
+  
+        const data = await response.json();
+        console.log("Surtimiento generado:", data);
+  
+        Swal.fire({
+          title: "Éxito",
+          text: "Surtimiento generado correctamente.",
+          icon: "success",
+          confirmButtonText: "Aceptar",
+        });
+      } catch (error) {
+        console.error("Error al generar surtimiento:", error);
+        Swal.fire({
+          title: "Error",
+          text: error.message || "No se pudo generar el surtimiento.",
+          icon: "error",
+          confirmButtonText: "Aceptar",
+        });
       }
-
-      alert("Receta guardada exitosamente.");
-      setReceta([]); // Reiniciar la receta
-    } catch (error) {
-      console.error("Error al guardar la receta:", error.message);
-      alert("Error al guardar la receta.");
+    } else {
+      // **Caso 2:** No existen medicamentos en detalleReceta, guardar nueva receta
+      try {
+        const folioNumero = parseInt(folio, 10);
+        if (isNaN(folioNumero)) {
+          throw new Error("Folio inválido. Debe ser un número.");
+        }
+  
+        console.log("Datos enviados al backend:", {
+          folio: folioNumero,
+          medicamentos: receta,
+          diagnostico,
+        });
+  
+        const response = await fetch("/api/SURTIMIENTOS2/guardarReceta", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            folio: folioNumero, // Cambiado de folioReceta a folio
+            medicamentos: receta,
+            diagnostico,
+          }),
+        });
+  
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || "Error al guardar la receta.");
+        }
+  
+        Swal.fire({
+          title: "Éxito",
+          text: "Receta guardada exitosamente.",
+          icon: "success",
+          confirmButtonText: "Aceptar",
+        });
+  
+        setReceta([]); // Reiniciar la receta local
+  
+        // Opcional: Actualizar los medicamentos recetados
+        fetchMedicamentosReceta(folioNumero);
+      } catch (error) {
+        console.error("Error al guardar la receta:", error.message);
+        Swal.fire({
+          title: "Error",
+          text: error.message || "No se pudo guardar la receta.",
+          icon: "error",
+          confirmButtonText: "Aceptar",
+        });
+      }
     }
   };
+  
 
-  // Verificar si hay un folio válido
+  // Función para generar PDF usando jsPDF
+  const generarPDF = (medicamentos, folio) => {
+    const doc = new jsPDF();
+
+    doc.setFontSize(16);
+    doc.text("Receta Médica", 105, 20, null, null, "center");
+
+    doc.setFontSize(12);
+    doc.text(`Folio de Consulta: ${folio}`, 10, 30);
+
+    doc.autoTable({
+      startY: 40,
+      head: [["Medicamento", "Indicaciones", "Cantidad"]],
+      body: medicamentos.map((med) => [
+        med.nombreMedicamento,
+        med.indicaciones,
+        med.cantidad,
+      ]),
+    });
+
+    doc.save(`Receta_${folio}.pdf`);
+  };
+
+  // Verificar si al menos uno de los datos se obtuvo (folio válido)
   const isFolioValido = empleado || paciente || sindicato || especialista;
 
   return (
@@ -110,9 +228,9 @@ const SurtimientosBanner = () => {
         {/* Título */}
         <h1 className={styles.title}>Surtimientos</h1>
 
-        {/* Encapsulador */}
+        {/* Encapsulador para la barra de búsqueda y la fecha */}
         <div className={styles.infoContainer}>
-          {/* Search Bar */}
+          {/* Barra de Búsqueda */}
           <div className={styles.searchContainer}>
             <input
               type="text"
@@ -126,11 +244,11 @@ const SurtimientosBanner = () => {
             </button>
           </div>
 
-          {/* Fecha */}
+          {/* Fecha actual */}
           <span className={styles.date}>Fecha Actual: {fechaActual}</span>
         </div>
 
-        {/* Cards */}
+        {/* Sección de Tarjetas (Empleado / Paciente / Sindicato) */}
         <div className={styles.rowCards}>
           {/* Datos del Empleado */}
           {loadingEmpleado ? (
@@ -143,7 +261,9 @@ const SurtimientosBanner = () => {
 
           {/* Información del Paciente */}
           {loadingPaciente ? (
-            <p className={styles.loading}>Cargando información del paciente...</p>
+            <p className={styles.loading}>
+              Cargando información del paciente...
+            </p>
           ) : errorPaciente ? (
             <p className={styles.error}>Error: {errorPaciente}</p>
           ) : (
@@ -180,7 +300,7 @@ const SurtimientosBanner = () => {
           )}
         </div>
 
-        {/* Carga de Medicamentos */}
+        {/* Carga de Medicamentos (solo si el folio es válido) */}
         {isFolioValido && (
           <div className={styles.medicamentosContainer}>
             {loadingMedicamentos ? (
@@ -193,9 +313,22 @@ const SurtimientosBanner = () => {
                   medicamentos={medicamentos}
                   onAddMedicamento={handleAddMedicamento}
                   onSave={handleSaveReceta}
+                  disableAdd={medicamentosReceta.length > 0}
+                  receta={receta} // Pasar 'receta' como prop
                 />
               )
             )}
+          </div>
+        )}
+
+        {/* Tabla de Medicamentos Recetados */}
+        {isFolioValido && (
+          <div className={styles.historialContainer}>
+            <TablaMedicamentos
+              medicamentos={medicamentosReceta}
+              loading={loadingReceta}
+              error={errorReceta}
+            />
           </div>
         )}
       </div>
