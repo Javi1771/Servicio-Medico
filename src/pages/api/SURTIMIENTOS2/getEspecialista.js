@@ -32,29 +32,35 @@ export default async function handler(req, res) {
 
     const { claveproveedor, especialidadinterconsulta, diagnostico } = consultaBase.recordset[0];
 
-    // Consulta 2: Obtener el nombre del proveedor
+    // Consulta 2: Obtener el nombre del proveedor y su claveespecialidad
     const proveedorResult = await pool
       .request()
       .input("claveproveedor", sql.Int, claveproveedor)
       .query(`
-        SELECT nombreproveedor
+        SELECT nombreproveedor, claveespecialidad
         FROM [PRESIDENCIA].[dbo].[proveedores]
         WHERE claveproveedor = @claveproveedor
       `);
 
     const nombreProveedor = proveedorResult.recordset.length > 0 ? proveedorResult.recordset[0].nombreproveedor : "No disponible";
+    const claveespecialidad = proveedorResult.recordset.length > 0 ? proveedorResult.recordset[0].claveespecialidad : null;
 
-    // Consulta 3: Obtener el nombre de la especialidad
-    const especialidadResult = await pool
-      .request()
-      .input("especialidadinterconsulta", sql.Int, especialidadinterconsulta)
-      .query(`
-        SELECT especialidad
-        FROM [PRESIDENCIA].[dbo].[especialidades]
-        WHERE claveespecialidad = @especialidadinterconsulta
-      `);
+    // Consulta 3: Obtener el nombre de la especialidad usando claveespecialidad
+    let especialidadNombre = "No registrada";
+    if (claveespecialidad) {
+      const especialidadResult = await pool
+        .request()
+        .input("claveespecialidad", sql.Int, claveespecialidad)
+        .query(`
+          SELECT especialidad
+          FROM [PRESIDENCIA].[dbo].[especialidades]
+          WHERE claveespecialidad = @claveespecialidad
+        `);
 
-    const especialidadNombre = especialidadResult.recordset.length > 0 ? especialidadResult.recordset[0].especialidad : "No registrada";
+      if (especialidadResult.recordset.length > 0) {
+        especialidadNombre = especialidadResult.recordset[0].especialidad;
+      }
+    }
 
     // Respuesta consolidada
     return res.status(200).json({

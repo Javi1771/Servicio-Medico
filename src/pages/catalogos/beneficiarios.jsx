@@ -160,11 +160,11 @@ export default function RegistroBeneficiario() {
   const handleFileUploadActaConcubinatoManual = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
-  
+
     const formData = new FormData();
     formData.append("file", file);
     formData.append("numNomina", numNomina); // Enviar la nómina
-  
+
     try {
       const response = await fetch(
         "/api/beneficiarios/uploadActaConcubinatoManual",
@@ -173,9 +173,9 @@ export default function RegistroBeneficiario() {
           body: formData,
         }
       );
-  
+
       const data = await response.json();
-  
+
       if (response.ok) {
         console.log("Acta de Concubinato subida manualmente:", data.url);
         // Actualizar el estado con la nueva URL
@@ -204,7 +204,7 @@ export default function RegistroBeneficiario() {
       );
     }
   };
-/********************************************************************* */  
+  /********************************************************************* */
 
   /*****************SUBIR ACTA DE MATROMONIO MANUAL ********************/
   const handleFileUploadActaMatrimonioManual = async (event) => {
@@ -2306,120 +2306,127 @@ export default function RegistroBeneficiario() {
                     <>
                       {/* Subir Acta de Matrimonio */}
                       <div className={styles.inputRow2}>
-    <label className={styles.inputLabel2}>
-      <FaFileUpload className={styles.icon} /> Cargar Acta
-      de Matrimonio de Clave Única:
-      <div className={styles.fileInputWrapper2}>
-        {/* Botón grande para cargar vía Clave Única */}
-        <button
-          type="button"
-          onClick={async () => {
-            if (!numNomina) {
-              console.error("[ERROR] Número de nómina no ingresado.");
-              Swal.fire(
-                "Error",
-                "Por favor, ingresa un número de nómina válido.",
-                "error"
-              );
-              return;
-            }
+                        <label className={styles.inputLabel2}>
+                          <FaFileUpload className={styles.icon} /> Cargar Acta
+                          de Matrimonio de Clave Única:
+                          <div className={styles.fileInputWrapper2}>
+                            {/* Botón grande para cargar vía Clave Única */}
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                if (!numNomina) {
+                                  console.error(
+                                    "[ERROR] Número de nómina no ingresado."
+                                  );
+                                  Swal.fire(
+                                    "Error",
+                                    "Por favor, ingresa un número de nómina válido.",
+                                    "error"
+                                  );
+                                  return;
+                                }
 
-            try {
-              console.log(
-                `[INFO] Solicitando acta de matrimonio para nómina: ${numNomina}`
-              );
+                                try {
+                                  console.log(
+                                    `[INFO] Solicitando acta de matrimonio para nómina: ${numNomina}`
+                                  );
 
-              const response = await fetch(
-                "/api/beneficiarios/validarActaMatrimonio",
-                {
-                  method: "POST",
-                  headers: {
-                    "Content-Type": "application/json",
-                  },
-                  body: JSON.stringify({ numNomina }),
-                }
-              );
+                                  const response = await fetch(
+                                    "/api/beneficiarios/validarActaMatrimonio",
+                                    {
+                                      method: "POST",
+                                      headers: {
+                                        "Content-Type": "application/json",
+                                      },
+                                      body: JSON.stringify({ numNomina }),
+                                    }
+                                  );
 
-              const result = await response.json();
-              console.log("[DEBUG] Respuesta de la API:", result);
+                                  const result = await response.json();
+                                  console.log(
+                                    "[DEBUG] Respuesta de la API:",
+                                    result
+                                  );
 
-              if (!response.ok) {
-                console.error(
-                  "[ERROR] Error en la respuesta de la API:",
-                  result.message
-                );
-                throw new Error(result.message);
-              }
+                                  if (!response.ok) {
+                                    console.error(
+                                      "[ERROR] Error en la respuesta de la API:",
+                                      result.message
+                                    );
+                                    throw new Error(result.message);
+                                  }
 
-              // Actualizar la URL del acta de matrimonio en el estado
-              setFormData((prev) => ({
-                ...prev,
-                actaMatrimonioUrl: result.url,
-              }));
+                                  // Actualizar la URL del acta de matrimonio en el estado
+                                  setFormData((prev) => ({
+                                    ...prev,
+                                    actaMatrimonioUrl: result.url,
+                                  }));
 
-              Swal.fire(
-                "Éxito",
-                "Acta de Matrimonio cargada correctamente.",
-                "success"
-              );
-            } catch (error) {
-              console.error(
-                "[ERROR] Error al cargar el acta de matrimonio:",
-                error.message
-              );
-              Swal.fire("Error", error.message, "error");
-            }
-          }}
-          className={styles.uploadButton3}
-        >
-          Cargar Acta de Matrimonio
-        </button>
+                                  Swal.fire(
+                                    "Éxito",
+                                    "Acta de Matrimonio cargada correctamente.",
+                                    "success"
+                                  );
+                                } catch (error) {
+                                  console.error(
+                                    "[ERROR] Error al cargar el acta de matrimonio:",
+                                    error.message
+                                  );
+                                  Swal.fire("Error", error.message, "error");
+                                }
+                              }}
+                              className={styles.uploadButton3}
+                            >
+                              Cargar Acta de Matrimonio
+                            </button>
 
-        {/* Pequeño botón-ícono para subida manual */}
-        <button
-          type="button"
-          className={styles.iconButton} // Clase CSS para un botón pequeño/ícono
-          onClick={() => {
-            // Disparamos un click al <input> oculto
-            const fileInput = document.getElementById(
-              "acta-matrimonio-manual-upload"
-            );
-            if (fileInput) fileInput.click();
-          }}
-          title="Subir Acta de Matrimonio Manual (PDF)"
-        >
-          <FaFileAlt />
-        </button>
+                            {/* Pequeño botón-ícono para subida manual */}
+                            <button
+                              type="button"
+                              className={styles.iconButton} // Clase CSS para un botón pequeño/ícono
+                              onClick={() => {
+                                // Disparamos un click al <input> oculto
+                                const fileInput = document.getElementById(
+                                  "acta-matrimonio-manual-upload"
+                                );
+                                if (fileInput) fileInput.click();
+                              }}
+                              title="Subir Acta de Matrimonio Manual (PDF)"
+                            >
+                              <FaFileAlt />
+                            </button>
 
-        {/* Input oculto para subir manualmente el archivo PDF */}
-        <input
-          type="file"
-          id="acta-matrimonio-manual-upload"
-          name="actaMatrimonioManual"
-          accept="application/pdf"
-          style={{ display: "none" }}
-          onChange={handleFileUploadActaMatrimonioManual}
-        />
+                            {/* Input oculto para subir manualmente el archivo PDF */}
+                            <input
+                              type="file"
+                              id="acta-matrimonio-manual-upload"
+                              name="actaMatrimonioManual"
+                              accept="application/pdf"
+                              style={{ display: "none" }}
+                              onChange={handleFileUploadActaMatrimonioManual}
+                            />
 
-        <span className={styles.fileName2}>
-          {formData.actaMatrimonioUrl
-            ? getFileNameFromURL(formData.actaMatrimonioUrl)
-            : "Sin archivo cargado"}
-        </span>
-      </div>
-    </label>
+                            <span className={styles.fileName2}>
+                              {formData.actaMatrimonioUrl
+                                ? getFileNameFromURL(formData.actaMatrimonioUrl)
+                                : "Sin archivo cargado"}
+                            </span>
+                          </div>
+                        </label>
 
-    {/* Botón para ver el archivo si ya está en formData */}
-    {formData.actaMatrimonioUrl && (
-      <button
-        type="button"
-        className={styles.viewButton3}
-        onClick={() => window.open(formData.actaMatrimonioUrl, "_blank")}
-      >
-        Ver Acta de Matrimonio
-      </button>
-    )}
-  </div>
+                        {/* Botón para ver el archivo si ya está en formData */}
+                        {formData.actaMatrimonioUrl && (
+                          <button
+                            type="button"
+                            className={styles.viewButton3}
+                            onClick={() =>
+                              window.open(formData.actaMatrimonioUrl, "_blank")
+                            }
+                          >
+                            Ver Acta de Matrimonio
+                          </button>
+                        )}
+                      </div>
                       {/* Subir INE */}
                       <div className={styles.inputRow2}>
                         <label className={styles.inputLabel2}>
@@ -2526,107 +2533,127 @@ export default function RegistroBeneficiario() {
                 </fieldset>
               )}
 
-{formData.showConcubinoFiles && (
-  <div className={styles.inputRow2}>
-    <label className={styles.inputLabel2}>
-      <FaFileUpload className={styles.icon} /> Cargar Acta de Concubinato desde Clave Única:
-      <div className={styles.fileInputWrapper2}>
-        {/* Botón principal para cargar vía Clave Única */}
-        <button
-          type="button"
-          onClick={async () => {
-            if (!numNomina) {
-              console.error("[ERROR] Número de nómina no ingresado.");
-              Swal.fire(
-                "Error",
-                "Por favor, ingresa un número de nómina válido.",
-                "error"
-              );
-              return;
-            }
+              {formData.showConcubinoFiles && (
+                <div className={styles.inputRow2}>
+                  <label className={styles.inputLabel2}>
+                    <FaFileUpload className={styles.icon} /> Cargar Acta de
+                    Concubinato desde Clave Única:
+                    <div className={styles.fileInputWrapper2}>
+                      {/* Botón principal para cargar vía Clave Única */}
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          if (!numNomina) {
+                            console.error(
+                              "[ERROR] Número de nómina no ingresado."
+                            );
+                            Swal.fire(
+                              "Error",
+                              "Por favor, ingresa un número de nómina válido.",
+                              "error"
+                            );
+                            return;
+                          }
 
-            try {
-              console.log(`[INFO] Solicitando acta de concubinato para nómina: ${numNomina}`);
-              const response = await fetch("/api/beneficiarios/validarActaConcubinato", {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ numNomina }),
-              });
+                          try {
+                            console.log(
+                              `[INFO] Solicitando acta de concubinato para nómina: ${numNomina}`
+                            );
+                            const response = await fetch(
+                              "/api/beneficiarios/validarActaConcubinato",
+                              {
+                                method: "POST",
+                                headers: {
+                                  "Content-Type": "application/json",
+                                },
+                                body: JSON.stringify({ numNomina }),
+                              }
+                            );
 
-              const result = await response.json();
-              console.log("[DEBUG] Respuesta de la API:", result);
+                            const result = await response.json();
+                            console.log("[DEBUG] Respuesta de la API:", result);
 
-              if (!response.ok) {
-                console.error("[ERROR] API Error:", result.message);
-                throw new Error(result.message);
-              }
+                            if (!response.ok) {
+                              console.error(
+                                "[ERROR] API Error:",
+                                result.message
+                              );
+                              throw new Error(result.message);
+                            }
 
-              // Actualizar el estado con la URL
-              setFormData((prev) => ({
-                ...prev,
-                actaConcubinatoUrl: result.url,
-              }));
+                            // Actualizar el estado con la URL
+                            setFormData((prev) => ({
+                              ...prev,
+                              actaConcubinatoUrl: result.url,
+                            }));
 
-              Swal.fire("Éxito", "Acta de Concubinato cargada correctamente.", "success");
-            } catch (error) {
-              console.error("[ERROR] Error al cargar el acta:", error.message);
-              Swal.fire("Error", error.message, "error");
-            }
-          }}
-          className={styles.uploadButton3}
-        >
-          Cargar Acta de Concubinato
-        </button>
+                            Swal.fire(
+                              "Éxito",
+                              "Acta de Concubinato cargada correctamente.",
+                              "success"
+                            );
+                          } catch (error) {
+                            console.error(
+                              "[ERROR] Error al cargar el acta:",
+                              error.message
+                            );
+                            Swal.fire("Error", error.message, "error");
+                          }
+                        }}
+                        className={styles.uploadButton3}
+                      >
+                        Cargar Acta de Concubinato
+                      </button>
 
-        {/* Pequeño botón-ícono para subir manualmente el PDF */}
-        <button
-          type="button"
-          className={styles.iconButton} // Aplica un estilo reducido o inline
-          onClick={() => {
-            // Disparamos un click a un input "oculto" que sube PDF
-            const fileInput = document.getElementById("acta-concubinato-manual-upload");
-            if (fileInput) fileInput.click();
-          }}
-          title="Subir manualmente (PDF)"
-        >
-          <FaFileAlt />
-        </button>
+                      {/* Pequeño botón-ícono para subir manualmente el PDF */}
+                      <button
+                        type="button"
+                        className={styles.iconButton} // Aplica un estilo reducido o inline
+                        onClick={() => {
+                          // Disparamos un click a un input "oculto" que sube PDF
+                          const fileInput = document.getElementById(
+                            "acta-concubinato-manual-upload"
+                          );
+                          if (fileInput) fileInput.click();
+                        }}
+                        title="Subir manualmente (PDF)"
+                      >
+                        <FaFileAlt />
+                      </button>
 
-        {/* Input oculto para subir manualmente la Acta de Concubinato */}
-        <input
-          type="file"
-          id="acta-concubinato-manual-upload"
-          name="actaConcubinatoManual"
-          accept="application/pdf"
-          style={{ display: "none" }}
-          onChange={handleFileUploadActaConcubinatoManual}
-        />
+                      {/* Input oculto para subir manualmente la Acta de Concubinato */}
+                      <input
+                        type="file"
+                        id="acta-concubinato-manual-upload"
+                        name="actaConcubinatoManual"
+                        accept="application/pdf"
+                        style={{ display: "none" }}
+                        onChange={handleFileUploadActaConcubinatoManual}
+                      />
 
-        {/* Nombre del archivo subido (automático o manual) */}
-        <span className={styles.fileName2}>
-          {formData.actaConcubinatoUrl
-            ? getFileNameFromURL(formData.actaConcubinatoUrl)
-            : "Sin archivo cargado"}
-        </span>
-      </div>
-    </label>
+                      {/* Nombre del archivo subido (automático o manual) */}
+                      <span className={styles.fileName2}>
+                        {formData.actaConcubinatoUrl
+                          ? getFileNameFromURL(formData.actaConcubinatoUrl)
+                          : "Sin archivo cargado"}
+                      </span>
+                    </div>
+                  </label>
 
-    {/* Botón "ver" en caso de que ya exista un archivo subido */}
-    {formData.actaConcubinatoUrl && (
-      <button
-        type="button"
-        className={styles.viewButton3}
-        onClick={() => window.open(formData.actaConcubinatoUrl, "_blank")}
-      >
-        Ver Acta de Concubinato
-      </button>
-    )}
-  </div>
-)}
-
-
+                  {/* Botón "ver" en caso de que ya exista un archivo subido */}
+                  {formData.actaConcubinatoUrl && (
+                    <button
+                      type="button"
+                      className={styles.viewButton3}
+                      onClick={() =>
+                        window.open(formData.actaConcubinatoUrl, "_blank")
+                      }
+                    >
+                      Ver Acta de Concubinato
+                    </button>
+                  )}
+                </div>
+              )}
 
               {/* Checkboxes dinámicos */}
               {formData.showCheckboxes && (
