@@ -30,7 +30,7 @@ export default async function handler(req, res) {
       return res.status(404).json({ message: "No se encontró información para el folio proporcionado." });
     }
 
-    const { claveproveedor, especialidadinterconsulta, diagnostico } = consultaBase.recordset[0];
+    const { claveproveedor, diagnostico } = consultaBase.recordset[0];
 
     // Consulta 2: Obtener el nombre del proveedor y su claveespecialidad
     const proveedorResult = await pool

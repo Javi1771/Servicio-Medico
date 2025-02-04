@@ -82,26 +82,6 @@ const SideMenu = ({ onMenuClick }) => {
           Gráficos
         </button>
 
-        <button
-          className={styles.menuButton}
-          onClick={() => {
-            onMenuClick("movimientos");
-            setMenuOpen(false); // Cierra el menú al seleccionar una opción
-          }}
-        >
-          Movimientos
-        </button>
-
-        <button
-          className={styles.menuButton}
-          onClick={() => {
-            onMenuClick("surtirBeneficiario");
-            setMenuOpen(false); // Cierra el menú
-          }}
-        >
-          Surtir a Beneficiario
-        </button>
-
         {/* Botón de Salir */}
         <button className={styles.salirbutton} onClick={handleSalir}>
           Salir

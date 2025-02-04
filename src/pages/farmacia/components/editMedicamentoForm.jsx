@@ -4,10 +4,11 @@ import styles from "../../css/EstilosFarmacia/EditMedicamentoForm.module.css";
 
 const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
   const [formData, setFormData] = useState({
+    medicamento: "",
+    clasificación: "",
+    presentación: "",
     ean: "",
-    sustancia: "",
     piezas: "",
-    activo: true,
     ...medicamento,
   });
 
@@ -30,49 +31,77 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
       html: "<p style='color: #ffffff; font-size: 1.1rem;'>Los cambios serán permanentes.</p>",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: "#ff9800", // Botón de confirmación naranja
-      cancelButtonColor: "#d33", // Botón de cancelación rojo
+      confirmButtonColor: "#ff9800",
+      cancelButtonColor: "#d33",
       confirmButtonText: "Sí, guardar cambios",
       cancelButtonText: "Cancelar",
-      background: "#222234f7", // Fondo gris oscuro
-      customClass: {
-        popup: "custom-popup", // Clase para personalización adicional
-      },
+      background: "#222234f7",
+      customClass: { popup: "custom-popup" },
       didOpen: () => {
         const popup = Swal.getPopup();
         popup.style.boxShadow =
-          "0px 0px 20px 4px rgba(255, 152, 0, 0.9), 0px 0px 30px 10px rgba(255, 152, 0, 0.6)"; // Sombra neón naranja
-        popup.style.borderRadius = "15px"; // Esquinas redondeadas opcionales
+          "0px 0px 20px 4px rgba(255, 152, 0, 0.9), 0px 0px 30px 10px rgba(255, 152, 0, 0.6)";
+        popup.style.borderRadius = "15px";
       },
     }).then((result) => {
       if (result.isConfirmed) {
-        onEdit?.(formData); // Realiza el update directamente
+        // Convierte los valores numéricos según corresponda
+        onEdit({
+          ...formData,
+          presentación: parseInt(formData.presentación, 10),
+          ean: parseInt(formData.ean, 10),
+          piezas: parseInt(formData.piezas, 10),
+        });
       }
     });
-    
   };
 
   return (
     <div className={styles.modalBackdrop}>
       <div className={styles.modalContent}>
-        <h2 className={styles.formTitle}>Surtir Medicamento</h2>
+        <h2 className={styles.formTitle}>Editar Medicamento</h2>
         <form onSubmit={handleSubmit} className={styles.editForm}>
           <label>
-            EAN:
+            Medicamento:
             <input
               type="text"
-              name="ean"
-              value={formData.ean || ""}
+              name="medicamento"
+              value={formData.medicamento || ""}
               onChange={handleChange}
               required
             />
           </label>
           <label>
-            Sustancia:
+            Clasificación:
+            <select
+              name="clasificación"
+              value={formData.clasificación || ""}
+              onChange={handleChange}
+              required
+            >
+              <option value="">Seleccione una opción</option>
+              <option value="p">PATENTE</option>
+              <option value="g">GENERICO</option>
+              <option value="c">CONTROLADO</option>
+              <option value="e">ESPECIALIDAD</option>
+            </select>
+          </label>
+          <label>
+            Presentación:
             <input
-              type="text"
-              name="sustancia"
-              value={formData.sustancia || ""}
+              type="number"
+              name="presentación"
+              value={formData.presentación || ""}
+              onChange={handleChange}
+              required
+            />
+          </label>
+          <label>
+            EAN:
+            <input
+              type="number"
+              name="ean"
+              value={formData.ean || ""}
               onChange={handleChange}
               required
             />
@@ -87,25 +116,13 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
               required
             />
           </label>
-          <label>
-            Activo:
-            <select
-              name="activo"
-              value={formData.activo}
-              onChange={handleChange}
-              required
-            >
-              <option value={true}>Sí</option>
-              <option value={false}>No</option>
-            </select>
-          </label>
           <div className={styles.buttonContainer}>
             <button type="submit" className={styles.saveButton}>
               Guardar Cambios
             </button>
             <button
               type="button"
-              onClick={onCancel} // Simplemente llama a la función para cerrar el modal
+              onClick={onCancel}
               className={styles.cancelButton}
             >
               Cancelar

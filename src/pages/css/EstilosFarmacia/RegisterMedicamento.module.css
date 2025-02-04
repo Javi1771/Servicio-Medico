@@ -926,3 +926,10 @@
   max-width: 100%;
   height: auto !important;
 }
+
+
+
+.input::placeholder {
+  font-weight: 300;  /* Fuente más delgada */
+  opacity: 0.7;      /* Atenuación menor */
+}

@@ -1,27 +1,29 @@
 import { connectToDatabase } from '../connectToDatabase';
+import sql from 'mssql';
 
 export default async function handler(req, res) {
   if (req.method === "PUT") {
-    const { id, ean, sustancia, piezas, activo } = req.body;
+    const { id, medicamento, clasificación, presentación, ean, piezas } = req.body;
 
-    if (!id || !ean || !sustancia || piezas == null || activo == null) {
+    if (!id || !medicamento || clasificación == null || presentación == null || ean == null || piezas == null) {
       return res.status(400).json({ message: "Todos los campos son obligatorios." });
     }
 
     try {
       const pool = await connectToDatabase();
       const query = `
-        UPDATE MEDICAMENTOS_FARMACIA
-        SET ean = @ean, sustancia = @sustancia, piezas = @piezas, activo = @activo
-        WHERE ID_MEDICAMENTO = @id
+        UPDATE MEDICAMENTOS_NEW
+        SET medicamento = @medicamento, clasificación = @clasificación, presentación = @presentación, ean = @ean, piezas = @piezas
+        WHERE claveMedicamento = @id
       `;
       const result = await pool
         .request()
-        .input("id", id)
-        .input("ean", ean)
-        .input("sustancia", sustancia)
-        .input("piezas", piezas)
-        .input("activo", activo)
+        .input("id", sql.Int, id)
+        .input("medicamento", sql.VarChar, medicamento)
+        .input("clasificación", sql.NVarChar(1), clasificación)
+        .input("presentación", sql.Int, presentación)
+        .input("ean", sql.BigInt, ean)
+        .input("piezas", sql.Int, piezas)
         .query(query);
 
       if (result.rowsAffected[0] > 0) {

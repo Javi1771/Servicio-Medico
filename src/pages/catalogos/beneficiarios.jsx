@@ -74,7 +74,7 @@ export default function RegistroBeneficiario() {
 
   const [isFadingOut, setIsFadingOut] = useState(false);
 
-  const [loading, setLoading] = useState(false); // Estado para mostrar si está cargando
+  const [loading] = useState(false); // Estado para mostrar si está cargando
 
   const handleCloseModal = () => {
     setIsFadingOut(true); // Activamos la animación de salida
@@ -1129,17 +1129,6 @@ export default function RegistroBeneficiario() {
     });
   };
 
-  const updateCheckboxState = (edad, parentescoId) => {
-    const isHijo = parentescoId === "2"; // "Hijo(a)" tiene ID 2
-    const isMayorOIgual16 = edad >= 16;
-
-    setFormData((prev) => ({
-      ...prev,
-      showCheckboxes: isHijo && isMayorOIgual16,
-      esEstudiante: 0, // Reinicia "esEstudiante"
-      esDiscapacitado: 0, // Reinicia "esDiscapacitado"
-    }));
-  };
 
   const handleViewBeneficiary = async (beneficiario) => {
     setSelectedBeneficiary(null); // Limpia el estado anterior
@@ -1861,16 +1850,28 @@ export default function RegistroBeneficiario() {
 
   return (
     <div className={styles.body}>
-      <div className={styles.bannerContainer}>
+    <div className={styles.bannerContainer}>
+      <Image
+        src="/baner_sjr.png"
+        alt="Banner"
+        width={1100}
+        height={150}
+        priority
+        className={styles.banner}
+      />
+    </div>
+    
+    {/* Inserta aquí la vista previa de la imagen para utilizar imagePreview */}
+    {imagePreview && (
+      <div className={styles.imagePreviewContainer}>
         <Image
-          src="/baner_sjr.png"
-          alt="Banner"
-          width={1100} // Asegúrate de definir un ancho
-          height={150} // y altura para la imagen
-          priority // Añade esta propiedad para optimizar la carga
-          className={styles.banner}
+          src={imagePreview}
+          alt="Vista previa"
+          width={200}
+          height={200}
         />
       </div>
+    )}
 
       <div className={styles.container}>
         <h1 className={styles.title}>Registro de Beneficiarios</h1>

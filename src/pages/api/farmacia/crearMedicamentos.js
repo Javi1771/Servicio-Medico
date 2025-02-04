@@ -3,41 +3,42 @@ import sql from 'mssql';
 
 export default async function handler(req, res) {
   if (req.method === 'POST') {
-    const { ean, sustancia, piezas, activo } = req.body;
+    const { medicamento, clasificación, presentación, ean, piezas } = req.body;
 
-    // Validar que los datos requeridos estén presentes
-    if (!ean || !sustancia || !piezas) {
-      return res.status(400).json({ message: 'Todos los campos son obligatorios (excepto activo).' });
+    if (!medicamento || clasificación == null || presentación == null || ean == null || piezas == null) {
+      return res.status(400).json({ message: 'Todos los campos son obligatorios.' });
     }
 
     try {
       const dbPool = await connectToDatabase();
 
-      // Verificar si la sustancia ya existe
+      // Verificar si ya existe el medicamento (por EAN o nombre)
       const checkQuery = `
         SELECT COUNT(*) AS count 
-        FROM MEDICAMENTOS_FARMACIA 
-        WHERE sustancia = @sustancia
+        FROM MEDICAMENTOS_NEW 
+        WHERE ean = @ean OR medicamento = @medicamento
       `;
       const checkResult = await dbPool.request()
-        .input('sustancia', sql.NVarChar(50), sustancia)
+        .input('ean', sql.BigInt, ean)
+        .input('medicamento', sql.VarChar, medicamento)
         .query(checkQuery);
 
       if (checkResult.recordset[0].count > 0) {
-        return res.status(400).json({ message: 'La sustancia ya está registrada.' });
+        return res.status(400).json({ message: 'El medicamento ya está registrado.' });
       }
 
       // Insertar el medicamento
       const insertQuery = `
-        INSERT INTO MEDICAMENTOS_FARMACIA (ean, sustancia, piezas, fecha_creacion, activo)
-        VALUES (@ean, @sustancia, @piezas, GETDATE(), @activo)
+        INSERT INTO MEDICAMENTOS_NEW (medicamento, clasificación, presentación, ean, piezas)
+        VALUES (@medicamento, @clasificación, @presentación, @ean, @piezas)
       `;
 
       await dbPool.request()
+        .input('medicamento', sql.VarChar, medicamento)
+        .input('clasificación', sql.NVarChar(1), clasificación)
+        .input('presentación', sql.Int, presentación)
         .input('ean', sql.BigInt, ean)
-        .input('sustancia', sql.NVarChar(50), sustancia)
-        .input('piezas', sql.BigInt, piezas)
-        .input('activo', sql.Bit, activo !== undefined ? activo : 1) // Por defecto, activo = 1
+        .input('piezas', sql.Int, piezas)
         .query(insertQuery);
 
       res.status(200).json({ message: 'Medicamento registrado exitosamente' });
