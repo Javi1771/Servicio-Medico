@@ -1,19 +1,16 @@
 /** @type {import('next').NextConfig} */
-import https from 'https';
+import { Agent } from "https";
 
 const nextConfig = {
   images: {
-    domains: ['res.cloudinary.com'],
+    domains: ["res.cloudinary.com"],
   },
   env: {
     CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME,
     CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY,
     CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET,
   },
-
-  // Aquí agregamos la configuración de Webpack:
   webpack: (config, { isServer }) => {
-    // Si NO estamos en el servidor, sobreescribimos el fallback para fs
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
@@ -24,12 +21,8 @@ const nextConfig = {
   },
 };
 
-// Configuración para certificados autofirmados
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'; // Evita rechazar certificados autofirmados globalmente
+// Configurar HTTPS correctamente sin desactivar validaciones SSL globales
+const httpsAgent = new Agent({ rejectUnauthorized: false });
 
-const agent = new https.Agent({
-  rejectUnauthorized: false, // Ignorar validación de certificados
-});
-global.httpsAgent = agent; // Hacer el agente HTTPS global para tu aplicación
-
+export { httpsAgent };
 export default nextConfig;
