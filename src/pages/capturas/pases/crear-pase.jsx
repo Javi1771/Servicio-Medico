@@ -10,9 +10,19 @@ import Image from "next/image";
 
 const MySwal = withReactContent(Swal);
 
+const safeDecodeBase64 = (str) => {
+  try {
+    return atob(str);
+  } catch (error) {
+    console.error("Error al decodificar Base64:", error);
+    return null;
+  }
+};
+
 const CrearPase = () => {
   const router = useRouter();
-  const folio = router.query.folio || router.query.claveconsulta;
+  const encryptedFolio = router.query.folio || router.query.claveconsulta;
+  const folio = encryptedFolio ? safeDecodeBase64(encryptedFolio) : null;
 
   const [data, setData] = useState({});
   const [selectedEspecialista, setSelectedEspecialista] = useState(null);

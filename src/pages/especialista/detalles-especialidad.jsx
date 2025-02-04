@@ -24,9 +24,22 @@ const formatearFecha = (fecha) => {
   return fechaLocal.toLocaleString("es-MX", opciones);
 };
 
+const safeDecodeBase64 = (str) => {
+  try {
+    return atob(str);
+  } catch (error) {
+    console.error("Error al decodificar Base64:", error);
+    return null;
+  }
+};
+
 const DetallesEspecialidad = () => {
   const router = useRouter();
-  const { claveconsulta } = router.query;
+
+  const encryptedClaveConsulta = router.query.claveconsulta;
+  const claveconsulta = encryptedClaveConsulta
+    ? safeDecodeBase64(encryptedClaveConsulta)
+    : null;
 
   const [paciente, setPaciente] = useState(null);
   const [subPantalla, setSubPantalla] = useState("Diagnóstico");

@@ -52,11 +52,16 @@ const PasesNuevoEspecialista = () => {
   //* Manejo de clic en una fila (solo si no ha sido atendido)
   const handleRowClick = (claveconsulta, atendido) => {
     if (!atendido) {
+      //* Cifrar claveconsulta en Base64
+      const encryptedClaveConsulta = btoa(claveconsulta.toString());
+  
+      //* Redirigir con el valor cifrado
       router.push(
-        `/especialista/detalles-especialidad?claveconsulta=${claveconsulta}`
+        `/especialista/detalles-especialidad?claveconsulta=${encryptedClaveConsulta}`
       );
     }
   };
+  
 
   return (
     <div className="min-h-screen bg-black text-gray-200 px-4 sm:px-8 lg:px-16 xl:px-32 py-6">

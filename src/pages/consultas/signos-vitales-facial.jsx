@@ -4,7 +4,6 @@ import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 import Image from "next/image";
 
-// Importamos iconos de Font Awesome vía react-icons
 import {
   FaUser,
   FaUserTie,
@@ -17,7 +16,7 @@ import { TbTemperature } from "react-icons/tb";
 
 const MySwal = withReactContent(Swal);
 
-/** Función para calcular la edad en años, meses y días */
+//* Función para calcular la edad en años, meses y días
 const calcularEdad = (fechaNacimiento) => {
   if (!fechaNacimiento)
     return { display: "0 años, 0 meses, 0 días", dbFormat: "0 años y 0 meses" };
@@ -65,11 +64,11 @@ export default function SignosVitalesFacial() {
   const router = useRouter();
   const { nomina, idBeneficiario } = router.query;
 
-  // Beneficiario
+  //* Beneficiario
   const [beneficiario, setBeneficiario] = useState(null);
   const [isLoadingBenef, setIsLoadingBenef] = useState(true);
 
-  // Empleado
+  //* Empleado
   const [employeeData, setEmployeeData] = useState({
     photo: "/user_icon_.png",
     name: "",
@@ -81,7 +80,7 @@ export default function SignosVitalesFacial() {
   });
   const [isLoadingEmployee, setIsLoadingEmployee] = useState(true);
 
-  // Signos vitales
+  //* Signos vitales
   const [signosVitales, setSignosVitales] = useState({
     ta: "",
     fc: "",
@@ -92,16 +91,16 @@ export default function SignosVitalesFacial() {
     glucosa: "",
   });
 
-  // Control de guardado y redirección
+  //* Control de guardado y redirección
   const [isSaving, setIsSaving] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
 
-  // Verifica si todos los campos están llenos
+  //* Verifica si todos los campos están llenos
   const isFormComplete = Object.values(signosVitales).every(
     (val) => val.trim() !== ""
   );
 
-  // Cargar beneficiario y empleado al montar
+  //* Cargar beneficiario y empleado al montar
   useEffect(() => {
     if (!router.isReady) return;
     if (!nomina || !idBeneficiario) return;
@@ -113,7 +112,7 @@ export default function SignosVitalesFacial() {
     fetchEmpleado(decNomina);
   }, [router.isReady, nomina, idBeneficiario]);
 
-  /** Obtiene al beneficiario (beneficiarioFacial) */
+  //* Obtiene al beneficiario (beneficiarioFacial)
   const fetchBeneficiarioFacial = async (decNomina, decIdBenef) => {
     try {
       const response = await fetch("/api/beneficiarios/beneficiarioFacial", {
@@ -134,7 +133,7 @@ export default function SignosVitalesFacial() {
       }
 
       const b = data.beneficiarios[0];
-      // Revisar vigencia
+      //* Revisar vigencia
       if (b.VIGENCIA_ESTUDIOS) {
         const vigenciaEstudios = new Date(b.VIGENCIA_ESTUDIOS);
         const fechaActual = new Date();
@@ -180,7 +179,7 @@ export default function SignosVitalesFacial() {
     }
   };
 
-  /** Obtiene los datos del empleado asociado (mismo num_nom) */
+  //* Obtiene los datos del empleado asociado (mismo num_nom) 
   const fetchEmpleado = async (decNomina) => {
     setIsLoadingEmployee(true);
     try {
@@ -213,7 +212,7 @@ export default function SignosVitalesFacial() {
         return;
       }
 
-      // Calcular edad
+      //* Calcular edad
       const { display } = data.fecha_nacimiento
         ? calcularEdad(data.fecha_nacimiento)
         : { display: "0 años, 0 meses, 0 días" };
@@ -250,7 +249,7 @@ export default function SignosVitalesFacial() {
     }
   };
 
-  /** Actualiza estatus (atendida) */
+  //* Actualiza estatus (atendida) 
   const actualizarEstado = async (claveConsulta) => {
     try {
       const response = await fetch(
@@ -297,7 +296,7 @@ export default function SignosVitalesFacial() {
     }
   };
 
-  /** Guardar la consulta */
+  //* Guardar la consulta 
   const handleSave = async () => {
     if (!isFormComplete) {
       MySwal.fire({
@@ -340,7 +339,7 @@ export default function SignosVitalesFacial() {
       const decNomina = atob(nomina);
       const decIdBenef = atob(idBeneficiario);
 
-      // Fecha/hora actual
+      //* Fecha/hora actual
       const now = new Date();
       const fechaConsulta = `${now.getFullYear()}-${String(
         now.getMonth() + 1
@@ -351,7 +350,7 @@ export default function SignosVitalesFacial() {
         "0"
       )}:${String(now.getSeconds()).padStart(2, "0")}`;
 
-      // Determina el sindicato
+      //* Determina el sindicato
       const sindicato =
         employeeData.grupoNomina === "NS"
           ? employeeData.cuotaSindical === "S"
@@ -365,7 +364,7 @@ export default function SignosVitalesFacial() {
         fechaconsulta: fechaConsulta,
         clavenomina: decNomina,
 
-        // Signos Vitales
+        //* Signos Vitales
         presionarterialpaciente: signosVitales.ta,
         temperaturapaciente: signosVitales.temperatura,
         pulsosxminutopaciente: signosVitales.fc,
@@ -374,18 +373,18 @@ export default function SignosVitalesFacial() {
         pesopaciente: signosVitales.peso,
         glucosapaciente: signosVitales.glucosa,
 
-        // Beneficiario
+        //* Beneficiario
         nombrepaciente: `${beneficiario.NOMBRE} ${beneficiario.A_PATERNO} ${beneficiario.A_MATERNO}`,
         edad: beneficiario.EDAD,
         elpacienteesempleado: "N",
         parentesco: beneficiario.ID_PARENTESCO || 0,
         clavepaciente: decIdBenef,
 
-        // Departamento y Sindicato traídos del Empleado
+        //* Departamento y Sindicato traídos del Empleado
         departamento: employeeData.department || "",
         sindicato,
 
-        // Estatus inicial
+        //* Estatus inicial
         clavestatus: 1,
       };
 
@@ -400,10 +399,10 @@ export default function SignosVitalesFacial() {
       }
 
       const responseData = await resp.json();
-      // Marcamos estatus como atendida
+      //* Marcamos estatus como atendida
       await actualizarEstado(responseData.claveConsulta);
 
-      // Alerta de éxito
+      //* Alerta de éxito
       MySwal.fire({
         icon: "success",
         title:
@@ -418,7 +417,7 @@ export default function SignosVitalesFacial() {
             "border border-green-600 shadow-[0_0_20px_5px_rgba(0,230,118,0.9)] rounded-lg",
         },
       }).then(() => {
-        // Después de la alerta, mostramos "Redirigiendo..." y navegamos
+        //* Después de la alerta, mostramos "Redirigiendo..." y navegamos
         setIsRedirecting(true);
         router.push("/consultas/signos-vitales");
       });
@@ -443,7 +442,7 @@ export default function SignosVitalesFacial() {
     }
   };
 
-  // Render de cargas
+  //* Render de cargas
   if (!router.isReady || isLoadingBenef || isLoadingEmployee) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-black text-white">
@@ -461,7 +460,7 @@ export default function SignosVitalesFacial() {
     );
   }
 
-  // Estructura del Beneficiario
+  //* Estructura del Beneficiario
   const {
     FOTO_URL,
     NOMBRE,
@@ -494,7 +493,7 @@ export default function SignosVitalesFacial() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
             {/* Datos del Paciente */}
             <div className="bg-gradient-to-br from-gray-800 to-gray-700 p-8 rounded-2xl shadow-xl border border-gray-600">
-              <div className="text-2xl font-bold mb-4 text-yellow-300 text-center uppercase flex items-center justify-center space-x-2">
+              <div className="text-2xl font-bold mb-4 text-teal-300 text-center uppercase flex items-center justify-center space-x-2">
                 <FaUser className="text-2xl" />
                 <h2>Datos del Paciente</h2>
               </div>
@@ -504,10 +503,10 @@ export default function SignosVitalesFacial() {
                   alt="Foto Paciente"
                   width={100}
                   height={100}
-                  className="w-28 h-28 rounded-full border-4 border-blue-400 shadow-lg object-cover"
+                  className="w-28 h-28 rounded-full border-4 border-teal-400 shadow-lg object-cover"
                 />
                 <div>
-                  <p className="text-xl font-semibold text-blue-200 mb-1">
+                  <p className="text-xl font-semibold text-teal-200 mb-1">
                     {NOMBRE} {A_PATERNO} {A_MATERNO}
                   </p>
                   <p className="text-sm text-gray-300">

@@ -486,7 +486,7 @@ const CrearPaseNuevo = () => {
             <input
               type="text"
               value={nomina}
-              onChange={(e) => setNomina(e.target.value)}
+              onChange={(e) => setNomina(e.target.value.toUpperCase())} //* Convierte a mayúsculas
               placeholder="Número de Nómina"
               className="flex-1 p-4 text-lg rounded-full bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-4 focus:ring-teal-400 transition-shadow shadow-lg placeholder-gray-400"
             />

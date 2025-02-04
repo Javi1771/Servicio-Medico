@@ -4,6 +4,23 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Pusher from "pusher-js";
 import { AiOutlineUserAdd } from "react-icons/ai";
+import {
+  FaHeartbeat,
+  FaTemperatureHigh,
+  FaTint,
+  FaRuler,
+  FaWeight,
+  FaNotesMedical,
+} from "react-icons/fa";
+
+import {
+  FaUser,
+  FaBirthdayCake,
+  FaIdCard,
+  FaBuilding,
+  FaUsers,
+} from "react-icons/fa";
+
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 import { useRouter } from "next/router";
@@ -727,7 +744,10 @@ const SignosVitales = () => {
       {/* Modal para agregar signos vitales */}
       {showConsulta && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-gray-800 p-4 md:p-6 rounded-lg shadow-lg w-full max-w-[90vw] md:max-w-[70vw] max-h-[90vh] overflow-y-auto relative">
+          <div
+            className="bg-gray-900 p-6 md:p-8 rounded-3xl shadow-[0_0_20px_5px_rgba(0,255,255,0.7)] w-full max-w-[90vw] md:max-w-[70vw] max-h-[90vh] overflow-y-auto relative 
+  scrollbar-thin scrollbar-thumb-glow scrollbar-track-dark custom-scrollbar futuristic-scroll"
+          >
             <button
               onClick={handleCloseModal}
               className="absolute top-4 right-4 text-gray-400 hover:text-white"
@@ -745,10 +765,11 @@ const SignosVitales = () => {
             <input
               type="text"
               value={nomina}
-              onChange={(e) => setNomina(e.target.value)}
+              onChange={(e) => setNomina(e.target.value.toUpperCase())} //* Convierte a mayúsculas
               placeholder="Número de Nómina"
               className="mt-2 mb-4 p-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:border-blue-400 transition duration-200 w-full"
             />
+
             <button
               onClick={handleSearch}
               className="bg-blue-600 px-4 md:px-5 py-2 rounded-lg hover:bg-blue-500 transition duration-200 font-semibold w-full"
@@ -834,7 +855,6 @@ const SignosVitales = () => {
                   </div>
                 </div>
               </fieldset>
-
               {consultaSeleccionada === "beneficiario" &&
                 beneficiaryData?.length > 0 && (
                   <div className="flex flex-col items-start mt-4 bg-gray-800 p-4 rounded-lg shadow-lg space-y-4">
@@ -854,24 +874,49 @@ const SignosVitales = () => {
                   </div>
                 )}
 
-              <div className="flex flex-col md:flex-row md:items-start mt-6 bg-gray-900 p-4 rounded-lg shadow-md space-y-4 md:space-y-0 md:space-x-6">
-                <Image
-                  src={
-                    consultaSeleccionada === "beneficiario" &&
-                    selectedBeneficiary
-                      ? "/user_icon_.png"
-                      : patientData.photo || "/user_icon_.png"
-                  }
-                  alt="Foto del Paciente"
-                  width={96}
-                  height={96}
-                  className="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-blue-400 shadow-lg"
-                />
-                <div className="flex-1">
-                  <div className="mb-2">
-                    <p className="text-lg md:text-xl font-semibold text-gray-200">
+              <div className="flex flex-col md:flex-row md:items-start mt-6 bg-gray-900 p-6 rounded-3xl shadow-2xl border border-teal-500">
+                {/* 📸 Imagen del Paciente */}
+                <div className="relative">
+                  {consultaSeleccionada === "beneficiario" &&
+                  selectedBeneficiary ? (
+                    <Image
+                      src={selectedBeneficiary.FOTO_URL || "/user_icon_.png"}
+                      alt="Foto del Beneficiario"
+                      width={120}
+                      height={120}
+                      className="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-yellow-400 shadow-xl transition-transform transform hover:scale-110"
+                    />
+                  ) : consultaSeleccionada === "empleado" &&
+                    empleadoEncontrado ? (
+                    <Image
+                      src={empleadoEncontrado.FOTO_URL || "/user_icon_.png"}
+                      alt="Foto del Empleado"
+                      width={120}
+                      height={120}
+                      className="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-blue-400 shadow-xl transition-transform transform hover:scale-110"
+                    />
+                  ) : (
+                    <Image
+                      src="/user_icon_.png"
+                      alt="Foto no disponible"
+                      width={120}
+                      height={120}
+                      className="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-gray-500 shadow-xl transition-transform transform hover:scale-110"
+                    />
+                  )}
+
+                  <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white text-xs px-3 py-1 rounded-full shadow-lg">
+                    📷 Foto
+                  </div>
+                </div>
+
+                {/* 🏥 Información del Paciente */}
+                <div className="flex-1 ml-6">
+                  <div className="mb-4">
+                    <p className="text-xl md:text-2xl font-semibold text-teal-300 flex items-center">
+                      <FaUser className="mr-3 text-teal-400 text-3xl" />
                       Paciente:{" "}
-                      <span className="font-normal">
+                      <span className="font-normal text-white ml-2">
                         {consultaSeleccionada === "beneficiario" &&
                         selectedBeneficiary
                           ? `${selectedBeneficiary.NOMBRE} ${selectedBeneficiary.A_PATERNO} ${selectedBeneficiary.A_MATERNO}`
@@ -879,9 +924,11 @@ const SignosVitales = () => {
                       </span>
                     </p>
 
-                    <p className="text-sm md:text-md text-gray-300">
+                    {/* 🎂 Edad */}
+                    <p className="text-lg text-gray-300 flex items-center mt-2">
+                      <FaBirthdayCake className="mr-3 text-yellow-400 text-xl" />
                       Edad:{" "}
-                      <span className="font-normal">
+                      <span className="font-normal text-white ml-2">
                         {consultaSeleccionada === "beneficiario" &&
                         selectedBeneficiary
                           ? selectedBeneficiary.EDAD
@@ -889,29 +936,33 @@ const SignosVitales = () => {
                       </span>
                     </p>
 
+                    {/* 🆔 Puesto y Departamento */}
                     {consultaSeleccionada === "empleado" && (
-                      <p className="text-sm md:text-md text-gray-300">
-                        Puesto:{" "}
-                        <span className="font-normal">
-                          {patientData.workstation || ""}
-                        </span>
-                      </p>
+                      <>
+                        <p className="text-lg text-gray-300 flex items-center mt-2">
+                          <FaBuilding className="mr-3 text-indigo-400 text-xl" />
+                          Puesto:{" "}
+                          <span className="font-normal text-white ml-2">
+                            {patientData.workstation || ""}
+                          </span>
+                        </p>
+                        <p className="text-lg text-gray-300 flex items-center mt-2">
+                          <FaIdCard className="mr-3 text-green-400 text-xl" />
+                          Departamento:{" "}
+                          <span className="font-normal text-white ml-2">
+                            {patientData.department || ""}
+                          </span>
+                        </p>
+                      </>
                     )}
 
-                    {consultaSeleccionada === "empleado" && (
-                      <p className="text-sm md:text-md text-gray-300">
-                        Departamento:{" "}
-                        <span className="font-normal">
-                          {patientData.department || ""}
-                        </span>
-                      </p>
-                    )}
-
+                    {/* 👨‍👩‍👧 Parentesco */}
                     {consultaSeleccionada === "beneficiario" &&
                       selectedBeneficiary && (
-                        <p className="text-sm md:text-md text-gray-300">
+                        <p className="text-lg text-gray-300 flex items-center mt-2">
+                          <FaUsers className="mr-3 text-pink-400 text-xl" />
                           Parentesco:{" "}
-                          <span className="font-normal">
+                          <span className="font-normal text-white ml-2">
                             {selectedBeneficiary.PARENTESCO_DESC || ""}
                           </span>
                         </p>
@@ -919,14 +970,15 @@ const SignosVitales = () => {
                   </div>
                 </div>
 
+                {/* 🔥 Sección de Sindicato */}
                 {patientData.grupoNomina === "NS" && (
-                  <div className="md:ml-auto mt-4 md:mt-0 p-4 bg-gradient-to-br from-gray-800 to-gray-700 rounded-lg shadow-lg flex flex-col items-center md:items-end text-right text-white">
-                    <p className="text-md font-bold text-yellow-400">
-                      <span className="block">SINDICALIZADO</span>
+                  <div className="md:ml-auto mt-4 md:mt-0 p-6 bg-gradient-to-br from-gray-800 to-gray-700 rounded-3xl shadow-lg border border-yellow-500">
+                    <p className="text-xl font-bold text-yellow-400 flex items-center justify-center">
+                      🏛️ SINDICALIZADO
                     </p>
-                    <p className="text-sm md:text-md">
+                    <p className="text-md md:text-lg text-white text-center mt-2">
                       Sindicato:{" "}
-                      <span className="font-semibold">
+                      <span className="font-semibold text-yellow-300">
                         {patientData.cuotaSindical === "S"
                           ? "SUTSMSJR"
                           : patientData.cuotaSindical === ""
@@ -938,94 +990,158 @@ const SignosVitales = () => {
                 )}
               </div>
 
-              <div className="mt-6">
-                <h3 className="text-xl md:text-2xl font-bold mb-4">
-                  Signos Vitales
+              <div className="mt-10 p-6 bg-gray-900 rounded-3xl shadow-2xl border border-teal-500">
+                <h3 className="text-3xl font-extrabold text-center text-teal-300 mb-8 uppercase tracking-wider">
+                  🔹 Signos Vitales 🔹
                 </h3>
-                <form className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <label>
-                    T/A:
-                    <input
-                      type="text"
-                      name="ta"
-                      value={signosVitales.ta}
-                      onChange={handleVitalChange}
-                      className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white p-2"
-                    />
+
+                <form className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* T/A */}
+                  <label className="flex items-center bg-gray-800 p-4 rounded-xl shadow-lg border border-gray-700 hover:border-teal-400 transition-all duration-300">
+                    <FaHeartbeat className="text-red-400 text-3xl mr-4" />
+                    <div className="flex-1">
+                      <span className="block text-teal-300 font-semibold">
+                        Tensión Arterial
+                      </span>
+                      <input
+                        type="text"
+                        name="ta"
+                        value={signosVitales.ta}
+                        onChange={handleVitalChange}
+                        className="mt-1 block w-full rounded-md bg-gray-700 text-white p-2 border border-gray-600 focus:border-teal-400 focus:ring-2 focus:ring-teal-500 transition"
+                        placeholder="Ejemplo: 120/80"
+                      />
+                    </div>
                   </label>
-                  <label>
-                    Temperatura ( °C ):
-                    <input
-                      type="number"
-                      name="temperatura"
-                      value={signosVitales.temperatura}
-                      onChange={handleVitalChange}
-                      className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white p-2"
-                    />
+
+                  {/* Temperatura */}
+                  <label className="flex items-center bg-gray-800 p-4 rounded-xl shadow-lg border border-gray-700 hover:border-teal-400 transition-all duration-300">
+                    <FaTemperatureHigh className="text-yellow-400 text-3xl mr-4" />
+                    <div className="flex-1">
+                      <span className="block text-teal-300 font-semibold">
+                        Temperatura (°C)
+                      </span>
+                      <input
+                        type="number"
+                        name="temperatura"
+                        value={signosVitales.temperatura}
+                        onChange={handleVitalChange}
+                        className="mt-1 block w-full rounded-md bg-gray-700 text-white p-2 border border-gray-600 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-500 transition"
+                        placeholder="Ejemplo: 36.5"
+                      />
+                    </div>
                   </label>
-                  <label>
-                    FC ( por minuto ):
-                    <input
-                      type="number"
-                      name="fc"
-                      value={signosVitales.fc}
-                      onChange={handleVitalChange}
-                      className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white p-2"
-                    />
+
+                  {/* FC */}
+                  <label className="flex items-center bg-gray-800 p-4 rounded-xl shadow-lg border border-gray-700 hover:border-teal-400 transition-all duration-300">
+                    <FaHeartbeat className="text-red-500 text-3xl mr-4" />
+                    <div className="flex-1">
+                      <span className="block text-teal-300 font-semibold">
+                        Frecuencia Cardíaca (bpm)
+                      </span>
+                      <input
+                        type="number"
+                        name="fc"
+                        value={signosVitales.fc}
+                        onChange={handleVitalChange}
+                        className="mt-1 block w-full rounded-md bg-gray-700 text-white p-2 border border-gray-600 focus:border-red-400 focus:ring-2 focus:ring-red-500 transition"
+                        placeholder="Ejemplo: 75"
+                      />
+                    </div>
                   </label>
-                  <label>
-                    Oxigenación ( % ):
-                    <input
-                      type="number"
-                      name="oxigenacion"
-                      value={signosVitales.oxigenacion}
-                      onChange={handleVitalChange}
-                      className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white p-2"
-                    />
+
+                  {/* Oxigenación */}
+                  <label className="flex items-center bg-gray-800 p-4 rounded-xl shadow-lg border border-gray-700 hover:border-teal-400 transition-all duration-300">
+                    <FaTint className="text-blue-400 text-3xl mr-4" />
+                    <div className="flex-1">
+                      <span className="block text-teal-300 font-semibold">
+                        Oxigenación (%)
+                      </span>
+                      <input
+                        type="number"
+                        name="oxigenacion"
+                        value={signosVitales.oxigenacion}
+                        onChange={handleVitalChange}
+                        className="mt-1 block w-full rounded-md bg-gray-700 text-white p-2 border border-gray-600 focus:border-blue-400 focus:ring-2 focus:ring-blue-500 transition"
+                        placeholder="Ejemplo: 98"
+                      />
+                    </div>
                   </label>
-                  <label>
-                    Altura ( cm ):
-                    <input
-                      type="number"
-                      name="altura"
-                      value={signosVitales.altura}
-                      onChange={handleVitalChange}
-                      className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white p-2"
-                    />
+
+                  {/* Altura */}
+                  <label className="flex items-center bg-gray-800 p-4 rounded-xl shadow-lg border border-gray-700 hover:border-teal-400 transition-all duration-300">
+                    <FaRuler className="text-green-400 text-3xl mr-4" />
+                    <div className="flex-1">
+                      <span className="block text-teal-300 font-semibold">
+                        Altura (cm)
+                      </span>
+                      <input
+                        type="number"
+                        name="altura"
+                        value={signosVitales.altura}
+                        onChange={handleVitalChange}
+                        className="mt-1 block w-full rounded-md bg-gray-700 text-white p-2 border border-gray-600 focus:border-green-400 focus:ring-2 focus:ring-green-500 transition"
+                        placeholder="Ejemplo: 175"
+                      />
+                    </div>
                   </label>
-                  <label>
-                    Peso ( kg ):
-                    <input
-                      type="number"
-                      name="peso"
-                      value={signosVitales.peso}
-                      onChange={handleVitalChange}
-                      className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white p-2"
-                    />
+
+                  {/* Peso */}
+                  <label className="flex items-center bg-gray-800 p-4 rounded-xl shadow-lg border border-gray-700 hover:border-teal-400 transition-all duration-300">
+                    <FaWeight className="text-orange-400 text-3xl mr-4" />
+                    <div className="flex-1">
+                      <span className="block text-teal-300 font-semibold">
+                        Peso (kg)
+                      </span>
+                      <input
+                        type="number"
+                        name="peso"
+                        value={signosVitales.peso}
+                        onChange={handleVitalChange}
+                        className="mt-1 block w-full rounded-md bg-gray-700 text-white p-2 border border-gray-600 focus:border-orange-400 focus:ring-2 focus:ring-orange-500 transition"
+                        placeholder="Ejemplo: 70"
+                      />
+                    </div>
                   </label>
-                  <label>
-                    Glucosa ( mg / dL ):
-                    <input
-                      type="number"
-                      name="glucosa"
-                      value={signosVitales.glucosa}
-                      onChange={handleVitalChange}
-                      className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white p-2"
-                    />
+
+                  {/* Glucosa */}
+                  <label className="flex items-center bg-gray-800 p-4 rounded-xl shadow-lg border border-gray-700 hover:border-teal-400 transition-all duration-300">
+                    <FaNotesMedical className="text-purple-400 text-3xl mr-4" />
+                    <div className="flex-1">
+                      <span className="block text-teal-300 font-semibold">
+                        Glucosa (mg/dL)
+                      </span>
+                      <input
+                        type="number"
+                        name="glucosa"
+                        value={signosVitales.glucosa}
+                        onChange={handleVitalChange}
+                        className="mt-1 block w-full rounded-md bg-gray-700 text-white p-2 border border-gray-600 focus:border-purple-400 focus:ring-2 focus:ring-purple-500 transition"
+                        placeholder="Ejemplo: 90"
+                      />
+                    </div>
                   </label>
                 </form>
 
-                <div className="mt-6">
+                {/* Botón de Guardar */}
+                <div className="mt-8 flex justify-center">
                   <button
                     onClick={handleSave}
                     disabled={!isFormComplete || isSaving}
-                    className={`px-4 md:px-5 py-2 rounded-lg font-semibold w-full transition duration-200 ${
-                      isFormComplete && !isSaving
-                        ? "bg-yellow-600 hover:bg-yellow-500"
-                        : "bg-gray-400 cursor-not-allowed"
-                    }`}
+                    className={`relative px-8 py-4 text-lg font-bold uppercase rounded-lg 
+        bg-gray-900 border border-transparent 
+        shadow-[0_0_20px_4px_rgba(255,255,0,0.7)] hover:shadow-[0_0_40px_8px_rgba(255,255,0,0.9)] 
+        hover:text-white transition-all duration-300 ease-in-out group 
+        ${
+          isFormComplete && !isSaving
+            ? "text-yellow-400"
+            : "text-gray-500 cursor-not-allowed"
+        }`}
                   >
-                    {isSaving ? "Guardando..." : "Guardar Signos Vitales"}
+                    <span className="absolute inset-0 rounded-lg border-2 border-yellow-500 opacity-50 blur-lg group-hover:opacity-100 group-hover:blur-xl transition-all duration-500"></span>
+                    <span className="relative z-10">
+                      {isSaving ? "Guardando..." : "💾 Guardar Signos Vitales"}
+                    </span>
                   </button>
                 </div>
               </div>

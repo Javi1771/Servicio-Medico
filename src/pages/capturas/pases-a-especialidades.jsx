@@ -50,7 +50,12 @@ const PasesAEspecialidad = () => {
     if (estatus === "LISTA PARA PASAR CON EL ESPECIALISTA") {
       return;
     }
-    router.push(`/capturas/pases/crear-pase?claveconsulta=${folio}`);
+
+    //* Cifrar el folio con Base64
+    const encryptedFolio = btoa(folio.toString());
+
+    //* Redirigir con el folio cifrado
+    router.push(`/capturas/pases/crear-pase?claveconsulta=${encryptedFolio}`);
   };
 
   return (
