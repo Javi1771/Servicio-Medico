@@ -3,29 +3,37 @@ import styles from "../../css/EstilosFarmacia/RegisterMedicamento.module.css";
 
 const FormMedicamento = ({ onAddMedicamento, message }) => {
   const [formData, setFormData] = useState({
+    medicamento: "",
+    clasificación: "",
+    presentación: "",
     ean: "",
-    sustancia: "",
     piezas: "",
-    activo: true,
   });
 
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : value,
+      [name]: value,
     }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     onAddMedicamento({
+      medicamento: formData.medicamento,
+      clasificación: formData.clasificación,
+      presentación: parseInt(formData.presentación, 10),
       ean: parseInt(formData.ean, 10),
-      sustancia: formData.sustancia,
       piezas: parseInt(formData.piezas, 10),
-      activo: formData.activo,
     });
-    setFormData({ ean: "", sustancia: "", piezas: "", activo: true });
+    setFormData({
+      medicamento: "",
+      clasificación: "",
+      presentación: "",
+      ean: "",
+      piezas: "",
+    });
   };
 
   return (
@@ -33,6 +41,55 @@ const FormMedicamento = ({ onAddMedicamento, message }) => {
       <h2 className={styles.title}>Registro de Medicamentos</h2>
       <form onSubmit={handleSubmit} className={styles.form}>
         {message && <p className={styles.message}>{message}</p>}
+        <div className={styles.formGroup}>
+          <label htmlFor="medicamento" className={styles.label}>
+            Medicamento:
+          </label>
+          <input
+            type="text"
+            id="medicamento"
+            name="medicamento"
+            value={formData.medicamento}
+            onChange={handleChange}
+            placeholder="añade el nombre del medicamento"
+            required
+            className={styles.input}
+          />
+        </div>
+        <div className={styles.formGroup}>
+          <label htmlFor="clasificación" className={styles.label}>
+            Clasificación:
+          </label>
+          <select
+            id="clasificación"
+            name="clasificación"
+            value={formData.clasificación}
+            onChange={handleChange}
+            required
+            className={styles.input}
+          >
+            <option value="">Seleccione una opción</option>
+            <option value="p">PATENTE</option>
+            <option value="g">GENERICO</option>
+            <option value="c">CONTROLADO</option>
+            <option value="e">ESPECIALIDAD</option>
+          </select>
+        </div>
+        <div className={styles.formGroup}>
+          <label htmlFor="presentación" className={styles.label}>
+            Presentación:
+          </label>
+          <input
+            type="number"
+            id="presentación"
+            name="presentación"
+            value={formData.presentación}
+            onChange={handleChange}
+            placeholder="mg, ml, ui, g ..."
+            required
+            className={styles.input}
+          />
+        </div>
         <div className={styles.formGroup}>
           <label htmlFor="ean" className={styles.label}>
             EAN (Código de Barras):
@@ -43,21 +100,7 @@ const FormMedicamento = ({ onAddMedicamento, message }) => {
             name="ean"
             value={formData.ean}
             onChange={handleChange}
-            required
-            className={styles.input}
-          />
-        </div>
-        <div className={styles.formGroup}>
-          <label htmlFor="sustancia" className={styles.label}>
-            Sustancia:
-          </label>
-          <input
-            type="text"
-            id="sustancia"
-            name="sustancia"
-            value={formData.sustancia}
-            onChange={handleChange}
-            maxLength={50}
+            placeholder="coloca el código de barras"
             required
             className={styles.input}
           />
@@ -72,21 +115,9 @@ const FormMedicamento = ({ onAddMedicamento, message }) => {
             name="piezas"
             value={formData.piezas}
             onChange={handleChange}
+            placeholder="ingres el numero de piezas a registrar"
             required
             className={styles.input}
-          />
-        </div>
-        <div className={styles.formGroupCheckbox}>
-          <label htmlFor="activo" className={styles.label}>
-            Activo:
-          </label>
-          <input
-            type="checkbox"
-            id="activo"
-            name="activo"
-            checked={formData.activo}
-            onChange={handleChange}
-            className={styles.checkbox}
           />
         </div>
         <button type="submit" className={styles.button}>
@@ -96,4 +127,5 @@ const FormMedicamento = ({ onAddMedicamento, message }) => {
     </div>
   );
 };
+
 export default FormMedicamento;

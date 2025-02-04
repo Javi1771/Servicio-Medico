@@ -1,4 +1,5 @@
 import { connectToDatabase } from '../connectToDatabase';
+import sql from 'mssql';
 
 export default async function handler(req, res) {
   if (req.method === 'DELETE') {
@@ -11,10 +12,10 @@ export default async function handler(req, res) {
     try {
       const pool = await connectToDatabase();
       const query = `
-        DELETE FROM MEDICAMENTOS_FARMACIA
-        WHERE ID_MEDICAMENTO = @id
+        DELETE FROM MEDICAMENTOS_NEW
+        WHERE claveMedicamento = @id
       `;
-      const result = await pool.request().input('id', id).query(query);
+      const result = await pool.request().input('id', sql.Int, id).query(query);
 
       if (result.rowsAffected[0] > 0) {
         res.status(200).json({ message: 'Medicamento eliminado correctamente.' });

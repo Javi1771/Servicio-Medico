@@ -10,18 +10,16 @@ export default async function handler(req, res) {
         .request()
         .query(`
           SELECT 
-            ID_MEDICAMENTO AS id,
-            EAN AS ean,
-            SUSTANCIA AS sustancia,
-            PIEZAS AS piezas,
-            FECHA_CREACION AS fechaCreacion,
-            ACTIVO AS activo
-          FROM 
-            dbo.MEDICAMENTOS_FARMACIA
+            claveMedicamento AS id,
+            medicamento,
+            clasificación,
+            presentación,
+            ean,
+            piezas
+          FROM MEDICAMENTOS_NEW
         `);
 
       const medicamentos = result.recordset;
-
       res.status(200).json(medicamentos);
     } catch (error) {
       console.error('Error al obtener los medicamentos:', error);
