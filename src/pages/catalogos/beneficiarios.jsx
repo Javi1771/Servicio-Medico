@@ -71,10 +71,9 @@ export default function RegistroBeneficiario() {
   const [isSaveDisabled, setIsSaveDisabled] = useState(false); // Estado para deshabilitar el botón de guardar
   const [isDocumentsModalOpen, setIsDocumentsModalOpen] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
+  const [loading] = useState(false);
 
   const [isFadingOut, setIsFadingOut] = useState(false);
-
-  const [loading] = useState(false); // Estado para mostrar si está cargando
 
   const handleCloseModal = () => {
     setIsFadingOut(true); // Activamos la animación de salida
@@ -322,7 +321,7 @@ export default function RegistroBeneficiario() {
   const handleCapturePhoto = async () => {
     try {
       let isVideoReady = false;
-
+  
       const result = await Swal.fire({
         title: "Captura una foto",
         html: '<video id="video" autoplay></video>',
@@ -354,11 +353,11 @@ export default function RegistroBeneficiario() {
           }
         },
       });
-
+  
       if (result.isConfirmed) {
         const video = document.getElementById("video");
         const canvas = document.createElement("canvas");
-
+  
         if (!isVideoReady || !video.videoWidth || !video.videoHeight) {
           Swal.fire(
             "Error",
@@ -367,45 +366,62 @@ export default function RegistroBeneficiario() {
           );
           return;
         }
-
+  
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
         const context = canvas.getContext("2d");
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
+  
         // Convertir la imagen a Base64
         const base64Image = canvas.toDataURL("image/jpeg");
         setImagePreview(base64Image);
-
-        // 1) Subimos la imagen a Cloudinary (como ya tenías)
-        await uploadImage(base64Image);
-
-        // 2) Calculamos el descriptor y lo guardamos en formData
+  
+        // Mostrar previsualización antes de subir
+        const confirmUpload = await Swal.fire({
+          title: "Previsualización",
+          text: "¿Quieres usar esta foto?",
+          imageUrl: base64Image,
+          imageWidth: 300,
+          imageHeight: 300,
+          showCancelButton: true,
+          confirmButtonText: "Sí, subir",
+          cancelButtonText: "Cancelar",
+        });
+  
+        if (!confirmUpload.isConfirmed) {
+          return;
+        }
+  
+        // Detectar el rostro antes de subir la imagen
         const descriptor = await computeDescriptorFromBase64(base64Image);
         if (!descriptor) {
-          console.warn("No se detectó un rostro o ocurrió un error");
-        } else {
-          // Convertimos el Float32Array en un array normal y luego a string JSON
-          const descriptorArray = Array.from(descriptor);
-          const descriptorJSON = JSON.stringify(descriptorArray);
-
-          // Guardamos en formData
-          setFormData((prev) => ({
-            ...prev,
-            descriptorFacial: descriptorJSON,
-          }));
-          console.log(
-            "Descriptor facial calculado y guardado en formData:",
-            descriptorJSON
-          );
+          Swal.fire("Error", "No se detectó un rostro en la imagen.", "error");
+          return;
         }
+  
+        // Convertimos el Float32Array en un array normal y luego a string JSON
+        const descriptorArray = Array.from(descriptor);
+        const descriptorJSON = JSON.stringify(descriptorArray);
+  
+        // Guardamos en formData
+        setFormData((prev) => ({
+          ...prev,
+          descriptorFacial: descriptorJSON,
+        }));
+        console.log(
+          "Descriptor facial calculado y guardado en formData:",
+          descriptorJSON
+        );
+  
+        // Subimos la imagen solo si se detectó un rostro
+        await uploadImage(base64Image);
       }
     } catch (error) {
       console.error("Error al capturar/subir la foto:", error);
       Swal.fire("Error", "Ocurrió un problema al capturar la foto.", "error");
     }
   };
-
+  
   // Función para subir la imagen capturada
   const uploadImage = async (base64Image) => {
     if (!numNomina) {
@@ -416,7 +432,7 @@ export default function RegistroBeneficiario() {
       );
       return;
     }
-
+  
     try {
       const response = await fetch("/api/uploadImage", {
         method: "POST",
@@ -428,9 +444,9 @@ export default function RegistroBeneficiario() {
           numNomina, // Aquí se envía correctamente
         }),
       });
-
+  
       const data = await response.json();
-
+  
       if (response.ok && data.imageUrl) {
         setFormData((prev) => ({ ...prev, imageUrl: data.imageUrl }));
         Swal.fire("Éxito", "Imagen subida correctamente.", "success");
@@ -446,6 +462,8 @@ export default function RegistroBeneficiario() {
       Swal.fire("Error", "Error al subir la imagen.", "error");
     }
   };
+  
+
 
   const getFileNameFromURL = (url) => {
     if (!url) return "Sin archivo";
@@ -1128,7 +1146,6 @@ export default function RegistroBeneficiario() {
       return updatedData;
     });
   };
-
 
   const handleViewBeneficiary = async (beneficiario) => {
     setSelectedBeneficiary(null); // Limpia el estado anterior
@@ -1850,28 +1867,16 @@ export default function RegistroBeneficiario() {
 
   return (
     <div className={styles.body}>
-    <div className={styles.bannerContainer}>
-      <Image
-        src="/baner_sjr.png"
-        alt="Banner"
-        width={1100}
-        height={150}
-        priority
-        className={styles.banner}
-      />
-    </div>
-    
-    {/* Inserta aquí la vista previa de la imagen para utilizar imagePreview */}
-    {imagePreview && (
-      <div className={styles.imagePreviewContainer}>
+      <div className={styles.bannerContainer}>
         <Image
-          src={imagePreview}
-          alt="Vista previa"
-          width={200}
-          height={200}
+          src="/baner_sjr.png"
+          alt="Banner"
+          width={1100} // Asegúrate de definir un ancho
+          height={150} // y altura para la imagen
+          priority // Añade esta propiedad para optimizar la carga
+          className={styles.banner}
         />
       </div>
-    )}
 
       <div className={styles.container}>
         <h1 className={styles.title}>Registro de Beneficiarios</h1>
@@ -2908,17 +2913,18 @@ export default function RegistroBeneficiario() {
             </div>
 
             {/* Vista previa de la imagen */}
-            {formData.imageUrl && (
-              <div className={styles.imagePreview}>
-                <Image
-                  src={formData.imageUrl}
-                  alt="Vista previa de la foto"
-                  width={150} // Ajusta el ancho según sea necesario
-                  height={150} // Ajusta la altura según sea necesario
-                  className={styles.previewImage}
-                />
-              </div>
-            )}
+            {imagePreview && (
+    <div className={styles.imagePreview}>
+        <Image
+            src={imagePreview}
+            alt="Vista previa de la foto"
+            width={150}
+            height={150}
+            className={styles.previewImage}
+        />
+    </div>
+)}
+
 
             <fieldset className={styles.fieldset}>
               <legend>En caso de emergencia avisar a:</legend>
