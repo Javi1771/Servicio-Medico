@@ -3,6 +3,8 @@ const { parse } = require("url");
 const next = require("next");
 const fs = require("fs");
 
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"; // 🔥 Permitir certificados autofirmados
+
 const dev = process.env.NODE_ENV !== "production";
 const app = next({ dev });
 const handle = app.getRequestHandler();

@@ -2912,18 +2912,18 @@ export default function RegistroBeneficiario() {
               </select>
             </div>
 
-            {/* Vista previa de la imagen */}
-            {imagePreview && (
-    <div className={styles.imagePreview}>
-        <Image
-            src={imagePreview}
-            alt="Vista previa de la foto"
-            width={150}
-            height={150}
-            className={styles.previewImage}
-        />
-    </div>
-)}
+           {/* Vista previa de la imagen */}
+           {formData.imageUrl && (
+              <div className={styles.imagePreview}>
+                <Image
+                  src={formData.imageUrl}
+                  alt="Vista previa de la foto"
+                  width={150} // Ajusta el ancho según sea necesario
+                  height={150} // Ajusta la altura según sea necesario
+                  className={styles.previewImage}
+                />
+              </div>
+            )}
 
 
             <fieldset className={styles.fieldset}>
