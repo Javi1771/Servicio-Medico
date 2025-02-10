@@ -4,7 +4,7 @@
 /node_modules
 /.pnp
 .pnp.js
-.yarn/install-state.gz
+.yarn/install-state.gz 
 
 # testing
 /coverage
@@ -34,3 +34,8 @@ next-env.d.ts
 
 .vercel
 .env.local
+
+serve.js
+web.config
+172.16.4.47-key.pem
+172.16.4.47.pem
