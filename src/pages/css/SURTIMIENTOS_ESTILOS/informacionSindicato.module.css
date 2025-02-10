@@ -1,54 +1,60 @@
-.sindicatoCard {
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.25);
-    color: #ffffff;
-    margin: 20px 0;
-    max-width: 300px;
-    position: relative;
-    overflow: hidden;
-  }
-  
-  /* Fondo dinámico para sindicalizado */
-  .sindicatoCardSindicalizado {
-    background: linear-gradient(to bottom right, #2f8f46, #0d1f1a);
-  }
-  
-  /* Fondo dinámico para no sindicalizado */
-  .sindicatoCardNoSindicalizado {
-    background: linear-gradient(to bottom right, #8f2f2f, #1a0d0d);
-  }
-  
-  /* Título */
-  .sindicatoTitle {
-    margin-bottom: 10px;
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: #ffffff;
-  }
-  
-  /* Estilo del contenido */
-  .sindicatoCard p {
-    margin: 8px 0;
-    font-size: 1rem;
-    line-height: 1.5;
-    color: #ffffff;
-  }
-  
-  .sindicatoCard strong {
-    color: #ffffff;
-  }
-  
-  /* Esquina decorativa */
-  .sindicatoCard::before {
-    content: "";
-    position: absolute;
-    top: -20px;
-    right: -20px;
-    width: 100px;
-    height: 100px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 50%;
-    box-shadow: 0px 0px 15px rgba(255, 255, 255, 0.1);
-  }
-  
+/* Contenedor principal */
+.cardSindicato {
+  width: 100%;
+  max-width: 400px;
+  margin: 1rem auto;
+  padding: 1.2rem;
+  border-radius: 12px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+  text-align: center;
+  transition: transform 0.3s ease;
+}
+
+/* Efecto hover */
+.cardSindicato:hover {
+  transform: translateY(-2px);
+}
+
+/* Si NO está sindicalizado */
+.noSindicato {
+  background: linear-gradient(45deg, #330000, #660000);
+  border: 1px solid #880000;
+}
+
+/* Título "No está sindicalizado" */
+.titleNo {
+  color: #ff9999;
+  font-size: 1.5rem;
+  margin-bottom: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Contenido de "No está sindicalizado" */
+.contentNo {
+  color: #ffe5e5;
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+/* Si SÍ está sindicalizado */
+.siSindicato {
+  background: linear-gradient(45deg, #002200, #004400);
+  border: 1px solid #006600;
+}
+
+/* Título "Sindicalizado" */
+.titleSi {
+  color: #00ff88;
+  font-size: 1.5rem;
+  margin-bottom: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Contenido de "Sindicalizado" */
+.contentSi {
+  color: #ccffdd;
+  font-size: 1.1rem;
+  font-weight: 500;
+}

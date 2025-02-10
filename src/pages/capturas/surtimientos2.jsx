@@ -97,7 +97,7 @@ const SurtimientosBanner = () => {
         if (isNaN(folioNumero)) {
           throw new Error("Folio inválido. Debe ser un número.");
         }
-  
+
         const response = await fetch("/api/SURTIMIENTOS2/generarSurtimiento", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -107,15 +107,15 @@ const SurtimientosBanner = () => {
             diagnostico: diagnostico,
           }),
         });
-  
+
         if (!response.ok) {
           const errorData = await response.json();
           throw new Error(errorData.message || "Error al generar surtimiento");
         }
-  
+
         const data = await response.json();
         console.log("Surtimiento generado:", data);
-  
+
         Swal.fire({
           title: "Éxito",
           text: "Surtimiento generado correctamente.",
@@ -138,13 +138,13 @@ const SurtimientosBanner = () => {
         if (isNaN(folioNumero)) {
           throw new Error("Folio inválido. Debe ser un número.");
         }
-  
+
         console.log("Datos enviados al backend:", {
           folio: folioNumero,
           medicamentos: receta,
           diagnostico,
         });
-  
+
         const response = await fetch("/api/SURTIMIENTOS2/guardarReceta", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -154,21 +154,21 @@ const SurtimientosBanner = () => {
             diagnostico,
           }),
         });
-  
+
         if (!response.ok) {
           const errorData = await response.json();
           throw new Error(errorData.message || "Error al guardar la receta.");
         }
-  
+
         Swal.fire({
           title: "Éxito",
           text: "Receta guardada exitosamente.",
           icon: "success",
           confirmButtonText: "Aceptar",
         });
-  
+
         setReceta([]); // Reiniciar la receta local
-  
+
         // Opcional: Actualizar los medicamentos recetados
         fetchMedicamentosReceta(folioNumero);
       } catch (error) {
@@ -181,30 +181,6 @@ const SurtimientosBanner = () => {
         });
       }
     }
-  };
-  
-
-  // Función para generar PDF usando jsPDF
-  const generarPDF = (medicamentos, folio) => {
-    const doc = new jsPDF();
-
-    doc.setFontSize(16);
-    doc.text("Receta Médica", 105, 20, null, null, "center");
-
-    doc.setFontSize(12);
-    doc.text(`Folio de Consulta: ${folio}`, 10, 30);
-
-    doc.autoTable({
-      startY: 40,
-      head: [["Medicamento", "Indicaciones", "Cantidad"]],
-      body: medicamentos.map((med) => [
-        med.nombreMedicamento,
-        med.indicaciones,
-        med.cantidad,
-      ]),
-    });
-
-    doc.save(`Receta_${folio}.pdf`);
   };
 
   // Verificar si al menos uno de los datos se obtuvo (folio válido)

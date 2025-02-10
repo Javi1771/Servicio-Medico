@@ -1,36 +1,38 @@
 import React from "react";
 import styles from "../../css/SURTIMIENTOS_ESTILOS/informacionSindicato.module.css";
 
-const InformacionSindicato = ({ sindicato }) => {
-  if (!sindicato) return null;
-
-  const estadoSindicato = sindicato.cuotaSindical === "S" ? "Sindicalizado" : "No sindicalizado";
-
-  // Obtener el tipo de sindicato basado en el grupoNomina y cuotaSindical
-  const tipoSindicato =
-    sindicato.cuotaSindical === "S"
-      ? sindicato.grupoNomina === "NS"
-        ? "SUTSMSJR"
-        : "SITAM"
-      : "No aplica";
-
-  // Determinar estilos dinámicos
-  const cardClassName =
-    estadoSindicato === "Sindicalizado"
-      ? styles.sindicatoCardSindicalizado
-      : styles.sindicatoCardNoSindicalizado;
+/**
+ * Componente que muestra información del sindicato
+ * asociado al empleado/paciente. Si no hay sindicato (null, vacío),
+ * indica "No está sindicalizado".
+ * @param {string|null} props.sindicato - Nombre o valor del sindicato.
+ */
+export default function InformacionSindicato({ sindicato }) {
+  // Verificamos si está vacío o null/undefined
+  const noSindicato =
+    !sindicato || (typeof sindicato === "string" && sindicato.trim().length === 0);
 
   return (
-    <div className={`${styles.sindicatoCard} ${cardClassName}`}>
-      <h2 className={styles.sindicatoTitle}>Sindicato</h2>
-      <p>
-        <strong>Estado:</strong> {estadoSindicato}
-      </p>
-      <p>
-        <strong>Tipo:</strong> {tipoSindicato}
-      </p>
+    <div
+      className={`${styles.cardSindicato} ${
+        noSindicato ? styles.noSindicato : styles.siSindicato
+      }`}
+    >
+      {/* Si NO hay sindicato */}
+      {noSindicato ? (
+        <>
+          <h2 className={styles.titleNo}>Información del Sindicato</h2>
+          <p className={styles.contentNo}>No está sindicalizado</p>
+        </>
+      ) : (
+        /* Sí hay sindicato */
+        <>
+          <h2 className={styles.titleSi}>Sindicalizado</h2>
+          <p className={styles.contentSi}>
+            Sindicato: <strong>{sindicato}</strong>
+          </p>
+        </>
+      )}
     </div>
   );
-};
-
-export default InformacionSindicato;
+}

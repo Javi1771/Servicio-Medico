@@ -17,7 +17,11 @@ export default async function handler(req, res) {
     clavepaciente,
   } = req.body;
 
-  //* Validar campos obligatorios
+  //* Obtener la cookie 'claveusuario'
+  const cookies = req.headers.cookie || "";
+  const claveusuarioMatch = cookies.match(/claveusuario=([^;]+)/);
+  const claveMedico = claveusuarioMatch ? claveusuarioMatch[1] : null;
+
   if (!clavenomina || !clavepaciente) {
     const datosFaltantes = [];
     if (!clavenomina) datosFaltantes.push("clavenomina");
@@ -29,48 +33,59 @@ export default async function handler(req, res) {
       .json({ message: "Faltan datos obligatorios.", datosFaltantes });
   }
 
-  const fechaInicialFinal = fechaInicial || null;
-  const fechaFinalFinal = fechaFinal || null;
+  //* Las fechas se reciben como cadenas en el formato: 
+  //* "2025-02-05 00:00:00.000" y "2025-02-20 23:59:59.999"
+  //* Para que SQL Server las convierta correctamente, convertimos el espacio en "T"
+  const fechaInicialISO = fechaInicial ? fechaInicial.replace(" ", "T") : null;
+  const fechaFinalISO = fechaFinal ? fechaFinal.replace(" ", "T") : null;
+
   const diagnosticoFinal =
     diagnostico ||
     "Sin Observaciones, No Se Asignó Incapacidad En Esta Consulta";
 
-  //* Determinar el valor de seAsignoIncapacidad
-  const seAsignoIncapacidad = 
-    diagnosticoFinal === "Sin Observaciones, No Se Asignó Incapacidad En Esta Consulta"
-      ? 0
-      : 1;
+  const seAsignoIncapacidad =
+    diagnosticoFinal === "Sin Observaciones, No Se Asignó Incapacidad En Esta Consulta" ? 0 : 1;
+
+  const estatus =
+    diagnosticoFinal === "Sin Observaciones, No Se Asignó Incapacidad En Esta Consulta" ? 2 : 1;
 
   let transaction;
 
   try {
     const pool = await connectToDatabase();
-
-    //? Iniciar una transacción
     transaction = new sql.Transaction(pool);
     await transaction.begin();
 
     console.log("Transacción iniciada.");
 
-    //* Insertar en la tabla detalleIncapacidad
     await transaction
       .request()
       .input("claveConsulta", sql.Int, claveConsulta)
       .input("clavenomina", sql.VarChar, clavenomina)
-      .input("fechaInicial", sql.DateTime, fechaInicialFinal)
-      .input("fechaFinal", sql.DateTime, fechaFinalFinal)
+      //* Pasamos las fechas como cadenas y las convertimos en el query a datetime2(7)
+      .input("fechaInicial", sql.VarChar, fechaInicialISO)
+      .input("fechaFinal", sql.VarChar, fechaFinalISO)
       .input("diagnostico", sql.Text, diagnosticoFinal)
-      .input("estatus", sql.Int, 1) // 1: Activo
+      .input("estatus", sql.Int, estatus)
       .input("clavepaciente", sql.VarChar, clavepaciente)
+      .input("claveMedico", sql.VarChar, claveMedico)
       .query(`
         INSERT INTO detalleIncapacidad 
-        (claveConsulta, noNomina, fechaInicial, fechaFinal, diagnostico, estatus, clavepaciente)
-        VALUES (@claveConsulta, @clavenomina, @fechaInicial, @fechaFinal, @diagnostico, @estatus, @clavepaciente)
+          (claveConsulta, noNomina, fechaInicial, fechaFinal, diagnostico, estatus, clavepaciente, claveMedico)
+        VALUES (
+          @claveConsulta, 
+          @clavenomina, 
+          CONVERT(datetime2(7), @fechaInicial, 126), 
+          CONVERT(datetime2(7), @fechaFinal, 126), 
+          @diagnostico, 
+          @estatus, 
+          @clavepaciente, 
+          @claveMedico
+        )
       `);
 
-    console.log("Incapacidad guardada exitosamente en la base de datos.");
+    console.log(`Incapacidad guardada exitosamente en la base de datos con estatus: ${estatus}`);
 
-    //* Actualizar la tabla consultas
     await transaction
       .request()
       .input("claveConsulta", sql.Int, claveConsulta)
@@ -81,26 +96,18 @@ export default async function handler(req, res) {
         WHERE claveConsulta = @claveConsulta
       `);
 
-    console.log(
-      `Columna seAsignoIncapacidad actualizada correctamente con el valor: ${seAsignoIncapacidad}`
-    );
+    console.log(`Columna seAsignoIncapacidad actualizada correctamente con el valor: ${seAsignoIncapacidad}`);
 
-    //* Confirmar la transacción
     await transaction.commit();
     console.log("Transacción confirmada.");
 
-    res.status(200).json({
-      message: "Datos guardados correctamente.",
-    });
+    res.status(200).json({ message: "Datos guardados correctamente." });
   } catch (error) {
     console.error("Error al guardar los datos:", error);
-
-    //! Revertir la transacción si ocurrió un error
     if (transaction) {
       await transaction.rollback();
       console.log("Transacción revertida debido a un error.");
     }
-
     res.status(500).json({ message: "Error al guardar los datos." });
   }
 }

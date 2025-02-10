@@ -9,6 +9,9 @@ import "react-datepicker/dist/react-datepicker.css";
 import Pusher from "pusher-js";
 import { FormularioContext } from "/src/context/FormularioContext";
 
+// 🚀 IMPORTA tu componente de tabla
+import HistorialIncapacidadesTable from "./historial-incapacidades";
+
 const MySwal = withReactContent(Swal);
 
 const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
@@ -19,27 +22,27 @@ const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
   const [isFechaInicioOpen, setIsFechaInicioOpen] = useState(false);
   const [isFechaFinOpen, setIsFechaFinOpen] = useState(false);
   const [diagnostico, setDiagnostico] = useState("");
+
+  // 🔴 Reemplazamos la tabla inline por un componente
   const [historialIncapacidades, setHistorialIncapacidades] = useState([]);
 
-  //* Cargar historial de incapacidades desde el backend
+  // -------------------------------------------------------------
+  // 1) Cargar historial de incapacidades desde el backend, SOLO con clavenomina
+  //    y sin formatear las fechas (ya vienen listas del backend)
+  // -------------------------------------------------------------
   useEffect(() => {
-    if (!clavenomina || !clavepaciente) {
-      console.warn("Faltan parámetros requeridos. Evitando llamada a la API.");
+    if (!clavenomina) {
+      console.warn("Falta 'clavenomina'. Evitando llamada a la API.");
       setHistorialIncapacidades([]);
       return;
     }
 
-    console.log(
-      `Cargando historial para clavenomina: ${clavenomina}, clavepaciente: ${clavepaciente}`
-    );
+    console.log(`Cargando historial para clavenomina: ${clavenomina}`);
 
     const fetchHistorialIncapacidades = async () => {
       try {
-        //* Construir la URL con los parámetros requeridos
-        const queryParams = new URLSearchParams({
-          clavenomina: clavenomina,
-          clavepaciente: clavepaciente,
-        });
+        // Construir la URL solo con clavenomina
+        const queryParams = new URLSearchParams({ clavenomina });
 
         const response = await fetch(
           `/api/incapacidades/historial?${queryParams.toString()}`
@@ -54,28 +57,16 @@ const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
         const data = await response.json();
 
         if (data && Array.isArray(data.historial)) {
-          const historialFormateado = data.historial
-            .filter((item) => item.idDetalleIncapacidad)
-            .map((item) => ({
-              ...item,
-              fechaInicial: item.fechaInicial
-                ? new Date(item.fechaInicial).toLocaleDateString("es-MX", {
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "numeric",
-                  })
-                : "Sin fecha",
-              fechaFinal: item.fechaFinal
-                ? new Date(item.fechaFinal).toLocaleDateString("es-MX", {
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "numeric",
-                  })
-                : "Sin fecha",
-            }));
+          // Simplemente filtrar, sin formatear fechas (asumes que ya vienen formateadas)
+          const historialSinFormatear = data.historial.filter(
+            (item) => item.claveincapacidad
+          );
 
-          console.log("Historial formateado y ordenado:", historialFormateado);
-          setHistorialIncapacidades(historialFormateado);
+          console.log(
+            "Historial recibido (sin formatear):",
+            historialSinFormatear
+          );
+          setHistorialIncapacidades(historialSinFormatear);
         } else {
           console.warn("El historial no es un array válido:", data.historial);
           setHistorialIncapacidades([]);
@@ -87,14 +78,25 @@ const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
     };
 
     fetchHistorialIncapacidades();
-  }, [clavenomina, clavepaciente]);
+  }, [clavenomina]);
 
+  // -------------------------------------------------------------
+  // 2) Guardar datos en localStorage si se autoriza la incapacidad
+  // -------------------------------------------------------------
   useEffect(() => {
     if (autorizarIncapacidad === "si") {
       const incapacidadData = {
         autorizarIncapacidad,
-        fechaInicio: fechaInicio ? fechaInicio.toISOString() : null,
-        fechaFin: fechaFin ? fechaFin.toISOString() : null,
+        fechaInicio: fechaInicio
+          ? typeof fechaInicio === "string"
+            ? fechaInicio
+            : fechaInicio.toISOString()
+          : null,
+        fechaFin: fechaFin
+          ? typeof fechaFin === "string"
+            ? fechaFin
+            : fechaFin.toISOString()
+          : null,
         diagnostico: diagnostico.trim() || null,
       };
 
@@ -103,6 +105,9 @@ const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
     }
   }, [autorizarIncapacidad, fechaInicio, fechaFin, diagnostico]);
 
+  // -------------------------------------------------------------
+  // 3) Cargar datos previos de localStorage (si existen)
+  // -------------------------------------------------------------
   useEffect(() => {
     const savedData = localStorage.getItem("Incapacidad");
     if (savedData) {
@@ -117,6 +122,9 @@ const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
     }
   }, []);
 
+  // -------------------------------------------------------------
+  // 4) Actualizar el estado del formulario global (FormularioContext)
+  // -------------------------------------------------------------
   useEffect(() => {
     const camposCompletos =
       autorizarIncapacidad === "no" ||
@@ -135,6 +143,9 @@ const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
     updateFormulario,
   ]);
 
+  // -------------------------------------------------------------
+  // 5) Si se elige "No", resetea y guarda en localStorage
+  // -------------------------------------------------------------
   useEffect(() => {
     if (autorizarIncapacidad === "no") {
       const incapacidadData = {
@@ -149,6 +160,9 @@ const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
     }
   }, [autorizarIncapacidad]);
 
+  // -------------------------------------------------------------
+  // 6) Suscribirse a Pusher para actualizaciones en tiempo real
+  // -------------------------------------------------------------
   useEffect(() => {
     const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY, {
       cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER,
@@ -167,7 +181,7 @@ const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
         ) {
           const historialFormateado = data.historial.map((item) => ({
             ...item,
-            claveConsulta: item.claveConsulta || "Sin clave",
+            claveConsulta: item.noNomina || "Sin clave",
             diagnostico: item.diagnostico || "Sin diagnóstico",
             fechaInicial: item.fechaInicial
               ? new Date(item.fechaInicial).toLocaleDateString("es-MX", {
@@ -193,12 +207,12 @@ const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
           setHistorialIncapacidades((prev) => {
             const combinado = [...prev, ...historialFormateado];
 
-            //! Eliminar duplicados basado en idDetalleIncapacidad
+            // Eliminar duplicados basado en claveincapacidad
             const unico = combinado.reduce((acc, current) => {
               if (
                 !acc.some(
                   (item) =>
-                    item.idDetalleIncapacidad === current.idDetalleIncapacidad
+                    item.claveincapacidad === current.claveincapacidad
                 )
               ) {
                 acc.push(current);
@@ -207,7 +221,7 @@ const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
             }, []);
 
             return unico.sort(
-              (a, b) => b.idDetalleIncapacidad - a.idDetalleIncapacidad
+              (a, b) => b.claveincapacidad - a.claveincapacidad
             );
           });
         } else {
@@ -227,6 +241,9 @@ const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
     };
   }, [clavepaciente]);
 
+  // -------------------------------------------------------------
+  // Manejador para cambiar Sí / No
+  // -------------------------------------------------------------
   const handleAutorizarChange = (value) => {
     setAutorizarIncapacidad(value);
     if (value === "no") {
@@ -240,12 +257,25 @@ const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
     }
   };
 
+  // ----------------------------------------------------------------
+  // Función auxiliar parseLocalDateString (si la necesitas)
+  // ----------------------------------------------------------------
+  function parseLocalDateString(dateString) {
+    const [datePart] = dateString.split(" ");
+    const [year, month, day] = datePart.split("-").map(Number);
+    return new Date(year, month - 1, day);
+  }
+
+  // ----------------------------------------------------------------
+  // Render principal
+  // ----------------------------------------------------------------
   return (
     <div className="bg-gray-800 p-4 md:p-8 rounded-lg shadow-lg">
       <h3 className="text-2xl md:text-3xl font-bold mb-4 md:mb-6 text-white">
         Incapacidades
       </h3>
 
+      {/* ¿Autorizar incapacidad? */}
       <div className="mb-8">
         <p className="text-white font-semibold mb-2">¿Autorizar incapacidad?</p>
         <div className="grid grid-cols-2 gap-4">
@@ -270,6 +300,7 @@ const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
 
       {autorizarIncapacidad === "si" && (
         <>
+          {/* Fecha Inicial */}
           <div className="mb-6">
             <label className="block text-xl font-extrabold text-cyan-400 mb-3 tracking-wider">
               Fecha Inicial:
@@ -285,7 +316,7 @@ const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
                 <FaCalendarAlt className="text-cyan-400 mr-4" size={28} />
                 <span className="text-cyan-200 font-medium">
                   {fechaInicio
-                    ? fechaInicio.toLocaleDateString()
+                    ? fechaInicio.substring(0, 10)
                     : "📅 Selecciona una fecha"}
                 </span>
               </div>
@@ -293,21 +324,29 @@ const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
                 <div className="absolute top-16 left-0 z-50 bg-gradient-to-br from-gray-900 via-black to-gray-800 p-6 rounded-3xl shadow-lg ring-2 ring-cyan-500">
                   <Calendar
                     onChange={(date) => {
-                      setFechaInicio(date);
-                      setFechaFin(null); // Reiniciar la fecha final al cambiar la inicial
+                      const year = date.getFullYear();
+                      const month = String(date.getMonth() + 1).padStart(
+                        2,
+                        "0"
+                      );
+                      const day = String(date.getDate()).padStart(2, "0");
+                      const fechaSeleccionada = `${year}-${month}-${day} 00:00:00.000`;
+                      setFechaInicio(fechaSeleccionada);
+                      setFechaFin(null);
                       setIsFechaInicioOpen(false);
+                      console.log("Fecha Inicial:", fechaSeleccionada);
                     }}
-                    value={fechaInicio}
+                    value={
+                      fechaInicio
+                        ? new Date(fechaInicio.replace(" ", "T"))
+                        : null
+                    }
                     className="bg-gradient-to-br from-gray-900 via-black to-gray-800 rounded-lg text-cyan-300"
                     tileDisabled={({ date }) => {
                       const today = new Date();
-                      today.setHours(0, 0, 0, 0); // Comparar solo por fecha
-                      // Deshabilitar fechas anteriores al día actual
-                      return date < today;
+                      today.setHours(0, 0, 0, 0);
+                      return date < today; // deshabilitar fechas pasadas
                     }}
-                    tileClassName={({ date, view }) =>
-                      "text-gray-500 bg-gray-800 border border-gray-700 rounded-md"
-                    }
                     navigationLabel={({ date }) => (
                       <p className="text-lg font-bold text-cyan-400">
                         {date.toLocaleString("default", {
@@ -326,6 +365,7 @@ const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
             </div>
           </div>
 
+          {/* Fecha Final */}
           <div className="mb-6">
             <label className="block text-xl font-extrabold text-pink-400 mb-3 tracking-wider">
               Fecha Final:
@@ -341,7 +381,7 @@ const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
                 <FaCalendarAlt className="text-pink-400 mr-4" size={28} />
                 <span className="text-pink-200 font-medium">
                   {fechaFin
-                    ? fechaFin.toLocaleDateString()
+                    ? fechaFin.substring(0, 10)
                     : "📅 Selecciona una fecha"}
                 </span>
               </div>
@@ -349,28 +389,31 @@ const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
                 <div className="absolute top-16 left-0 z-50 bg-gradient-to-br from-gray-900 via-black to-gray-800 p-6 rounded-3xl shadow-lg ring-2 ring-pink-500">
                   <Calendar
                     onChange={(date) => {
-                      setFechaFin(date);
+                      const year = date.getFullYear();
+                      const month = String(date.getMonth() + 1).padStart(
+                        2,
+                        "0"
+                      );
+                      const day = String(date.getDate()).padStart(2, "0");
+                      const fechaFinalSeleccionada = `${year}-${month}-${day} 23:59:59.000`;
+                      setFechaFin(fechaFinalSeleccionada);
                       setIsFechaFinOpen(false);
+                      console.log("Fecha Final:", fechaFinalSeleccionada);
                     }}
-                    value={fechaFin}
+                    value={
+                      fechaFin ? new Date(fechaFin.replace(" ", "T")) : null
+                    }
                     className="bg-gradient-to-br from-gray-900 via-black to-gray-800 rounded-lg text-pink-300"
                     tileDisabled={({ date }) => {
-                      if (!fechaInicio) return true; // Deshabilitar si no hay fecha inicial seleccionada
-
-                      const maxDate = new Date(fechaInicio);
-                      maxDate.setDate(maxDate.getDate() + 15); // Agregar 15 días a la fecha inicial
-
+                      if (!fechaInicio) return true;
+                      // Máximo 15 días después de inicial
+                      const fechaIni = new Date(fechaInicio.replace(" ", "T"));
+                      const maxDate = new Date(fechaIni);
+                      maxDate.setDate(fechaIni.getDate() + 15);
                       const today = new Date();
-                      today.setHours(0, 0, 0, 0); // Comparar solo por fecha
-
-                      // Deshabilitar fechas fuera del rango permitido
-                      return (
-                        date < fechaInicio || date > maxDate || date < today
-                      );
+                      today.setHours(0, 0, 0, 0);
+                      return date < fechaIni || date > maxDate || date < today;
                     }}
-                    tileClassName={({ date, view }) =>
-                      "text-gray-500 bg-gray-800 border border-gray-700 rounded-md"
-                    }
                     navigationLabel={({ date }) => (
                       <p className="text-lg font-bold text-pink-400">
                         {date.toLocaleString("default", {
@@ -389,6 +432,7 @@ const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
             </div>
           </div>
 
+          {/* Diagnóstico */}
           <div className="mb-6">
             <label className="text-white font-semibold mb-2 block">
               Diagnóstico:
@@ -403,69 +447,9 @@ const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
         </>
       )}
 
+      {/* 🔴 AquÍ NO está la tabla inline, sino la llamada al componente */}
       {historialIncapacidades.length >= 0 && (
-        <div className="bg-gray-900 p-6 md:p-8 rounded-xl shadow-2xl mt-16">
-          <h2 className="text-2xl md:text-4xl font-semibold mb-4 text-center text-purple-400">
-            Historial de Incapacidades
-          </h2>
-          <div className="overflow-x-auto">
-            <table className="min-w-full rounded-lg text-left">
-              <thead>
-                <tr className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white border-b border-gray-700">
-                  <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
-                    Clave Consulta
-                  </th>
-                  <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
-                    Diagnóstico
-                  </th>
-                  <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
-                    Fecha de Inicio
-                  </th>
-                  <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
-                    Fecha de Fin
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {historialIncapacidades.length > 0 ? (
-                  historialIncapacidades
-                    .filter(
-                      (item) => item.idDetalleIncapacidad && item.claveConsulta
-                    ) //* Filtrar filas inválidas
-                    .sort(
-                      (a, b) => b.idDetalleIncapacidad - a.idDetalleIncapacidad
-                    ) //* Ordenar por idDetalleIncapacidad
-                    .map((item) => (
-                      <tr
-                        key={item.idDetalleIncapacidad} //* Usar idDetalleIncapacidad como clave
-                        className="hover:bg-purple-600 hover:bg-opacity-50 transition-colors duration-300"
-                      >
-                        <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
-                          {item.claveConsulta || "Sin clave"}
-                        </td>
-                        <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
-                          {item.diagnostico || "Sin diagnóstico"}
-                        </td>
-                        <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
-                          {item.fechaInicial || "Sin fecha"}
-                        </td>
-                        <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
-                          {item.fechaFinal || "Sin fecha"}
-                        </td>
-                      </tr>
-                    ))
-                ) : (
-                  <tr>
-                    <td colSpan="4" className="text-center py-6 text-gray-400">
-                      No hay incapacidades registradas para el paciente
-                      seleccionado.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <HistorialIncapacidadesTable historial={historialIncapacidades} />
       )}
     </div>
   );
