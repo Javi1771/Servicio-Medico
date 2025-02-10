@@ -1,4 +1,3 @@
-// /pages/api/SURTIMIENTOS2/generarSurtimiento.js
 import { connectToDatabase } from "../connectToDatabase";
 import sql from "mssql";
 
@@ -49,12 +48,17 @@ export default async function handler(req, res) {
       .input("folioReceta", sql.Int, folioReceta)
       .query(verificaQuery);
 
-    console.log("Resultado de la verificación de surtimiento:", verificaResult.recordset[0]);
+    console.log(
+      "Resultado de la verificación de surtimiento:",
+      verificaResult.recordset[0]
+    );
 
     if (verificaResult.recordset[0].count > 0) {
       console.log("Ya se ha generado un surtimiento para este folio.");
       await transaction.rollback();
-      return res.status(400).json({ message: "Ya se ha generado un surtimiento para este folio." });
+      return res
+        .status(400)
+        .json({ message: "Ya se ha generado un surtimiento para este folio." });
     }
 
     // 2. Generar un nuevo FOLIO_SURTIMIENTO
@@ -82,21 +86,42 @@ export default async function handler(req, res) {
     if (consultaResult.recordset.length === 0) {
       console.error("No se encontró información para el folio:", folioReceta);
       await transaction.rollback();
-      return res.status(404).json({ message: "No se encontró información del folio." });
+      return res
+        .status(404)
+        .json({ message: "No se encontró información del folio." });
     }
 
     const consulta = consultaResult.recordset[0];
     console.log("Datos de la consulta encontrados:", consulta);
 
-    // 4. Determinar el sindicato con base en clavenomina
-    const getSindicato = (clavenomina) => {
-      if (clavenomina.startsWith("9")) {
-        return "SUTSMSJR";
-      } else if (clavenomina.startsWith("8")) {
-        return "SITAM";
-      } else if (clavenomina.startsWith("3")) { // Ajusta esta lógica según tus reglas
-        return "OTRO_SINDICATO"; // Reemplaza con el sindicato correcto
-      } else {
+    //? 4. Determinar el sindicato con base en clavenomina
+    //* getSindicato recibe la "claveconsulta" (folioReceta)
+    //* y realiza una petición a tu API para traer el sindicato.
+    const getSindicato = async (folioReceta) => {
+      try {
+        //* Petición POST a tu endpoint que devuelva la info de la columna "sindicato"
+        const response = await fetch("/api/consultas/getsindicato", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ claveconsulta: folioReceta }),
+        });
+
+        //* Si la respuesta no es OK, arrojamos un error para manejarlo en el catch
+        if (!response.ok) {
+          throw new Error("Error al obtener el sindicato");
+        }
+
+        //* Parseamos la respuesta (JSON)
+        const data = await response.json();
+
+        //* data.sindicato contendrá el valor en la columna "sindicato"
+        //! Si viene null o undefined, retornamos "No está sindicalizado"
+        return data.sindicato ?? "No está sindicalizado";
+      } catch (error) {
+        console.error("Error en getSindicato:", error);
+        //! Retornar un string fijo o null para indicar error
         return null;
       }
     };
@@ -109,7 +134,10 @@ export default async function handler(req, res) {
     if (departamento && departamento.length > 100) {
       departamento = departamento.substring(0, 100);
     }
-    console.log("Longitud del valor del campo departamento después de normalizar:", departamento ? departamento.length : 0);
+    console.log(
+      "Longitud del valor del campo departamento después de normalizar:",
+      departamento ? departamento.length : 0
+    );
 
     // 6. Verificar que los campos necesarios no sean NULL
     if (!consulta.clavenomina) {
@@ -203,20 +231,25 @@ export default async function handler(req, res) {
       )
     `;
 
-    for (const medicamento of medicamentos) { // Asegúrate de que 'medicamentos' es el nombre correcto
+    for (const medicamento of medicamentos) {
+      // Asegúrate de que 'medicamentos' es el nombre correcto
       console.log("Insertando medicamento:", medicamento);
-      
+
       // Crear una nueva instancia de sql.Request para cada medicamento
       const insertDetalleRequest = new sql.Request(transaction);
-      
+
       await insertDetalleRequest
         .input("folioSurtimiento", sql.Int, nuevoFolio)
-        .input("claveMedicamento", sql.NVarChar(12), medicamento.claveMedicamento)
+        .input(
+          "claveMedicamento",
+          sql.NVarChar(12),
+          medicamento.claveMedicamento
+        )
         .input("indicaciones", sql.NVarChar(sql.MAX), medicamento.indicaciones)
         .input("cantidad", sql.NVarChar(70), medicamento.cantidad)
         .query(insertDetalleQuery);
     }
-    
+
     console.log("Todos los medicamentos insertados exitosamente.");
 
     // 9. Actualizar el diagnóstico en la tabla consultas

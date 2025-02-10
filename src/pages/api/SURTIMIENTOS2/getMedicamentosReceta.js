@@ -19,7 +19,8 @@ export default async function handler(req, res) {
           dr.folioReceta,
           dr.indicaciones,
           dr.cantidad,
-          m.MEDICAMENTO AS nombreMedicamento
+          m.MEDICAMENTO AS nombreMedicamento,
+          m.CLAVEMEDICAMENTO AS claveMedicamento
         FROM [PRESIDENCIA].[dbo].[detalleReceta] AS dr
         JOIN [PRESIDENCIA].[dbo].[MEDICAMENTOS] AS m
           ON dr.descMedicamento = m.CLAVEMEDICAMENTO

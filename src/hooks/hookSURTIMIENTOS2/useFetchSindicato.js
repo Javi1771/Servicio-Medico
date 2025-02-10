@@ -5,15 +5,18 @@ export default function useFetchSindicato() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const fetchSindicato = async (folio) => {
+  const fetchSindicato = async (folioReceta) => {
     setLoading(true);
     setError(null);
 
     try {
-      const response = await fetch("/api/SURTIMIENTOS2/getSindicato", {
+      // Ajusta la ruta al endpoint donde tengas getsindicato.js
+      // En este ejemplo: /api/consultas/getsindicato
+      const response = await fetch("/api/SURTIMIENTOS2/getsindicato", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ folio }),
+        body: JSON.stringify({ claveconsulta: folioReceta }), 
+        // En tu backend estás esperando `claveconsulta`
       });
 
       if (!response.ok) {
@@ -21,7 +24,12 @@ export default function useFetchSindicato() {
       }
 
       const data = await response.json();
-      setSindicato(data); // Guardar el objeto completo
+
+      // data.sindicato puede venir null si no está sindicalizado
+      // Puedes guardar el valor directamente...
+      // Si quieres mostrar un texto custom, puedes hacer algo como:
+      // setSindicato(data.sindicato ?? "No está sindicalizado");
+      setSindicato(data.sindicato);
     } catch (err) {
       setError(err.message);
       setSindicato(null);

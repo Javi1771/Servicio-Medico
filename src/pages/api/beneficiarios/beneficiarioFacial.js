@@ -31,6 +31,7 @@ export default async function handler(req, res) {
           FROM BENEFICIARIO B
           LEFT JOIN PARENTESCO P ON B.PARENTESCO = P.ID_PARENTESCO
           WHERE B.NO_NOMINA = @nomina AND B.ID_BENEFICIARIO = @ID_BENEFICIARIO
+            AND B.ACTIVO = 'A'
         `);
 
       console.log("Resultados de la consulta:", result.recordset);

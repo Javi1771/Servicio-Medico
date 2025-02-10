@@ -1,62 +1,50 @@
 import { connectToDatabase } from "../connectToDatabase";
-import sql from "mssql";
-import { createClientAsync } from "soap";
-
-const soapUrl = "http://172.16.0.7:8082/ServiceEmp/ServiceEmp.svc?wsdl";
+import sql from "mssql"; // Importar 'mssql' si necesitas tipos (sql.Int, sql.NVarChar, etc.)
 
 export default async function handler(req, res) {
+  // Solo aceptamos POST
   if (req.method !== "POST") {
-    return res.status(405).json({ message: "Método no permitido" });
+    return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const { folio } = req.body;
+  const { claveconsulta } = req.body;
 
-  if (!folio) {
-    return res.status(400).json({ message: "El folio es requerido." });
+  // Validamos que venga claveconsulta
+  if (!claveconsulta) {
+    return res
+      .status(400)
+      .json({ error: "La propiedad 'claveconsulta' es obligatoria." });
   }
 
   try {
-    // Conectar a la base de datos y obtener clave nómina
+    // En este punto connectToDatabase() debe retornar el pool
     const pool = await connectToDatabase();
-    console.log("Conectado a la base de datos. Buscando clave nómina...");
 
+    // Llamamos al request() de esa conexión
     const result = await pool
       .request()
-      .input("folio", sql.Int, folio)
-      .query(`
-        SELECT clavenomina
-        FROM [PRESIDENCIA].[dbo].[consultas]
-        WHERE claveconsulta = @folio
-      `);
+      // Ajusta el tipo según corresponda (sql.Int, sql.NVarChar, etc.)
+      .input("claveconsulta", sql.Int, claveconsulta)
+      .query(
+        "SELECT sindicato FROM consultas WHERE claveconsulta = @claveconsulta"
+      );
 
-    if (result.recordset.length === 0) {
+    if (!result.recordset || result.recordset.length === 0) {
       return res
         .status(404)
-        .json({ message: "No se encontró la clave nómina para el folio proporcionado." });
+        .json({ error: "No se encontró ninguna consulta con esa clave." });
     }
 
-    const clavenomina = result.recordset[0].clavenomina;
-    console.log("Clave nómina encontrada:", clavenomina);
+    const { sindicato } = result.recordset[0];
 
-    // Consultar en el servicio SOAP
-    const client = await createClientAsync(soapUrl);
-    console.log("Cliente SOAP creado exitosamente.");
-
-    const empObject = { emp: { num_nom: clavenomina } };
-    const [resultSOAP] = await client.GetEmpleadoAsync(empObject);
-
-    if (!resultSOAP || !resultSOAP.GetEmpleadoResult) {
-      return res.status(404).json({ message: "No se encontraron datos en el servicio SOAP." });
-    }
-
-    const empleado = resultSOAP.GetEmpleadoResult;
-
-    // Extraer grupoNomina y cuotaSindical
-    const { grupoNomina, cuotaSindical } = empleado;
-
-    return res.status(200).json({ grupoNomina, cuotaSindical });
+    // Retornamos lo que obtuvimos (o null si viene undefined)
+    return res.status(200).json({
+      sindicato: sindicato ?? null,
+    });
   } catch (error) {
-    console.error("Error al obtener datos del sindicato:", error.message);
-    return res.status(500).json({ message: "Error interno del servidor." });
+    console.error("Error en getsindicato:", error);
+    return res
+      .status(500)
+      .json({ error: "Error al obtener sindicato de la base de datos" });
   }
 }

@@ -8,10 +8,10 @@ import {
   FaUserCheck,
   FaBookMedical,
   FaStethoscope,
-  FaCapsules,
   FaBan,
+  FaLaptopMedical,
   FaChartLine,
-  FaFacebook,
+  FaMedkit 
 } from "react-icons/fa";
 import { MdLogout } from "react-icons/md";
 import Cookies from "js-cookie";
@@ -115,7 +115,7 @@ const PresidenteLayout: React.FC<PresidenteLayoutProps> = ({ children }) => {
     {
       title: "Capturas",
       icon: (
-        <FaCapsules className="text-blue-400 text-3xl group-hover:scale-110 transition-transform duration-300" />
+        <FaLaptopMedical className="text-blue-400 text-3xl group-hover:scale-110 transition-transform duration-300" />
       ),
       options: [
         {
@@ -123,6 +123,7 @@ const PresidenteLayout: React.FC<PresidenteLayoutProps> = ({ children }) => {
           path: "/capturas/pases-a-especialidades",
         },
         { name: "Surtimientos", path: "/capturas/surtimientos" },
+        { name: "Surtimientos2", path: "/capturas/surtimientos2" },
         {
           name: "Orden de Estudio de Laboratorio",
           path: "/capturas/orden-estudio-laboratorio",
@@ -147,6 +148,13 @@ const PresidenteLayout: React.FC<PresidenteLayoutProps> = ({ children }) => {
         { name: "Incapacidades", path: "/reportes/incapacidades" },
         { name: "Costos", path: "/reportes/costos" },
       ],
+    },
+    {
+      title: "Farmacia",
+      icon: (
+        <FaMedkit  className="text-blue-400 text-3xl group-hover:scale-110 transition-transform duration-300" />
+      ),
+      options: [{ name: "Medicamentos", path: "/farmacia/medicamentos" }],
     },
   ];
 

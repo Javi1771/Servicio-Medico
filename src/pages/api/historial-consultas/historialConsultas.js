@@ -34,6 +34,7 @@ export default async function handler(req, res) {
         ON c.especialidadinterconsulta = e.claveespecialidad
       WHERE c.clavenomina = @clavenomina
         AND c.clavepaciente = @clavepaciente
+        AND c.clavestatus = 2
       ORDER BY c.fechaconsulta DESC
     `;
 

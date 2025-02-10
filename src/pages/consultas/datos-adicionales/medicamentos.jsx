@@ -7,9 +7,10 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
   const [listaMedicamentos, setListaMedicamentos] = useState([]);
   const [historialMedicamentos, setHistorialMedicamentos] = useState([]);
   const [decisionTomada, setDecisionTomada] = useState("no");
+
   const { updateFormulario } = useContext(FormularioContext);
 
-  //* Cargar lista de medicamentos desde el backend
+  //* 1) Cargar lista de medicamentos desde el backend
   useEffect(() => {
     fetch("/api/medicamentos/listar")
       .then((res) => res.json())
@@ -17,7 +18,7 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
       .catch((err) => console.error("Error al cargar medicamentos:", err));
   }, []);
 
-  //* Cargar historial de medicamentos desde el backend
+  //* 2) Cargar historial de medicamentos desde el backend
   useEffect(() => {
     if (clavenomina && clavepaciente) {
       const url = `/api/medicamentos/historial?${new URLSearchParams({
@@ -28,6 +29,7 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
       fetch(url)
         .then((res) => res.json())
         .then((data) => {
+          console.log("Historial de medicamentos recibido:", data);
           if (data.ok) {
             setHistorialMedicamentos(data.historial || []);
           } else {
@@ -39,7 +41,7 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
     }
   }, [clavenomina, clavepaciente]);
 
-  //* Verificar si todos los campos están completos
+  //* 3) Verificar si todos los campos están completos
   useEffect(() => {
     const camposCompletos =
       decisionTomada === "no" ||
@@ -51,62 +53,77 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
     updateFormulario("Medicamentos", camposCompletos);
   }, [medicamentos, decisionTomada, updateFormulario]);
 
-  //* Guardar medicamentos en localStorage
+  //* 4) Guardar medicamentos en localStorage si la decisión es "si"
   useEffect(() => {
     if (decisionTomada === "si") {
       localStorage.setItem("medicamentos", JSON.stringify(medicamentos));
     }
   }, [medicamentos, decisionTomada]);
 
-  //* Manejo del cambio de decisión
+  //* 5) Manejo del cambio de decisión (Sí/No)
   const handleDecision = (decision) => {
     console.log(`🛠️ Decisión tomada: ${decision}`);
     setDecisionTomada(decision);
-  
+
     if (decision === "no") {
       console.log("🧹 Limpiando medicamentos porque la decisión es 'No'");
       setMedicamentos([]);
-      localStorage.removeItem("medicamentos"); // Limpia medicamentos del localStorage
+      localStorage.removeItem("medicamentos");
     } else {
       console.log("➕ Agregando un medicamento inicial porque la decisión es 'Sí'");
-      const savedMedicamentos = JSON.parse(localStorage.getItem("medicamentos")) || [];
-      setMedicamentos(savedMedicamentos.length > 0 ? savedMedicamentos : [{ medicamento: "", indicaciones: "", tratamiento: "" }]);
+      const savedMedicamentos =
+        JSON.parse(localStorage.getItem("medicamentos")) || [];
+      setMedicamentos(
+        savedMedicamentos.length > 0
+          ? savedMedicamentos
+          : [{ medicamento: "", indicaciones: "", tratamiento: "" }]
+      );
     }
-  
-    localStorage.setItem("decisionTomada", decision);
-  };  
 
+    localStorage.setItem("decisionTomada", decision);
+  };
+
+  //* 6) Al montar, recuperar decisión, medicamentos e historial del localStorage (si hay)
   useEffect(() => {
     const savedDecision = localStorage.getItem("decisionTomada");
-    const savedMedicamentos = JSON.parse(localStorage.getItem("medicamentos")) || [];
-    const savedHistorial = JSON.parse(localStorage.getItem("historialMedicamentos")) || [];
-  
+    const savedMedicamentos =
+      JSON.parse(localStorage.getItem("medicamentos")) || [];
+    const savedHistorial =
+      JSON.parse(localStorage.getItem("historialMedicamentos")) || [];
+
     if (savedDecision) setDecisionTomada(savedDecision);
     if (savedMedicamentos.length > 0) setMedicamentos(savedMedicamentos);
     if (savedHistorial.length > 0) setHistorialMedicamentos(savedHistorial);
   }, []);
 
+  //* 7) Guardar el historial de medicamentos en localStorage al cambiar
   useEffect(() => {
-    localStorage.setItem("historialMedicamentos", JSON.stringify(historialMedicamentos));
+    localStorage.setItem(
+      "historialMedicamentos",
+      JSON.stringify(historialMedicamentos)
+    );
   }, [historialMedicamentos]);
-  
 
+  //* 8) Manejar cambio en la selección o texto de cada medicamento
   const handleMedicamentoChange = (index, field, value) => {
     const nuevosMedicamentos = [...medicamentos];
     nuevosMedicamentos[index][field] = value;
     setMedicamentos(nuevosMedicamentos);
   };
 
+  //* 9) Guardar la decisión en localStorage
   useEffect(() => {
     localStorage.setItem("decisionTomada", decisionTomada);
-  }, [decisionTomada]);  
+  }, [decisionTomada]);
 
+  //* 10) Agregar un nuevo objeto medicamento
   const agregarMedicamento = () =>
     setMedicamentos([
       ...medicamentos,
       { medicamento: "", indicaciones: "", tratamiento: "" },
     ]);
 
+  //* 11) Quitar un medicamento del array
   const quitarMedicamento = (index) =>
     setMedicamentos(medicamentos.filter((_, i) => i !== index));
 
@@ -116,7 +133,7 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
         Prescripción de Medicamentos
       </h3>
 
-      {/* Pregunta inicial */}
+      {/* Pregunta inicial (Sí/No) */}
       <div className="mb-6">
         <p className="text-white font-semibold mb-2">
           ¿Se darán medicamentos en esta consulta?
@@ -141,6 +158,7 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
         </div>
       </div>
 
+      {/* Formulario para medicamentos si la respuesta es "sí" */}
       {decisionTomada === "si" &&
         medicamentos.map((med, index) => (
           <div
@@ -148,6 +166,7 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
             className="mb-6 bg-gradient-to-br from-gray-700 to-gray-800 p-6 rounded-lg shadow-lg"
           >
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Selección de Medicamento */}
               <div>
                 <label className="text-lg font-semibold text-gray-200">
                   Medicamento:
@@ -155,22 +174,22 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
                 <select
                   value={med.medicamento}
                   onChange={(e) =>
-                    handleMedicamentoChange(
-                      index,
-                      "medicamento",
-                      e.target.value
-                    )
+                    handleMedicamentoChange(index, "medicamento", e.target.value)
                   }
                   className="mt-2 block w-full h-12 rounded-lg bg-gray-700 border-gray-600 text-white p-3 focus:ring-2 focus:ring-purple-600"
                 >
                   <option value="">Seleccionar Medicamento</option>
                   {listaMedicamentos.map((m) => (
-                    <option key={m.CLAVEMEDICAMENTO} value={m.CLAVEMEDICAMENTO}>
+                    <option
+                      key={m.CLAVEMEDICAMENTO}
+                      value={m.CLAVEMEDICAMENTO}
+                    >
                       {m.MEDICAMENTO}
                     </option>
                   ))}
                 </select>
               </div>
+              {/* Indicaciones */}
               <div>
                 <label className="text-lg font-semibold text-gray-200">
                   Indicaciones:
@@ -178,16 +197,13 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
                 <textarea
                   value={med.indicaciones}
                   onChange={(e) =>
-                    handleMedicamentoChange(
-                      index,
-                      "indicaciones",
-                      e.target.value
-                    )
+                    handleMedicamentoChange(index, "indicaciones", e.target.value)
                   }
                   className="mt-2 block w-full h-32 md:h-40 rounded-lg bg-gray-700 border-gray-600 text-white p-3"
                   placeholder="Escribe aquí las indicaciones..."
                 />
               </div>
+              {/* Tratamiento */}
               <div>
                 <label className="text-lg font-semibold text-gray-200">
                   Tratamiento:
@@ -195,17 +211,14 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
                 <textarea
                   value={med.tratamiento}
                   onChange={(e) =>
-                    handleMedicamentoChange(
-                      index,
-                      "tratamiento",
-                      e.target.value
-                    )
+                    handleMedicamentoChange(index, "tratamiento", e.target.value)
                   }
                   className="mt-2 block w-full h-32 md:h-40 rounded-lg bg-gray-700 border-gray-600 text-white p-3"
                   placeholder="Escribe aquí el tratamiento..."
                 />
               </div>
             </div>
+            {/* Botón para quitar este medicamento (si hay más de uno) */}
             {medicamentos.length > 1 && (
               <div className="text-right">
                 <button
@@ -219,6 +232,7 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
           </div>
         ))}
 
+      {/* Botón para agregar medicamento si la respuesta es "sí" */}
       {decisionTomada === "si" && (
         <div className="text-right">
           <button
@@ -248,6 +262,17 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
                 <th className="py-4 px-6 text-base font-semibold">
                   Tratamiento
                 </th>
+                {/* Nueva columna: Proveedor */}
+                <th className="py-4 px-6 text-base font-semibold">
+                  Proveedor
+                </th>
+                {/* Nueva columna: Especialidad */}
+                <th className="py-4 px-6 text-base font-semibold">
+                  Especialidad
+                </th>
+                <th className="py-4 px-6 text-base font-semibold">
+                  Fecha Emisión
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -266,12 +291,24 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
                     <td className="py-4 px-6 border-t border-gray-800 text-gray-300">
                       {item.tratamiento}
                     </td>
+                    {/* Renderizar 'nombreproveedor' */}
+                    <td className="py-4 px-6 border-t border-gray-800 text-gray-300">
+                      {item.nombreproveedor || ""}
+                    </td>
+                    {/* Renderizar 'especialidad' */}
+                    <td className="py-4 px-6 border-t border-gray-800 text-gray-300">
+                      {item.especialidad || ""}
+                    </td>
+                    {/* Renderizar 'fechaEmision' */}
+                    <td className="py-4 px-6 border-t border-gray-800 text-gray-300">
+                      {item.fechaEmision}
+                    </td>
                   </tr>
                 ))
               ) : (
                 <tr>
                   <td
-                    colSpan="3"
+                    colSpan="6"
                     className="py-6 text-center text-gray-400 border-t border-gray-800"
                   >
                     No hay medicamentos registrados.

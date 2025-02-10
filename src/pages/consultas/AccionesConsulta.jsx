@@ -38,25 +38,7 @@ const AccionesConsulta = ({
   }, [claveConsulta, limpiarFormulario, clavepaciente, clavenomina]);
 
   useEffect(() => {
-    if (todosCompletos) {
-      setTooltipMessage({
-        title: "¡Todo está completo!",
-        description: "Todos los formularios están listos para guardar.",
-        icon: "🎉",
-      });
-    } else {
-      const faltantes = Object.entries(formulariosCompletos)
-        .filter(([_, completo]) => !completo)
-        .map(([pantalla]) => pantalla);
-
-      setTooltipMessage({
-        title: "Formularios incompletos",
-        description: `Faltan los siguientes formularios: ${faltantes.join(
-          ", "
-        )}.`,
-        icon: "⚠️",
-      });
-    }
+    setTooltipMessage(tooltipFaltante());
   }, [todosCompletos, formulariosCompletos]);
 
   //* Tooltip para formularios incompletos
@@ -68,16 +50,9 @@ const AccionesConsulta = ({
       Incapacidades: "Incapacidades",
     };
 
+    //* Incluye todas las pantallas que no estén completas
     const faltantes = Object.entries(formulariosCompletos)
-      .filter(
-        ([pantalla, completo]) =>
-          !completo &&
-          !(
-            pantalla === "Medicamentos" ||
-            pantalla === "PaseEspecialidad" ||
-            pantalla === "Incapacidades"
-          )
-      )
+      .filter(([pantalla, completo]) => !completo)
       .map(([pantalla]) => nombresLegibles[pantalla] || pantalla);
 
     if (faltantes.length === 0) {
@@ -179,7 +154,7 @@ const AccionesConsulta = ({
         medicamentosPayload = {
           folioReceta: claveConsulta,
           decisionTomada,
-          medicamentos: [], // Vacío porque no se asignaron medicamentos
+          medicamentos: [], //* Vacío porque no se asignaron medicamentos
         };
       } else {
         if (!Array.isArray(medicamentos) || medicamentos.length === 0) {
