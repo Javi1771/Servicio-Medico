@@ -933,3 +933,25 @@
   font-weight: 300;  /* Fuente más delgada */
   opacity: 0.7;      /* Atenuación menor */
 }
+
+
+.stockBadge {
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: white;
+  display: inline-block;
+}
+
+.goodStock {
+  background-color: #28a745; /* Verde */
+}
+
+.mediumStock {
+  background-color: #ff9800; /* Naranja */
+}
+
+.badStock {
+  background-color: #dc3545; /* Rojo */
+}

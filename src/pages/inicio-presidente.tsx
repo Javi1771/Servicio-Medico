@@ -67,7 +67,7 @@ const InicioPresidente = () => {
       {/* Header */}
       <header className="p-8 bg-gradient-to-br from-gray-800 via-gray-700 to-gray-900 shadow-md rounded-b-3xl">
         <h1 className="text-6xl font-extrabold text-blue-400 bg-gradient-to-r from-gray-800 via-gray-700 to-gray-900 p-4 rounded-xl shadow-lg">
-          Bienvenido Presidente {username}
+          Bienvenido {username}
         </h1>
         <p className="text-gray-400 text-2xl mt-4">
           Aquí están tus estadísticas y accesos rápidos

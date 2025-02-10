@@ -51,7 +51,7 @@ const FormMedicamento = ({ onAddMedicamento, message }) => {
             name="medicamento"
             value={formData.medicamento}
             onChange={handleChange}
-            placeholder="añade el nombre del medicamento"
+            placeholder="añade el nombre del medicamento con gramaje o ml"
             required
             className={styles.input}
           />
@@ -76,20 +76,28 @@ const FormMedicamento = ({ onAddMedicamento, message }) => {
           </select>
         </div>
         <div className={styles.formGroup}>
-          <label htmlFor="presentación" className={styles.label}>
-            Presentación:
-          </label>
-          <input
-            type="number"
-            id="presentación"
-            name="presentación"
-            value={formData.presentación}
-            onChange={handleChange}
-            placeholder="mg, ml, ui, g ..."
-            required
-            className={styles.input}
-          />
-        </div>
+  <label htmlFor="presentación" className={styles.label}>
+    Presentación:
+  </label>
+  <input
+    type="text"
+    id="presentación"
+    name="presentación"
+    value={formData.presentación ? `c/${formData.presentación}` : ""}
+    onChange={(e) => {
+      const numericValue = e.target.value.replace(/\D/g, ""); // Solo números
+      setFormData((prev) => ({
+        ...prev,
+        presentación: numericValue, // Guardamos solo el número en el estado
+      }));
+    }}
+    placeholder="Piezas"
+    required
+    className={styles.input}
+  />
+</div>
+
+
         <div className={styles.formGroup}>
           <label htmlFor="ean" className={styles.label}>
             EAN (Código de Barras):
