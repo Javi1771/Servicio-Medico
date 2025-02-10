@@ -5,7 +5,7 @@ import sql from "mssql";
 function formatFecha(fecha) {
   const date = new Date(fecha);
 
-  // Días de la semana en español
+  //* Días de la semana en español
   const diasSemana = [
     "Domingo",
     "Lunes",
@@ -16,7 +16,7 @@ function formatFecha(fecha) {
     "Sábado",
   ];
 
-  // Obtener valores en UTC (evita desfasar la hora)
+  //* Usar UTC para preservar hora exacta
   const diaSemana = diasSemana[date.getUTCDay()];
   const dia = String(date.getUTCDate()).padStart(2, "0");
   const mes = String(date.getUTCMonth() + 1).padStart(2, "0");
@@ -32,14 +32,12 @@ function formatFecha(fecha) {
 
 export default async function handler(req, res) {
   if (req.method !== "GET") {
-    return res
-      .status(405)
-      .json({ ok: false, error: "Método no permitido" });
+    return res.status(405).json({ ok: false, error: "Método no permitido" });
   }
 
   const { clavenomina, clavepaciente } = req.query;
 
-  // 1) Verificar parámetros
+  //? 1) Verificar parámetros
   if (!clavenomina || !clavepaciente) {
     return res.status(400).json({
       ok: false,
@@ -50,7 +48,7 @@ export default async function handler(req, res) {
   try {
     const pool = await connectToDatabase();
 
-    // 2) Buscar filas en 'consultas' donde (clavenomina AND clavepaciente)
+    //? 2) Buscar filas en 'consultas' donde (clavenomina AND clavepaciente)
     const queryConsultas = `
       SELECT
         claveconsulta,
@@ -66,12 +64,12 @@ export default async function handler(req, res) {
       .input("clavepaciente", sql.NVarChar, clavepaciente)
       .query(queryConsultas);
 
-    const filasConsultas = consultasResult.recordset; 
+    const filasConsultas = consultasResult.recordset;
     if (!filasConsultas.length) {
       return res.status(200).json({ ok: true, historial: [] });
     }
 
-    // Mapa para guardar info:  claveconsulta -> claveproveedor
+    //? Mapa: claveconsulta -> claveproveedor
     const consultasMap = {};
     filasConsultas.forEach((row) => {
       consultasMap[row.claveconsulta] = {
@@ -84,7 +82,7 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true, historial: [] });
     }
 
-    // 3) Buscar en 'detalleReceta' (descartamos texto "Sin indicaciones...", etc.)
+    //? 3) Buscar en 'detalleReceta' (descartamos texto "Sin indicaciones...", etc.)
     const queryDetalleReceta = `
       SELECT
         folioReceta,
@@ -99,17 +97,17 @@ export default async function handler(req, res) {
     const detalleRecetaRes = await pool.request().query(queryDetalleReceta);
     const detalleRecetas = detalleRecetaRes.recordset || [];
 
-    // Filtrar las que tengan: 
-    // "indicaciones" = "Sin indicaciones ya que no se asignaron medicamentos."
-    // "cantidad" = "Sin tiempo de toma estimado, sin medicamentos."
-    // "descMedicamento" = 0
+    //* Filtrar las que tengan:
+    //* indicaciones = "Sin indicaciones ya que no se asignaron medicamentos."
+    //* cantidad = "Sin tiempo de toma estimado, sin medicamentos."
+    //* descMedicamento = 0
     const recetasFiltradas = detalleRecetas.filter((r) => {
       if (
         r.indicaciones === "Sin indicaciones ya que no se asignaron medicamentos." ||
         r.cantidad === "Sin tiempo de toma estimado, sin medicamentos." ||
         r.descMedicamento === 0
       ) {
-        return false; // descartar
+        return false; //! descartar
       }
       return true;
     });
@@ -118,10 +116,8 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true, historial: [] });
     }
 
-    // 4) Revisar SURTIMIENTOS => filtrar si FECHA_EMISION > 30 días
-    const foliosUnicos = [
-      ...new Set(recetasFiltradas.map((r) => r.folioReceta)),
-    ];
+    //? 4) Buscar en SURTIMIENTOS => descartar FECHA_EMISION > 30 días
+    const foliosUnicos = [...new Set(recetasFiltradas.map((r) => r.folioReceta))];
 
     let surtiMap = {};
     if (foliosUnicos.length > 0) {
@@ -135,7 +131,6 @@ export default async function handler(req, res) {
       const surtiRes = await pool.request().query(querySurt);
       const surtimientos = surtiRes.recordset || [];
 
-      // Crear un mapa: folio -> { rawDate, formatted }
       surtimientos.forEach((row) => {
         if (row.FECHA_EMISION) {
           surtiMap[row.FOLIO_PASE] = {
@@ -150,15 +145,13 @@ export default async function handler(req, res) {
     const recetasConFechaValida = recetasFiltradas.filter((r) => {
       const folio = r.folioReceta;
       const surtiInfo = surtiMap[folio];
-
-      // Si no existe en SURTIMIENTOS => descartar
       if (!surtiInfo?.rawDate) {
+        //! No existe en SURTIMIENTOS => descartar
         return false;
       }
-      // Verificar <= 30 días
+      //* Verificar <= 30 días
       const diffMs = now - surtiInfo.rawDate;
       const diffDays = diffMs / (1000 * 60 * 60 * 24);
-
       return diffDays <= 30;
     });
 
@@ -166,8 +159,7 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true, historial: [] });
     }
 
-    // 5) Para obtener "nombreproveedor", "claveespecialidad" => consultamos tabla 'proveedores'
-    //   asumiendo la tabla 'proveedores' TIENE la columna 'claveespecialidad'
+    //? 5) Buscar info de proveedores (claveproveedor => nombreproveedor, claveespecialidad)
     const proveedoresSet = new Set();
     recetasConFechaValida.forEach((r) => {
       const { claveproveedor } = consultasMap[r.folioReceta] || {};
@@ -179,7 +171,7 @@ export default async function handler(req, res) {
     let proveedoresMap = {};
     if (proveedoresSet.size > 0) {
       const queryProv = `
-        SELECT 
+        SELECT
           claveproveedor,
           nombreproveedor,
           claveespecialidad
@@ -196,7 +188,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // 6) Ahora, con la "claveespecialidad" sacada de "proveedores", iremos a "especialidades"
+    //? 6) Buscar la "especialidad" en la tabla "especialidades" usando 'claveespecialidad'
     const especialidadSet = new Set();
     Object.values(proveedoresMap).forEach((val) => {
       if (val.claveespecialidad) {
@@ -220,22 +212,51 @@ export default async function handler(req, res) {
       });
     }
 
-    // 7) Construir el historial final
+    //? 7) Buscar el nombre del medicamento => descMedicamento => [MEDICAMENTOS]
+    //*    Reunir IDs (descMedicamento)
+    const descMedicamentoSet = new Set(
+      recetasConFechaValida.map((r) => r.descMedicamento)
+    );
+
+    let medicamentosMap = {};
+    if (descMedicamentoSet.size > 0) {
+      const queryMeds = `
+        SELECT
+          CLAVEMEDICAMENTO,
+          MEDICAMENTO
+        FROM [PRESIDENCIA].[dbo].[MEDICAMENTOS]
+        WHERE CLAVEMEDICAMENTO IN (${[...descMedicamentoSet].join(",")})
+      `;
+      const medsRes = await pool.request().query(queryMeds);
+      const medsRows = medsRes.recordset || [];
+      medsRows.forEach((row) => {
+        medicamentosMap[row.CLAVEMEDICAMENTO] = row.MEDICAMENTO;
+      });
+    }
+
+    //? 8) Construir el historial final
     const historial = recetasConFechaValida.map((r) => {
       const folio = r.folioReceta;
       const surtiInfo = surtiMap[folio];
-      const cData = consultasMap[folio] || {}; // { claveproveedor: x }
-      const pData = proveedoresMap[cData.claveproveedor] || {}; // { nombreproveedor, claveespecialidad }
+      const cData = consultasMap[folio] || {};
+      const pData = proveedoresMap[cData.claveproveedor] || {};
       const esp = pData.claveespecialidad
         ? especialidadesMap[pData.claveespecialidad] || "Especialidad desconocida"
         : null;
+
+      //* Nombre del medicamento:  con descMedicamento => medicamentosMap
+      const nombreMed = medicamentosMap[r.descMedicamento] || "Medicamento desconocido";
 
       return {
         folioReceta: r.folioReceta,
         indicaciones: r.indicaciones,
         tratamiento: r.cantidad,
         descMedicamento: r.descMedicamento,
-        fechaEmision: surtiInfo?.formatted || null, // Fecha formateada de SURTIMIENTOS
+
+        //* ← Añadimos la propiedad "medicamento" con el nombre
+        medicamento: nombreMed,
+
+        fechaEmision: surtiInfo?.formatted || null, //* Fecha formateada
 
         nombreproveedor: pData.nombreproveedor || "Proveedor desconocido",
         especialidad: esp || null,
