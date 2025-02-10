@@ -508,20 +508,43 @@ const CrearPaseNuevo = () => {
                 Información del{" "}
                 {selectedPersona === "empleado" ? "Empleado" : "Beneficiario"}
               </h2>
+
               <div className="flex flex-col lg:flex-row items-center lg:items-start lg:space-x-8 mb-10">
-                <div className="flex-shrink-0 mb-6 lg:mb-0 flex justify-center items-center">
-                  <Image
-                    src={
-                      selectedPersona === "beneficiario" && selectedBeneficiary
-                        ? "/user_icon_.png"
-                        : employeeData.photo
-                    }
-                    alt="Foto"
-                    width={120}
-                    height={120}
-                    className="rounded-full border-4 border-teal-400 shadow-lg transition-transform hover:scale-110"
-                  />
+                {/* 📸 Imagen del Paciente */}
+                <div className="flex-shrink-0 mb-6 lg:mb-0 flex justify-center items-center relative">
+                  {selectedPersona === "beneficiario" && selectedBeneficiary ? (
+                    <Image
+                      src={selectedBeneficiary.FOTO_URL || "/user_icon_.png"}
+                      alt="Foto del Beneficiario"
+                      width={120}
+                      height={120}
+                      className="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-yellow-400 shadow-xl transition-transform transform hover:scale-110"
+                    />
+                  ) : selectedPersona === "empleado" &&
+                    Object.keys(employeeData).length > 0 ? (
+                    <Image
+                      src={employeeData.photo || "/user_icon_.png"}
+                      alt="Foto del Empleado"
+                      width={120}
+                      height={120}
+                      className="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-blue-400 shadow-xl transition-transform transform hover:scale-110"
+                    />
+                  ) : (
+                    <Image
+                      src="/user_icon_.png"
+                      alt="Foto no disponible"
+                      width={120}
+                      height={120}
+                      className="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-gray-500 shadow-xl transition-transform transform hover:scale-110"
+                    />
+                  )}
+
+                  {/* 📷 Indicador de foto */}
+                  <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white text-xs px-3 py-1 rounded-full shadow-lg">
+                    📷 Foto
+                  </div>
                 </div>
+
                 <div className="flex-1 space-y-4">
                   <p className="text-lg font-semibold">
                     <span className="text-teal-300">Nombre:</span>{" "}

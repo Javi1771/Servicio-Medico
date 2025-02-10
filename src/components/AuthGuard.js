@@ -5,7 +5,7 @@ import PresidenteLayout from "../components/PresidenteLayout";
 
 //* Configuración de permisos por rol
 const rolePermissions = {
-  "7": ["/inicio-presidente", "/consultas", "/especialista", "/catalogos", "/estadisticas", "/capturas", "/cancelaciones", "/reportes"], //* Permisos para presidente
+  "7": ["/inicio-presidente", "/consultas", "/especialista", "/catalogos", "/estadisticas", "/capturas", "/cancelaciones", "/reportes", "/farmacia"], //* Permisos para presidente
   "6": ["/inicio-servicio-medico", "/consultas", "/catalogos", "/capturas", "/cancelaciones", "/reportes", "/especialista", "/farmacia"], //* Permisos para administrador
   "1": ["/inicio-servicio-medico", "/consultas", "/especialista"], //* Permisos para médico
   "2": ["/inicio-servicio-medico", "/consultas/signos-vitales"], //* Permisos para enfermera

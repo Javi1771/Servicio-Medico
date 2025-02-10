@@ -494,7 +494,7 @@ export default function IntervalosDeConsultas() {
   return (
     <div className="flex flex-col items-center p-6 bg-gradient-to-br from-gray-800 via-black to-gray-900 text-white min-h-screen">
       <h1 className="text-4xl font-extrabold mb-6" style={{ color: "#FF007B" }}>
-        Intervalos de Consultas por Especialidad
+        Intervalos de Especialidades
       </h1>
 
       {/* Loader principal */}

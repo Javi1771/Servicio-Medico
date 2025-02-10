@@ -51,7 +51,7 @@ export async function getServerSideProps() {
         B.A_MATERNO,
         B.DESCRIPTOR_FACIAL
       FROM BENEFICIARIO B
-      WHERE B.DESCRIPTOR_FACIAL IS NOT NULL AND B.DESCRIPTOR_FACIAL <> ''
+      WHERE B.DESCRIPTOR_FACIAL IS NOT NULL AND B.DESCRIPTOR_FACIAL <> '' AND B.ACTIVO = 'A'
     `);
 
     return { props: { initialBeneficiaries: result.recordset } };

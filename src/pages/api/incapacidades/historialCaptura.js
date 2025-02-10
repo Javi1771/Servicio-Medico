@@ -60,7 +60,8 @@ export default async function handler(req, res) {
           nomina,
           claveincapacidad,
           observaciones,
-          claveconsulta
+          claveconsulta,
+          nombrepaciente
         FROM incapacidades
         WHERE nomina = @noNomina
           AND estatus = 1
@@ -74,6 +75,7 @@ export default async function handler(req, res) {
       fechainicio: formatFecha(item.fechainicio),
       fechafin: formatFecha(item.fechafin),
     }));
+
 
     return res.status(200).json({ historial });
   } catch (error) {

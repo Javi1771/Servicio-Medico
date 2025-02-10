@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import Swal from "sweetalert2";
@@ -129,14 +130,19 @@ export default function SignosVitalesFacial() {
 
       const data = await response.json();
       if (!data.beneficiarios || data.beneficiarios.length === 0) {
-        throw new Error("No se encontró beneficiario con los datos proporcionados.");
+        throw new Error(
+          "No se encontró beneficiario con los datos proporcionados."
+        );
       }
 
       const b = data.beneficiarios[0];
-      //* Revisar vigencia
+
+      //* Si el beneficiario tiene fecha de vigencia de estudios:
       if (b.VIGENCIA_ESTUDIOS) {
         const vigenciaEstudios = new Date(b.VIGENCIA_ESTUDIOS);
         const fechaActual = new Date();
+
+        //* Revisar vigencia
         if (vigenciaEstudios < fechaActual) {
           MySwal.fire({
             icon: "warning",
@@ -151,10 +157,17 @@ export default function SignosVitalesFacial() {
               popup:
                 "border border-yellow-600 shadow-[0px_0px_20px_5px_rgba(255,152,0,0.9)] rounded-lg",
             },
+          }).then(() => {
+            //! Redirige a la pantalla anterior
+            router.back();
           });
+
+          //! Termina la función para no continuar
+          return;
         }
       }
 
+      //* Si la constancia no está vencida, asigna el beneficiario
       setBeneficiario(b);
       setIsLoadingBenef(false);
     } catch (error) {
@@ -179,7 +192,7 @@ export default function SignosVitalesFacial() {
     }
   };
 
-  //* Obtiene los datos del empleado asociado (mismo num_nom) 
+  //* Obtiene los datos del empleado asociado (mismo num_nom)
   const fetchEmpleado = async (decNomina) => {
     setIsLoadingEmployee(true);
     try {
@@ -249,7 +262,7 @@ export default function SignosVitalesFacial() {
     }
   };
 
-  //* Actualiza estatus (atendida) 
+  //* Actualiza estatus (atendida)
   const actualizarEstado = async (claveConsulta) => {
     try {
       const response = await fetch(
@@ -296,7 +309,7 @@ export default function SignosVitalesFacial() {
     }
   };
 
-  //* Guardar la consulta 
+  //* Guardar la consulta
   const handleSave = async () => {
     if (!isFormComplete) {
       MySwal.fire({
@@ -345,10 +358,9 @@ export default function SignosVitalesFacial() {
         now.getMonth() + 1
       ).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")} ${String(
         now.getHours()
-      ).padStart(2, "0")}:${String(now.getMinutes()).padStart(
-        2,
-        "0"
-      )}:${String(now.getSeconds()).padStart(2, "0")}`;
+      ).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}:${String(
+        now.getSeconds()
+      ).padStart(2, "0")}`;
 
       //* Determina el sindicato
       const sindicato =
@@ -461,14 +473,8 @@ export default function SignosVitalesFacial() {
   }
 
   //* Estructura del Beneficiario
-  const {
-    FOTO_URL,
-    NOMBRE,
-    A_PATERNO,
-    A_MATERNO,
-    EDAD,
-    PARENTESCO_DESC,
-  } = beneficiario;
+  const { FOTO_URL, NOMBRE, A_PATERNO, A_MATERNO, EDAD, PARENTESCO_DESC } =
+    beneficiario;
 
   return (
     <>

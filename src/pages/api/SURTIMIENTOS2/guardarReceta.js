@@ -1,4 +1,4 @@
-import { connectToDatabase } from "../connectToDatabase"; 
+import { connectToDatabase } from "../connectToDatabase";
 import sql from "mssql";
 
 export default async function handler(req, res) {
@@ -9,9 +9,20 @@ export default async function handler(req, res) {
   const { folio, medicamentos, diagnostico } = req.body;
 
   // Validación de datos recibidos
-  if (!folio || !Array.isArray(medicamentos) || medicamentos.length === 0 || !diagnostico) {
-    console.error("Datos incompletos recibidos:", { folio, medicamentos, diagnostico });
-    return res.status(400).json({ message: "Folio, medicamentos y diagnóstico son requeridos." });
+  if (
+    !folio ||
+    !Array.isArray(medicamentos) ||
+    medicamentos.length === 0 ||
+    !diagnostico
+  ) {
+    console.error("Datos incompletos recibidos:", {
+      folio,
+      medicamentos,
+      diagnostico,
+    });
+    return res
+      .status(400)
+      .json({ message: "Folio, medicamentos y diagnóstico son requeridos." });
   }
 
   try {
@@ -40,21 +51,42 @@ export default async function handler(req, res) {
 
     if (consultaResult.recordset.length === 0) {
       console.error("No se encontró información para el folio:", folio);
-      return res.status(404).json({ message: "No se encontró información del folio." });
+      return res
+        .status(404)
+        .json({ message: "No se encontró información del folio." });
     }
 
     const consulta = consultaResult.recordset[0];
     console.log("Datos de la consulta encontrados:", consulta);
 
-    // Determinar el sindicato con base en clavenomina
-    const getSindicato = (clavenomina) => {
-      if (clavenomina.startsWith("9")) {
-        return "SUTSMSJR";
-      } else if (clavenomina.startsWith("8")) {
-        return "SITAM";
-      } else if (clavenomina.startsWith("3")) { // Ajusta esta lógica según tus reglas
-        return "OTRO_SINDICATO"; // Reemplaza con el sindicato correcto
-      } else {
+    //? Determinar el sindicato con base en clavenomina
+    //* getSindicato recibe la "claveconsulta" (folioReceta)
+    //* y realiza una petición a tu API para traer el sindicato.
+    const getSindicato = async (folioReceta) => {
+      try {
+        //* Petición POST a tu endpoint que devuelva la info de la columna "sindicato"
+        const response = await fetch("/api/consultas/getsindicato", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ claveconsulta: folioReceta }),
+        });
+
+        //* Si la respuesta no es OK, arrojamos un error para manejarlo en el catch
+        if (!response.ok) {
+          throw new Error("Error al obtener el sindicato");
+        }
+
+        //* Parseamos la respuesta (JSON)
+        const data = await response.json();
+
+        //* data.sindicato contendrá el valor en la columna "sindicato"
+        //! Si viene null o undefined, retornamos "No está sindicalizado"
+        return data.sindicato ?? "No está sindicalizado";
+      } catch (error) {
+        console.error("Error en getSindicato:", error);
+        //! Retornar un string fijo o null para indicar error
         return null;
       }
     };
@@ -67,7 +99,10 @@ export default async function handler(req, res) {
     if (departamento && departamento.length > 100) {
       departamento = departamento.substring(0, 100);
     }
-    console.log("Longitud del valor del campo departamento después de normalizar:", departamento ? departamento.length : 0);
+    console.log(
+      "Longitud del valor del campo departamento después de normalizar:",
+      departamento ? departamento.length : 0
+    );
 
     // Insertar en la tabla SURTIMIENTOS
     const insertSurtimientoQuery = `
@@ -111,19 +146,25 @@ export default async function handler(req, res) {
 
     for (const medicamento of medicamentos) {
       if (!medicamento.claveMedicamento) {
-        console.error("claveMedicamento es null o vacío para el medicamento:", medicamento);
+        console.error(
+          "claveMedicamento es null o vacío para el medicamento:",
+          medicamento
+        );
         continue; // Salta este medicamento si la clave es inválida
       }
-    
+
       await pool
         .request()
         .input("folioSurtimiento", sql.Int, nuevoFolio)
-        .input("claveMedicamento", sql.NVarChar(12), medicamento.claveMedicamento)
+        .input(
+          "claveMedicamento",
+          sql.NVarChar(12),
+          medicamento.claveMedicamento
+        )
         .input("indicaciones", sql.NVarChar(sql.MAX), medicamento.indicaciones)
         .input("cantidad", sql.NVarChar(70), medicamento.cantidad)
         .query(insertDetalleQuery);
     }
-    
 
     console.log("Todos los medicamentos insertados exitosamente.");
 
