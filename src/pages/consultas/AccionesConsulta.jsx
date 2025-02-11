@@ -383,6 +383,9 @@ const AccionesConsulta = ({
       await actualizarClavestatus(2);
 
       limpiarCacheLocalStorage();
+
+      //* Limpiar completamente el localStorage después de guardar
+      localStorage.clear();
       limpiarFormulario();
 
       //* Mostrar alerta de éxito con claveConsulta en grande
@@ -469,6 +472,7 @@ const AccionesConsulta = ({
         onClick={() => {
           actualizarClavestatus(0);
           limpiarFormulario();
+          localStorage.clear(); //* Limpiar localStorage al cancelar la consulta
           MySwal.fire({
             icon: "info",
             title:

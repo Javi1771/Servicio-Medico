@@ -97,36 +97,31 @@ export default async function handler(req, res) {
     //? 4. Determinar el sindicato con base en clavenomina
     //* getSindicato recibe la "claveconsulta" (folioReceta)
     //* y realiza una petición a tu API para traer el sindicato.
-    const getSindicato = async (folioReceta) => {
+    const getSindicato = async (folioReceta, pool) => {
       try {
-        //* Petición POST a tu endpoint que devuelva la info de la columna "sindicato"
-        const response = await fetch("/api/SURTIMIENTOS2/getsindicato", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ claveconsulta: folioReceta }),
-        });
+        //* ejecutamos la consulta directamente en la base de datos
+        const result = await pool
+          .request()
+          .input("claveconsulta", sql.Int, folioReceta)
+          .query(
+            "SELECT sindicato FROM consultas WHERE claveconsulta = @claveconsulta"
+          );
 
-        //* Si la respuesta no es OK, arrojamos un error para manejarlo en el catch
-        if (!response.ok) {
-          throw new Error("Error al obtener el sindicato");
+        if (!result.recordset || result.recordset.length === 0) {
+          console.warn(
+            `no se encontró sindicato para la claveconsulta: ${folioReceta}`
+          );
+          return "no está sindicalizado";
         }
 
-        //* Parseamos la respuesta (JSON)
-        const data = await response.json();
-
-        //* data.sindicato contendrá el valor en la columna "sindicato"
-        //! Si viene null o undefined, retornamos "No está sindicalizado"
-        return data.sindicato ?? "No está sindicalizado";
+        return result.recordset[0].sindicato ?? "no está sindicalizado";
       } catch (error) {
-        console.error("Error en getSindicato:", error);
-        //! Retornar un string fijo o null para indicar error
+        console.error("error en getSindicato:", error);
         return null;
       }
     };
 
-    const sindicato = getSindicato(consulta.clavenomina);
+    const sindicato = await getSindicato(consulta.clavenomina, pool);
     console.log("Sindicato determinado:", sindicato);
 
     // 5. Normalizar el valor del campo departamento

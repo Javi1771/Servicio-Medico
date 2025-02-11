@@ -152,6 +152,14 @@ const Home = () => {
       });
     }
 
+    if (rol === "8") {
+      menuOptions.push({
+        title: "Reportes",
+        options: ["Incapacidades", "Costos"],
+        icon: <FaCapsules className="inline-block mr-2" />,
+      });
+    }
+
     return menuOptions;
   };
 
