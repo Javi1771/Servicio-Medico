@@ -7,9 +7,9 @@ export default async function handler(req, res) {
 
       //! Usar solo las columnas necesarias para la consulta
       const query = `
-        SELECT CLAVEMEDICAMENTO, MEDICAMENTO
-        FROM [PRESIDENCIA].[dbo].[MEDICAMENTOS] WITH (NOLOCK)
-        WHERE ESTATUS = 1
+        SELECT claveMedicamento AS CLAVEMEDICAMENTO, medicamento AS MEDICAMENTO
+        FROM [PRESIDENCIA].[dbo].[MEDICAMENTOS_NEW] WITH (NOLOCK)
+        WHERE estatus = 1
         ORDER BY MEDICAMENTO ASC
       `;
 
