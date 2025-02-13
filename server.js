@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 const https = require("https");
 const { parse } = require("url");
 const next = require("next");
@@ -20,7 +21,9 @@ app.prepare().then(() => {
     const parsedUrl = parse(req.url, true);
     handle(req, res, parsedUrl);
   }).listen(3000, "172.16.4.47", (err) => {
+ // }).listen(3000, "172.16.12.100", (err) => {
     if (err) throw err;
     console.log("🚀 Servidor HTTPS corriendo en https://172.16.4.47:3000");
+    //console.log("🚀 Servidor HTTPS corriendo en https://172.16.12.100:3000");
   });
 });

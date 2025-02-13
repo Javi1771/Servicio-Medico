@@ -14,6 +14,10 @@ const pusher = new Pusher({
   cluster: process.env.PUSHER_CLUSTER,
   useTLS: true,
   agent: httpsAgent, //* Usar el agente HTTPS personalizado si es necesario
+  wsHost: process.env.NEXT_PUBLIC_BASE_URL.replace("https://", "").replace("http://", ""), //* 💡 Usar dominio sin protocolo
+  wsPort: 3005,  //* Puerto correcto en producción
+  forceTLS: true, //* Forzar conexión segura
+  disableStats: true, //* Desactivar métricas para evitar sobrecarga
 });
 
 //* Exporta el handler para manejar solicitudes HTTP
@@ -22,12 +26,14 @@ async function handler(req, res) {
     const { channel, event, data } = req.body;
 
     try {
-      console.log(`Enviando evento ${event} al canal ${channel} con datos:`, data);
+      console.log(`📡 Enviando evento "${event}" al canal "${channel}" con datos:`, JSON.stringify(data, null, 2));
+      
       await pusher.trigger(channel, event, data);
-      res.status(200).json({ message: "Evento enviado a Pusher" });
+
+      res.status(200).json({ message: "✅ Evento enviado a Pusher correctamente." });
     } catch (error) {
-      console.error("Error al enviar evento a Pusher:", error);
-      res.status(500).json({ error: "Error al enviar evento a Pusher" });
+      console.error("❌ Error al enviar evento a Pusher:", error);
+      res.status(500).json({ error: "Error al enviar evento a Pusher", details: error.message });
     }
   } else {
     res.status(405).json({ error: "Método no permitido" });

@@ -21,12 +21,11 @@ import {
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 
-// 🚀 Importa tu tabla de historial
 import HistorialIncapacidadesTable from "./incapacidades/historial-incapacidades-captura";
 
 const MySwal = withReactContent(Swal);
 
-/** Calcula edad en años/meses/días */
+//* Calcula edad en años/meses/días
 const calcularEdad = (fechaNacimiento) => {
   if (!fechaNacimiento) {
     return { display: "0 años, 0 meses, 0 días", dbFormat: "0 años y 0 meses" };
@@ -74,10 +73,10 @@ const CapturaIncapacidades = () => {
   const [employeeData, setEmployeeData] = useState({});
   const [incapacidadData, setIncapacidadData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  // Historial de incapacidades
+  //* Historial de incapacidades
   const [historialIncapacidades, setHistorialIncapacidades] = useState([]);
 
-  // Efecto visual (partículas)
+  //* Efecto visual (partículas)
   useEffect(() => {
     const createParticles = () => {
       const container = document.createElement("div");
@@ -97,8 +96,8 @@ const CapturaIncapacidades = () => {
     createParticles();
   }, []);
 
-  /** 
-   * Limpia todo el estado. 
+  /*
+   * Limpia todo el estado.
    */
   const limpiarFormulario = () => {
     setNomina("");
@@ -109,7 +108,7 @@ const CapturaIncapacidades = () => {
   };
 
   // ----------------------------------------------------------------
-  // (1) Buscar la nómina a partir del folioConsulta
+  //? (1) Buscar la nómina a partir del folioConsulta
   // ----------------------------------------------------------------
   const fetchEmpleado = async () => {
     if (!folioConsulta) return;
@@ -129,7 +128,7 @@ const CapturaIncapacidades = () => {
       console.log("✅ Respuesta de obtenerConsulta:", data);
 
       if (!data.clavenomina) {
-        // Folio no encontrado
+        //! Folio no encontrado
         MySwal.fire({
           icon: "error",
           title:
@@ -137,7 +136,8 @@ const CapturaIncapacidades = () => {
           html: "<p style='color: #fff; font-size: 1.1em;'>No se encontró el folio. Revisa o asigna una nueva incapacidad.</p>",
           background: "linear-gradient(145deg, #4a0000, #220000)",
           confirmButtonColor: "#ff1744",
-          confirmButtonText: "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
+          confirmButtonText:
+            "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
           customClass: {
             popup:
               "border border-red-600 shadow-[0_0_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
@@ -151,7 +151,7 @@ const CapturaIncapacidades = () => {
       const nominaObtenida = data.clavenomina;
       setNomina(nominaObtenida);
 
-      // 2) Buscar datos del empleado con /api/empleado
+      //? 2) Buscar datos del empleado con /api/empleado
       const responseEmpleado = await fetch("/api/empleado", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -164,7 +164,7 @@ const CapturaIncapacidades = () => {
       console.log("✅ Datos del empleado:", empleadoData);
 
       if (!empleadoData || !empleadoData.nombre) {
-        // Empleado no encontrado
+        //! Empleado no encontrado
         MySwal.fire({
           icon: "error",
           title:
@@ -172,7 +172,8 @@ const CapturaIncapacidades = () => {
           html: "<p style='color: #fff; font-size: 1.1em;'>No se pudo recuperar la información del empleado.</p>",
           background: "linear-gradient(145deg, #4a0000, #220000)",
           confirmButtonColor: "#ff1744",
-          confirmButtonText: "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
+          confirmButtonText:
+            "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
           customClass: {
             popup:
               "border border-red-600 shadow-[0_0_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
@@ -183,7 +184,7 @@ const CapturaIncapacidades = () => {
         return;
       }
 
-      // Calcular la edad
+      //* Calcular la edad
       const edadCalculada = calcularEdad(empleadoData.fecha_nacimiento);
       const employeeInfo = {
         photo: "/user_icon_.png",
@@ -194,7 +195,7 @@ const CapturaIncapacidades = () => {
       };
       setEmployeeData(employeeInfo);
 
-      // 3) Buscar la incapacidad
+      //? 3) Buscar la incapacidad
       fetchIncapacidad(nominaObtenida, folioConsulta);
 
       setIsLoading(false);
@@ -207,7 +208,8 @@ const CapturaIncapacidades = () => {
         html: "<p style='color: #fff; font-size: 1.1em;'>Hubo un error. Intenta nuevamente.</p>",
         background: "linear-gradient(145deg, #4a0000, #220000)",
         confirmButtonColor: "#ff1744",
-        confirmButtonText: "<span style='color: #fff; font-weight: bold;'>Reintentar</span>",
+        confirmButtonText:
+          "<span style='color: #fff; font-weight: bold;'>Reintentar</span>",
         customClass: {
           popup:
             "border border-red-600 shadow-[0_0_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
@@ -218,8 +220,8 @@ const CapturaIncapacidades = () => {
   };
 
   // ----------------------------------------------------------------
-  // Buscar la incapacidad con /api/incapacidades/captura
-  // Añadimos 2 botones en la alerta “Folio ya atendido”: Ver Historial o Regresar
+  //* Buscar la incapacidad con /api/incapacidades/captura
+  //* Añadimos 2 botones en la alerta “Folio ya atendido”: Ver Historial o Regresar
   // ----------------------------------------------------------------
   const fetchIncapacidad = async (nomina, folioConsulta) => {
     if (!folioConsulta) {
@@ -236,7 +238,7 @@ const CapturaIncapacidades = () => {
       });
 
       if (!response.ok) {
-        // Folio ya atendido
+        //* Folio ya atendido
         throw new Error("No se encontró incapacidad (folio atendido).");
       }
       const data = await response.json();
@@ -246,7 +248,7 @@ const CapturaIncapacidades = () => {
       console.error("Error en fetchIncapacidad:", error);
       setIncapacidadData(null);
 
-      // Alerta con 2 opciones
+      //! Alerta con 2 opciones
       MySwal.fire({
         icon: "warning",
         title:
@@ -254,35 +256,33 @@ const CapturaIncapacidades = () => {
         html: "<p style='color: #fff; font-size: 1.1em;'>El folio de consulta ya fue atendido. ¿Deseas ver el historial o regresar?</p>",
         background: "linear-gradient(145deg, #4a2600, #220f00)",
         showCancelButton: true,
-      
-        // Colores de los botones
-        confirmButtonColor: "#4caf50", // Verde
-        cancelButtonColor: "#f44336",  // Rojo
-      
-        // Texto de los botones (con color blanco en ambos)
+
+        confirmButtonColor: "#088000",
+        cancelButtonColor: "#ff1100",
+
         confirmButtonText:
           "<span style='color: #fff; font-weight: bold;'>Ver Historial</span>",
         cancelButtonText:
           "<span style='color: #fff; font-weight: bold;'>Regresar</span>",
-      
+
         customClass: {
           popup:
             "border border-yellow-600 shadow-[0_0_20px_5px_rgba(255,152,0,0.9)] rounded-lg",
         },
       }).then((result) => {
         if (result.isDismissed) {
-          // El usuario eligió "Regresar"
+          //* El usuario eligió "Regresar"
           limpiarFormulario();
         }
-        // Si el usuario da "Ver Historial" (isConfirmed),
-        // NO limpiamos nada, de modo que la "nomina" permanece
-        // y se sigue mostrando la tabla sin cambios.
+        //* Si el usuario da "Ver Historial" (isConfirmed),
+        //* NO limpiamos nada, de modo que la "nomina" permanece
+        //* y se sigue mostrando la tabla sin cambios.
       });
     }
   };
 
   // ----------------------------------------------------------------
-  // Guardar la incapacidad
+  //* Guardar la incapacidad
   // ----------------------------------------------------------------
   const guardarCaptura = async () => {
     try {
@@ -347,11 +347,13 @@ const CapturaIncapacidades = () => {
   };
 
   // ----------------------------------------------------------------
-  // Cargar historial (si hay "nomina"), enviándola como clavenomina
+  //? Cargar historial (si hay "nomina"), enviándola como clavenomina
   // ----------------------------------------------------------------
   useEffect(() => {
     if (!nomina) {
-      console.warn("Falta 'clavenomina'. Evitando llamada a la API de historial.");
+      console.warn(
+        "Falta 'clavenomina'. Evitando llamada a la API de historial."
+      );
       setHistorialIncapacidades([]);
       return;
     }
@@ -393,7 +395,7 @@ const CapturaIncapacidades = () => {
         <div className="w-[600px] h-[600px] bg-gradient-to-r from-purple-500/20 to-pink-500/10 rounded-full absolute -bottom-64 -right-64 blur-3xl animate-pulse delay-1000" />
       </div>
 
-      <div className="max-w-5xl w-full bg-gray-900/80 backdrop-blur-xl rounded-3xl shadow-[0_0_40px_-10px_rgba(34,211,238,0.5)] p-12 border-2 border-cyan-400/50 relative z-10">
+      <div className="max-w-7xl w-full mx-auto bg-gray-900/80 backdrop-blur-xl rounded-3xl shadow-[0_0_40px_-10px_rgba(34,211,238,0.5)] p-12 border-2 border-cyan-400/50 relative z-10">
         {/* Encabezado */}
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
@@ -414,7 +416,7 @@ const CapturaIncapacidades = () => {
         {/* Buscador */}
         <motion.div
           whileHover={{ scale: 1.01 }}
-          className="group flex items-center gap-6 bg-gray-800/60 hover:bg-gray-800/80 transition-all p-6 rounded-2xl shadow-lg border border-cyan-400/20 hover:border-cyan-400/40"
+          className="group flex flex-wrap sm:flex-nowrap items-center gap-6 bg-gray-800/60 hover:bg-gray-800/80 transition-all p-6 rounded-2xl shadow-lg border border-cyan-400/20 hover:border-cyan-400/40 w-full"
         >
           <FaSearch className="text-cyan-400 text-3xl shrink-0 animate-bounce" />
           <input
@@ -449,7 +451,7 @@ const CapturaIncapacidades = () => {
               </span>
             </h2>
 
-            <div className="grid md:grid-cols-2 gap-8 items-center">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-center">
               <div className="relative w-48 h-48 mx-auto">
                 <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 to-amber-600 rounded-full blur-lg opacity-30 animate-pulse" />
                 <Image

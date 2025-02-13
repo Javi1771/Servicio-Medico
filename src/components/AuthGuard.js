@@ -10,6 +10,7 @@ const rolePermissions = {
   "1": ["/inicio-servicio-medico", "/consultas", "/especialista"], //* Permisos para médico
   "2": ["/inicio-servicio-medico", "/consultas/signos-vitales"], //* Permisos para enfermera
   "3": ["/inicio-servicio-medico", "/capturas"], //* Permisos para capturista
+  "8": ["/inicio-servicio-medico", "/reportes"], //* Permisos para RRHH
 };
 
 const AuthGuard = ({ children }) => {

@@ -54,18 +54,26 @@ export default async function handler(req, res) {
       .input("noNomina", sql.NVarChar, clavenomina)
       .query(`
         SELECT
-          fecha,
-          fechainicio,
-          fechafin,
-          nomina,
-          claveincapacidad,
-          observaciones,
-          claveconsulta,
-          nombrepaciente
-        FROM incapacidades
-        WHERE nomina = @noNomina
-          AND estatus = 1
-        ORDER BY fecha DESC
+          i.fecha,
+          i.fechainicio,
+          i.fechafin,
+          i.nomina,
+          i.claveincapacidad,
+          i.observaciones,
+          i.claveconsulta,
+          i.nombrepaciente,
+          p1.nombreproveedor AS quiencapturo_nombre,
+          p2.nombreproveedor AS clavemedico_nombre,
+          e1.especialidad AS especialidad_quiencapturo,
+          e2.especialidad AS especialidad_clavemedico
+        FROM incapacidades i
+        LEFT JOIN proveedores p1 ON i.quiencapturo = p1.claveproveedor
+        LEFT JOIN proveedores p2 ON i.clavemedico = p2.claveproveedor
+        LEFT JOIN especialidades e1 ON p1.claveespecialidad = e1.claveespecialidad
+        LEFT JOIN especialidades e2 ON p2.claveespecialidad = e2.claveespecialidad
+        WHERE i.nomina = @noNomina
+          AND i.estatus = 1
+        ORDER BY i.fecha DESC
       `);
 
     //* Formatear las fechas
@@ -75,7 +83,6 @@ export default async function handler(req, res) {
       fechainicio: formatFecha(item.fechainicio),
       fechafin: formatFecha(item.fechafin),
     }));
-
 
     return res.status(200).json({ historial });
   } catch (error) {

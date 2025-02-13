@@ -7,15 +7,12 @@ const HistorialIncapacidadesTable = ({ historial }) => {
         Historial de Incapacidades
       </h2>
 
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto w-full">
         <table className="min-w-full rounded-lg text-left">
           <thead>
             <tr className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white border-b border-gray-700">
               <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
                 Folio Consulta
-              </th>
-              <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
-                Nombre del Paciente
               </th>
               <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
                 Observaciones
@@ -24,10 +21,19 @@ const HistorialIncapacidadesTable = ({ historial }) => {
                 Fecha de Registro o Captura
               </th>
               <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
+                ¿Quién Capturó o Registró la Incapacidad?
+              </th>
+              <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
                 Fecha Inicio Incapacidad
               </th>
               <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
                 Fecha Fin Incapacidad
+              </th>
+              <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
+                Médico Que Asignó Incapacidad
+              </th>
+              <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
+                Especialidad Del Médico
               </th>
             </tr>
           </thead>
@@ -43,19 +49,25 @@ const HistorialIncapacidadesTable = ({ historial }) => {
                     {item.claveconsulta || "Sin clave"}
                   </td>
                   <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
-                    {item.claveconsulta || "Sin clave"}
-                  </td>
-                  <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
                     {item.observaciones || "Sin observaciones"}
                   </td>
                   <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
                     {item.fecha}
                   </td>
                   <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
+                    {item.quiencapturo_nombre}
+                  </td>
+                  <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
                     {item.fechainicio}
                   </td>
                   <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
                     {item.fechafin}
+                  </td>
+                  <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
+                    {item.clavemedico_nombre}
+                  </td>
+                  <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
+                    {item.especialidad_clavemedico}
                   </td>
                 </tr>
               ))

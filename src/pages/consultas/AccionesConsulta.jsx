@@ -141,24 +141,38 @@ const AccionesConsulta = ({
       const cachedMedicamentos = localStorage.getItem("medicamentos") || "[]";
       const decisionTomada = localStorage.getItem("decisionTomada");
 
-      console.log("Decisión tomada al guardar medicamentos:", decisionTomada);
       console.log(
-        "Medicamentos cargados del localStorage:",
+        "🛠️ Decisión tomada al guardar medicamentos:",
+        decisionTomada
+      );
+      console.log(
+        "📦 Medicamentos cargados del localStorage:",
         cachedMedicamentos
       );
 
-      const medicamentos = JSON.parse(cachedMedicamentos);
+      let medicamentos = [];
+      try {
+        medicamentos = JSON.parse(cachedMedicamentos);
+      } catch (error) {
+        console.error(
+          "❌ Error al parsear los medicamentos de localStorage:",
+          error
+        );
+        localStorage.setItem("medicamentos", JSON.stringify([])); // Reiniciar si hay error
+        throw new Error("Error al leer los medicamentos almacenados.");
+      }
+
       let medicamentosPayload;
 
       if (decisionTomada === "no") {
         medicamentosPayload = {
           folioReceta: claveConsulta,
           decisionTomada,
-          medicamentos: [], //* Vacío porque no se asignaron medicamentos
+          medicamentos: [], // Array vacío porque no se asignaron medicamentos
         };
       } else {
         if (!Array.isArray(medicamentos) || medicamentos.length === 0) {
-          throw new Error("No hay medicamentos para guardar.");
+          throw new Error("❌ No hay medicamentos para guardar.");
         }
 
         medicamentosPayload = {
@@ -172,7 +186,7 @@ const AccionesConsulta = ({
         };
       }
 
-      console.log("🔍 Payload preparado para el backend:", medicamentosPayload);
+      console.log("📡 Payload preparado para el backend:", medicamentosPayload);
 
       const response = await fetch("/api/medicamentos/guardar", {
         method: "POST",
@@ -180,12 +194,22 @@ const AccionesConsulta = ({
         body: JSON.stringify(medicamentosPayload),
       });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Error al guardar los medicamentos.");
+      console.log("🔄 Respuesta recibida:", response);
+
+      // ✅ **Verificar si la respuesta es JSON o HTML antes de parsear**
+      const contentType = response.headers.get("content-type");
+
+      if (!contentType || !contentType.includes("application/json")) {
+        const errorText = await response.text();
+        console.error(
+          "❌ El servidor respondió con un error no JSON:",
+          errorText
+        );
+        throw new Error(`Respuesta inesperada del servidor: ${errorText}`);
       }
 
-      console.log("✅ Todos los medicamentos guardados correctamente.");
+      const responseData = await response.json();
+      console.log("✅ Respuesta JSON recibida correctamente:", responseData);
     } catch (error) {
       console.error("❌ Error al guardar medicamentos:", error);
       throw error;
@@ -383,6 +407,9 @@ const AccionesConsulta = ({
       await actualizarClavestatus(2);
 
       limpiarCacheLocalStorage();
+
+      //* Limpiar completamente el localStorage después de guardar
+      localStorage.clear();
       limpiarFormulario();
 
       //* Mostrar alerta de éxito con claveConsulta en grande
@@ -469,6 +496,7 @@ const AccionesConsulta = ({
         onClick={() => {
           actualizarClavestatus(0);
           limpiarFormulario();
+          localStorage.clear(); //* Limpiar localStorage al cancelar la consulta
           MySwal.fire({
             icon: "info",
             title:
