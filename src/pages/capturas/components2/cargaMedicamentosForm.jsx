@@ -12,8 +12,10 @@ const CargaMedicamentosForm = ({
   const [selectedMedicamento, setSelectedMedicamento] = useState("");
   const [indicaciones, setIndicaciones] = useState("");
   const [cantidad, setCantidad] = useState("");
+  const [piezas, setPiezas] = useState(""); // Nueva variable para las piezas
 
-  const handleAddMedicamentoLocal = () => { // Renombrado para evitar conflicto con la prop
+  const handleAddMedicamentoLocal = () => {
+    // Renombrado para evitar conflicto con la prop
     if (!selectedMedicamento) {
       alert("Por favor, selecciona un medicamento.");
       return;
@@ -26,23 +28,30 @@ const CargaMedicamentosForm = ({
       alert("Por favor, proporciona la cantidad.");
       return;
     }
+    if (!piezas.trim()) {
+      // Validación para las piezas
+      alert("Por favor, proporciona las piezas.");
+      return;
+    }
 
     const nuevoMedicamento = {
       claveMedicamento: selectedMedicamento || "", // Validar que tenga un valor
       indicaciones,
       cantidad,
-   };
+      piezas: piezas,
+    };
     console.log("Nuevo medicamento añadido:", nuevoMedicamento); // Verifica qué se envía
     onAddMedicamento(nuevoMedicamento);
     setSelectedMedicamento("");
     setIndicaciones("");
     setCantidad("");
+    setPiezas(""); // Limpiar el campo de piezas
   };
 
   return (
     <div className={styles.formContainer}>
       <h2 className={styles.title}>Carga de Medicamentos</h2>
-      
+
       <div className={styles.inputGroup}>
         <label htmlFor="medicamento">Medicamento</label>
         <select
@@ -53,11 +62,12 @@ const CargaMedicamentosForm = ({
           disabled={disableAdd} // Deshabilitar select si disableAdd es true
         >
           <option value="">Seleccionar Medicamento</option>
-          {medicamentos && medicamentos.map((med) => (
-            <option key={med.CLAVEMEDICAMENTO} value={med.CLAVEMEDICAMENTO}>
-              {med.MEDICAMENTO}
-            </option>
-          ))}
+          {medicamentos &&
+            medicamentos.map((med) => (
+              <option key={med.CLAVEMEDICAMENTO} value={med.CLAVEMEDICAMENTO}>
+                {med.MEDICAMENTO}
+              </option>
+            ))}
         </select>
       </div>
 
@@ -82,6 +92,18 @@ const CargaMedicamentosForm = ({
           onChange={(e) => setCantidad(e.target.value)}
           className={styles.input}
           disabled={disableAdd} // Deshabilitar input si disableAdd es true
+        />
+      </div>
+      
+      <div className={styles.inputGroup}>
+        <label htmlFor="piezas">Piezas</label>
+        <input
+          type="number"
+          id="piezas"
+          value={piezas}
+          onChange={(e) => setPiezas(e.target.value)}
+          className={styles.input}
+          disabled={disableAdd}
         />
       </div>
 

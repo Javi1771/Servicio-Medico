@@ -13,7 +13,9 @@ export default async function handler(req, res) {
     !folio ||
     !Array.isArray(medicamentos) ||
     medicamentos.length === 0 ||
-    !diagnostico
+    !diagnostico||
+    !medicamentos.every(med => med.piezas !== undefined)  // Asegúrate de que 'piezas' esté presente
+
   ) {
     console.error("Datos incompletos recibidos:", {
       folio,
@@ -75,10 +77,10 @@ export default async function handler(req, res) {
           console.warn(
             `no se encontró sindicato para la claveconsulta: ${folioReceta}`
           );
-          return "no está sindicalizado";
+          return "N/A";
         }
 
-        return result.recordset[0].sindicato ?? "no está sindicalizado";
+        return result.recordset[0].sindicato ?? "N/A";
       } catch (error) {
         console.error("error en getSindicato:", error);
         return null;
@@ -87,6 +89,15 @@ export default async function handler(req, res) {
 
     const sindicato = await getSindicato(consulta.clavenomina, pool);
     console.log("Sindicato determinado:", sindicato);
+    
+    // Si sindicato es null o undefined, asigna un valor predeterminado
+    const sindicatoFinal = sindicato || "N/A"; // Valor por defecto
+    
+    // Limitar el valor a 10 caracteres
+    const sindicatoLimpio = sindicatoFinal.substring(0, 10);
+    
+    console.log("Sindicato limpio:", sindicatoLimpio);
+    
 
     // Normalizar el valor del campo departamento
     let departamento = consulta.departamento || null;
@@ -132,9 +143,9 @@ export default async function handler(req, res) {
     // Insertar medicamentos en la tabla detalleSurtimientos
     const insertDetalleQuery = `
       INSERT INTO [PRESIDENCIA].[dbo].[detalleSurtimientos] (
-        folioSurtimiento, claveMedicamento, indicaciones, cantidad, estatus
+  folioSurtimiento, claveMedicamento, indicaciones, cantidad, piezas, estatus
       ) VALUES (
-        @folioSurtimiento, @claveMedicamento, @indicaciones, @cantidad, 1
+  @folioSurtimiento, @claveMedicamento, @indicaciones, @cantidad, @piezas, 1
       )
     `;
 
@@ -157,6 +168,8 @@ export default async function handler(req, res) {
         )
         .input("indicaciones", sql.NVarChar(sql.MAX), medicamento.indicaciones)
         .input("cantidad", sql.NVarChar(70), medicamento.cantidad)
+        .input("piezas", sql.Int, medicamento.piezas)  // Aquí se pasa el campo piezas
+
         .query(insertDetalleQuery);
     }
 

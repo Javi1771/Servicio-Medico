@@ -57,6 +57,7 @@ export default async function handler(req, res) {
             ds.claveMedicamento,
             ds.indicaciones,
             ds.cantidad,
+            ds.piezas, 
             m.MEDICAMENTO AS nombreMedicamento
           FROM [PRESIDENCIA].[dbo].[detalleSurtimientos] AS ds
           JOIN [PRESIDENCIA].[dbo].[MEDICAMENTOS] AS m 
@@ -83,6 +84,7 @@ export default async function handler(req, res) {
           dr.descMedicamento AS claveMedicamento,
           dr.indicaciones,
           dr.cantidad,
+          dr.piezas,  -- Aquí también agregas el campo piezas
           m.MEDICAMENTO AS nombreMedicamento
         FROM [PRESIDENCIA].[dbo].[detalleReceta] AS dr
         JOIN [PRESIDENCIA].[dbo].[MEDICAMENTOS] AS m 
