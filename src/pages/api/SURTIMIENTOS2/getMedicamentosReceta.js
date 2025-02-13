@@ -19,11 +19,11 @@ export default async function handler(req, res) {
           dr.folioReceta,
           dr.indicaciones,
           dr.cantidad,
-          m.MEDICAMENTO AS nombreMedicamento,
-          m.CLAVEMEDICAMENTO AS claveMedicamento
+          m.medicamento AS nombreMedicamento,
+          m.claveMedicamento AS claveMedicamento
         FROM [PRESIDENCIA].[dbo].[detalleReceta] AS dr
-        JOIN [PRESIDENCIA].[dbo].[MEDICAMENTOS] AS m
-          ON dr.descMedicamento = m.CLAVEMEDICAMENTO
+        JOIN [PRESIDENCIA].[dbo].[MEDICAMENTOS_NEW] AS m
+          ON dr.descMedicamento = m.claveMedicamento
         WHERE dr.folioReceta = @folio
       `);
 

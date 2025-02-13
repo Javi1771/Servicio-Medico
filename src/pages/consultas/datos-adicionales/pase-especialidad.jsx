@@ -45,21 +45,22 @@ const PaseEspecialidad = ({
 
   //* Restaurar datos desde localStorage al montar el componente
   useEffect(() => {
-    const cachedData = localStorage.getItem(
-      `PaseEspecialidad:${claveConsulta}`
-    );
+    const cachedData = localStorage.getItem(`PaseEspecialidad:${claveConsulta}`);
     if (cachedData) {
       const parsedData = JSON.parse(cachedData);
       console.log("Restaurando datos desde localStorage:", parsedData);
-
-      if (parsedData.prioridad) setPrioridad(parsedData.prioridad);
-      if (parsedData.pasarEspecialidad)
+  
+      if (parsedData.hasOwnProperty("prioridad"))
+        setPrioridad(parsedData.prioridad);
+      if (parsedData.hasOwnProperty("pasarEspecialidad"))
         setPasarEspecialidad(parsedData.pasarEspecialidad);
-      if (parsedData.especialidadSeleccionada)
+      if (parsedData.hasOwnProperty("especialidadSeleccionada"))
         setEspecialidadSeleccionada(parsedData.especialidadSeleccionada);
-      if (parsedData.observaciones) setObservaciones(parsedData.observaciones);
+      if (parsedData.hasOwnProperty("observaciones"))
+        setObservaciones(parsedData.observaciones);
     }
   }, [claveConsulta]);
+  
 
   useEffect(() => {
     const fetchHistorialEspecialidades = async () => {
@@ -102,21 +103,12 @@ const PaseEspecialidad = ({
   }, [clavepaciente, clavenomina]);
 
   useEffect(() => {
-    const cachedData =
-      pasarEspecialidad === "no"
-        ? {
-            pasarEspecialidad: "no",
-            prioridad: null,
-            especialidadSeleccionada: null,
-            observaciones: null,
-          }
-        : {
-            pasarEspecialidad,
-            prioridad,
-            especialidadSeleccionada,
-            observaciones,
-          };
-
+    const cachedData = {
+      pasarEspecialidad,
+      prioridad,
+      especialidadSeleccionada,
+      observaciones,
+    };
     localStorage.setItem(
       `PaseEspecialidad:${claveConsulta}`,
       JSON.stringify(cachedData)
@@ -128,6 +120,7 @@ const PaseEspecialidad = ({
     observaciones,
     claveConsulta,
   ]);
+  
 
   //* Sincronizar datos al desmontar el componente
   useEffect(() => {
@@ -165,27 +158,6 @@ const PaseEspecialidad = ({
     updateFormulario,
   ]);
 
-  //* Sincronizar prioridad en localStorage al cambiar
-  useEffect(() => {
-    const cachedData = JSON.parse(
-      localStorage.getItem(`PaseEspecialidad:${claveConsulta}`) || "{}"
-    );
-    cachedData.prioridad = prioridad;
-    localStorage.setItem(
-      `PaseEspecialidad:${claveConsulta}`,
-      JSON.stringify(cachedData)
-    );
-    console.log("Sincronizando prioridad en localStorage:", prioridad);
-  }, [prioridad, claveConsulta]);
-
-  useEffect(() => {
-    if (pasarEspecialidad === "no") {
-      setPrioridad(null);
-      setEspecialidadSeleccionada(null);
-      setObservaciones(null);
-    }
-  }, [pasarEspecialidad]);
-
   return (
     <div className="bg-gray-800 p-4 md:p-8 rounded-lg shadow-lg">
       <h3 className="text-2xl md:text-3xl font-bold mb-4 md:mb-6 text-white">
@@ -213,11 +185,9 @@ const PaseEspecialidad = ({
             } text-white`}
             onClick={() => {
               setPasarEspecialidad("no");
-              setPrioridad(null); //! Prioridad debe ser null para "No"
-              setEspecialidadSeleccionada(null); //! Especialidad debe ser null
-              setObservaciones(null); //! Observaciones debe ser null para "No"
               updateFormulario("PaseEspecialidad", true); //! Indica que el formulario está completo
             }}
+            
             aria-label="Seleccionar No para no pasar a especialidad"
           >
             No

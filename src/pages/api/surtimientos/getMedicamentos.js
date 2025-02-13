@@ -7,9 +7,9 @@ export default async function handler(req, res) {
 
       const query = `
         SELECT 
-          CLAVEMEDICAMENTO, 
-          MEDICAMENTO 
-        FROM [PRESIDENCIA].[dbo].[MEDICAMENTOS] 
+          claveMedicamento AS CLAVEMEDICAMENTO, 
+          medicamento AS MEDICAMENTO 
+        FROM [PRESIDENCIA].[dbo].[MEDICAMENTOS_NEW] 
         WHERE CLAVEMEDICAMENTO > 0
       `;
 

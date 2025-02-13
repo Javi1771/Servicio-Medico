@@ -11,7 +11,7 @@ import {
   FaBan,
   FaLaptopMedical,
   FaChartLine,
-  FaMedkit 
+  FaMedkit,
 } from "react-icons/fa";
 import { MdLogout } from "react-icons/md";
 import Cookies from "js-cookie";
@@ -30,6 +30,19 @@ interface PresidenteLayoutProps {
 
 const PresidenteLayout: React.FC<PresidenteLayoutProps> = ({ children }) => {
   const router = useRouter();
+  const [isClient, setIsClient] = useState(false);
+
+  
+  useEffect(() => {
+    setIsClient(true);
+  }, []); 
+
+  const noLayoutRoutes = [
+    "/consultas/recetas/generar-receta-farmacia",
+    "/consultas/recetas/generar-receta-paciente",
+  ];
+  
+
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [fromSidebar, setFromSidebar] = useState(false); //* Determina si el cambio es desde el menú lateral
@@ -152,11 +165,19 @@ const PresidenteLayout: React.FC<PresidenteLayoutProps> = ({ children }) => {
     {
       title: "Farmacia",
       icon: (
-        <FaMedkit  className="text-blue-400 text-3xl group-hover:scale-110 transition-transform duration-300" />
+        <FaMedkit className="text-blue-400 text-3xl group-hover:scale-110 transition-transform duration-300" />
       ),
       options: [{ name: "Medicamentos", path: "/farmacia/medicamentos" }],
     },
-  ];
+  ]; 
+
+  if (!isClient) {
+    return null; // Evita renderizar en SSR
+  }
+  
+  if (noLayoutRoutes.includes(router.pathname)) {
+    return <>{children}</>;
+  }  
 
   return (
     <div className="min-h-screen flex bg-gradient-to-b from-gray-900 via-gray-800 to-black text-white">

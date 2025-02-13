@@ -29,8 +29,8 @@ export default async function handler(req, res) {
 
     const queryInsertarReceta = `
       INSERT INTO [PRESIDENCIA].[dbo].[detalleReceta]
-      (folioReceta, descMedicamento, indicaciones, estatus, cantidad)
-      VALUES (@folioReceta, @descMedicamento, @indicaciones, @estatus, @cantidad)
+      (folioReceta, descMedicamento, indicaciones, estatus, cantidad, piezas)
+      VALUES (@folioReceta, @descMedicamento, @indicaciones, @estatus, @cantidad, @piezas)
     `;
 
     const resultados = [];
@@ -52,6 +52,11 @@ export default async function handler(req, res) {
           sql.NVarChar,
           "Sin tiempo de toma estimado, sin medicamentos."
         )
+        .input(
+          "piezas",
+          sql.Int,
+          0
+        )
         .query(queryInsertarReceta);
 
       resultados.push({
@@ -62,9 +67,9 @@ export default async function handler(req, res) {
     } else {
       //* Insertar medicamentos reales
       for (const med of medicamentos) {
-        const { descMedicamento, indicaciones, cantidad } = med;
+        const { descMedicamento, indicaciones, cantidad, piezas } = med;
 
-        if (!descMedicamento || !indicaciones || !cantidad) {
+        if (!descMedicamento || !indicaciones || !cantidad || !piezas) {
           console.error("❌ Medicamento tiene campos faltantes:", med);
           await transaction.rollback();
           return res.status(400).json({
@@ -78,6 +83,7 @@ export default async function handler(req, res) {
           .input("indicaciones", sql.NVarChar, indicaciones.trim())
           .input("estatus", sql.Int, 1)
           .input("cantidad", sql.NVarChar, cantidad.trim())
+          .input("piezas", sql.Int, parseInt(piezas, 10))
           .query(queryInsertarReceta);
 
         resultados.push({

@@ -8,9 +8,10 @@ export default async function handler(req, res) {
   try {
     const pool = await connectToDatabase();
     const result = await pool.query(`
-      SELECT CLAVEMEDICAMENTO, MEDICAMENTO 
-      FROM [PRESIDENCIA].[dbo].[MEDICAMENTOS] 
-      WHERE ESTATUS = 1
+      SELECT claveMedicamento AS CLAVEMEDICAMENTO, 
+        medicamento AS MEDICAMENTO 
+      FROM [PRESIDENCIA].[dbo].[MEDICAMENTOS_NEW] 
+      WHERE estatus = 1
     `);
 
     res.status(200).json(result.recordset);
