@@ -11,9 +11,9 @@ export default async function handler(req, res) {
   try {
     const pool = await connectToDatabase();
     const query = `
-      SELECT MEDICAMENTO
-      FROM [PRESIDENCIA].[dbo].[MEDICAMENTOS]
-      WHERE CLAVEMEDICAMENTO = @claveMedicamento
+      SELECT medicamento AS MEDICAMENTO
+      FROM [PRESIDENCIA].[dbo].[MEDICAMENTOS_NEW]
+      WHERE claveMedicamento = @claveMedicamento
     `;
     const result = await pool
       .request()

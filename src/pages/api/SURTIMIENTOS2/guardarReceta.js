@@ -87,7 +87,6 @@ export default async function handler(req, res) {
       }
     };
 
-
     const sindicato = await getSindicato(consulta.clavenomina, pool);
     console.log("Sindicato determinado:", sindicato);
     

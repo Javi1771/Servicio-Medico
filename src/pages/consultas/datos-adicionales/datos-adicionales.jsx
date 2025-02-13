@@ -104,6 +104,7 @@ const DatosAdicionales = ({
 
       {subPantalla === "Diagnóstico" && (
         <div className="bg-gray-800 p-4 md:p-8 rounded-lg shadow-lg">
+          {/* Motivo de Consulta */}
           <h3 className="text-2xl md:text-3xl font-bold mb-4 md:mb-6 text-white">
             Motivo de Consulta
           </h3>
@@ -111,9 +112,25 @@ const DatosAdicionales = ({
             className="mt-2 md:mt-3 block w-full h-32 md:h-40 rounded-lg bg-gray-700 border-gray-600 text-white p-3"
             placeholder="Escribe aquí las observaciones..."
             value={motivoConsultaTexto}
-            onChange={handleMotivoConsultaChange}
+            onChange={(e) =>
+              e.target.value.length <= 245
+                ? handleMotivoConsultaChange(e)
+                : null
+            }
           />
+          <p
+            className={`text-sm mt-1 text-right ${
+              motivoConsultaTexto.length >= 245
+                ? "text-red-400"
+                : "text-gray-400"
+            }`}
+          >
+            {motivoConsultaTexto.length}/245
+          </p>
+
           <br />
+
+          {/* Diagnóstico */}
           <h3 className="text-2xl md:text-3xl font-bold mb-4 md:mb-6 text-white">
             Diagnóstico
           </h3>
@@ -121,8 +138,17 @@ const DatosAdicionales = ({
             className="mt-2 md:mt-3 block w-full h-32 md:h-40 rounded-lg bg-gray-700 border-gray-600 text-white p-3"
             placeholder="Escribe aquí el diagnóstico..."
             value={diagnosticoTexto}
-            onChange={handleDiagnosticoChange}
+            onChange={(e) =>
+              e.target.value.length <= 245 ? handleDiagnosticoChange(e) : null
+            }
           />
+          <p
+            className={`text-sm mt-1 text-right ${
+              diagnosticoTexto.length >= 245 ? "text-red-400" : "text-gray-400"
+            }`}
+          >
+            {diagnosticoTexto.length}/245
+          </p>
         </div>
       )}
 

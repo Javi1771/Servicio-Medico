@@ -28,9 +28,17 @@ export default async function handler(req, res) {
       .request()
       .input("folioReceta", sql.Int, folioReceta)
       .query(`
-        SELECT FOLIO_SURTIMIENTO 
-        FROM [PRESIDENCIA].[dbo].[SURTIMIENTOS] 
-        WHERE FOLIO_PASE = @folioReceta
+        SELECT
+          dr.idDetalleReceta,
+          dr.folioReceta,
+          dr.indicaciones,
+          dr.cantidad,
+          m.medicamento AS nombreMedicamento,
+          m.claveMedicamento AS claveMedicamento
+        FROM [PRESIDENCIA].[dbo].[detalleReceta] AS dr
+        JOIN [PRESIDENCIA].[dbo].[MEDICAMENTOS_NEW] AS m
+          ON dr.descMedicamento = m.claveMedicamento
+        WHERE dr.folioReceta = @folio
       `);
 
     console.log("📌 Resultado de SURTIMIENTOS:", surtimientoResult.recordset);

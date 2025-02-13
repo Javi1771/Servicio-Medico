@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useContext, useEffect, useState } from "react";
+import { useRouter } from "next/router";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 import Cookies from "js-cookie";
@@ -40,6 +41,8 @@ const AccionesConsulta = ({
   useEffect(() => {
     setTooltipMessage(tooltipFaltante());
   }, [todosCompletos, formulariosCompletos]);
+
+  const router = useRouter();
 
   //* Tooltip para formularios incompletos
   const tooltipFaltante = () => {
@@ -158,7 +161,7 @@ const AccionesConsulta = ({
           "❌ Error al parsear los medicamentos de localStorage:",
           error
         );
-        localStorage.setItem("medicamentos", JSON.stringify([])); // Reiniciar si hay error
+        localStorage.setItem("medicamentos", JSON.stringify([])); //! Reiniciar si hay error
         throw new Error("Error al leer los medicamentos almacenados.");
       }
 
@@ -168,7 +171,8 @@ const AccionesConsulta = ({
         medicamentosPayload = {
           folioReceta: claveConsulta,
           decisionTomada,
-          medicamentos: [], // Array vacío porque no se asignaron medicamentos
+          medicamentos: [], //! Array vacío porque no se asignaron medicamentos
+          piezas: 0,
         };
       } else {
         if (!Array.isArray(medicamentos) || medicamentos.length === 0) {
@@ -182,6 +186,7 @@ const AccionesConsulta = ({
             descMedicamento: medicamento.medicamento,
             indicaciones: medicamento.indicaciones.trim(),
             cantidad: medicamento.tratamiento.trim(),
+            piezas: medicamento.piezas, //* Se envían las piezas seleccionadas en el front
           })),
         };
       }
@@ -196,7 +201,7 @@ const AccionesConsulta = ({
 
       console.log("🔄 Respuesta recibida:", response);
 
-      // ✅ **Verificar si la respuesta es JSON o HTML antes de parsear**
+      //* ✅ Verificar si la respuesta es JSON o HTML antes de parsear**
       const contentType = response.headers.get("content-type");
 
       if (!contentType || !contentType.includes("application/json")) {
@@ -411,6 +416,14 @@ const AccionesConsulta = ({
       //* Limpiar completamente el localStorage después de guardar
       localStorage.clear();
       limpiarFormulario();
+
+      //* Cifrar la claveConsulta con Base64
+      const encryptedClaveConsulta = btoa(claveConsulta.toString());
+
+      //* Navegar a la otra pantalla enviando la claveConsulta cifrada
+      router.push(
+        `/consultas/recetas/ver-recetas?claveconsulta=${encryptedClaveConsulta}`
+      );
 
       //* Mostrar alerta de éxito con claveConsulta en grande
       MySwal.fire({

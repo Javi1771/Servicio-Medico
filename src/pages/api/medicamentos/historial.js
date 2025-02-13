@@ -88,7 +88,8 @@ export default async function handler(req, res) {
         folioReceta,
         indicaciones,
         cantidad,
-        descMedicamento
+        descMedicamento,
+        piezas
       FROM [PRESIDENCIA].[dbo].[detalleReceta]
       WHERE folioReceta IN (${claveConsultasArray.join(",")})
       ORDER BY idDetalleReceta DESC
@@ -105,7 +106,8 @@ export default async function handler(req, res) {
       if (
         r.indicaciones === "Sin indicaciones ya que no se asignaron medicamentos." ||
         r.cantidad === "Sin tiempo de toma estimado, sin medicamentos." ||
-        r.descMedicamento === 0
+        r.descMedicamento === 0 ||
+        r.piezas === 0
       ) {
         return false; //! descartar
       }
@@ -222,9 +224,9 @@ export default async function handler(req, res) {
     if (descMedicamentoSet.size > 0) {
       const queryMeds = `
         SELECT
-          CLAVEMEDICAMENTO,
-          MEDICAMENTO
-        FROM [PRESIDENCIA].[dbo].[MEDICAMENTOS]
+          claveMedicamento AS CLAVEMEDICAMENTO,
+          medicamento AS MEDICAMENTO
+        FROM [PRESIDENCIA].[dbo].[MEDICAMENTOS_NEW]
         WHERE CLAVEMEDICAMENTO IN (${[...descMedicamentoSet].join(",")})
       `;
       const medsRes = await pool.request().query(queryMeds);
@@ -252,6 +254,7 @@ export default async function handler(req, res) {
         indicaciones: r.indicaciones,
         tratamiento: r.cantidad,
         descMedicamento: r.descMedicamento,
+        piezas: r.piezas,
 
         //* ← Añadimos la propiedad "medicamento" con el nombre
         medicamento: nombreMed,
