@@ -71,15 +71,52 @@ const SurtimientosBanner = () => {
   } = useFetchMedicamentosReceta();
 
   // Función que se ejecuta al pulsar "Buscar"
-  const handleSearch = () => {
+  const handleSearch = async () => {
     if (folio.trim()) {
-      // Llamamos a cada fetch asociado al folio
-      fetchEmpleado(folio);
-      fetchPaciente(folio);
-      fetchSindicato(folio);
-      fetchEspecialista(folio);
-      // Importante: también llamamos a la función del hook para obtener la receta
-      fetchMedicamentosReceta(folio);
+      const folioNumero = parseInt(folio, 10);
+      if (isNaN(folioNumero) || folioNumero <= 0) {
+        Swal.fire({
+          title: "Error",
+          text: "Folio inválido. Debe ser un número entero positivo.",
+          icon: "error",
+          confirmButtonText: "Aceptar",
+        });
+        return;
+      }
+
+      fetchEmpleado(folioNumero);
+      fetchPaciente(folioNumero);
+      fetchSindicato(folioNumero);
+      fetchEspecialista(folioNumero);
+
+      try {
+        const response = await fetch(
+          "/api/SURTIMIENTOS2/getMedicamentosReceta",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ folioReceta: folioNumero }),
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Error al obtener los medicamentos.");
+        }
+
+        const data = await response.json();
+        setReceta(data); // ✅ Actualizar la receta local
+
+        // 🔹 Llamar al hook para actualizar medicamentosReceta
+        fetchMedicamentosReceta(folioNumero);
+      } catch (error) {
+        console.error("Error al obtener medicamentos:", error);
+        Swal.fire({
+          title: "Error",
+          text: "Hubo un error al obtener los medicamentos.",
+          icon: "error",
+          confirmButtonText: "Aceptar",
+        });
+      }
     }
   };
 
@@ -90,31 +127,39 @@ const SurtimientosBanner = () => {
 
   // Guardar la receta en la BD o generar surtimiento
   const handleSaveReceta = async () => {
-    if (medicamentosReceta.length > 0) {
-      // **Caso 1:** Ya existen medicamentos en detalleReceta, generar surtimiento
-      try {
-        const folioNumero = parseInt(folio, 10);
-        if (isNaN(folioNumero)) {
-          throw new Error("Folio inválido. Debe ser un número.");
-        }
+    const folioNumero = parseInt(folio, 10);
+    if (isNaN(folioNumero)) {
+      throw new Error("Folio inválido. Debe ser un número.");
+    }
 
-        const response = await fetch("/api/SURTIMIENTOS2/generarSurtimiento", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            folioReceta: folioNumero,
-            medicamentos: medicamentosReceta,
-            diagnostico: diagnostico,
-          }),
-        });
+    try {
+      // Verificar si ya existe el surtimiento para este folio
+      const response = await fetch("/api/SURTIMIENTOS2/getMedicamentosReceta", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ folio: folioNumero }),
+      });
+      const medicamentosExistentes = await response.json();
 
-        if (!response.ok) {
-          const errorData = await response.json();
+      if (medicamentosExistentes.length > 0) {
+        // **Caso 1:** Ya existen medicamentos en detalleSurtimientos, solo generamos el surtimiento
+        const surtimientoResponse = await fetch(
+          "/api/SURTIMIENTOS2/generarSurtimiento",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              folioReceta: folioNumero,
+              medicamentos: medicamentosExistentes,
+              diagnostico,
+            }),
+          }
+        );
+
+        if (!surtimientoResponse.ok) {
+          const errorData = await surtimientoResponse.json();
           throw new Error(errorData.message || "Error al generar surtimiento");
         }
-
-        const data = await response.json();
-        console.log("Surtimiento generado:", data);
 
         Swal.fire({
           title: "Éxito",
@@ -122,41 +167,20 @@ const SurtimientosBanner = () => {
           icon: "success",
           confirmButtonText: "Aceptar",
         });
-      } catch (error) {
-        console.error("Error al generar surtimiento:", error);
-        Swal.fire({
-          title: "Error",
-          text: error.message || "No se pudo generar el surtimiento.",
-          icon: "error",
-          confirmButtonText: "Aceptar",
-        });
-      }
-    } else {
-      // **Caso 2:** No existen medicamentos en detalleReceta, guardar nueva receta
-      try {
-        const folioNumero = parseInt(folio, 10);
-        if (isNaN(folioNumero)) {
-          throw new Error("Folio inválido. Debe ser un número.");
-        }
-
-        console.log("Datos enviados al backend:", {
-          folio: folioNumero,
-          medicamentos: receta,
-          diagnostico,
-        });
-
-        const response = await fetch("/api/SURTIMIENTOS2/guardarReceta", {
+      } else {
+        // **Caso 2:** No existen medicamentos en detalleSurtimientos, transferimos desde detalleReceta
+        const recetaResponse = await fetch("/api/SURTIMIENTOS2/guardarReceta", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            folio: folioNumero, // Cambiado de folioReceta a folio
-            medicamentos: receta,
+            folio: folioNumero,
+            medicamentos: receta, // Medicamentos nuevos
             diagnostico,
           }),
         });
 
-        if (!response.ok) {
-          const errorData = await response.json();
+        if (!recetaResponse.ok) {
+          const errorData = await recetaResponse.json();
           throw new Error(errorData.message || "Error al guardar la receta.");
         }
 
@@ -171,20 +195,24 @@ const SurtimientosBanner = () => {
 
         // Opcional: Actualizar los medicamentos recetados
         fetchMedicamentosReceta(folioNumero);
-      } catch (error) {
-        console.error("Error al guardar la receta:", error.message);
-        Swal.fire({
-          title: "Error",
-          text: error.message || "No se pudo guardar la receta.",
-          icon: "error",
-          confirmButtonText: "Aceptar",
-        });
       }
+    } catch (error) {
+      console.error("Error al guardar la receta:", error.message);
+      Swal.fire({
+        title: "Error",
+        text: error.message || "No se pudo guardar la receta.",
+        icon: "error",
+        confirmButtonText: "Aceptar",
+      });
     }
   };
 
   // Verificar si al menos uno de los datos se obtuvo (folio válido)
   const isFolioValido = empleado || paciente || sindicato || especialista;
+
+  useEffect(() => {
+    console.log("Medicamentos Recetados:", medicamentosReceta);
+  }, [medicamentosReceta]);
 
   return (
     <div className={styles.pageContainer}>
@@ -301,7 +329,7 @@ const SurtimientosBanner = () => {
         {isFolioValido && (
           <div className={styles.historialContainer}>
             <TablaMedicamentos
-              medicamentos={medicamentosReceta}
+              medicamentos={receta} // Debe ser receta, NO medicamentosReceta
               loading={loadingReceta}
               error={errorReceta}
             />

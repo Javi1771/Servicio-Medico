@@ -92,30 +92,6 @@ const CargaMedicamentosForm = ({
       >
         Añadir a la Receta
       </button>
-
- {/* Mostrar la tabla con los medicamentos añadidos */}
-{ !disableAdd && receta.length > 0 && (
-  <table className={styles.table}>
-    <thead>
-      <tr>
-        <th>Medicamento</th>
-        <th>Indicaciones</th>
-        <th>Cantidad</th>
-      </tr>
-    </thead>
-    <tbody>
-      {receta.map((med, index) => (
-        <tr key={index}>
-          <td>{med.claveMedicamento}</td>
-          <td>{med.indicaciones}</td>
-          <td>{med.cantidad}</td>
-        </tr>
-      ))}
-    </tbody>
-  </table>
-)}
-
-
       <button onClick={onSave} className={styles.saveButton}>
         Guardar
       </button>

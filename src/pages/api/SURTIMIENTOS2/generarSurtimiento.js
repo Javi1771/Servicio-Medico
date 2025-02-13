@@ -100,7 +100,7 @@ export default async function handler(req, res) {
     const getSindicato = async (folioReceta) => {
       try {
         //* Petición POST a tu endpoint que devuelva la info de la columna "sindicato"
-        const response = await fetch("/api/consultas/getsindicato", {
+        const response = await fetch("/api/SURTIMIENTOS2/getsindicato", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -126,7 +126,7 @@ export default async function handler(req, res) {
       }
     };
 
-    const sindicato = getSindicato(consulta.clavenomina);
+    const sindicato = await getSindicato(consulta.clavenomina);
     console.log("Sindicato determinado:", sindicato);
 
     // 5. Normalizar el valor del campo departamento

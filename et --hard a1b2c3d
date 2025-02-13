@@ -1,0 +1,150 @@
+[33m54e5006[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m)[m Módulos de Incapacidades
+[33m47790c4[m Merge branch 'master' of https://github.com/Javi1771/Servicio-Medico
+[33m1fc3b3f[m cambios para medicamentos y surtimientos parte 1
+[33m68872ba[m Merge branch 'master' of https://github.com/Javi1771/Servicio-Medico
+[33mfb5193f[m CAMBIOS ACTUALIZADOS
+[33m220b35a[m Merge branch 'javi'
+[33m726b81d[m Cambios en funcionalidades y Módulo de Captura de Incapacidades
+[33m175aa64[m bug corregido de imagen previa
+[33me289fb7[m cambios para despliegue al servidor
+[33mcb18970[m cambios en el serve.js
+[33m5047107[m ADAPTACION PARA HTTPS COMPILADA
+[33mf6b47b5[m Merge branch 'master' of https://github.com/Javi1771/Servicio-Medico
+[33mf118c1a[m Cambios en rutas
+[33m27ca9b2[m arreglo de bug
+[33m767bcbe[m versión compilada
+[33m476e666[m Merge branch 'master' of https://github.com/Javi1771/Servicio-Medico
+[33mae73690[m Reconocimiento facial terminado
+[33m753c001[m EN PROCESO DE MODULO SURTIMIENTOS
+[33m2f5820e[m VERSION ESTABLE
+[33mf6fd878[m A
+[33md2dcf3b[m cambios facial
+[33meefab17[m cambios 2
+[33m9bf4d71[m Merge branch 'master' of https://github.com/Javi1771/Servicio-Medico
+[33m6c71616[m correccion de cambios
+[33meb1b756[m Merge branch 'master' of https://github.com/Javi1771/Servicio-Medico
+[33m4615c79[m test reconocimiento facial
+[33m87426a6[m test reconocimiento facial
+[33mdaca106[m implemento de estilos al reconocimiento facial
+[33mdf210c1[m estilos reconocimiento facial
+[33m6cc02d4[m Merge branch 'master' of https://github.com/Javi1771/Servicio-Medico
+[33m70bf2df[m Segunda prueba de facial
+[33ma95e91d[m Añadido de descriptor facial en mi tabla beneficiarios
+[33mbe1e061[m Merge branch 'master' of https://github.com/Javi1771/Servicio-Medico
+[33m6ec803b[m Primera parte - Reconocimiento Facial
+[33mcf67750[m modelos version1 reconocimiento facial
+[33m0306798[m Resolver Bugs
+[33m0000987[m Resolviendo bugs
+[33m7290c3c[m resolviendo bug editar beneficiarios
+[33me5b47ba[m VALIDACIONES
+[33m89715a0[m Calculo de vigencias
+[33mf92729d[m Merge branch 'master' of https://github.com/presidenciaSJR/servicio-medico
+[33m151a852[m Merge branch 'master' of https://github.com/Javi1771/Servicio-Medico
+[33m815fa8f[m Cambios en usuarios, roles y gráficas
+[33m3d2ce77[m estilos de camara
+[33mcf1a78d[m Cámara foto de beneficiarios
+[33m479eda8[m Update .env.local
+[33m4e79b21[m Update .env.local
+[33m3c948f3[m Update usuarios-y-proveedores.jsx
+[33m6aafd9c[m Merge branch 'master' of https://github.com/Javi1771/Servicio-Medico
+[33m541c971[m Cambios en login y en inicio
+[33m43122d7[m versión estable para editar
+[33m266a557[m VALIDACIONES PARA TODOS LOS BENEFICIARIOS
+[33m4bba46e[m ESTRUCTURA DE CARPETAS CLOUDINARY
+[33m03fb216[m BOTONES ESTILOS ESPOSO, CONCUBINO
+[33m8134add[m Merge branch 'master' of https://github.com/Javi1771/Servicio-Medico
+[33m8dcbeb9[m CONEXION DE API CON CLAVE UNICA
+[33mbeea51a[m Merge branch 'master' of https://github.com/Javi1771/Servicio-Medico
+[33maa9050f[m Cambios realizados
+[33m80b6364[m create env.local
+[33m27eeabd[m Merge branch 'master' of https://github.com/Javi1771/Servicio-Medico
+[33m2885632[m Merge branch 'master' of https://github.com/Javi1771/Servicio-Medico
+[33m7f4b541[m Recuperar archivos al editar
+[33m1477ef5[m Ignorando .env.local
+[33mcefd2f8[m Merge branch 'master' of https://github.com/Javi1771/Servicio-Medico
+[33m12a954a[m Merge para unir repos
+[33m841285d[m Merge branch 'master' of https://github.com/Javi1771/Servicio-Medico
+[33m762dc35[m INE,ACTAMATROMONIO,NOISSTE
+[33m4cad8bd[m Merge branch 'master' of https://github.com/Javi1771/Servicio-Medico
+[33m781d052[m Gráficas completas
+[33m3f3f19d[m añadido de curp y acta de nacimiento
+[33m2953d0f[m Merge branch 'master' of https://github.com/Javi1771/Servicio-Medico
+[33m775f750[m version estable
+[33m1415dad[m Gráfica de Consultas por Especialidad
+[33m36644e5[m Merge branch 'master' of https://github.com/Javi1771/Servicio-Medico
+[33mf94b5ac[m Añadido de CURP, DOCUMENTO
+[33m349dad8[m Merge branch 'master' of https://github.com/Javi1771/Servicio-Medico
+[33m49b4089[m Avance de grafica de surtimientos y consultas generales
+[33m06419c2[m AÑADIDO DE CURP EN BENEFICIARTIOS
+[33m6621700[m Grafica de Consultas Generales
+[33m362acca[m Merge branch 'master' of https://github.com/Javi1771/Servicio-Medico
+[33m758292f[m Actualización completa de los KPIs
+[33m2a77b29[m Merge branch 'master' of https://github.com/Javi1771/Servicio-Medico
+[33m34bf52a[m version estable
+[33ma7bfc89[m aa
+[33mde0a505[m a
+[33m23a0140[m Cambios en indicaciones de medicamentos y en el tooltip
+[33m84d9ad8[m Casi últimos cambios en diagnóstico
+[33m3e9940c[m Merge branch 'master' of https://github.com/Javi1771/Servicio-Medico
+[33mb933fab[m Corrección de errores
+[33m1ac42ec[m correccion de guardado a folio_surtimiento
+[33m5345c87[m Cambios en los pases de especialidad
+[33m76a2096[m Merge branch 'master' of https://github.com/Javi1771/Servicio-Medico
+[33m7ab7aa0[m xd
+[33m81def43[m versión estable de la app
+[33m730dca2[m Cuarta Parte - Parte Final - Botón Global
+[33mce1ac6a[m Tercer avance - Botón global
+[33ma47c83b[m A
+[33m2de09f8[m Avance 1 para presentar
+[33m50216fc[m Merge branch 'master' of https://github.com/Javi1771/Servicio-Medico
+[33m580af04[m INSERT TABLA SURTIMIENTOS
+[33mf16eb9a[m Segundo Avance - botón global
+[33m836a5b5[m Merge branch 'master' of https://github.com/Javi1771/Servicio-Medico
+[33m6db4220[m Primera fase - botón global
+[33m8992f95[m Tablas, consultas de detalles surtimientos
+[33mcd12cee[m versión estable tabla historial
+[33m9da658b[m version estable
+[33mae03237[m TABLA TEMPORAL Y RESULTADOS
+[33ma93d1dd[m version estable
+[33m293c7c0[m anadido de modal
+[33m987a47a[m añadido de callback
+[33m08a558d[m Merge branch 'master' of https://github.com/Javi1771/Servicio-Medico
+[33m32e73bb[m versión estable de surtimientos
+[33mff36074[m Merge branch 'master' of https://github.com/Javi1771/Servicio-Medico
+[33mbeefd70[m Pantallas para crear pase a especialidad
+[33m031fabb[m COMPONENTE SURTIMIENTOS ESTABLE
+[33mfd1b14b[m muestra de tabla de medicamentos
+[33m3ef9328[m cambios regenerados
+[33mb1087de[m Revert "cambios a 16/12/24"
+[33m6bb6627[m Merge branch 'master' of https://github.com/Javi1771/Servicio-Medico
+[33mec482cb[m cambios a 16/12/24
+[33m2ed304f[m Cambios en loginApi e inicio de pases de especialidades
+[33mf81e489[m Merge branch 'javi'
+[33m888abb8[m Inicio de cambios en pase especialidad para futuras pantallas
+[33m450ee19[m creación de la carpeta surtimientos
+[33m9bd24de[m Compilación completa
+[33mc3ad99c[m Merge branch 'master' of https://github.com/Javi1771/Servicio-Medico
+[33ma3d5795[m Correcciones beneficiarios
+[33mfde0cb8[m Merge branch 'master' of https://github.com/Javi1771/Servicio-Medico
+[33m2a44fc5[m Diagnostico terminado
+[33mf564300[m VALIDACIONES BENEFICIARIOS
+[33md5fa668[m CAMPOS INECESARIO BENEFICIARIOS
+[33m2b52a43[m Merge branch 'master' of https://github.com/Javi1771/Servicio-Medico
+[33m3b97872[m Cambios en Especialidades
+[33m937901a[m registro de kpis
+[33mf453460[m formato de kpis
+[33m7031143[m arreglo de bugs
+[33m698a90b[m Merge branch 'master' of https://github.com/Javi1771/Servicio-Medico
+[33m8e64db0[m cambios de correcciones realizados
+[33md973b55[m Merge branch 'master' of https://github.com/Javi1771/Servicio-Medico
+[33mac8c34a[m Cambios en las pantallas de Diagnosticos, Medicamentos, Pase a Especialidad, Incapacidades
+[33m93ada98[m Cambios a los usuario
+[33m5cbc936[m Merge branch 'master' of https://github.com/Javi1771/Servicio-Medico
+[33m223588c[m GRAFICOS ARREGLO V2
+[33m8d356a1[m Merge branch 'master' of https://github.com/Javi1771/Servicio-Medico
+[33m4de2d74[m Cambios pruebas
+[33mfe35bb3[m ARREGLO DE BUGS BENEFICIARIO
+[33mf409c94[m formulario terminado
+[33m114c16b[m Form para surtir medicamento
+[33m1f2772a[m MODIFICAIONES SURTIR BENEFICIARIO
+[33mf96596d[m Merge branch 'm
