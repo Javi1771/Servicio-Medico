@@ -298,7 +298,9 @@ const SurtimientosBanner = () => {
             especialista && (
               <InformacionEspecialista
                 especialista={especialista}
-                onDiagnosticoChange={setDiagnostico}
+                onDiagnosticoChange={(value) => {
+                  if (!diagnostico) setDiagnostico(value); // Evita modificar si ya hay diagnóstico
+                }}
               />
             )
           )}

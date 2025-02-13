@@ -27,7 +27,7 @@ export default function useFetchSindicato() {
       //* Puedes guardar el valor directamente...
       //* Si quieres mostrar un texto custom, puedes hacer algo como:
       //* setSindicato(data.sindicato ?? "No está sindicalizado");
-      setSindicato(data.sindicato ?? "No está sindicalizado");
+      setSindicato(data.sindicato ?? "N/A");
     } catch (err) {
       setError(err.message);
       setSindicato(null);

@@ -25,6 +25,8 @@ const TablaMedicamentos = ({ medicamentos, loading, error }) => {
             <th>Medicamento</th>
             <th>Indicaciones</th>
             <th>Cantidad</th>
+            <th>Piezas</th>
+
           </tr>
         </thead>
         <tbody>
@@ -33,6 +35,7 @@ const TablaMedicamentos = ({ medicamentos, loading, error }) => {
               <td>{med.nombreMedicamento}</td>
               <td>{med.indicaciones}</td>
               <td>{med.cantidad}</td>
+              <td>{med.piezas}</td> {/* Mostrar el campo piezas */}
             </tr>
           ))}
         </tbody>

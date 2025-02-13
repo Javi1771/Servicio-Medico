@@ -111,10 +111,10 @@ export default async function handler(req, res) {
           console.warn(
             `no se encontró sindicato para la claveconsulta: ${folioReceta}`
           );
-          return "no está sindicalizado";
+          return "N/A";
         }
 
-        return result.recordset[0].sindicato ?? "no está sindicalizado";
+        return result.recordset[0].sindicato ?? "N/A";
       } catch (error) {
         console.error("error en getSindicato:", error);
         return null;
@@ -123,6 +123,15 @@ export default async function handler(req, res) {
 
     const sindicato = await getSindicato(consulta.clavenomina, pool);
     console.log("Sindicato determinado:", sindicato);
+    
+    // Si sindicato es null o undefined, asigna un valor predeterminado
+    const sindicatoFinal = sindicato || "N/A"; // Valor por defecto
+    
+    // Limitar el valor a 10 caracteres
+    const sindicatoLimpio = sindicatoFinal.substring(0, 10);
+    
+    console.log("Sindicato limpio:", sindicatoLimpio);
+    
 
     // 5. Normalizar el valor del campo departamento
     let departamento = consulta.departamento || null;
