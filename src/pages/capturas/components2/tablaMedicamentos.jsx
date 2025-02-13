@@ -1,7 +1,12 @@
 import React from "react";
 import styles from "../../css/SURTIMIENTOS_ESTILOS/tablaMedicamentos.module.css";
 
-const TablaMedicamentos = ({ medicamentos, loading, error }) => {
+const TablaMedicamentos = ({
+  medicamentos,
+  loading,
+  error,
+  onRemoveMedicamento,
+}) => {
   console.log("📌 Medicamentos recibidos en TablaMedicamentos:", medicamentos);
 
   if (loading) {
@@ -26,18 +31,24 @@ const TablaMedicamentos = ({ medicamentos, loading, error }) => {
             <th>Indicaciones</th>
             <th>Cantidad</th>
             <th>Piezas</th>
-
+            <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
-          {medicamentos.map((med, index) => (
-            <tr key={index}>
-              <td>{med.nombreMedicamento}</td>
-              <td>{med.indicaciones}</td>
-              <td>{med.cantidad}</td>
-              <td>{med.piezas}</td> {/* Mostrar el campo piezas */}
-            </tr>
-          ))}
+        {medicamentos.map((med) => (
+  <tr key={med.claveMedicamento}>
+  <td>{med.nombreMedicamento}</td>
+  <td>{med.indicaciones}</td>
+  <td>{med.cantidad}</td>
+  <td>{med.piezas}</td>
+  <td>
+    <button onClick={() => onRemoveMedicamento(med)} className={styles.removeButton}>
+      Quitar
+    </button>
+  </td>
+</tr>
+))}
+
         </tbody>
       </table>
     </div>

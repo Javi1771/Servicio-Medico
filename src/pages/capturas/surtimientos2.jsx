@@ -14,7 +14,7 @@ import CargaMedicamentosForm from "./components2/cargaMedicamentosForm";
 import styles from "../css/SURTIMIENTOS_ESTILOS/surtimientos2.module.css";
 
 import useFetchMedicamentosReceta from "../../hooks/hookSURTIMIENTOS2/useFetchMedicamentosReceta";
-import TablaMedicamentos from "./components2/TablaMedicamentos"; // Extensión .jsx
+import TablaMedicamentos from "./components2/tablaMedicamentos"; // Extensión .jsx
 import Swal from "sweetalert2";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
@@ -70,6 +70,17 @@ const SurtimientosBanner = () => {
     fetchMedicamentosReceta,
   } = useFetchMedicamentosReceta();
 
+  const handleRemoveMedicamento = (medicamento) => {
+    setReceta((prevReceta) => {
+      const newReceta = prevReceta.filter(
+        (med) => med.claveMedicamento !== medicamento.claveMedicamento
+      );
+      console.log("Nueva receta después de quitar:", newReceta);
+      return newReceta;
+    });
+  };
+  
+
   // Función que se ejecuta al pulsar "Buscar"
   const handleSearch = async () => {
     if (folio.trim()) {
@@ -123,6 +134,12 @@ const SurtimientosBanner = () => {
   // Añadir medicamento a la receta local
   const handleAddMedicamento = (medicamento) => {
     setReceta((prevReceta) => [...prevReceta, medicamento]);
+  };
+
+  const handleSave = (medicamentosRestantes) => {
+    // Aquí puedes manejar el proceso de guardar los medicamentos restantes
+    console.log("Medicamentos a guardar:", medicamentosRestantes);
+    // Realizar el fetch o las operaciones necesarias para guardar los datos
   };
 
   // Guardar la receta en la BD o generar surtimiento
@@ -331,9 +348,11 @@ const SurtimientosBanner = () => {
         {isFolioValido && (
           <div className={styles.historialContainer}>
             <TablaMedicamentos
-              medicamentos={receta} // Debe ser receta, NO medicamentosReceta
+              medicamentos={receta} // Pasa el estado actualizado de receta aquí
               loading={loadingReceta}
               error={errorReceta}
+              onSave={handleSaveReceta}
+              onRemoveMedicamento={handleRemoveMedicamento}
             />
           </div>
         )}

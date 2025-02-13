@@ -1,4 +1,3 @@
-// cargaMedicamentosForm.jsx
 import React, { useState } from "react";
 import styles from "../../css/SURTIMIENTOS_ESTILOS/cargaMedicamentos.module.css";
 
@@ -15,7 +14,6 @@ const CargaMedicamentosForm = ({
   const [piezas, setPiezas] = useState(""); // Nueva variable para las piezas
 
   const handleAddMedicamentoLocal = () => {
-    // Renombrado para evitar conflicto con la prop
     if (!selectedMedicamento) {
       alert("Por favor, selecciona un medicamento.");
       return;
@@ -29,7 +27,6 @@ const CargaMedicamentosForm = ({
       return;
     }
     if (!piezas.trim()) {
-      // Validación para las piezas
       alert("Por favor, proporciona las piezas.");
       return;
     }
@@ -40,7 +37,7 @@ const CargaMedicamentosForm = ({
       cantidad,
       piezas: piezas,
     };
-    console.log("Nuevo medicamento añadido:", nuevoMedicamento); // Verifica qué se envía
+    console.log("Nuevo medicamento añadido:", nuevoMedicamento);
     onAddMedicamento(nuevoMedicamento);
     setSelectedMedicamento("");
     setIndicaciones("");
@@ -94,7 +91,7 @@ const CargaMedicamentosForm = ({
           disabled={disableAdd} // Deshabilitar input si disableAdd es true
         />
       </div>
-      
+
       <div className={styles.inputGroup}>
         <label htmlFor="piezas">Piezas</label>
         <input
@@ -114,7 +111,7 @@ const CargaMedicamentosForm = ({
       >
         Añadir a la Receta
       </button>
-      <button onClick={onSave} className={styles.saveButton}>
+      <button onClick={() => onSave()} className={styles.saveButton}>
         Guardar
       </button>
     </div>
