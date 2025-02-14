@@ -1,10 +1,11 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState, useCallback } from "react";
-import Pusher from "pusher-js";
+import { useRouter } from "next/router"; 
 
 const ConsultasAtendidas = () => {
   const [pacientes, setPacientes] = useState([]);
-  const [isLoading, setIsLoading] = useState(false); // Control de carga
+  const [isLoading, setIsLoading] = useState(false); //* Control de carga
+  const router = useRouter(); 
 
   //* Ordenar pacientes por fecha de consulta
   const ordenarPacientes = (pacientes) =>
@@ -12,7 +13,7 @@ const ConsultasAtendidas = () => {
 
   //* Cargar datos iniciales
   const cargarAtendidas = async () => {
-    if (isLoading) return; // Evitar llamadas simultáneas
+    if (isLoading) return; //! Evitar llamadas simultáneas
     setIsLoading(true);
 
     try {
@@ -21,7 +22,7 @@ const ConsultasAtendidas = () => {
       if (response.ok) {
         const consultasOrdenadas = ordenarPacientes(data.consultas || []);
         setPacientes((prevPacientes) => {
-          // Solo actualizar si los datos son diferentes
+          //* Solo actualizar si los datos son diferentes
           if (JSON.stringify(prevPacientes) !== JSON.stringify(consultasOrdenadas)) {
             console.log("[INFO] Actualizando consultas atendidas:", consultasOrdenadas);
             return consultasOrdenadas;
@@ -54,14 +55,14 @@ const ConsultasAtendidas = () => {
         );
 
         if (data.clavestatus === 4) {
-          // Agregar paciente si no existe
+          //! Agregar paciente si no existe
           if (pacienteIndex === -1) {
             const nuevosPacientes = ordenarPacientes([...prevPacientes, data]);
             console.log("[INFO] Paciente agregado:", nuevosPacientes);
             return nuevosPacientes;
           }
         } else {
-          // Eliminar paciente si el estado ya no es "atendida"
+          //! Eliminar paciente si el estado ya no es "atendida"
           const nuevosPacientes = prevPacientes.filter(
             (paciente) => paciente.claveconsulta !== data.claveConsulta
           );
@@ -73,12 +74,12 @@ const ConsultasAtendidas = () => {
         return prevPacientes;
       });
     },
-    [] // Sin dependencias para evitar re-creación
+    [] //! Sin dependencias para evitar re-creación
   );
 
   useEffect(() => {
     console.log("[INFO] Montando componente ConsultasAtendidas");
-    cargarAtendidas(); // Cargar datos iniciales
+    cargarAtendidas(); //* Cargar datos iniciales
 
     const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY, {
       cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER,
@@ -88,7 +89,7 @@ const ConsultasAtendidas = () => {
     const channel = pusher.subscribe("consultas");
     channel.bind("estatus-actualizado", manejarEventoPusher);
 
-    // Cleanup al desmontar el componente
+    //* Cleanup al desmontar el componente
     return () => {
       console.log("[INFO] Desmontando componente ConsultasAtendidas");
       channel.unbind("estatus-actualizado", manejarEventoPusher);
@@ -96,6 +97,12 @@ const ConsultasAtendidas = () => {
       pusher.disconnect();
     };
   }, [manejarEventoPusher]);
+
+  //* Función para manejar el clic en una fila de la tabla
+  const handleRowClick = (claveConsulta) => {
+    const encryptedClaveConsulta = btoa(claveConsulta.toString()); //! Cifrar la claveConsulta
+    router.push(`/consultas/recetas/ver-recetas?claveconsulta=${encryptedClaveConsulta}`); //* Redirigir a la página con la claveConsulta cifrada
+  };
 
   return (
     <div className="w-full overflow-x-auto p-6 bg-gradient-to-b from-gray-900 to-gray-800 rounded-xl shadow-lg">
@@ -117,6 +124,7 @@ const ConsultasAtendidas = () => {
               <tr
                 key={index}
                 className="bg-gray-700 bg-opacity-50 hover:bg-gradient-to-r from-green-500 to-green-700 transition duration-300 ease-in-out rounded-lg shadow-md"
+                onClick={() => handleRowClick(paciente.claveconsulta)} // Manejar clic en fila
               >
                 <td className="py-4 px-6 font-medium text-center">
                   {paciente.clavenomina || "N/A"}

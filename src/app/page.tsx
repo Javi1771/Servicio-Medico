@@ -53,7 +53,7 @@ const Login = () => {
           "#32cd32"
         );
         document.cookie = `auth=true; path=/;`;
-        router.push("/inicio-servicio-medico");
+        router.replace("/inicio-servicio-medico");
       } else if (data.message === "Usuario no encontrado") {
         showAlert(
           "error",

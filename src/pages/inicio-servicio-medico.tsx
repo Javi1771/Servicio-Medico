@@ -28,7 +28,7 @@ const Home = () => {
     setRol(userRole);
 
     if (userRole === "7") {
-      router.push("/inicio-presidente");
+      router.replace("/inicio-presidente");
     }
   }, [router]);
 
@@ -43,7 +43,7 @@ const Home = () => {
   const handleLogout = () => {
     Cookies.remove("token");
     Cookies.remove("rol");
-    router.push("/");
+    router.replace("/");
   };
 
   const navigateTo = async (path: string) => {
@@ -51,7 +51,7 @@ const Home = () => {
 
     try {
       setLoadingPath(path); //* Activa el estado de carga
-      await router.push(path);
+      await router.replace(path);
     } catch (error) {
       console.error(`Error navigating to ${path}:`, error);
     } finally {

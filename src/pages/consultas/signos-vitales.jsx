@@ -112,17 +112,18 @@ const SignosVitales = () => {
   const [isSaving, setIsSaving] = useState(false);
 
   const handleFaceRecognition = () => {
-    router.push("/consultas/face-test");
+    router.replace("/consultas/face-test");
   };
 
   const handleBeneficiarySelect = (index) => {
     const selected = beneficiaryData[index];
-
+  
     if (selected.VIGENCIA_ESTUDIOS) {
       const vigenciaEstudios = new Date(selected.VIGENCIA_ESTUDIOS);
       const fechaActual = new Date();
-
-      if (vigenciaEstudios < fechaActual) {
+  
+      //* Compara las fechas usando getTime() para asegurarte de que se comparan correctamente
+      if (vigenciaEstudios.getTime() < fechaActual.getTime()) {
         //! Mostrar alerta si la constancia está vencida
         MySwal.fire({
           icon: "warning",
@@ -138,19 +139,19 @@ const SignosVitales = () => {
               "border border-yellow-600 shadow-[0px_0px_20px_5px_rgba(255,152,0,0.9)] rounded-lg",
           },
         });
-
+  
         //* Buscar el siguiente beneficiario válido
         const validBeneficiaryIndex = beneficiaryData.findIndex(
           (beneficiary) => {
             if (beneficiary.VIGENCIA_ESTUDIOS) {
               const vigenciaEstudios = new Date(beneficiary.VIGENCIA_ESTUDIOS);
               const fechaActual = new Date();
-              return vigenciaEstudios >= fechaActual; //* Beneficiario con vigencia válida
+              return vigenciaEstudios.getTime() >= fechaActual.getTime(); //* Beneficiario con vigencia válida
             }
             return true; //* Beneficiario sin validación de vigencia
           }
         );
-
+  
         if (validBeneficiaryIndex !== -1) {
           //* Seleccionar automáticamente el primer beneficiario válido
           setSelectedBeneficiary(beneficiaryData[validBeneficiaryIndex]);
@@ -161,14 +162,14 @@ const SignosVitales = () => {
           setBeneficiaryData([]);
           setConsultaSeleccionada("empleado"); //! Cambiar a "empleado" si no hay beneficiarios
         }
-
+  
         return;
       }
     }
-
+  
     //* Si el beneficiario es válido, actualizar la selección
     setSelectedBeneficiary(selected);
-  };
+  };  
 
   //* Función para cargar la lista de espera
   const cargarPacientesDelDia = async () => {
@@ -492,12 +493,33 @@ const SignosVitales = () => {
         },
         body: JSON.stringify({ nomina }),
       });
-
+  
       const data = await response.json();
-
+  
       if (data.beneficiarios && data.beneficiarios.length > 0) {
-        setBeneficiaryData(data.beneficiarios);
-        setSelectedBeneficiary(data.beneficiarios[0]);
+        //* Verificar la vigencia de todos los beneficiarios antes de actualizarlos
+        const updatedBeneficiarios = data.beneficiarios.map((beneficiary) => {
+          const vigenciaEstudios = new Date(beneficiary.VIGENCIA_ESTUDIOS);
+          const fechaActual = new Date();
+          beneficiary.isVencido = vigenciaEstudios.getTime() < fechaActual.getTime();
+          return beneficiary;
+        });
+  
+        setBeneficiaryData(updatedBeneficiarios);
+  
+        //* Seleccionar el primer beneficiario válido
+        const validBeneficiaryIndex = updatedBeneficiarios.findIndex(
+          (beneficiary) => !beneficiary.isVencido
+        );
+  
+        if (validBeneficiaryIndex !== -1) {
+          setSelectedBeneficiary(updatedBeneficiarios[validBeneficiaryIndex]);
+          document.querySelector("select").value = validBeneficiaryIndex; //* Actualizar el select
+        } else {
+          setSelectedBeneficiary(null);
+          setBeneficiaryData([]);
+          setConsultaSeleccionada("empleado"); //* Cambiar a "empleado" si no hay beneficiarios válidos
+        }
       } else {
         setBeneficiaryData([]);
         setConsultaSeleccionada("empleado"); //* Cambia a "empleado" si no hay beneficiarios
@@ -517,7 +539,7 @@ const SignosVitales = () => {
         });
       }
     } catch (error) {
-      console.error("Error al buscar beneficiario:", error);
+      console.error("Error al buscar beneficiarios:", error);
       MySwal.fire({
         icon: "error",
         title:
@@ -533,7 +555,7 @@ const SignosVitales = () => {
         },
       });
     }
-  };
+  };  
 
   const handleVitalChange = (e) => {
     const { name, value } = e.target;

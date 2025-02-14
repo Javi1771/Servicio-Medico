@@ -29,7 +29,7 @@ const SideMenu = ({ onMenuClick }) => {
   };
 
   const handleSalir = () => {
-    router.push("/inicio-servicio-medico"); // Redirige al usuario
+    router.replace("/inicio-servicio-medico"); // Redirige al usuario
   };
 
   return (
