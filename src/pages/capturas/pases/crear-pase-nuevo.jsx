@@ -165,6 +165,7 @@ const CrearPaseNuevo = () => {
         photo: "/user_icon_.png",
       });
 
+      // Obtener los beneficiarios
       const beneficiariesResponse = await fetch(
         "/api/beneficiarios/beneficiario",
         {
@@ -175,8 +176,20 @@ const CrearPaseNuevo = () => {
       );
 
       const beneficiaries = await beneficiariesResponse.json();
-      //* Aquí no mostramos la alerta, la mostraremos solo cuando el usuario dé clic en Beneficiario
-      setBeneficiaryData(beneficiaries.beneficiarios || []);
+
+      // Validación de la vigencia de los beneficiarios
+      const updatedBeneficiaries = beneficiaries.beneficiarios.map(
+        (beneficiary) => {
+          const vigenciaEstudios = new Date(beneficiary.VIGENCIA_ESTUDIOS);
+          const fechaActual = new Date();
+          beneficiary.isVencido =
+            vigenciaEstudios.getTime() < fechaActual.getTime();
+          return beneficiary;
+        }
+      );
+
+      // Actualizar los datos de los beneficiarios
+      setBeneficiaryData(updatedBeneficiaries);
     } catch (error) {
       console.error("Error al buscar empleado o beneficiarios:", error);
       showErrorAlert(
@@ -222,6 +235,36 @@ const CrearPaseNuevo = () => {
   useEffect(() => {
     fetchEspecialidades();
   }, []);
+
+  useEffect(() => {
+    if (beneficiaryData.length > 0) {
+      // Filtrar beneficiarios válidos
+      const validBeneficiaries = beneficiaryData.filter(
+        (beneficiary) => !beneficiary.isVencido
+      );
+  
+      if (validBeneficiaries.length > 0) {
+        // Seleccionar el primer beneficiario válido
+        setSelectedBeneficiary(validBeneficiaries[0]);
+      } else {
+        // Si no hay beneficiarios válidos, limpiar
+        setSelectedBeneficiary(null);
+      }
+    }
+  }, [beneficiaryData]); // Este useEffect solo se ejecutará cuando 'beneficiaryData' cambie
+
+  useEffect(() => {
+    if (beneficiaryData.length > 0) {
+      const validBeneficiaries = beneficiaryData.filter(
+        (beneficiary) => !beneficiary.isVencido
+      );
+  
+      if (validBeneficiaries.length > 0 && !selectedBeneficiary) {
+        // Seleccionar el primer beneficiario válido si aún no hay seleccionado
+        setSelectedBeneficiary(validBeneficiaries[0]);
+      }
+    }
+  }, [beneficiaryData, selectedBeneficiary]); // Asegura que se actualice solo si 'selectedBeneficiary' está vacío
 
   useEffect(() => {
     //* Obtener cookies
@@ -270,6 +313,7 @@ const CrearPaseNuevo = () => {
       const vigenciaEstudios = new Date(selected.VIGENCIA_ESTUDIOS);
       const fechaActual = new Date();
 
+      //* Verificar si la constancia está vencida
       if (vigenciaEstudios < fechaActual) {
         //! Mostrar alerta si la constancia está vencida
         MySwal.fire({
@@ -295,19 +339,19 @@ const CrearPaseNuevo = () => {
               const fechaActual = new Date();
               return vigenciaEstudios >= fechaActual; //* Beneficiario con vigencia válida
             }
-            return true; //* Beneficiario sin validación de vigencia
+            return true; //! Beneficiario sin validación de vigencia
           }
         );
 
         if (validBeneficiaryIndex !== -1) {
-          //* Seleccionar automáticamente el primer beneficiario válido
+          //* Seleccionar automáticamente el siguiente beneficiario válido
           setSelectedBeneficiary(beneficiaryData[validBeneficiaryIndex]);
           document.querySelector("select").value = validBeneficiaryIndex; //* Actualizar el select
         } else {
-          //* Si no hay beneficiarios válidos, limpiar todo
+          //! Si no hay beneficiarios válidos, limpiar todo
           setSelectedBeneficiary(null);
           setBeneficiaryData([]);
-          setConsultaSeleccionada("empleado"); //! Cambiar a "empleado" si no hay beneficiarios
+          setSelectedPersona("empleado"); //! Cambiar a "empleado" si no hay beneficiarios válidos
         }
 
         return;

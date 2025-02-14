@@ -182,7 +182,7 @@ export default function FaceAuth({ beneficiaries }) {
           setLoadingMessage("Redirigiendo...");
           stopCamera();
           // Redirigir con parámetros encriptados
-          router.push(
+          router.replace(
             `/consultas/signos-vitales-facial?nomina=${encryptedNomina}&idBeneficiario=${encryptedBeneficiario}`
           );
         } else {

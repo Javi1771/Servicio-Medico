@@ -71,12 +71,12 @@ const PresidenteLayout: React.FC<PresidenteLayoutProps> = ({ children }) => {
   const handleLogout = () => {
     Cookies.remove("token");
     Cookies.remove("rol");
-    router.push("/");
+    router.replace("/");
   };
 
   const navigateTo = (path: string) => {
     setFromSidebar(true); //* Marcar como navegación desde la barra lateral
-    router.push(path);
+    router.replace(path);
   };
 
   const toggleMenu = (menu: string) => {
@@ -186,7 +186,7 @@ const PresidenteLayout: React.FC<PresidenteLayoutProps> = ({ children }) => {
         <div className="text-center mb-10">
           <h1
             className="text-4xl font-extrabold text-blue-500 glow cursor-pointer"
-            onClick={() => router.push("/inicio-presidente")}
+            onClick={() => router.replace("/inicio-presidente")}
           >
             S.M. Dashboard
           </h1>

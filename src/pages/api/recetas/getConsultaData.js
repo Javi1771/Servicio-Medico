@@ -42,7 +42,7 @@ export async function getConsultaData(claveConsulta) {
         c.nombrepaciente, c.edad, c.clavestatus, c.motivoconsulta,
         c.elpacienteesempleado, c.parentesco, c.clavepaciente, 
         c.departamento, c.sindicato, c.claveproveedor, c.diagnostico,
-        c.seAsignoIncapacidad, c.especialidadInterconsulta,
+        c.seAsignoIncapacidad, c.especialidadInterconsulta, c.seasignoaespecialidad,
         p.nombreproveedor, p.cedulaproveedor, pa.PARENTESCO AS parentescoNombre
       FROM consultas c
       LEFT JOIN proveedores p ON c.claveproveedor = p.claveproveedor

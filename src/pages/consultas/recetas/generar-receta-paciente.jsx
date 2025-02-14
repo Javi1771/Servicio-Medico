@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { PDFDocument } from "pdf-lib";
+import { PDFDocument, StandardFonts } from "pdf-lib";
 import { saveAs } from "file-saver";
 import { useRouter } from "next/router";
 import React, { useState, useEffect } from "react";
@@ -164,16 +164,16 @@ export default function GenerarReceta() {
       console.log("✏️ Dibujando datos en el PDF...");
 
       //? Bloque: DATOS DE LA CONSULTA
-      firstPage.drawText(data.consulta?.especialidadInterconsulta === null ? "General" : "Especialidad", { x: 114, y: 66, size: 10 });
+      firstPage.drawText(data.consulta?.especialidadInterconsulta === null ? "General" : "Especialidad", { x: 114, y: 665, size: 10 });
       firstPage.drawText(String(data.consulta?.claveconsulta ?? "N/A"), { x: 152, y: 645, size: 10 });
       firstPage.drawText(String(data.consulta?.fechaconsulta ?? "N/A"), { x: 102, y: 625, size: 10 });
       firstPage.drawText(String(data.consulta?.clavenomina ?? "N/A"), { x: 404, y: 665, size: 10 });
-      firstPage.drawText(String(data.consulta?.departamento?.trim() ?? "N/A"), { x: 410, y: 645, size: 10 });
-      firstPage.drawText(String(data.consulta?.sindicato ? data.consulta.sindicato : "No está sindicalizado"), { x: 408, y: 625, size: 10 });
+      drawMultilineText(firstPage, String(data.consulta?.departamento?.trim() ?? "N/A"), 410, 625, 150, 10);
+      firstPage.drawText(String(data.consulta?.sindicato ? data.consulta.sindicato : ""), { x: 408, y: 645, size: 10 });
 
       //? Bloque: DATOS DEL PACIENTE
       firstPage.drawText(String(data.consulta?.nombrepaciente ?? "N/A"), { x: 115, y: 570, size: 10 });
-      firstPage.drawText(String(data.consulta?.edad ?? "N/A"), { x: 435, y: 570, size: 10 });
+      firstPage.drawText(String(data.consulta?.edad ?? "N/A"), { x: 435, y: 571, size: 10 });
       firstPage.drawText(String(data.consulta?.presionarterialpaciente ?? "N/A"), { x: 37, y: 525, size: 10 });
       firstPage.drawText(String(data.consulta?.temperaturapaciente ?? "N/A"), { x: 130, y: 525, size: 10 });
       firstPage.drawText(String(data.consulta?.pulsosxminutopaciente ?? "N/A"), { x: 210, y: 525, size: 10 });
@@ -182,12 +182,25 @@ export default function GenerarReceta() {
       firstPage.drawText(String(data.consulta?.pesopaciente ?? "N/A"), { x: 459, y: 525, size: 10 });
       firstPage.drawText(String(data.consulta?.glucosapaciente ?? "N/A"), { x: 540, y: 525, size: 10 });
 
+      //? Línea especial: Si el paciente NO es empleado (elpacienteesempleado === "N"), se escribe el nombre con el parentesco en negrita y con un guion antes.
+      if (data.consulta?.elpacienteesempleado === "N") {
+        const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold); 
+        const parentescoTexto = `- ${data.consulta?.parentescoNombre ?? "N/A"}`; 
+
+        firstPage.drawText(parentescoTexto, { 
+            x: 162, 
+            y: 601, 
+            size: 13, 
+            font: boldFont 
+        });
+      }
+
       //? Bloque: DIAGNÓSTICO
       drawMultilineText(firstPage, String(data.consulta?.motivoconsulta ?? "N/A"), 50, 460, 750, 10);
 
       //? Bloque: TRATAMIENTO
       let recetaStartY = 357;
-      const lineSpacing = 30; //* Espacio más grande entre medicamentos
+      const lineSpacing = 20; //* Espacio más grande entre medicamentos
 
       if (data.receta.length > 0) {
         data.receta.forEach((item, index) => {
@@ -213,7 +226,7 @@ export default function GenerarReceta() {
       
       //? Firmas
       firstPage.drawText(String(data.consulta?.nombreproveedor ?? "N/A"), { x: 120, y: 52, size: 10 });
-      firstPage.drawText(String(data.consulta?.nombrepaciente ?? "N/A"), { x: 410, y: 52, size: 10 });
+      firstPage.drawText(String(data.consulta?.nombrepaciente ?? "N/A"), { x: 370, y: 52, size: 10 });
 
       //? Guardar el PDF en memoria y generar una URL para previsualización
       const pdfBytes = await pdfDoc.save();
@@ -276,7 +289,7 @@ export default function GenerarReceta() {
           {/* Botón de descarga con animación moderna */}
           <div className="flex justify-center mt-6">
             <button
-              onClick={() => saveAs(pdfUrl, "RecetaFarmacia.pdf")}
+              onClick={() => saveAs(pdfUrl, "RecetaPaciente.pdf")}
               className="px-6 py-3 bg-cyan-600 hover:bg-cyan-500 text-white font-semibold rounded-lg shadow-md shadow-cyan-500/50 transition transform hover:scale-105 hover:shadow-cyan-400/50"
             >
               ⬇️ Descargar PDF

@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { PDFDocument } from "pdf-lib";
+import { PDFDocument, StandardFonts } from "pdf-lib";
 import { saveAs } from "file-saver";
 import { useRouter } from "next/router";
 import React, { useState, useEffect } from "react";
@@ -51,30 +51,32 @@ export default function GenerarReceta() {
         }
     };        
 
-    //* Función para generar código de barras
+    //* Función para generar código de barras con CODE128 mostrando los asteriscos
     const generarCodigoBarras = (clavenomina, claveproveedor, claveconsulta, folioSurtimiento) => {
-        if (!clavenomina || !claveproveedor || !claveconsulta || !folioSurtimiento) {
-            console.error("❌ Datos insuficientes para generar código de barras");
-            return;
-        }
+      if (!clavenomina || !claveproveedor || !claveconsulta || !folioSurtimiento) {
+          console.error("❌ Datos insuficientes para generar código de barras");
+          return;
+      }
 
-        const codigo = `${clavenomina}-${claveproveedor}-${claveconsulta}-${folioSurtimiento}`;
+      //* Convertir los asteriscos en caracteres ASCII válidos
+      const codigo = `${clavenomina} ${claveproveedor} ${claveconsulta} ${folioSurtimiento}`;
 
-        setCodigoBarras(codigo);
+      console.log('El código generado es:', codigo); //* Se verá con asteriscos en consola y al escanear
 
-        const canvas = document.createElement("canvas");
+      setCodigoBarras(codigo); //* Guardar el código en el estado
 
-        //* Aumenta el tamaño del código de barras para mejorar la legibilidad
-        JsBarcode(canvas, codigo, {
-            format: "CODE128",
-            displayValue: false,
-            width: 3, 
-            height: 70,
-            margin: 5, 
-        });
-        
-        return canvas.toDataURL("image/png");
-               
+      const canvas = document.createElement("canvas");
+
+      //* Generar el código de barras con CODE128
+      JsBarcode(canvas, codigo, {
+          format: "CODE128",
+          displayValue: false,
+          width: 3, 
+          height: 70,
+          margin: 5, 
+      });
+
+      return canvas.toDataURL("image/png");
     };
 
   //* Función para dibujar texto multilinea
@@ -166,8 +168,8 @@ export default function GenerarReceta() {
         //? Bloque: DATOS DE LA CONSULTA
         firstPage.drawText(String(data.consulta?.fechaconsulta ?? "N/A"), { x: 102, y: 664, size: 10 });
         firstPage.drawText(String(data.consulta?.clavenomina ?? "N/A"), { x: 109, y: 645, size: 10 });
-        firstPage.drawText(String(data.consulta?.departamento?.trim() ?? "N/A"), { x: 317, y: 645, size: 10 });
-        firstPage.drawText(String(data.consulta?.sindicato ? data.consulta.sindicato : "No está sindicalizado"), { x: 315, y: 664, size: 10 });
+        drawMultilineText(firstPage, String(data.consulta?.departamento?.trim() ?? "N/A"), 410, 665, 150, 10);
+        firstPage.drawText(String(data.consulta?.sindicato ? data.consulta.sindicato : ""), { x: 408, y: 625, size: 10 });
 
         //* Nombre del empleado (recibido como argumento)
         firstPage.drawText(`${nombreEmpleado}`, { x: 119, y: 626, size: 10 });
@@ -176,25 +178,43 @@ export default function GenerarReceta() {
         firstPage.drawText(String(data.consulta?.nombrepaciente ?? "N/A"), { x: 115, y: 571, size: 10 });
         firstPage.drawText(String(data.consulta?.edad ?? "N/A"), { x: 435, y: 571, size: 10 });
 
+        //? Línea especial: Si el paciente NO es empleado (elpacienteesempleado === "N"), se escribe el nombre con el parentesco en negrita y con un guion antes.
+        if (data.consulta?.elpacienteesempleado === "N") {
+          const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold); 
+          const parentescoTexto = `- ${data.consulta?.parentescoNombre ?? "N/A"}`; 
+        
+            firstPage.drawText(parentescoTexto, { 
+              x: 162, 
+              y: 601, 
+              size: 13, 
+              font: boldFont 
+            });
+          }
+
         //? Código de Barras con información adicional
         if (codigoBarrasBase64) {
-            const barcodeImage = await pdfDoc.embedPng(codigoBarrasBase64);
-            firstPage.drawImage(barcodeImage, {
-                x: 290,  
-                y: 608, 
-                width: 280,
-                height: 30, 
-            });
+          const barcodeImage = await pdfDoc.embedPng(codigoBarrasBase64);
+          firstPage.drawImage(barcodeImage, {
+              x: 275,  
+              y: 727, 
+              width: 220,
+              height: 30, 
+          });
 
-            //? Agregar información textual debajo del código de barras en una sola línea
-            const infoCodigoBarras = [
-                data.consulta?.clavenomina ?? "N/A",
-                data.consulta?.claveproveedor ?? "N/A",
-                data.consulta?.claveconsulta ?? "N/A",
-                data.folioSurtimiento ?? "N/A"
-            ].join(" ");
+          //? Generar información textual debajo del código de barras con asteriscos
+          const infoCodigoBarras = [
+              data.consulta?.clavenomina ?? "N/A",
+              data.consulta?.claveproveedor ?? "N/A",
+              data.consulta?.claveconsulta ?? "N/A",
+              data.folioSurtimiento ?? "N/A"
+          ].filter(value => value !== "N/A").join(" "); //* Elimina valores "N/A" para evitar espacios extra
 
-            firstPage.drawText(`* ${infoCodigoBarras} *`, { x: 390, y: 600, size: 8 });
+          firstPage.drawText(`*${infoCodigoBarras}*`, { 
+              x: 330,  
+              y: 720, 
+              size: 8, 
+              font: await pdfDoc.embedFont(StandardFonts.HelveticaBold) 
+          });
         }
 
         //? Bloque: DIAGNÓSTICO
@@ -202,7 +222,7 @@ export default function GenerarReceta() {
 
         //? Bloque: TRATAMIENTO
         let recetaStartY = 357;
-        const lineSpacing = 30; //* Espacio más grande entre medicamentos
+        const lineSpacing = 20; //* Espacio más grande entre medicamentos
 
         if (data.receta.length > 0) {
             data.receta.forEach((item, index) => {
@@ -217,7 +237,7 @@ export default function GenerarReceta() {
         //? Firmas
         firstPage.drawText(String(data.consulta?.nombreproveedor ?? "N/A"), { x: 108, y: 96, size: 10 });
         firstPage.drawText(String(data.consulta?.cedulaproveedor ?? "N/A"), { x: 128, y: 78, size: 10 });
-        firstPage.drawText(String(data.consulta?.nombrepaciente ?? "N/A"), { x: 408, y: 78, size: 10 });
+        firstPage.drawText(String(data.consulta?.nombrepaciente ?? "N/A"), { x: 370, y: 78, size: 10 });
         firstPage.drawText(String(data.consulta?.nombreproveedor ?? "N/A"), { x: 400, y: 18, size: 8 });
 
         //? Guardar el PDF en memoria y generar una URL para previsualización
@@ -234,14 +254,14 @@ export default function GenerarReceta() {
         }
     };
 
-  //* Generar el PDF automáticamente cuando la claveconsulta esté lista
-  useEffect(() => {
-    if (claveconsulta) {
-        fetchRecetaData().then(data => {
-            if (data) generatePdf(data.nombreEmpleado, data.codigoBarrasBase64);
-        });        
-    }
-}, [claveconsulta]);
+    //* Generar el PDF automáticamente cuando la claveconsulta esté lista
+    useEffect(() => {
+      if (claveconsulta) {
+          fetchRecetaData().then(data => {
+              if (data) generatePdf(data.nombreEmpleado, data.codigoBarrasBase64);
+          });        
+      }
+  }, [claveconsulta]);
 
   //* Abrir automáticamente el PDF en una nueva pestaña cuando esté listo
   useEffect(() => {
