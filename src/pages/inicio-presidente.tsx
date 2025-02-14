@@ -27,7 +27,7 @@ const InicioPresidente = () => {
   const navigateTo = async (path: string) => {
     try {
       setLoadingPath(path); // Establece el estado de carga
-      await router.push(path); // Navega a la ruta
+      router.replace(path); // Navega a la ruta
     } catch (error) {
       console.error(`Error navigating to ${path}:`, error);
     } finally {

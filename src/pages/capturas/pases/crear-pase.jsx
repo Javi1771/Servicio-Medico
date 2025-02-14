@@ -128,7 +128,7 @@ const CrearPase = () => {
               "border border-green-500 shadow-[0px_0px_20px_5px_rgba(0,230,118,0.7)] rounded-lg",
           },
         });
-        router.push("/capturas/pases-a-especialidades");
+        router.replace("/capturas/pases-a-especialidades");
       } else {
         const errorResponse = await res.json();
         console.error("❌ Error en la respuesta del servidor:", errorResponse);

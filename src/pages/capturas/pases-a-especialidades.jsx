@@ -55,7 +55,7 @@ const PasesAEspecialidad = () => {
     const encryptedFolio = btoa(folio.toString());
 
     //* Redirigir con el folio cifrado
-    router.push(`/capturas/pases/crear-pase?claveconsulta=${encryptedFolio}`);
+    router.replace(`/capturas/pases/crear-pase?claveconsulta=${encryptedFolio}`);
   };
 
   return (
@@ -67,7 +67,7 @@ const PasesAEspecialidad = () => {
           Pases a Especialidad
         </h1>
         <button
-          onClick={() => router.push("/capturas/pases/crear-pase-nuevo")}
+          onClick={() => router.replace("/capturas/pases/crear-pase-nuevo")}
           className="mt-6 px-8 py-3 bg-gradient-to-r from-blue-600 to-teal-500 text-white text-lg font-semibold rounded-full shadow-lg hover:scale-105 hover:shadow-2xl transition-all duration-300"
         >
           <FaPlus className="inline-block mr-2" /> Nuevo Pase

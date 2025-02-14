@@ -26,7 +26,7 @@ const ConsultasCanceladas = () => {
 
   //* Cargar datos iniciales
   const cargarCanceladas = async () => {
-    if (isLoading) return; // Evitar llamadas simultáneas
+    if (isLoading) return; //! Evitar llamadas simultáneas
     setIsLoading(true);
 
     try {
@@ -58,10 +58,10 @@ const ConsultasCanceladas = () => {
       const nuevoMapa = new Map(prevMap);
 
       if (data.clavestatus === 3) {
-        // Agregar o actualizar la consulta
+        //* Agregar o actualizar la consulta
         nuevoMapa.set(data.claveConsulta, data);
       } else {
-        // Eliminar la consulta si ya no está cancelada
+        //! Eliminar la consulta si ya no está cancelada
         nuevoMapa.delete(data.claveConsulta);
       }
 
@@ -72,7 +72,7 @@ const ConsultasCanceladas = () => {
 
   useEffect(() => {
     console.log("[INFO] Montando componente ConsultasCanceladas");
-    cargarCanceladas(); // Cargar datos iniciales
+    cargarCanceladas(); //* Cargar datos iniciales
 
     const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY, {
       cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER,
@@ -82,7 +82,7 @@ const ConsultasCanceladas = () => {
     const channel = pusher.subscribe("consultas");
     channel.bind("estatus-actualizado", manejarEventoPusher);
 
-    // Cleanup al desmontar el componente
+    //* Cleanup al desmontar el componente
     return () => {
       console.log("[INFO] Desmontando componente ConsultasCanceladas");
       channel.unbind("estatus-actualizado", manejarEventoPusher);

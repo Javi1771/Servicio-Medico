@@ -4,15 +4,15 @@ import Pusher from "pusher-js";
 
 const AtendiendoActualmente = () => {
   const [pacientes, setPacientes] = useState([]);
-  const [isLoading, setIsLoading] = useState(false); // Evitar múltiples llamadas simultáneas
+  const [isLoading, setIsLoading] = useState(false); //! Evitar múltiples llamadas simultáneas
 
-  // Función para ordenar pacientes por fecha de consulta
+  //* Función para ordenar pacientes por fecha de consulta
   const ordenarPacientes = (pacientes) =>
     pacientes.sort((a, b) => new Date(b.fechaconsulta) - new Date(a.fechaconsulta));
 
-  // Función para cargar los datos iniciales
+  //* Función para cargar los datos iniciales
   const cargarConsultas = async () => {
-    if (isLoading) return; // Evitar múltiples llamadas si ya está cargando
+    if (isLoading) return; //! Evitar múltiples llamadas si ya está cargando
     setIsLoading(true);
 
     try {
@@ -21,7 +21,7 @@ const AtendiendoActualmente = () => {
       if (response.ok) {
         const consultasOrdenadas = ordenarPacientes(data.consultas || []);
         setPacientes((prevPacientes) => {
-          // Solo actualizar si los datos son diferentes
+          //* Solo actualizar si los datos son diferentes
           if (JSON.stringify(prevPacientes) !== JSON.stringify(consultasOrdenadas)) {
             console.log("[INFO] Actualizando pacientes:", consultasOrdenadas);
             return consultasOrdenadas;
@@ -38,26 +38,26 @@ const AtendiendoActualmente = () => {
     }
   };
 
-  // Manejo de eventos de Pusher
+  //* Manejo de eventos de Pusher
   const manejarEventoPusher = useCallback(
     (data) => {
       console.log("[INFO] Evento recibido de Pusher:", data);
 
-      // Validar datos del evento
+      //* Validar datos del evento
       if (!data.claveConsulta || typeof data.clavestatus === "undefined") {
         console.error("[ERROR] Datos inválidos recibidos en el evento Pusher:", data);
         return;
       }
 
-      // Recargar toda la lista de pacientes si hay un cambio
+      //* Recargar toda la lista de pacientes si hay un cambio
       cargarConsultas();
     },
-    [] // Sin dependencias para evitar re-creación
+    [] //! Sin dependencias para evitar re-creación
   );
 
   useEffect(() => {
     console.log("[INFO] Montando componente AtendiendoActualmente");
-    cargarConsultas(); // Cargar datos iniciales
+    cargarConsultas(); //* Cargar datos iniciales
 
     const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY, {
       cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER,
@@ -67,7 +67,7 @@ const AtendiendoActualmente = () => {
     const channel = pusher.subscribe("consultas");
     channel.bind("estatus-actualizado", manejarEventoPusher);
 
-    // Cleanup al desmontar el componente
+    //* Cleanup al desmontar el componente
     return () => {
       console.log("[INFO] Desmontando componente AtendiendoActualmente");
       channel.unbind("estatus-actualizado", manejarEventoPusher);
