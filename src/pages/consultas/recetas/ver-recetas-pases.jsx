@@ -1,0 +1,63 @@
+import { useRouter } from "next/router";
+import { useEffect, useState } from "react";
+
+export default function VerRecetas() {
+  const router = useRouter();
+  const { claveconsulta } = router.query;
+  const [encryptedClave, setEncryptedClave] = useState("");
+
+  useEffect(() => {
+    if (claveconsulta) {
+      setEncryptedClave(claveconsulta);
+    }
+  }, [claveconsulta]);
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black text-white p-10">
+      {/* Encabezado con animación y mejor diseño */}
+      <h1 className="text-4xl font-extrabold text-cyan-400 text-center mb-10 flex items-center justify-center gap-3">
+        <span className="bg-cyan-600 p-3 rounded-full text-black">💊</span> Ver Recetas en PDF
+      </h1>
+
+      {/* Contenedor con ajuste de espacio */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        
+        {/* Contenedor de Receta Farmacia */}
+        <div className="bg-gray-900 p-6 rounded-2xl border-2 border-cyan-400 shadow-lg shadow-cyan-500/50 relative">
+          <h2 className="text-2xl font-semibold text-cyan-300 text-center mb-4 flex items-center gap-2">
+            📜 Receta de Farmacia
+          </h2>
+
+          {encryptedClave ? (
+            <iframe
+              src={`/consultas/recetas/generar-receta-farmacia-pase?claveconsulta=${encryptedClave}`}
+              className="w-full h-[85vh] rounded-lg border-none shadow-lg shadow-cyan-500/30"
+              style={{ overflow: "hidden", backgroundColor: "transparent" }}
+              scrolling="no"
+            />
+          ) : (
+            <p className="text-center text-gray-400">Cargando...</p>
+          )}
+        </div>
+
+        {/* Contenedor de Receta Paciente */}
+        <div className="bg-gray-900 p-6 rounded-2xl border-2 border-cyan-400 shadow-lg shadow-cyan-500/50 relative">
+          <h2 className="text-2xl font-semibold text-cyan-300 text-center mb-4 flex items-center gap-2">
+            🏥 Receta de Paciente
+          </h2>
+
+          {encryptedClave ? (
+            <iframe
+              src={`/consultas/recetas/generar-receta-paciente-pase?claveconsulta=${encryptedClave}`}
+              className="w-full h-[85vh] rounded-lg border-none shadow-lg shadow-cyan-500/30"
+              style={{ overflow: "hidden", backgroundColor: "transparent" }}
+              scrolling="no"
+            />
+          ) : (
+            <p className="text-center text-gray-400">Cargando...</p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

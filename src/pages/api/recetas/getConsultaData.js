@@ -43,10 +43,13 @@ export async function getConsultaData(claveConsulta) {
         c.elpacienteesempleado, c.parentesco, c.clavepaciente, 
         c.departamento, c.sindicato, c.claveproveedor, c.diagnostico,
         c.seAsignoIncapacidad, c.especialidadInterconsulta, c.seasignoaespecialidad,
-        p.nombreproveedor, p.cedulaproveedor, pa.PARENTESCO AS parentescoNombre
+        c.fechacita, p.nombreproveedor, p.cedulaproveedor,
+        pa.PARENTESCO AS parentescoNombre, 
+        e.especialidad AS especialidadNombre
       FROM consultas c
       LEFT JOIN proveedores p ON c.claveproveedor = p.claveproveedor
       LEFT JOIN PARENTESCO pa ON c.parentesco = pa.ID_PARENTESCO
+      LEFT JOIN especialidades e ON c.especialidadInterconsulta = e.claveespecialidad
       WHERE c.claveconsulta = @claveConsulta
     `;
 
@@ -62,6 +65,13 @@ export async function getConsultaData(claveConsulta) {
       console.log("📅 Fecha original (fechaconsulta):", consultaData.fechaconsulta);
       consultaData.fechaconsulta = formatFecha(consultaData.fechaconsulta);
       console.log("✅ Fecha formateada (fechaconsulta):", consultaData.fechaconsulta);
+    }
+
+    //* Formatear la fecha de la cita (fechacita)
+    if (consultaData && consultaData.fechacita) {
+      console.log("📅 Fecha original (fechacita):", consultaData.fechacita);
+      consultaData.fechacita = formatFecha(consultaData.fechacita);
+      console.log("✅ Fecha formateada (fechacita):", consultaData.fechacita);
     }
 
     //? Consulta a la tabla "detalleReceta"

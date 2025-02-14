@@ -40,6 +40,8 @@ const PresidenteLayout: React.FC<PresidenteLayoutProps> = ({ children }) => {
   const noLayoutRoutes = [
     "/consultas/recetas/generar-receta-farmacia",
     "/consultas/recetas/generar-receta-paciente",
+    "/consultas/recetas/generar-receta-farmacia-pase",
+    "/consultas/recetas/generar-receta-paciente-pase",
   ];
   
 
