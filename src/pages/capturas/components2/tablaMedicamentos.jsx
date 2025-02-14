@@ -35,21 +35,21 @@ const TablaMedicamentos = ({
           </tr>
         </thead>
         <tbody>
-        {medicamentos.map((med) => (
-  <tr key={med.claveMedicamento}>
-  <td>{med.nombreMedicamento}</td>
-  <td>{med.indicaciones}</td>
-  <td>{med.cantidad}</td>
-  <td>{med.piezas}</td>
-  <td>
-    <button onClick={() => onRemoveMedicamento(med)} className={styles.removeButton}>
-      Quitar
-    </button>
-  </td>
-</tr>
-))}
+  {medicamentos.map((med) => (
+    <tr key={med.claveMedicamento}>
+      <td>{med.nombreMedicamento}</td>
+      <td>{med.indicaciones}</td>
+      <td>{med.cantidad}</td>
+      <td>{med.piezas}</td>
+      <td>
+        <button onClick={() => onRemoveMedicamento(med)} className={styles.removeButton}>
+          Quitar
+        </button>
+      </td>
+    </tr>
+  ))}
+</tbody>
 
-        </tbody>
       </table>
     </div>
   );

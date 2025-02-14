@@ -22,32 +22,25 @@ export default async function handler(req, res) {
     const pool = await connectToDatabase();
     console.log("🔹 Conexión a la base de datos exitosa");
 
-    // Buscar en la tabla SURTIMIENTOS para obtener el folio de surtimiento
+    // Buscar en la tabla SURTIMIENTOS para obtener el FOLIO_SURTIMIENTO más reciente
     console.log("🔍 Buscando en SURTIMIENTOS con FOLIO_PASE:", folioReceta);
     const surtimientoResult = await pool
       .request()
       .input("folioReceta", sql.Int, folioReceta)
       .query(`
-        SELECT
-          dr.idDetalleReceta,
-          dr.folioReceta,
-          dr.indicaciones,
-          dr.cantidad,
-          m.medicamento AS nombreMedicamento,
-          m.claveMedicamento AS claveMedicamento
-        FROM [PRESIDENCIA].[dbo].[detalleReceta] AS dr
-        JOIN [PRESIDENCIA].[dbo].[MEDICAMENTOS_NEW] AS m
-          ON dr.descMedicamento = m.claveMedicamento
-        WHERE dr.folioReceta = @folio
+        SELECT TOP 1 FOLIO_SURTIMIENTO 
+        FROM [PRESIDENCIA].[dbo].[SURTIMIENTOS] 
+        WHERE FOLIO_PASE = @folioReceta
+        ORDER BY FOLIO_SURTIMIENTO DESC
       `);
 
     console.log("📌 Resultado de SURTIMIENTOS:", surtimientoResult.recordset);
 
     if (surtimientoResult.recordset.length > 0) {
       const folioSurtimiento = surtimientoResult.recordset[0].FOLIO_SURTIMIENTO;
-      console.log("✅ Se encontró un FOLIO_SURTIMIENTO:", folioSurtimiento);
+      console.log("✅ Se encontró el FOLIO_SURTIMIENTO más reciente:", folioSurtimiento);
 
-      // Si existe en SURTIMIENTOS, obtenemos los medicamentos de detalleSurtimientos
+      // Si existe el surtimiento, obtenemos los medicamentos de detalleSurtimientos
       console.log("🔍 Buscando medicamentos en detalleSurtimientos...");
       const medicamentosSurtidos = await pool
         .request()

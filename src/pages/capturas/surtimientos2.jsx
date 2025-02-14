@@ -79,7 +79,6 @@ const SurtimientosBanner = () => {
       return newReceta;
     });
   };
-  
 
   // Función que se ejecuta al pulsar "Buscar"
   const handleSearch = async () => {
@@ -148,7 +147,7 @@ const SurtimientosBanner = () => {
     if (isNaN(folioNumero)) {
       throw new Error("Folio inválido. Debe ser un número.");
     }
-
+  
     try {
       // Verificar si ya existe el surtimiento para este folio
       const response = await fetch("/api/SURTIMIENTOS2/getMedicamentosReceta", {
@@ -156,8 +155,9 @@ const SurtimientosBanner = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ folio: folioNumero }),
       });
+  
       const medicamentosExistentes = await response.json();
-
+  
       if (medicamentosExistentes.length > 0) {
         // **Caso 1:** Ya existen medicamentos en detalleSurtimientos, solo generamos el surtimiento
         const surtimientoResponse = await fetch(
@@ -172,12 +172,12 @@ const SurtimientosBanner = () => {
             }),
           }
         );
-
+  
         if (!surtimientoResponse.ok) {
           const errorData = await surtimientoResponse.json();
           throw new Error(errorData.message || "Error al generar surtimiento");
         }
-
+  
         Swal.fire({
           title: "Éxito",
           text: "Surtimiento generado correctamente.",
@@ -191,25 +191,25 @@ const SurtimientosBanner = () => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             folio: folioNumero,
-            medicamentos: receta, // Medicamentos nuevos
+            medicamentos: receta, // Medicamentos nuevos desde el estado actualizado
             diagnostico,
           }),
         });
-
+  
         if (!recetaResponse.ok) {
           const errorData = await recetaResponse.json();
           throw new Error(errorData.message || "Error al guardar la receta.");
         }
-
+  
         Swal.fire({
           title: "Éxito",
           text: "Receta guardada exitosamente.",
           icon: "success",
           confirmButtonText: "Aceptar",
         });
-
-        setReceta([]); // Reiniciar la receta local
-
+  
+        setReceta([]); // Reiniciar la receta local después de guardar
+  
         // Opcional: Actualizar los medicamentos recetados
         fetchMedicamentosReceta(folioNumero);
       }
@@ -223,6 +223,9 @@ const SurtimientosBanner = () => {
       });
     }
   };
+  
+  
+  
 
   // Verificar si al menos uno de los datos se obtuvo (folio válido)
   const isFolioValido = empleado || paciente || sindicato || especialista;
@@ -348,7 +351,7 @@ const SurtimientosBanner = () => {
         {isFolioValido && (
           <div className={styles.historialContainer}>
             <TablaMedicamentos
-              medicamentos={receta} // Pasa el estado actualizado de receta aquí
+              medicamentos={receta} // Asegúrate de pasar el estado actualizado de receta
               loading={loadingReceta}
               error={errorReceta}
               onSave={handleSaveReceta}
