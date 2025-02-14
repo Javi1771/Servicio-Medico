@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import ModalPdf from "./modalPdf"; // Importamos el modal que mostrará el PDF
 import styles from "../../css/SURTIMIENTOS_ESTILOS/cargaMedicamentos.module.css";
 
 const CargaMedicamentosForm = ({
@@ -6,12 +7,14 @@ const CargaMedicamentosForm = ({
   onAddMedicamento,
   onSave,
   disableAdd,
-  receta = [], // Establece un valor predeterminado para evitar errores
+  receta = [],
+  folio, // 🔹 Recibir folio como prop desde SurtimientosBanner.jsx
 }) => {
   const [selectedMedicamento, setSelectedMedicamento] = useState("");
   const [indicaciones, setIndicaciones] = useState("");
   const [cantidad, setCantidad] = useState("");
-  const [piezas, setPiezas] = useState(""); // Nueva variable para las piezas
+  const [piezas, setPiezas] = useState(""); 
+  const [showModal, setShowModal] = useState(false); // Controla la visibilidad del modal
 
   const handleAddMedicamentoLocal = () => {
     if (!selectedMedicamento) {
@@ -32,21 +35,33 @@ const CargaMedicamentosForm = ({
     }
 
     const nuevoMedicamento = {
-      claveMedicamento: selectedMedicamento || "", // Validar que tenga un valor
+      claveMedicamento: selectedMedicamento || "", 
       indicaciones,
       cantidad,
-      piezas: piezas,
+      piezas,
     };
     console.log("Nuevo medicamento añadido:", nuevoMedicamento);
-    
-    // Actualizar el estado de receta directamente, para que se vea reflejado de inmediato en la tabla
-    onAddMedicamento(nuevoMedicamento); // Añadir el medicamento a la receta
-
-    // Limpiar los campos después de añadir el medicamento
+    onAddMedicamento(nuevoMedicamento);
     setSelectedMedicamento("");
     setIndicaciones("");
     setCantidad("");
-    setPiezas(""); // Limpiar el campo de piezas
+    setPiezas(""); 
+  };
+
+  // 🔹 Modificación: Guardar receta y mostrar PDF
+  const handleSaveAndShowPdf = async () => {
+    if (!folio || isNaN(folio)) {
+      alert("Folio inválido.");
+      console.error("⚠️ Folio inválido en handleSaveAndShowPdf:", folio);
+      return;
+    }
+
+    await onSave(); // Guardar en la BD
+
+    setTimeout(() => {
+      console.log("📌 Mostrando modal con folio:", folio);
+      setShowModal(true); // Mostrar modal con el folio correcto
+    }, 1000);
   };
 
   return (
@@ -60,15 +75,14 @@ const CargaMedicamentosForm = ({
           value={selectedMedicamento}
           onChange={(e) => setSelectedMedicamento(e.target.value)}
           className={styles.select}
-          disabled={disableAdd} // Deshabilitar select si disableAdd es true
+          disabled={disableAdd}
         >
           <option value="">Seleccionar Medicamento</option>
-          {medicamentos &&
-            medicamentos.map((med) => (
-              <option key={med.CLAVEMEDICAMENTO} value={med.CLAVEMEDICAMENTO}>
-                {med.MEDICAMENTO}
-              </option>
-            ))}
+          {medicamentos.map((med) => (
+            <option key={med.CLAVEMEDICAMENTO} value={med.CLAVEMEDICAMENTO}>
+              {med.MEDICAMENTO}
+            </option>
+          ))}
         </select>
       </div>
 
@@ -80,7 +94,7 @@ const CargaMedicamentosForm = ({
           value={indicaciones}
           onChange={(e) => setIndicaciones(e.target.value)}
           className={styles.input}
-          disabled={disableAdd} // Deshabilitar input si disableAdd es true
+          disabled={disableAdd}
         />
       </div>
 
@@ -92,7 +106,7 @@ const CargaMedicamentosForm = ({
           value={cantidad}
           onChange={(e) => setCantidad(e.target.value)}
           className={styles.input}
-          disabled={disableAdd} // Deshabilitar input si disableAdd es true
+          disabled={disableAdd}
         />
       </div>
 
@@ -111,13 +125,17 @@ const CargaMedicamentosForm = ({
       <button
         onClick={handleAddMedicamentoLocal}
         className={styles.addButton}
-        disabled={disableAdd} // Deshabilitar botón si disableAdd es true
+        disabled={disableAdd}
       >
         Añadir a la Receta
       </button>
-      <button onClick={() => onSave()} className={styles.saveButton}>
-        Guardar
+
+      <button onClick={handleSaveAndShowPdf} className={styles.saveButton}>
+        Guardar y Generar Receta
       </button>
+
+      {/* 🔹 Modal que muestra el PDF */}
+      {showModal && <ModalPdf folio={folio} onClose={() => setShowModal(false)} />}
     </div>
   );
 };
