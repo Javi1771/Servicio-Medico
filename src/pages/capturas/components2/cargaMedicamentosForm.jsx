@@ -38,7 +38,11 @@ const CargaMedicamentosForm = ({
       piezas: piezas,
     };
     console.log("Nuevo medicamento añadido:", nuevoMedicamento);
-    onAddMedicamento(nuevoMedicamento);
+    
+    // Actualizar el estado de receta directamente, para que se vea reflejado de inmediato en la tabla
+    onAddMedicamento(nuevoMedicamento); // Añadir el medicamento a la receta
+
+    // Limpiar los campos después de añadir el medicamento
     setSelectedMedicamento("");
     setIndicaciones("");
     setCantidad("");
