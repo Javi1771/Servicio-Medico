@@ -11,7 +11,7 @@ export default async function handler(req, res) {
       SELECT claveMedicamento AS CLAVEMEDICAMENTO, 
         medicamento AS MEDICAMENTO 
       FROM [PRESIDENCIA].[dbo].[MEDICAMENTOS] 
-      WHERE estatus = 1
+      WHERE estatus is null
     `);
 
     res.status(200).json(result.recordset);

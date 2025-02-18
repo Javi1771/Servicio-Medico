@@ -165,6 +165,8 @@ export default async function handler(req, res) {
       doctor: nombreDoctor,
       cedula: cedulaDoctor,
       elaboro: nombreElaboro,
+      FOLIO_SURTIMIENTO: folioSurtimiento, // <--
+      CLAVEMEDICO                        // <--
     });
   } catch (error) {
     console.error("❌ Error al obtener la receta:", error.message);
