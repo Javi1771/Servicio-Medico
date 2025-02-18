@@ -1,4 +1,3 @@
-import { pusher } from "../pusher"; 
 import { connectToDatabase } from "../connectToDatabase";
 import sql from "mssql";
 
@@ -13,7 +12,7 @@ export default async function handler(req, res) {
       const pool = await connectToDatabase();
       console.log("✅ Conexión a la base de datos establecida.");
 
-      //* Si clavepaciente es nulo, usa clavenomina como valor predeterminado y conviértelo a cadena
+      //! Si clavepaciente es nulo, usa clavenomina como valor predeterminado y conviértelo a string
       const clavePaciente = (consultaData.clavepaciente ?? consultaData.clavenomina).toString();
       console.log("🔑 Valor de clavePaciente (como cadena):", clavePaciente);
 
@@ -34,7 +33,7 @@ export default async function handler(req, res) {
         .input("clavestatus", sql.Int, consultaData.clavestatus)
         .input("elpacienteesempleado", sql.VarChar, consultaData.elpacienteesempleado)
         .input("parentesco", sql.Int, consultaData.parentesco)
-        .input("clavepaciente", sql.VarChar, clavePaciente) 
+        .input("clavepaciente", sql.VarChar, clavePaciente)
         .input("departamento", sql.VarChar, consultaData.departamento)
         .input("sindicato", sql.VarChar, consultaData.sindicato);
 
@@ -60,20 +59,13 @@ export default async function handler(req, res) {
       const claveConsulta = result.recordset[0].claveConsulta;
       console.log("🔑 Nueva clave de consulta generada:", claveConsulta);
 
-      //* Enviar evento a Pusher
-      await pusher.trigger("consultas", "nueva-consulta", {
-        claveConsulta,
-        ...consultaData,
-      });
-      console.log("📡 Evento enviado a Pusher.");
-
+      //* Respuesta al cliente
       res.status(200).json({
-        message: "Consulta guardada correctamente y evento enviado.",
+        message: "Consulta guardada correctamente.",
         claveConsulta,
       });
     } catch (error) {
       console.error("❌ Error al guardar la consulta:", error);
-
       res.status(500).json({ message: "Error al guardar la consulta." });
     }
   } else {

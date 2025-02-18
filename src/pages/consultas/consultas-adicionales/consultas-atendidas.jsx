@@ -1,13 +1,13 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useEffect, useState, useCallback } from "react";
-import { useRouter } from "next/router"; 
+import React, { useEffect, useState } from "react";
+import { useRouter } from "next/router";
 
 const ConsultasAtendidas = () => {
   const [pacientes, setPacientes] = useState([]);
-  const [isLoading, setIsLoading] = useState(false); //* Control de carga
-  const router = useRouter(); 
+  const [isLoading, setIsLoading] = useState(false); 
+  const router = useRouter();
 
-  //* Ordenar pacientes por fecha de consulta
+  //* Ordenar pacientes por fecha de consulta (descendente)
   const ordenarPacientes = (pacientes) =>
     pacientes.sort((a, b) => new Date(b.fechaconsulta) - new Date(a.fechaconsulta));
 
@@ -22,7 +22,7 @@ const ConsultasAtendidas = () => {
       if (response.ok) {
         const consultasOrdenadas = ordenarPacientes(data.consultas || []);
         setPacientes((prevPacientes) => {
-          //* Solo actualizar si los datos son diferentes
+          //* Actualizar solo si hay cambios
           if (JSON.stringify(prevPacientes) !== JSON.stringify(consultasOrdenadas)) {
             console.log("[INFO] Actualizando consultas atendidas:", consultasOrdenadas);
             return consultasOrdenadas;
@@ -39,69 +39,16 @@ const ConsultasAtendidas = () => {
     }
   };
 
-  //* Manejo de eventos de Pusher
-  const manejarEventoPusher = useCallback(
-    (data) => {
-      console.log("[INFO] Evento recibido de Pusher:", data);
-
-      if (!data.claveConsulta || typeof data.clavestatus === "undefined") {
-        console.error("[ERROR] Datos inválidos recibidos en el evento Pusher:", data);
-        return;
-      }
-
-      setPacientes((prevPacientes) => {
-        const pacienteIndex = prevPacientes.findIndex(
-          (paciente) => paciente.claveconsulta === data.claveConsulta
-        );
-
-        if (data.clavestatus === 4) {
-          //! Agregar paciente si no existe
-          if (pacienteIndex === -1) {
-            const nuevosPacientes = ordenarPacientes([...prevPacientes, data]);
-            console.log("[INFO] Paciente agregado:", nuevosPacientes);
-            return nuevosPacientes;
-          }
-        } else {
-          //! Eliminar paciente si el estado ya no es "atendida"
-          const nuevosPacientes = prevPacientes.filter(
-            (paciente) => paciente.claveconsulta !== data.claveConsulta
-          );
-          console.log("[INFO] Paciente eliminado:", nuevosPacientes);
-          return nuevosPacientes;
-        }
-
-        console.log("[INFO] Sin cambios en los pacientes atendidos.");
-        return prevPacientes;
-      });
-    },
-    [] //! Sin dependencias para evitar re-creación
-  );
-
+  //* Llamar a cargarAtendidas() al montar el componente
   useEffect(() => {
     console.log("[INFO] Montando componente ConsultasAtendidas");
-    cargarAtendidas(); //* Cargar datos iniciales
+    cargarAtendidas();
+  }, []);
 
-    const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY, {
-      cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER,
-      encrypted: true,
-    });
-
-    const channel = pusher.subscribe("consultas");
-    channel.bind("estatus-actualizado", manejarEventoPusher);
-
-    //* Cleanup al desmontar el componente
-    return () => {
-      console.log("[INFO] Desmontando componente ConsultasAtendidas");
-      channel.unbind("estatus-actualizado", manejarEventoPusher);
-      channel.unsubscribe();
-      pusher.disconnect();
-    };
-  }, [manejarEventoPusher]);
-
-  //* Función para manejar el clic en una fila de la tabla
+  //* Navegar a la página de recetas al hacer clic en una fila
   const handleRowClick = (claveConsulta) => {
-    const encryptedClaveConsulta = btoa(claveConsulta.toString()); //! Cifrar la claveConsulta
-    router.push(`/consultas/recetas/ver-recetas?claveconsulta=${encryptedClaveConsulta}`); //* Redirigir a la página con la claveConsulta cifrada
+    const encryptedClaveConsulta = btoa(claveConsulta.toString()); //* "Cifrar" la claveConsulta
+    router.push(`/consultas/recetas/ver-recetas?claveconsulta=${encryptedClaveConsulta}`);
   };
 
   return (
@@ -123,8 +70,8 @@ const ConsultasAtendidas = () => {
             pacientes.map((paciente, index) => (
               <tr
                 key={index}
-                className="bg-gray-700 bg-opacity-50 hover:bg-gradient-to-r from-green-500 to-green-700 transition duration-300 ease-in-out rounded-lg shadow-md"
-                onClick={() => handleRowClick(paciente.claveconsulta)} // Manejar clic en fila
+                className="bg-gray-700 bg-opacity-50 hover:bg-gradient-to-r from-green-500 to-green-700 transition duration-300 ease-in-out rounded-lg shadow-md cursor-pointer"
+                onClick={() => handleRowClick(paciente.claveconsulta)}
               >
                 <td className="py-4 px-6 font-medium text-center">
                   {paciente.clavenomina || "N/A"}

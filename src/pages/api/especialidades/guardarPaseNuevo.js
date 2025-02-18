@@ -1,4 +1,3 @@
-import { pusher } from "../pusher";
 import { connectToDatabase } from "../connectToDatabase";
 import sql from "mssql";
 
@@ -15,7 +14,7 @@ export default async function handler(req, res) {
         return res.status(400).json({ message: "La fecha de consulta no es válida." });
       }
 
-      //* Validar la hora esté incluida
+      //* Validar que la hora esté incluida
       const date = new Date(consultaData.fechaconsulta);
       const hasTime =
         date.getHours() !== 0 || date.getMinutes() !== 0 || date.getSeconds() !== 0;
@@ -111,11 +110,7 @@ export default async function handler(req, res) {
 
       const claveConsulta = result.recordset[0].claveConsulta;
 
-      await pusher.trigger("consultas", "nueva-consulta", {
-        claveConsulta,
-        ...consultaData,
-      });
-
+      //* Retornar respuesta exitosa
       res.status(200).json({
         message: "Consulta guardada correctamente.",
         claveConsulta,

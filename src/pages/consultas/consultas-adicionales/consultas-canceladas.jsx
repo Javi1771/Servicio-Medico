@@ -1,18 +1,17 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useEffect, useState, useCallback } from "react";
-import Pusher from "pusher-js";
+import React, { useEffect, useState } from "react";
 
 const ConsultasCanceladas = () => {
   const [pacientes, setPacientes] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [pacientesMap, setPacientesMap] = useState(new Map());
 
-  //* Ordenar pacientes por fecha de consulta
+  //* Ordenar pacientes por fecha de consulta (descendente)
   const ordenarPacientes = (pacientes) =>
     pacientes.sort((a, b) => new Date(b.fechaconsulta) - new Date(a.fechaconsulta));
 
-  //* Actualizar pacientes garantizando unicidad
+  //* Actualiza el estado de pacientes garantizando la unicidad a través de un Map
   const actualizarPacientes = (nuevosPacientes) => {
     setPacientesMap((prevMap) => {
       const nuevoMapa = new Map(prevMap);
@@ -45,51 +44,11 @@ const ConsultasCanceladas = () => {
     }
   };
 
-  //* Manejo de eventos de Pusher
-  const manejarEventoPusher = useCallback((data) => {
-    console.log("[INFO] Evento recibido de Pusher:", data);
-
-    if (!data.claveConsulta || typeof data.clavestatus === "undefined") {
-      console.error("[ERROR] Datos inválidos recibidos en el evento Pusher:", data);
-      return;
-    }
-
-    setPacientesMap((prevMap) => {
-      const nuevoMapa = new Map(prevMap);
-
-      if (data.clavestatus === 3) {
-        //* Agregar o actualizar la consulta
-        nuevoMapa.set(data.claveConsulta, data);
-      } else {
-        //! Eliminar la consulta si ya no está cancelada
-        nuevoMapa.delete(data.claveConsulta);
-      }
-
-      setPacientes(ordenarPacientes([...nuevoMapa.values()]));
-      return nuevoMapa;
-    });
-  }, []);
-
+  //* Llamar a cargarCanceladas() una vez al montar el componente
   useEffect(() => {
     console.log("[INFO] Montando componente ConsultasCanceladas");
-    cargarCanceladas(); //* Cargar datos iniciales
-
-    const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY, {
-      cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER,
-      encrypted: true,
-    });
-
-    const channel = pusher.subscribe("consultas");
-    channel.bind("estatus-actualizado", manejarEventoPusher);
-
-    //* Cleanup al desmontar el componente
-    return () => {
-      console.log("[INFO] Desmontando componente ConsultasCanceladas");
-      channel.unbind("estatus-actualizado", manejarEventoPusher);
-      channel.unsubscribe();
-      pusher.disconnect();
-    };
-  }, [manejarEventoPusher]);
+    cargarCanceladas();
+  }, []);
 
   return (
     <div className="w-full overflow-x-auto p-6 bg-gradient-to-b from-gray-900 to-gray-800 rounded-xl shadow-lg">

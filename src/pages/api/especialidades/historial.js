@@ -1,5 +1,4 @@
 import { connectToDatabase } from "../connectToDatabase";
-import { pusher } from "../pusher";
 import sql from "mssql";
 
 export default async function handler(req, res) {
@@ -10,7 +9,9 @@ export default async function handler(req, res) {
   const { clavepaciente, clavenomina } = req.query;
 
   if (!clavenomina && !clavepaciente) {
-    return res.status(400).json({ message: "Faltan datos obligatorios: clavenomina o clavepaciente" });
+    return res
+      .status(400)
+      .json({ message: "Faltan datos obligatorios: clavenomina o clavepaciente" });
   }
 
   try {
@@ -33,16 +34,16 @@ export default async function handler(req, res) {
     `;
 
     const inputs = [
-      { name: "oneMonthAgo", type: sql.DateTime, value: oneMonthAgo }
+      { name: "oneMonthAgo", type: sql.DateTime, value: oneMonthAgo },
     ];
 
-    // Si `clavenomina` está presente, aplica este filtro
+    //* Si `clavenomina` está presente, aplica este filtro
     if (clavenomina) {
       query += ` AND d.clavenomina = @clavenomina`;
       inputs.push({ name: "clavenomina", type: sql.NVarChar, value: clavenomina });
     }
 
-    // Luego, si `clavepaciente` está presente, aplica este filtro adicional
+    //* Luego, si `clavepaciente` está presente, aplica este filtro adicional
     if (clavepaciente) {
       query += ` AND d.clavepaciente = @clavepaciente`;
       inputs.push({ name: "clavepaciente", type: sql.NVarChar, value: clavepaciente });
@@ -61,15 +62,11 @@ export default async function handler(req, res) {
 
     const historial = result.recordset;
 
-    //* Emitiendo evento Pusher
-    await pusher.trigger("especialidades-channel", "especialidades-updated", {
-      clavepaciente,
-      historial,
-    });
-
     return res.status(200).json({ historial });
   } catch (error) {
     console.error("Error al obtener historial de especialidades:", error);
-    return res.status(500).json({ message: "Error al obtener historial.", error: error.message });
+    return res
+      .status(500)
+      .json({ message: "Error al obtener historial.", error: error.message });
   }
 }

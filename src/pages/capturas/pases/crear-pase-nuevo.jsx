@@ -8,6 +8,7 @@ import { FaCalendarAlt } from "react-icons/fa";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import { useRouter } from "next/router";
+import HistorialTable from "./historial-pases-nuevos";
 
 const MySwal = withReactContent(Swal);
 
@@ -114,10 +115,15 @@ const CrearPaseNuevo = () => {
   const [selectedProveedor, setSelectedProveedor] = useState("");
   const [fechaCita, setFechaCita] = useState(null);
   const [isFechaCitaOpen, setIsFechaCitaOpen] = useState(false);
+  const [hideHistorial, setHideHistorial] = useState(false);
 
   const [claveusuario, setClaveUsuario] = useState("");
   const [costo, setCosto] = useState("");
   const router = useRouter();
+
+  const handleRegresar = () => {
+    router.back(); //* Navegar a la pantalla anterior
+  };
 
   const resetState = () => {
     setEmployeeData({});
@@ -189,6 +195,8 @@ const CrearPaseNuevo = () => {
           return beneficiary;
         }
       );
+
+      setHideHistorial(true);
 
       //* Actualizar los datos de los beneficiarios
       setBeneficiaryData(updatedBeneficiaries);
@@ -262,24 +270,29 @@ const CrearPaseNuevo = () => {
 
   const handlePersonaChange = async (persona) => {
     if (persona === "beneficiario") {
-      // Si no hay beneficiarios, regresa a empleado con alerta
+      //! Si no hay beneficiarios, regresa a empleado con alerta
       if (beneficiaryData.length === 0) {
-        showInfoAlert("ℹ️ Sin beneficiarios", "El empleado no tiene beneficiarios registrados.");
+        showInfoAlert(
+          "ℹ️ Sin beneficiarios",
+          "El empleado no tiene beneficiarios registrados."
+        );
         setSelectedPersona("empleado");
         return;
       }
-  
-      // Buscamos el primer beneficiario que NO esté vencido
+
+      //* Buscamos el primer beneficiario que NO esté vencido
       const fechaActual = new Date();
       const validBeneficiaryIndex = beneficiaryData.findIndex((b) => {
         const vigencia = new Date(b.VIGENCIA_ESTUDIOS);
-        return vigencia.getTime() >= fechaActual.getTime() || !b.VIGENCIA_ESTUDIOS;
+        return (
+          vigencia.getTime() >= fechaActual.getTime() || !b.VIGENCIA_ESTUDIOS
+        );
       });
-  
+
       if (validBeneficiaryIndex !== -1) {
-        // Si encontramos uno válido, lo seleccionamos
+        //* Si encontramos uno válido, lo seleccionamos
         setSelectedBeneficiary(beneficiaryData[validBeneficiaryIndex]);
-        // Opcional: actualizamos el value del <select>
+        //* Opcional: actualizamos el value del <select>
         setTimeout(() => {
           const selectEl = document.querySelector("#beneficiarioSelect");
           if (selectEl) {
@@ -287,26 +300,26 @@ const CrearPaseNuevo = () => {
           }
         }, 0);
       } else {
-        // Si no hay ninguno válido, alerta y regresa a empleado
+        //! Si no hay ninguno válido, alerta y regresa a empleado
         showInfoAlert("Sin beneficiarios vigentes", "Todos están vencidos");
         setSelectedPersona("empleado");
         setSelectedBeneficiary(null);
       }
     } else {
-      // Modo empleado
+      //* Modo empleado
       setSelectedBeneficiary(null);
     }
-  
+
     setSelectedPersona(persona);
-  };  
+  };
 
   const handleBeneficiarySelect = (index) => {
     const selected = beneficiaryData[index];
-  
+
     if (selected.VIGENCIA_ESTUDIOS) {
       const vigenciaEstudios = new Date(selected.VIGENCIA_ESTUDIOS);
       const fechaActual = new Date();
-  
+
       if (vigenciaEstudios.getTime() < fechaActual.getTime()) {
         //! Mostrar alerta de constancia vencida
         MySwal.fire({
@@ -323,7 +336,7 @@ const CrearPaseNuevo = () => {
               "border border-yellow-600 shadow-[0px_0px_20px_5px_rgba(255,152,0,0.9)] rounded-lg",
           },
         });
-  
+
         //* Buscar el siguiente beneficiario válido
         const validBeneficiaryIndex = beneficiaryData.findIndex((b) => {
           if (b.VIGENCIA_ESTUDIOS) {
@@ -332,7 +345,7 @@ const CrearPaseNuevo = () => {
           }
           return true; //* O no requiere vigencia
         });
-  
+
         if (validBeneficiaryIndex !== -1) {
           //* Seleccionar automáticamente el primer beneficiario válido
           setSelectedBeneficiary(beneficiaryData[validBeneficiaryIndex]);
@@ -346,10 +359,10 @@ const CrearPaseNuevo = () => {
         return;
       }
     }
-  
+
     //* Si el beneficiario es válido, actualizar la selección
     setSelectedBeneficiary(selected);
-  };  
+  };
 
   const obtenerSindicato = (grupoNomina, cuotaSindical) => {
     //! Mostrar solo si es NS y S (SUTSMSJR) o "" (SITAM)
@@ -359,34 +372,34 @@ const CrearPaseNuevo = () => {
     }
     return null;
   };
-  
+
   const handleSave = async () => {
     if (!selectedEspecialidad) {
       showErrorAlert("Error", "Por favor selecciona una especialidad.");
       return;
     }
-  
+
     if (!selectedProveedor) {
       showErrorAlert("Error", "Por favor selecciona un especialista.");
       return;
     }
-  
+
     if (!fechaCita) {
       showErrorAlert("Error", "Por favor selecciona una fecha para la cita.");
       return;
     }
-  
+
     try {
       const fechaActual = new Date();
-  
+
       //* Formatear la fecha y hora en formato ISO sin convertir a UTC
       const fechaconsulta = `${fechaActual.toISOString().split("T")[0]} 
         ${String(fechaActual.getHours()).padStart(2, "0")}:${String(
         fechaActual.getMinutes()
       ).padStart(2, "0")}:${String(fechaActual.getSeconds()).padStart(2, "0")}`;
-  
+
       console.log("Fecha y hora en formato 24 hrs:", fechaconsulta);
-  
+
       let claveproveedor = selectedProveedor;
       let clavenomina = nomina;
       let clavepaciente = "";
@@ -398,12 +411,12 @@ const CrearPaseNuevo = () => {
       let departamento = employeeData.department;
       let especialidadinterconsulta = selectedEspecialidad;
       let fechacitaFormatted = "";
-  
+
       const sindicato = obtenerSindicato(
         employeeData.grupoNomina,
         employeeData.cuotaSindical
       );
-  
+
       if (fechaCita) {
         const fechaAjustada = new Date(
           fechaCita.getTime() - fechaCita.getTimezoneOffset() * 60000
@@ -417,10 +430,10 @@ const CrearPaseNuevo = () => {
           fechaAjustada.getMinutes()
         ).padStart(2, "0")}:00`;
       }
-  
+
       let costoValor = costo;
       let claveUsuarioValor = claveusuario;
-  
+
       //* Determinar si es empleado o beneficiario
       if (selectedPersona === "empleado") {
         clavepaciente = nomina;
@@ -437,7 +450,7 @@ const CrearPaseNuevo = () => {
           parentescoValor = selectedBeneficiary.ID_PARENTESCO || 0;
         }
       }
-  
+
       //* Construir el objeto para enviar al backend
       const bodyConsultas = {
         fechaconsulta,
@@ -456,38 +469,38 @@ const CrearPaseNuevo = () => {
         fechacita: fechacitaFormatted,
         sindicato,
       };
-  
+
       //* Llamada al endpoint para guardar en DB
       const response = await fetch("/api/especialidades/guardarPaseNuevo", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(bodyConsultas),
       });
-  
+
       if (!response.ok) {
         throw new Error("Error al guardar en la base de datos.");
       }
-  
+
       const data = await response.json();
       const claveConsulta = data.claveConsulta;
-  
+
       //* Mostrar alerta de éxito con la clave de consulta generada
       showSuccessAlert(
         "Consulta Guardada",
         "La consulta se ha guardado correctamente.",
         claveConsulta
       );
-  
+
       console.log("Clave consulta generada:", claveConsulta);
-  
+
       //* Restablecer formulario
       setNomina("");
       resetState();
       setFechaCita(null);
-  
+
       //* Cifrar la claveConsulta con Base64
       const encryptedClaveConsulta = btoa(claveConsulta.toString());
-  
+
       //* Navegar a la otra pantalla enviando la claveConsulta cifrada
       router.replace(
         `/consultas/recetas/ver-recetas-pases?claveconsulta=${encryptedClaveConsulta}`
@@ -496,7 +509,7 @@ const CrearPaseNuevo = () => {
       console.error("Error al guardar:", error);
       showErrorAlert("Error", "Ocurrió un error al guardar la información.");
     }
-  };  
+  };
 
   const handleSalir = () => {
     window.history.back();
@@ -512,10 +525,20 @@ const CrearPaseNuevo = () => {
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-black via-blue-900 to-teal-500 text-white py-8 px-12 flex flex-col items-center overflow-hidden">
       <div className="max-w-7xl w-full bg-gray-900 bg-opacity-90 rounded-3xl shadow-2xl p-12 border border-teal-500 border-opacity-40">
-        {/* Título Principal */}
-        <h1 className="text-5xl font-extrabold text-center text-teal-300 mb-10 tracking-wider">
-          Crear Pase Nuevo
-        </h1>
+        {/* Contenedor con botón, título y placeholder */}
+        <div className="flex items-center justify-between mb-10">
+          <button
+            onClick={handleRegresar}
+            className="px-6 py-3 text-lg font-semibold rounded-full bg-gradient-to-r from-red-600 via-pink-600 to-purple-700 shadow-[0px_0px_15px_5px_rgba(255,0,0,0.5)] hover:shadow-[0px_0px_30px_10px_rgba(255,0,0,0.7)] text-white hover:brightness-125 transition-all duration-300"
+          >
+            ← Regresar
+          </button>
+          <h1 className="text-5xl font-extrabold text-center text-teal-300 tracking-wider">
+            Crear Pase Nuevo
+          </h1>
+          {/* Placeholder para centrar el título */}
+          <div className="w-32"></div>
+        </div>
 
         <hr className="border-teal-400 opacity-40 my-6" />
 
@@ -541,6 +564,15 @@ const CrearPaseNuevo = () => {
             </button>
           </div>
         </section>
+
+        {/* Condicional: mostrar la tabla de historial si hideHistorial es false */}
+        <div
+          className={`overflow-hidden transition-all duration-500 ${
+            hideHistorial ? "max-h-0 opacity-0" : "max-h-[1000px] opacity-100"
+          }`}
+        >
+          <HistorialTable />
+        </div>
 
         {Object.keys(employeeData).length > 0 && (
           <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-3xl p-8 shadow-2xl transition-opacity opacity-100 border border-gray-700 border-opacity-60">

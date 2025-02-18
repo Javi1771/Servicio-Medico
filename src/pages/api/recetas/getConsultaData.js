@@ -42,14 +42,14 @@ export async function getConsultaData(claveConsulta) {
         c.nombrepaciente, c.edad, c.clavestatus, c.motivoconsulta,
         c.elpacienteesempleado, c.parentesco, c.clavepaciente, 
         c.departamento, c.sindicato, c.claveproveedor, c.diagnostico,
-        c.seAsignoIncapacidad, c.especialidadInterconsulta, c.seasignoaespecialidad,
+        c.seAsignoIncapacidad, c.especialidadinterconsulta, c.seasignoaespecialidad,
         c.fechacita, p.nombreproveedor, p.cedulaproveedor,
         pa.PARENTESCO AS parentescoNombre, 
-        e.especialidad AS especialidadNombre
+        es.especialidad AS especialidadNombre
       FROM consultas c
       LEFT JOIN proveedores p ON c.claveproveedor = p.claveproveedor
       LEFT JOIN PARENTESCO pa ON c.parentesco = pa.ID_PARENTESCO
-      LEFT JOIN especialidades e ON c.especialidadInterconsulta = e.claveespecialidad
+      LEFT JOIN especialidades es ON c.especialidadinterconsulta = es.claveespecialidad
       WHERE c.claveconsulta = @claveConsulta
     `;
 

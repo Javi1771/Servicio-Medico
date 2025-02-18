@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import Swal from "sweetalert2";
 import Image from "next/image";
-import Pusher from "pusher-js";
 import withReactContent from "sweetalert2-react-content";
 import DatosAdicionales from "./datos-adicionales/datos-adicionales";
 import Cookies from "js-cookie";
@@ -104,49 +103,6 @@ const Diagnostico = () => {
   useEffect(() => {
     console.log("Estado de validación del formulario:", formCompleto);
   }, [formCompleto]);
-
-  useEffect(() => {
-    const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY, {
-      cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER,
-      encrypted: true,
-    });
-
-    const channel = pusher.subscribe("consultas");
-
-    //* Escucha de eventos
-    channel.bind("nueva-consulta", (data) => {
-      console.log("[INFO] Nueva consulta recibida de Pusher:", data);
-      setPacientes((prevPacientes) => [...prevPacientes, data]);
-    });
-
-    channel.bind("estatus-actualizado", (data) => {
-      setPacientes((prevPacientes) => {
-        //* Filtrar la consulta si está cancelada o finalizada
-        if (data.clavestatus === 0 || data.clavestatus === 2) {
-          return prevPacientes.filter(
-            (paciente) => paciente.claveconsulta !== data.claveConsulta
-          );
-        }
-
-        //* Actualizar la consulta si ya existe
-        const index = prevPacientes.findIndex(
-          (paciente) => paciente.claveconsulta === data.claveConsulta
-        );
-        if (index !== -1) {
-          const updatedPacientes = [...prevPacientes];
-          updatedPacientes[index] = { ...prevPacientes[index], ...data };
-          return updatedPacientes;
-        }
-
-        return prevPacientes;
-      });
-    });
-
-    return () => {
-      channel.unbind_all();
-      channel.unsubscribe();
-    };
-  }, []);
 
   //* Función para cargar pacientes del día
   const cargarPacientesDelDia = async () => {

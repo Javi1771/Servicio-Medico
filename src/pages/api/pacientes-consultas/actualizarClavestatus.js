@@ -1,6 +1,5 @@
 import { connectToDatabase } from "../connectToDatabase";
 import sql from "mssql";
-import axios from "axios";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -55,7 +54,9 @@ export default async function handler(req, res) {
 
     if (updateResult.rowsAffected[0] === 0) {
       console.error("⚠️ No se actualizó ninguna fila. Verifica los datos enviados.");
-      return res.status(404).json({ message: "Consulta no encontrada o ya actualizada." });
+      return res
+        .status(404)
+        .json({ message: "Consulta no encontrada o ya actualizada." });
     }
 
     const consultaActualizada = await pool
@@ -67,22 +68,12 @@ export default async function handler(req, res) {
         WHERE claveconsulta = @claveconsulta
       `);
 
-    console.log("📋 Clavestatus después del UPDATE:", consultaActualizada.recordset[0]?.clavestatus);
+    console.log(
+      "📋 Clavestatus después del UPDATE:",
+      consultaActualizada.recordset[0]?.clavestatus
+    );
 
-    const payload = {
-      claveConsulta,
-      clavestatus,
-    };
-
-    const pusherUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/pusher`;
-
-    await axios.post(pusherUrl, {
-      channel: "consultas",
-      event: "estatus-actualizado",
-      data: payload,
-    });
-
-    res.status(200).json({ message: "Estado actualizado y evento enviado." });
+    res.status(200).json({ message: "Estado actualizado correctamente." });
   } catch (error) {
     console.error("[ERROR] Error general:", error.message);
     res.status(500).json({ message: "Error interno del servidor." });

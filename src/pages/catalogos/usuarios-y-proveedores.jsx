@@ -113,16 +113,21 @@ export default function UsuariosTable() {
 
     if (confirmDelete.isConfirmed) {
       try {
-        const response = await fetch(`/api/usuarios-proveedores/eliminarUser?usuario=${usuario}`, {
-          method: "PUT",
-        });
+        const response = await fetch(
+          `/api/usuarios-proveedores/eliminarUser?usuario=${usuario}`,
+          {
+            method: "PUT",
+          }
+        );
 
         if (!response.ok) {
           throw new Error("Error al desactivar el usuario");
         }
 
         //* Actualizar la lista de usuarios
-        const usuariosResponse = await fetch("/api/usuarios-proveedores/usuario");
+        const usuariosResponse = await fetch(
+          "/api/usuarios-proveedores/usuario"
+        );
         const usuariosData = await usuariosResponse.json();
         setUsuarios(usuariosData);
 
@@ -210,7 +215,9 @@ export default function UsuariosTable() {
     }
 
     try {
-      const response = await fetch(`/api/usuarios-proveedores/usuario?usuario=${usuario}`);
+      const response = await fetch(
+        `/api/usuarios-proveedores/usuario?usuario=${usuario}`
+      );
       const data = await response.json();
 
       if (data.length > 0) {
@@ -300,13 +307,13 @@ export default function UsuariosTable() {
 
   const handleEditUser = (usuario) => {
     setSelectedUsuario(usuario);
-  
+
     // Copiamos todos los campos y añadimos "usuarioOriginal"
     setNewUsuario({
       ...usuario,
       usuarioOriginal: usuario.usuario, // <-- clave para identificar el registro en la BD
     });
-  
+
     setShowModal(true);
   };
 
@@ -376,7 +383,9 @@ export default function UsuariosTable() {
         console.log("Usuario actualizado:", result);
 
         //* Actualizar la lista de usuarios después de editar
-        const usuariosResponse = await fetch("/api/usuarios-proveedores/usuario");
+        const usuariosResponse = await fetch(
+          "/api/usuarios-proveedores/usuario"
+        );
         const usuariosData = await usuariosResponse.json();
         setUsuarios(usuariosData);
 
@@ -445,7 +454,9 @@ export default function UsuariosTable() {
         console.log("Usuario agregado:", result);
 
         //* Actualizar la lista de usuarios después de agregar
-        const usuariosResponse = await fetch("/api/usuarios-proveedores/usuario");
+        const usuariosResponse = await fetch(
+          "/api/usuarios-proveedores/usuario"
+        );
         const usuariosData = await usuariosResponse.json();
         setUsuarios(usuariosData);
 
@@ -519,15 +530,14 @@ export default function UsuariosTable() {
       newUsuario.clavetipousuario !== "" &&
       newUsuario.usuario.trim() !== "" &&
       newUsuario.password.trim() !== "" &&
-      String(newUsuario.costo || "").trim() !== "" && 
-      !isNaN(Number(newUsuario.costo)) && 
-      Number(newUsuario.costo) >= 0; 
-  
+      String(newUsuario.costo || "").trim() !== "" &&
+      !isNaN(Number(newUsuario.costo)) &&
+      Number(newUsuario.costo) >= 0;
+
     const noErrors = usuarioError === "" && passwordError === "";
-  
+
     setIsFormComplete(allFieldsFilled && noErrors);
   };
-  
 
   //* Efecto para validar el formulario cuando cambian los campos o errores
   useEffect(() => {
@@ -822,13 +832,14 @@ export default function UsuariosTable() {
                     </p>
                   </div>
 
-                  {/* Cédula */}
+                  {/* Cédula y Universidad */}
                   <div className="relative">
                     <label
                       htmlFor="cedulaproveedor"
                       className="text-teal-300 font-semibold mb-2 block"
                     >
                       <FaIdCard className="inline mr-2 text-teal-400" /> Cédula
+                      y Universidad
                     </label>
                     <div className="relative">
                       <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-lg">
@@ -838,21 +849,34 @@ export default function UsuariosTable() {
                         type="text"
                         id="cedulaproveedor"
                         name="cedulaproveedor"
-                        placeholder="Ingrese la cédula"
-                        onChange={handleInputChange}
+                        placeholder="Ej: 11422001 / UNIVERSIDAD DE YUCATECOS TECNOLOGICA"
                         value={newUsuario.cedulaproveedor || ""}
-                        className="pl-10 w-full bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white p-3 rounded-md shadow-inner focus:ring-2 focus:ring-teal-500 border border-teal-500"
-                        autoComplete="off"
-                        inputMode="numeric"
-                        onKeyPress={(e) => {
-                          if (!/[0-9]/.test(e.key)) {
-                            e.preventDefault();
+                        onChange={(e) => {
+                          let value = e.target.value;
+
+                          //* Si el usuario ingresa 9 números seguidos, agregar automáticamente " / "
+                          if (/^\d{9}$/.test(value)) {
+                            value += " / ";
+                          }
+
+                          //* Validar el formato: números al inicio, diagonal permitida, universidad después
+                          if (
+                            /^\d{1,9}( \/ [A-Za-zÁÉÍÓÚáéíóúÑñ\s]*)?$/.test(
+                              value
+                            )
+                          ) {
+                            handleInputChange({
+                              target: { name: "cedulaproveedor", value },
+                            });
                           }
                         }}
+                        className="pl-10 w-full bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white p-3 rounded-md shadow-inner focus:ring-2 focus:ring-teal-500 border border-teal-500"
+                        autoComplete="off"
                       />
                     </div>
                     <p className="text-gray-400 text-sm mt-2">
-                      Ingrese la cédula con valores numéricos.
+                      Ingrese la cédula (solo números) seguido de <b> / </b> y
+                      el nombre de la universidad.
                     </p>
                   </div>
 

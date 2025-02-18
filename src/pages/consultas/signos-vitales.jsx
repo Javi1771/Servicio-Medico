@@ -2,7 +2,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import Pusher from "pusher-js";
 import { AiOutlineUserAdd } from "react-icons/ai";
 import {
   FaHeartbeat,
@@ -564,70 +563,6 @@ const SignosVitales = () => {
       [name]: value,
     }));
   };
-
-  //* Hook para cargar pacientes al inicio y actualizar en tiempo real
-  useEffect(() => {
-    //* Configuración inicial de pacientes
-    cargarPacientesDelDia();
-
-    //* Configuración de Pusher
-    const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY, {
-      cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER,
-      encrypted: true,
-    });
-
-    const channel = pusher.subscribe("consultas");
-
-    //* Escuchar eventos de nuevas consultas
-    channel.bind("nueva-consulta", (data) => {
-      console.log("Nueva consulta recibida:", data);
-
-      setPacientes((prevPacientes) => {
-        const existe = prevPacientes.some(
-          (paciente) => paciente.claveconsulta === data.claveConsulta
-        );
-        if (!existe) {
-          return [...prevPacientes, data].sort(
-            (a, b) => new Date(a.fechaconsulta) - new Date(b.fechaconsulta)
-          );
-        }
-        return prevPacientes;
-      });
-    });
-
-    //* Escuchar eventos de actualización de estatus
-    channel.bind("estatus-actualizado", (data) => {
-      console.log("Actualización de estatus recibida:", data);
-
-      setPacientes((prevPacientes) => {
-        //* Filtrar si la consulta cambia de estado y ya no pertenece a la lista de espera
-        if (data.clavestatus === 0 || data.clavestatus === 2) {
-          return prevPacientes.filter(
-            (paciente) => paciente.claveconsulta !== data.claveConsulta
-          );
-        }
-
-        //* Si es un paciente en espera actualizado, modificar su estado
-        const index = prevPacientes.findIndex(
-          (paciente) => paciente.claveconsulta === data.claveConsulta
-        );
-        if (index !== -1) {
-          const actualizados = [...prevPacientes];
-          actualizados[index] = { ...actualizados[index], ...data };
-          return actualizados;
-        }
-
-        return prevPacientes;
-      });
-    });
-
-    //* Limpieza al desmontar el componente
-    return () => {
-      channel.unbind_all();
-      channel.unsubscribe();
-      pusher.disconnect();
-    };
-  }, [cargarPacientesDelDia]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-900 to-black text-white px-4 py-8 md:px-12 flex flex-col items-center pt-10">

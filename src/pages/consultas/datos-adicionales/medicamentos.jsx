@@ -178,12 +178,18 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
                       e.target.value
                     )
                   }
-                  className="mt-2 block w-full h-12 rounded-lg bg-gray-700 border-gray-600 text-white p-3 focus:ring-2 focus:ring-purple-600"
+                  className="mt-2 block w-full h-12 rounded-lg bg-gray-700 border border-gray-600 text-white p-3 focus:ring-2 focus:ring-purple-600 text-lg"
                 >
-                  <option value="">Seleccionar Medicamento</option>
+                  <option value="" className="text-lg">
+                    Seleccionar Medicamento
+                  </option>
                   {listaMedicamentos.map((m) => (
-                    <option key={m.CLAVEMEDICAMENTO} value={m.CLAVEMEDICAMENTO}>
-                      {m.MEDICAMENTO}
+                    <option
+                      key={m.CLAVEMEDICAMENTO}
+                      value={m.CLAVEMEDICAMENTO}
+                      className="text-lg py-2"
+                    >
+                      {m.MEDICAMENTO} --- Presentación Por Caja: {m.presentación} --- Cajas Disponibles: {m.piezas}
                     </option>
                   ))}
                 </select>

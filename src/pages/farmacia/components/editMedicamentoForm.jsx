@@ -9,18 +9,28 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
     presentación: "",
     ean: "",
     piezas: "",
-    ...medicamento,
   });
 
   useEffect(() => {
     if (medicamento) {
-      setFormData(medicamento);
+      setFormData({
+        medicamento: medicamento.medicamento || "",
+        clasificación: medicamento.clasificación
+          ? medicamento.clasificación.toLowerCase()
+          : "", // Convertir a minúsculas para coincidir con el <select>
+        presentación: medicamento.presentación || "",
+        ean: medicamento.ean || "",
+        piezas: medicamento.piezas || "",
+      });
     }
   }, [medicamento]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   const handleSubmit = (e) => {
@@ -45,7 +55,6 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
       },
     }).then((result) => {
       if (result.isConfirmed) {
-        // Convierte los valores numéricos según corresponda
         onEdit({
           ...formData,
           presentación: parseInt(formData.presentación, 10),
@@ -66,20 +75,19 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
             <input
               type="text"
               name="medicamento"
-              value={formData.medicamento || ""}
-              onChange={handleChange}
-              required
+              value={formData.medicamento}
+              readOnly // 🔹 No editable
+              className={styles.disabledInput} // 🔹 Agregar un estilo si es necesario
             />
           </label>
           <label>
             Clasificación:
             <select
               name="clasificación"
-              value={formData.clasificación || ""}
-              onChange={handleChange}
-              required
+              value={formData.clasificación}
+              disabled // 🔹 No editable
+              className={styles.disabledSelect} // 🔹 Agregar un estilo si es necesario
             >
-              <option value="">Seleccione una opción</option>
               <option value="p">PATENTE</option>
               <option value="g">GENERICO</option>
               <option value="c">CONTROLADO</option>
@@ -120,11 +128,7 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
             <button type="submit" className={styles.saveButton}>
               Guardar Cambios
             </button>
-            <button
-              type="button"
-              onClick={onCancel}
-              className={styles.cancelButton}
-            >
+            <button type="button" onClick={onCancel} className={styles.cancelButton}>
               Cancelar
             </button>
           </div>

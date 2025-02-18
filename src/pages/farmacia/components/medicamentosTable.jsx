@@ -1,8 +1,22 @@
-import React, { useState } from "react";
-import styles from "../../css/EstilosFarmacia/RegisterMedicamento.module.css";
+import React, { useState, useEffect } from "react";
+
+// Función para obtener una cookie por su nombre
+const getCookie = (name) => {
+  const match = document.cookie.match(new RegExp(`(^| )${name}=([^;]+)`));
+  return match ? decodeURIComponent(match[2]) : null;
+};
 
 const MedicamentosTable = ({ medicamentos = [], onDelete, onEdit }) => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [role, setRole] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10; // Mostrar 10 elementos por página
+
+  // Obtener el rol desde la cookie al montar el componente
+  useEffect(() => {
+    const rolCookie = getCookie("rol");
+    setRole(rolCookie);
+  }, []);
 
   // Mapeo de clasificación: letra -> nombre completo
   const classificationMapping = {
@@ -14,146 +28,129 @@ const MedicamentosTable = ({ medicamentos = [], onDelete, onEdit }) => {
 
   // Función para determinar el estado de las piezas
   const getStockStatus = (piezas) => {
-    if (piezas <= 10) return { label: "Malo", className: styles.badStock };
-    if (piezas >= 11 && piezas <= 39) return { label: "Medio", className: styles.mediumStock };
-    return { label: "Bueno", className: styles.goodStock };
+    if (piezas <= 10) return { label: "Bajo", color: "bg-red-600" };
+    if (piezas >= 11 && piezas <= 39) return { label: "Medio", color: "bg-yellow-500" };
+    return { label: "Alto", color: "bg-green-500" };
   };
 
   // Filtrar por medicamento o clasificación
   const filteredMedicamentos = medicamentos.filter((med) =>
     [med.medicamento, med.clasificación, String(med.ean), String(med.piezas)]
       .filter(Boolean)
-      .some((value) =>
-        value.toLowerCase().includes(searchTerm.toLowerCase())
-      )
+      .some((value) => value.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
+  // Cálculo de paginación
+  const totalPages = Math.ceil(filteredMedicamentos.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const medicamentosPaginados = filteredMedicamentos.slice(startIndex, endIndex);
+
   return (
-    <div className={styles.tableContainer}>
-      <h2 className={styles.titleTable}>Medicamentos Registrados</h2>
+    <div className="max-w-7xl mx-auto p-8 bg-black rounded-3xl shadow-[0_0_20px_#0ff] border border-teal-500">
+      <h2 
+        className="text-5xl font-extrabold text-teal-400 mb-8 text-center tracking-wider"
+        style={{ textShadow: "0 0 15px #0ff" }}
+      >
+        📋 Medicamentos Registrados
+      </h2>
 
       {/* Campo de búsqueda */}
-      <div className={styles.searchContainer}>
-        <div className={styles.searchWrapper}>
-          <input
-            type="text"
-            placeholder="Buscar por Medicamento, Clasificación, EAN o Piezas..."
-            className={styles.searchBar}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          <button className={styles.searchButton}>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className={styles.searchIcon}
-            >
-              <circle cx="11" cy="11" r="8" />
-              <line x1="21" y1="21" x2="16.65" y2="16.65" />
-            </svg>
-          </button>
-        </div>
+      <div className="flex justify-center mb-8">
+        <input
+          type="text"
+          placeholder="🔍 Buscar Medicamento, Clasificación, EAN..."
+          className="w-2/3 p-4 rounded-full bg-gray-800 text-teal-200 border border-teal-500 focus:ring-4 focus:ring-teal-400 transition duration-300 shadow-[0_0_10px_#0ff] outline-none"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
       </div>
 
-      <table className={styles.table}>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Medicamento</th>
-            <th>Clasificación</th>
-            <th>Presentación</th>
-            <th>EAN</th>
-            <th>Piezas</th>
-            <th>Estado</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredMedicamentos.length > 0 ? (
-            filteredMedicamentos.map((med) => {
-              const stockStatus = getStockStatus(med.piezas);
-              return (
-                <tr key={med.id}>
-                  <td>{med.id}</td>
-                  <td>{med.medicamento}</td>
-                  <td>
-                    {classificationMapping[
-                      med.clasificación?.toLowerCase()
-                    ] || med.clasificación}
-                  </td>
-                  <td>{`c/${med.presentación}`}</td> {/* Presentación con "c/" */}
-                  <td>{med.ean}</td>
-                  <td>{`(${med.piezas}) en stock`}</td> {/* Piezas con "(número) en stock" */}
-                  <td>
-                    <span className={`${styles.stockBadge} ${stockStatus.className}`}>
-                      {stockStatus.label}
-                    </span>
-                  </td>
-                  <td>
-                    <div className={styles.buttonRow}>
+      {/* Tabla de medicamentos */}
+      <div className="overflow-x-auto">
+        <table className="min-w-full bg-gray-800 text-teal-200 rounded-xl shadow-xl border border-teal-500">
+          <thead className="bg-gradient-to-r from-teal-400 to-teal-600 text-gray-900 uppercase tracking-wider text-sm">
+            <tr>
+              {["ID", "Medicamento", "Clasificación", "Presentación", "EAN", "Piezas", "Estado", "Acciones"].map((header) => (
+                <th key={header} className="py-3 px-5 text-center">{header}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {medicamentosPaginados.length > 0 ? (
+              medicamentosPaginados.map((med) => {
+                const stockStatus = getStockStatus(med.piezas);
+                return (
+                  <tr
+                    key={med.id}
+                    className="border-b border-gray-700 hover:scale-105 transition-transform duration-300"
+                  >
+                    <td className="py-3 px-5 text-center">{med.id}</td>
+                    <td className="py-3 px-5 text-center">{med.medicamento}</td>
+                    <td className="py-3 px-5 text-center">
+                      {classificationMapping[med.clasificación?.toLowerCase()] || med.clasificación}
+                    </td>
+                    <td className="py-3 px-5 text-center">{`c/${med.presentación}`}</td>
+                    <td className="py-3 px-5 text-center">{med.ean}</td>
+                    <td className="py-3 px-5 text-center">{`(${med.piezas}) en stock`}</td>
+                    <td className="py-3 px-5 text-center">
+                      <span className={`px-3 py-1 rounded-full text-white ${stockStatus.color} shadow-[0_0_10px_#0ff]`}>
+                        {stockStatus.label}
+                      </span>
+                    </td>
+                    <td className="py-3 px-5 flex justify-center space-x-3">
                       <button
                         onClick={() => onEdit?.(med)}
-                        className={styles.surtirButton}
+                        className="bg-teal-500 text-gray-900 px-4 py-2 rounded-lg border border-teal-500 shadow-[0_0_10px_#0ff] hover:bg-yellow-400 transition duration-300"
                       >
-                        <span className={styles.icon}>
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            className={styles.iconSvg}
-                          >
-                            <path d="M20.84 4.61a5.5 5.5 0 0 1 0 7.78L12 21.23l-8.84-8.84a5.5 5.5 0 0 1 7.78-7.78L12 5.77l1.06-1.06a5.5 5.5 0 0 1 7.78 0z"></path>
-                            <line x1="12" y1="8" x2="12" y2="14"></line>
-                            <line x1="9" y1="11" x2="15" y2="11"></line>
-                          </svg>
-                        </span>
+                        ✏️ Editar
                       </button>
-                      <button
-                        onClick={() => onDelete?.(med.id)}
-                        className={styles.deleteButton}
-                      >
-                        <span className={styles.icon}>
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            className={styles.iconSvg}
-                          >
-                            <path d="M3 6h18"></path>
-                            <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
-                            <path d="M10 11v6"></path>
-                            <path d="M14 11v6"></path>
-                          </svg>
-                        </span>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              );
-            })
-          ) : (
-            <tr>
-              <td colSpan="8" className={styles.noData}>
-                No hay medicamentos registrados.
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+                      {/* Mostrar botón eliminar solo si el rol NO es "9" */}
+                      {String(role) !== "9" && (
+                        <button
+                          onClick={() => onDelete?.(med.id)}
+                          className="bg-red-600 text-white px-4 py-2 rounded-lg border border-teal-500 shadow-[0_0_10px_#0ff] hover:bg-red-500 transition duration-300"
+                        >
+                          🗑️ Eliminar
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })
+            ) : (
+              <tr>
+                <td colSpan="8" className="text-center py-6 text-gray-400">
+                  ❌ No hay medicamentos registrados.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Controles de paginación */}
+      {totalPages > 1 && (
+        <div className="flex justify-center mt-8 space-x-4">
+          <button
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+            className="bg-gray-700 text-teal-200 px-4 py-2 rounded-lg border border-teal-500 shadow-[0_0_10px_#0ff] hover:bg-teal-500 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            ⬅️ Anterior
+          </button>
+          <span className="text-teal-200 text-lg" style={{ textShadow: "0 0 10px #0ff" }}>
+            Página {currentPage} de {totalPages}
+          </span>
+          <button
+            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+            disabled={currentPage === totalPages}
+            className="bg-gray-700 text-teal-200 px-4 py-2 rounded-lg border border-teal-500 shadow-[0_0_10px_#0ff] hover:bg-teal-500 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Siguiente ➡️
+          </button>
+        </div>
+      )}
     </div>
   );
 };

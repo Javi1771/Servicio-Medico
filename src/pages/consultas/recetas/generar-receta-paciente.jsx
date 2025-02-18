@@ -200,14 +200,14 @@ export default function GenerarReceta() {
 
       //? Bloque: TRATAMIENTO
       let recetaStartY = 357;
-      const lineSpacing = 20; //* Espacio más grande entre medicamentos
+      const lineSpacing = 30; //* Espacio más grande entre medicamentos
 
       if (data.receta.length > 0) {
         data.receta.forEach((item, index) => {
           const posY = recetaStartY - index * lineSpacing; //* Aumenta el espacio entre líneas
           drawMultilineText(firstPage, String(item.nombreMedicamento ?? "No hay"), 45, posY, 250, 10);
           drawMultilineText(firstPage, String(item.indicaciones ?? "No hay"), 180, posY, 230, 10);
-          drawMultilineText(firstPage, String(item.cantidad ?? "No hay"), 380, posY, 180, 10);
+          drawMultilineText(firstPage, String(item.cantidad ?? "No hay"), 380, posY, 150, 10);
           drawMultilineText(firstPage, String(item.piezas ?? "No hay"), 553, posY, 100, 10);
         });
       }

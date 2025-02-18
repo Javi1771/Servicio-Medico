@@ -1,5 +1,4 @@
 import { connectToDatabase } from "../connectToDatabase";
-import { pusher } from "../pusher";
 import sql from "mssql";
 
 export default async function handler(req, res) {
@@ -38,10 +37,10 @@ export default async function handler(req, res) {
 
     //* Establecer una conexión con la base de datos
     const pool = await connectToDatabase();
-    const transaction = new sql.Transaction(pool); //? Crear una nueva transacción
+    const transaction = new sql.Transaction(pool); //* Crear una nueva transacción
 
     try {
-      await transaction.begin(); //? Iniciar la transacción
+      await transaction.begin(); //* Iniciar la transacción
 
       const fechaRegistro = new Date().toISOString();
       const claveEspecialidadFinal =
@@ -59,7 +58,7 @@ export default async function handler(req, res) {
         observacionesFinal ===
           "Sin Observaciones, No Se Asignó Especialidad En Esta Consulta"
       ) {
-        estatus = 0; //! Sin especialidad asignada
+        estatus = 0; //* Sin especialidad asignada
       }
 
       console.log("🟠 Insertando en la tabla detalleEspecialidad con datos:");
@@ -77,7 +76,8 @@ export default async function handler(req, res) {
       });
 
       //* Insertar datos en la tabla detalleEspecialidad
-      await transaction.request()
+      await transaction
+        .request()
         .input("claveconsulta", sql.Int, parseInt(claveConsulta, 10))
         .input("clavenomina", sql.VarChar, clavenomina)
         .input(
@@ -100,7 +100,8 @@ export default async function handler(req, res) {
       console.log("🟢 Registro insertado en la tabla detalleEspecialidad.");
 
       console.log("🟠 Actualizando la tabla consultas...");
-      await transaction.request()
+      await transaction
+        .request()
         .input("claveconsulta", sql.Int, parseInt(claveConsulta, 10))
         .input(
           "claveespecialidad",
@@ -148,15 +149,9 @@ export default async function handler(req, res) {
       const historial = result.recordset;
       console.log("🟢 Historial actualizado (último mes):", historial);
 
-      console.log("🟠 Disparando evento Pusher...");
-      await pusher.trigger("especialidades-channel", "especialidades-updated", {
-        clavepaciente,
-        historial,
-      });
-
-      console.log("🟢 Evento Pusher emitido correctamente.");
+      //* Respuesta final al cliente
       res.status(200).json({
-        message: "Especialidad guardada correctamente y evento emitido.",
+        message: "Especialidad guardada correctamente.",
         historial,
       });
     } catch (error) {

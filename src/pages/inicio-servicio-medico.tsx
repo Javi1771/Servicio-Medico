@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import AuthGuard from "../components/AuthGuard";
 import Cookies from "js-cookie";
 
-// Importar íconos (ejemplos de react-icons, puedes elegir otros)
 import {
   FaStethoscope,
   FaUserMd,
@@ -15,6 +14,8 @@ import {
   FaCapsules,
   FaSignOutAlt,
   FaChevronDown,
+  FaBan,
+  FaFeatherAlt,
 } from "react-icons/fa";
 
 const Home = () => {
@@ -60,9 +61,13 @@ const Home = () => {
   };
 
   const getMenuOptions = () => {
-    const menuOptions: { title: string; options: string[]; icon: JSX.Element }[] = [];
+    const menuOptions: {
+      title: string;
+      options: string[];
+      icon: JSX.Element;
+    }[] = [];
 
-    // Aquí añadimos íconos que representen cada sección de forma más visual
+    //* Aquí añadimos íconos que representen cada sección de forma más visual
     if (rol === "6") {
       menuOptions.push(
         {
@@ -100,12 +105,12 @@ const Home = () => {
         {
           title: "Cancelaciones",
           options: ["Formatos"],
-          icon: <FaCapsules className="inline-block mr-2" />,
+          icon: <FaBan className="inline-block mr-2" />,
         },
         {
           title: "Reportes",
           options: ["Incapacidades", "Costos"],
-          icon: <FaCapsules className="inline-block mr-2" />,
+          icon: <FaFeatherAlt className="inline-block mr-2" />,
         },
         {
           title: "Farmacia",
@@ -156,8 +161,31 @@ const Home = () => {
       menuOptions.push({
         title: "Reportes",
         options: ["Incapacidades", "Costos"],
+        icon: <FaFeatherAlt className="inline-block mr-2" />,
+      });
+    }
+
+    if (rol === "9") {
+      menuOptions.push({
+        title: "Farmacia",
+        options: ["Medicamentos"],
         icon: <FaCapsules className="inline-block mr-2" />,
       });
+    }
+
+    if (rol === "10") {
+      menuOptions.push(
+        {
+          title: "Farmacia",
+          options: ["Medicamentos"],
+          icon: <FaCapsules className="inline-block mr-2" />,
+        },
+        {
+          title: "Catalogos",
+          options: ["Usuarios y Proveedores"],
+          icon: <FaBriefcaseMedical className="inline-block mr-2" />,
+        }
+      );
     }
 
     return menuOptions;
@@ -177,7 +205,6 @@ const Home = () => {
 
         {/* Contenedor interno con margen superior */}
         <div className="relative w-full flex flex-col items-center pt-10 pb-10 z-10">
-
           {/* Header/Banner */}
           <div className="relative w-full h-48 sm:h-60 md:h-80 lg:h-96 overflow-hidden rounded-md shadow-md mb-6">
             <Image
@@ -276,7 +303,9 @@ const SidebarButton: React.FC<SidebarButtonProps> = ({
       {isOpen && (
         <div className="absolute left-0 bg-cyan-900 bg-opacity-90 text-white rounded-lg shadow-xl w-full mt-1 z-20 p-2 animate-fadeIn">
           {options.map((option, index) => {
-            const path = `/${title.toLowerCase()}/${option.replace(/\s+/g, "-").toLowerCase()}`;
+            const path = `/${title.toLowerCase()}/${option
+              .replace(/\s+/g, "-")
+              .toLowerCase()}`;
             const isLoading = loadingPath === path;
 
             return (

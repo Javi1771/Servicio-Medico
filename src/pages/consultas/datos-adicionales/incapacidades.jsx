@@ -6,10 +6,8 @@ import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import { FaCalendarAlt } from "react-icons/fa";
 import "react-datepicker/dist/react-datepicker.css";
-import Pusher from "pusher-js";
 import { FormularioContext } from "/src/context/FormularioContext";
 
-// 🚀 IMPORTA tu componente de tabla
 import HistorialIncapacidadesTable from "./historial-incapacidades";
 
 const MySwal = withReactContent(Swal);
@@ -23,12 +21,12 @@ const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
   const [isFechaFinOpen, setIsFechaFinOpen] = useState(false);
   const [diagnostico, setDiagnostico] = useState("");
 
-  // 🔴 Reemplazamos la tabla inline por un componente
+  //* 🔴 Reemplazamos la tabla inline por un componente
   const [historialIncapacidades, setHistorialIncapacidades] = useState([]);
 
   // -------------------------------------------------------------
-  // 1) Cargar historial de incapacidades desde el backend, SOLO con clavenomina
-  //    y sin formatear las fechas (ya vienen listas del backend)
+  //? 1) Cargar historial de incapacidades desde el backend, SOLO con clavenomina
+  //?    y sin formatear las fechas (ya vienen listas del backend)
   // -------------------------------------------------------------
   useEffect(() => {
     if (!clavenomina) {
@@ -41,7 +39,7 @@ const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
 
     const fetchHistorialIncapacidades = async () => {
       try {
-        // Construir la URL solo con clavenomina
+        //* Construir la URL solo con clavenomina
         const queryParams = new URLSearchParams({ clavenomina });
 
         const response = await fetch(
@@ -57,7 +55,7 @@ const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
         const data = await response.json();
 
         if (data && Array.isArray(data.historial)) {
-          // Simplemente filtrar, sin formatear fechas (asumes que ya vienen formateadas)
+          //* Simplemente filtrar, sin formatear fechas (asumes que ya vienen formateadas)
           const historialSinFormatear = data.historial.filter(
             (item) => item.claveincapacidad
           );
@@ -81,7 +79,7 @@ const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
   }, [clavenomina]);
 
   // -------------------------------------------------------------
-  // 2) Guardar datos en localStorage si se autoriza la incapacidad
+  //? 2) Guardar datos en localStorage si se autoriza la incapacidad
   // -------------------------------------------------------------
   useEffect(() => {
     if (autorizarIncapacidad === "si") {
@@ -106,7 +104,7 @@ const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
   }, [autorizarIncapacidad, fechaInicio, fechaFin, diagnostico]);
 
   // -------------------------------------------------------------
-  // 3) Cargar datos previos de localStorage (si existen)
+  //? 3) Cargar datos previos de localStorage (si existen)
   // -------------------------------------------------------------
   useEffect(() => {
     const savedData = localStorage.getItem("Incapacidad");
@@ -123,7 +121,7 @@ const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
   }, []);
 
   // -------------------------------------------------------------
-  // 4) Actualizar el estado del formulario global (FormularioContext)
+  //? 4) Actualizar el estado del formulario global (FormularioContext)
   // -------------------------------------------------------------
   useEffect(() => {
     const camposCompletos =
@@ -144,7 +142,7 @@ const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
   ]);
 
   // -------------------------------------------------------------
-  // 5) Si se elige "No", resetea y guarda en localStorage
+  //? 5) Si se elige "No", resetea y guarda en localStorage
   // -------------------------------------------------------------
   useEffect(() => {
     if (autorizarIncapacidad === "no") {
@@ -161,88 +159,7 @@ const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
   }, [autorizarIncapacidad]);
 
   // -------------------------------------------------------------
-  // 6) Suscribirse a Pusher para actualizaciones en tiempo real
-  // -------------------------------------------------------------
-  useEffect(() => {
-    const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY, {
-      cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER,
-    });
-
-    const channel = pusher.subscribe("incapacidades-channel");
-
-    channel.bind("incapacidades-updated", (data) => {
-      console.log("Evento recibido de Pusher:", data);
-
-      if (data && data.clavepaciente === clavepaciente) {
-        if (
-          data.historial &&
-          Array.isArray(data.historial) &&
-          data.historial.length > 0
-        ) {
-          const historialFormateado = data.historial.map((item) => ({
-            ...item,
-            claveConsulta: item.noNomina || "Sin clave",
-            diagnostico: item.diagnostico || "Sin diagnóstico",
-            fechaInicial: item.fechaInicial
-              ? new Date(item.fechaInicial).toLocaleDateString("es-MX", {
-                  day: "2-digit",
-                  month: "2-digit",
-                  year: "numeric",
-                })
-              : "Fecha no disponible",
-            fechaFinal: item.fechaFinal
-              ? new Date(item.fechaFinal).toLocaleDateString("es-MX", {
-                  day: "2-digit",
-                  month: "2-digit",
-                  year: "numeric",
-                })
-              : "Fecha no disponible",
-          }));
-
-          console.log(
-            "Historial formateado desde Pusher:",
-            historialFormateado
-          );
-
-          setHistorialIncapacidades((prev) => {
-            const combinado = [...prev, ...historialFormateado];
-
-            // Eliminar duplicados basado en claveincapacidad
-            const unico = combinado.reduce((acc, current) => {
-              if (
-                !acc.some(
-                  (item) =>
-                    item.claveincapacidad === current.claveincapacidad
-                )
-              ) {
-                acc.push(current);
-              }
-              return acc;
-            }, []);
-
-            return unico.sort(
-              (a, b) => b.claveincapacidad - a.claveincapacidad
-            );
-          });
-        } else {
-          console.warn(
-            "Datos inválidos o vacíos recibidos de Pusher:",
-            data.historial
-          );
-        }
-      } else {
-        console.warn("Datos de Pusher no coinciden con el paciente actual.");
-      }
-    });
-
-    return () => {
-      channel.unbind_all();
-      channel.unsubscribe();
-    };
-  }, [clavepaciente]);
-
-  // -------------------------------------------------------------
-  // Manejador para cambiar Sí / No
+  //? Manejador para cambiar Sí / No
   // -------------------------------------------------------------
   const handleAutorizarChange = (value) => {
     setAutorizarIncapacidad(value);
@@ -258,7 +175,7 @@ const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
   };
 
   // ----------------------------------------------------------------
-  // Función auxiliar parseLocalDateString (si la necesitas)
+  //? Función auxiliar parseLocalDateString (si la necesitas)
   // ----------------------------------------------------------------
   function parseLocalDateString(dateString) {
     const [datePart] = dateString.split(" ");
@@ -267,7 +184,7 @@ const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
   }
 
   // ----------------------------------------------------------------
-  // Render principal
+  //* Render principal
   // ----------------------------------------------------------------
   return (
     <div className="bg-gray-800 p-4 md:p-8 rounded-lg shadow-lg">

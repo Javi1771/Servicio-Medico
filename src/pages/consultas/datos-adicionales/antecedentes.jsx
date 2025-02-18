@@ -4,7 +4,6 @@ import withReactContent from "sweetalert2-react-content";
 import { FaCalendarAlt } from "react-icons/fa";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
-import Pusher from "pusher-js";
 
 const MySwal = withReactContent(Swal);
 
@@ -14,39 +13,6 @@ const Antecedentes = ({ clavenomina, clavepaciente }) => {
   const [fechaInicioEnfermedad, setFechaInicioEnfermedad] = useState(null);
   const [antecedentes, setAntecedentes] = useState([]);
   const [isFechaInicioOpen, setIsFechaInicioOpen] = useState(false);
-
-  useEffect(() => {
-    const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY, {
-      cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER,
-      encrypted: true,
-    });
-
-    const channel = pusher.subscribe("antecedentes-channel");
-    channel.bind("antecedentes-updated", async (data) => {
-      if (
-        data.clavenomina === clavenomina &&
-        data.clavepaciente === clavepaciente
-      ) {
-        const queryParams = new URLSearchParams({
-          clavenomina: clavenomina,
-          clavepaciente: clavepaciente,
-        });
-
-        const response = await fetch(
-          `/api/antecedentes/obtenerAntecedentes?${queryParams.toString()}`
-        );
-        if (response.ok) {
-          const updatedData = await response.json();
-          setAntecedentes(updatedData);
-        }
-      }
-    });
-
-    return () => {
-      channel.unbind_all();
-      channel.unsubscribe();
-    };
-  }, [clavenomina, clavepaciente]);
 
   //* Cargar antecedentes desde la API
   useEffect(() => {

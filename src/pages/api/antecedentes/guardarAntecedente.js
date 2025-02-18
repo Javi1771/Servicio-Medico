@@ -1,6 +1,5 @@
 import { connectToDatabase } from "../connectToDatabase";
 import sql from "mssql";
-import { pusher } from "../pusher";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -28,7 +27,7 @@ export default async function handler(req, res) {
   try {
     const pool = await connectToDatabase();
 
-    //* Insertar el nuevo antecedente
+    // Insertar el nuevo antecedente
     await pool
       .request()
       .input("descripcion", sql.NVarChar(sql.MAX), descripcion)
@@ -41,12 +40,19 @@ export default async function handler(req, res) {
         VALUES (@descripcion, @clavenomina, @clavepaciente, @tipo_antecedente, @fecha_inicio_enfermedad)
       `);
 
-    //* Obtener el historial actualizado
+    // Obtener el historial actualizado
     const result = await pool
       .request()
       .input("clavenomina", sql.NVarChar(sql.MAX), clavenomina)
-      .input("clavepaciente", sql.NVarChar(sql.MAX), clavepaciente).query(`
-        SELECT id_antecedente, descripcion, clavenomina, tipo_antecedente, fecha_registro, fecha_inicio_enfermedad
+      .input("clavepaciente", sql.NVarChar(sql.MAX), clavepaciente)
+      .query(`
+        SELECT 
+          id_antecedente,
+          descripcion,
+          clavenomina,
+          tipo_antecedente,
+          fecha_registro,
+          fecha_inicio_enfermedad
         FROM antecedentes_clinicos
         WHERE clavenomina = @clavenomina
           AND clavepaciente = @clavepaciente
@@ -54,26 +60,12 @@ export default async function handler(req, res) {
 
     const historial = result.recordset;
 
-    //* Emitir evento a Pusher
-    await pusher.trigger("antecedentes-channel", "antecedentes-updated", {
-      clavenomina,
-      clavepaciente,
-      antecedentes: historial,
-    });
-    console.log("Evento emitido a Pusher:", {
-      clavenomina,
-      clavepaciente,
-      antecedentes: historial,
-    });
-
     res.status(200).json({
       message: "Antecedente guardado correctamente.",
       nuevoAntecedente: historial,
     });
   } catch (error) {
     console.error("Error al guardar el antecedente:", error);
-    res
-      .status(500)
-      .json({ message: "Error al guardar el antecedente.", error });
+    res.status(500).json({ message: "Error al guardar el antecedente.", error });
   }
 }

@@ -4,14 +4,12 @@ import { saveAs } from "file-saver";
 import { useRouter } from "next/router";
 import React, { useState, useEffect } from "react";
 import { FaSpinner } from "react-icons/fa";
-import JsBarcode from "jsbarcode";
 
 export default function GenerarReceta() {
   const router = useRouter();
   const [claveconsulta, setClaveConsulta] = useState(null);
   const [loading, setLoading] = useState(false);
   const [pdfUrl, setPdfUrl] = useState(null); //* Estado para previsualizar el PDF
-  const [, setCodigoBarras] = useState("");
 
   useEffect(() => {
     if (router.query.claveconsulta) {
@@ -50,34 +48,6 @@ export default function GenerarReceta() {
             return "Error al cargar";
         }
     };        
-
-    //* Función para generar código de barras con CODE128 mostrando los asteriscos
-    const generarCodigoBarras = (clavenomina, claveproveedor, claveconsulta, folioSurtimiento) => {
-      if (!clavenomina || !claveproveedor || !claveconsulta || !folioSurtimiento) {
-          console.error("❌ Datos insuficientes para generar código de barras");
-          return;
-      }
-
-      //* Convertir los asteriscos en caracteres ASCII válidos
-      const codigo = `${clavenomina} ${claveproveedor} ${claveconsulta} ${folioSurtimiento}`;
-
-      console.log('El código generado es:', codigo); //* Se verá con asteriscos en consola y al escanear
-
-      setCodigoBarras(codigo); //* Guardar el código en el estado
-
-      const canvas = document.createElement("canvas");
-
-      //* Generar el código de barras con CODE128
-      JsBarcode(canvas, codigo, {
-          format: "CODE128",
-          displayValue: false,
-          width: 3, 
-          height: 70,
-          margin: 5, 
-      });
-
-      return canvas.toDataURL("image/png");
-    };
 
   //* Función para dibujar texto multilinea
   const drawMultilineText = (page, text, x, y, maxWidth, fontSize) => {
@@ -124,20 +94,18 @@ export default function GenerarReceta() {
         let nombreCompleto = "No encontrado";  //* Variable local para el nombre
         let folioSurtimiento = data.folioSurtimiento ?? null; //* Obtener el folioSurtimiento de la respuesta
 
-        let codigoBarrasBase64 = null;
         if (data.consulta) {
             nombreCompleto = await fetchNombreEmpleado(data.consulta.clavenomina);
-            codigoBarrasBase64 = generarCodigoBarras(data.consulta.clavenomina, data.consulta.claveproveedor, data.consulta.claveconsulta, folioSurtimiento);
         }        
 
         console.log("✅ Datos de la receta recibidos:", data);
         console.log("✅ Folio surtimiento obtenido:", folioSurtimiento);
 
-        return { ...data, nombreEmpleado: nombreCompleto, folioSurtimiento, codigoBarrasBase64 };
+        return { ...data, nombreEmpleado: nombreCompleto, folioSurtimiento,  };
     };    
 
     //* Genera el PDF con pdf-lib
-    const generatePdf = async (nombreEmpleado, codigoBarrasBase64) => {
+    const generatePdf = async (nombreEmpleado, ) => {
         try {
         console.log("🖨️ Iniciando la generación del PDF...");
         setLoading(true);
@@ -166,12 +134,16 @@ export default function GenerarReceta() {
         console.log("✏️ Dibujando datos en el PDF...");
 
         //? Bloque: DATOS DE LA CONSULTA
-        firstPage.drawText(data.consulta?.especialidadInterconsulta === null ? "General" : "Especialidad", { x: 114, y: 665, size: 10 });
-        firstPage.drawText(String(data.consulta?.claveconsulta ?? "N/A"), { x: 152, y: 645, size: 10 });
-        firstPage.drawText(String(data.consulta?.fechacita ?? "N/A"), { x: 93, y: 626, size: 10 });
-        firstPage.drawText(String(data.consulta?.clavenomina ?? "N/A"), { x: 404, y: 665, size: 10 });
-        drawMultilineText(firstPage, String(data.consulta?.departamento?.trim() ?? "N/A"), 410, 625, 150, 10);
-        firstPage.drawText(String(data.consulta?.sindicato ? data.consulta.sindicato : ""), { x: 408, y: 645, size: 10 });
+        firstPage.drawText(data.consulta?.especialidadInterconsulta === null ? "General" : `Especialidad - ${data.consulta?.especialidadNombre}`, { x: 110, y: 645, size: 10 });
+        firstPage.drawText(String(data.consulta?.claveconsulta ?? "N/A"), { x: 177, y: 663, size: 15 });
+        firstPage.drawText(String(data.consulta?.fechacita ?? "N/A"), { x: 384, y: 665, size: 10 });
+        drawMultilineText(firstPage, String(data.consulta?.departamento?.trim() ?? "N/A"), 414, 625, 150, 10);
+        firstPage.drawText(String(data.consulta?.nombreproveedor ?? "N/A"), { x: 120, y: 625, size: 10 });
+        const nomina = data.consulta?.clavenomina ?? "N/A";
+        const sindicato = data.consulta?.sindicato ? data.consulta.sindicato : "";
+        const textoFinal = `${nomina}  ${sindicato}`;
+
+        firstPage.drawText(textoFinal, { x: 403, y: 645, size: 10 });
 
         //* Nombre del empleado (recibido como argumento)
         firstPage.drawText(` Empleado: ${nombreEmpleado}`, { x: 175, y: 695, size: 9 });
@@ -193,37 +165,14 @@ export default function GenerarReceta() {
             });
           }
 
-        //? Código de Barras con información adicional
-        if (codigoBarrasBase64) {
-          const barcodeImage = await pdfDoc.embedPng(codigoBarrasBase64);
-          firstPage.drawImage(barcodeImage, {
-              x: 275,  
-              y: 727, 
-              width: 220,
-              height: 30, 
-          });
-
-          //? Generar información textual debajo del código de barras con asteriscos
-          const infoCodigoBarras = [
-              data.consulta?.clavenomina ?? "N/A",
-              data.consulta?.claveproveedor ?? "N/A",
-              data.consulta?.claveconsulta ?? "N/A",
-              data.folioSurtimiento ?? "N/A"
-          ].filter(value => value !== "N/A").join(" "); //* Elimina valores "N/A" para evitar espacios extra
-
-          firstPage.drawText(`*${infoCodigoBarras}*`, { 
-              x: 330,  
-              y: 720, 
-              size: 8, 
-              font: await pdfDoc.embedFont(StandardFonts.HelveticaBold) 
-          });
-        }
-
         //? Firmas
-        firstPage.drawText(String(data.consulta?.nombreproveedor ?? "N/A"), { x: 108, y: 96, size: 10 });
-        firstPage.drawText(String(data.consulta?.cedulaproveedor ?? "N/A"), { x: 128, y: 78, size: 10 });
-        firstPage.drawText(String(data.consulta?.nombrepaciente ?? "N/A"), { x: 370, y: 78, size: 10 });
-        firstPage.drawText(String(data.consulta?.nombreproveedor ?? "N/A"), { x: 400, y: 18, size: 8 });
+        firstPage.drawText(String(data.consulta?.nombreproveedor ?? "N/A"), { x: 110, y: 96, size: 7.5 });
+        firstPage.drawText(String(data.consulta?.cedulaproveedor ?? "N/A"), { x: 90, y: 87, size: 7.5 });
+        firstPage.drawText(String(data.consulta?.nombrepaciente ?? "N/A"), { x: 370, y: 87, size: 10 });
+
+        //? Elaboró 
+        firstPage.drawText(String(data.consulta?.nombreproveedor ?? "N/A"), { x: 460, y: 35, size: 8 });
+        firstPage.drawText(String(data.consulta?.fechaconsulta ?? "N/A"), { x: 480, y: 25, size: 8 });
 
         //? Guardar el PDF en memoria y generar una URL para previsualización
         const pdfBytes = await pdfDoc.save();
@@ -288,7 +237,7 @@ export default function GenerarReceta() {
           {/* Botón de descarga con animación moderna */}
           <div className="flex justify-center mt-6">
             <button
-              onClick={() => saveAs(pdfUrl, "RecetaFarmacia.pdf")}
+              onClick={() => saveAs(pdfUrl, "RecetaPase.pdf")}
               className="px-6 py-3 bg-cyan-600 hover:bg-cyan-500 text-white font-semibold rounded-lg shadow-md shadow-cyan-500/50 transition transform hover:scale-105 hover:shadow-cyan-400/50"
             >
               ⬇️ Descargar PDF

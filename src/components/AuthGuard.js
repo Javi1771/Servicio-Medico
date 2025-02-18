@@ -11,6 +11,8 @@ const rolePermissions = {
   "2": ["/inicio-servicio-medico", "/consultas/signos-vitales"], //* Permisos para enfermera
   "3": ["/inicio-servicio-medico", "/capturas"], //* Permisos para capturista
   "8": ["/inicio-servicio-medico", "/reportes"], //* Permisos para RRHH
+  "9": ["/inicio-servicio-medico", "/farmacia/medicamentos"], //* Permisos para farmacia 
+  "10": ["/inicio-servicio-medico", "/farmacia/medicamentos", "/catalogos/usuarios-y-proveedores"], //* Permisos para director de servicios médicos 
 };
 
 const AuthGuard = ({ children }) => {

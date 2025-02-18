@@ -165,18 +165,23 @@ export default function GenerarReceta() {
       console.log("✏️ Dibujando datos en el PDF...");
 
       //? Bloque: DATOS DE LA CONSULTA
-      firstPage.drawText(data.consulta?.especialidadInterconsulta === null ? "General" : "Especialidad", { x: 114, y: 665, size: 10 });
-      firstPage.drawText(String(data.consulta?.claveconsulta ?? "N/A"), { x: 152, y: 645, size: 10 });
-      firstPage.drawText(String(data.consulta?.fechacita ?? "N/A"), { x: 93, y: 626, size: 10 });
-      firstPage.drawText(String(data.consulta?.clavenomina ?? "N/A"), { x: 404, y: 665, size: 10 });
-      drawMultilineText(firstPage, String(data.consulta?.departamento?.trim() ?? "N/A"), 410, 625, 150, 10);
-      firstPage.drawText(String(data.consulta?.sindicato ? data.consulta.sindicato : ""), { x: 408, y: 645, size: 10 });
+      firstPage.drawText(data.consulta?.especialidadInterconsulta === null ? "General" : `Especialidad - ${data.consulta?.especialidadNombre}`, { x: 110, y: 645, size: 10 });
+      firstPage.drawText(String(data.consulta?.claveconsulta ?? "N/A"), { x: 177, y: 663, size: 15 });
+      firstPage.drawText(String(data.consulta?.fechacita ?? "N/A"), { x: 384, y: 665, size: 10 });
+      drawMultilineText(firstPage, String(data.consulta?.departamento?.trim() ?? "N/A"), 414, 625, 150, 10);
+      firstPage.drawText(String(data.consulta?.nombreproveedor ?? "N/A"), { x: 120, y: 625, size: 10 });
+      const nomina = data.consulta?.clavenomina ?? "N/A";
+      const sindicato = data.consulta?.sindicato ? data.consulta.sindicato : "";
+      const textoFinal = `${nomina}  ${sindicato}`;
+
+      firstPage.drawText(textoFinal, { x: 403, y: 645, size: 10 });
+
 
       //* Nombre del empleado (recibido como argumento)
       firstPage.drawText(` Empleado: ${nombreEmpleado}`, { x: 148, y: 695, size: 9 });
 
       //? Bloque: DATOS DEL PACIENTE
-      firstPage.drawText(String(data.consulta?.nombrepaciente ?? "N/A"), { x: 115, y: 570, size: 10 });
+      firstPage.drawText(String(data.consulta?.nombrepaciente ?? "N/A"), { x: 115, y: 571, size: 10 });
       firstPage.drawText(String(data.consulta?.edad ?? "N/A"), { x: 435, y: 571, size: 10 });
 
       //? Línea especial: Si el paciente NO es empleado (elpacienteesempleado === "N"), se escribe el nombre con el parentesco en negrita y con un guion antes.
@@ -191,22 +196,14 @@ export default function GenerarReceta() {
             font: boldFont 
         });
       }
-
-      //? Bloque: OBSERVACIONES
-      drawMultilineText(firstPage, String(data.consulta?.diagnostico ?? "N/A"), 50, 160, 750, 10);
-
-      //? Bloque: EXTRAS
-      const incapacidad = data.incapacidades?.[0]; //* Obtiene el primer elemento del array de incapacidades
-      firstPage.drawText(data.consulta?.seAsignoIncapacidad === 1 ? "Sí" : "No", { x: 150, y: 78, size: 10 });
-      firstPage.drawText(incapacidad ? incapacidad.fechaInicial : "No hay", { x: 219, y: 85, size: 10 });
-      firstPage.drawText(incapacidad ? incapacidad.fechaFinal : "No hay", { x: 209, y: 72, size: 10 });
-      
-      const especialidadText = data.consulta?.seasignoaespecialidad === "S" ? `Sí - ${data.detalleEspecialidad[0]?.nombreEspecialidad ?? "N/A"}` : "No";
-      firstPage.drawText(especialidadText, { x: 440, y: 78, size: 10 });
       
       //? Firmas
-      firstPage.drawText(String(data.consulta?.nombreproveedor ?? "N/A"), { x: 120, y: 52, size: 10 });
-      firstPage.drawText(String(data.consulta?.nombrepaciente ?? "N/A"), { x: 370, y: 52, size: 10 });
+      firstPage.drawText(String(data.consulta?.nombreproveedor ?? "N/A"), { x: 98, y: 92, size: 10 });
+      firstPage.drawText(String(data.consulta?.nombrepaciente ?? "N/A"), { x: 370, y: 92, size: 10 });
+
+      //? Elaboró 
+      firstPage.drawText(String(data.consulta?.nombreproveedor ?? "N/A"), { x: 460, y: 35, size: 8 });
+      firstPage.drawText(String(data.consulta?.fechaconsulta ?? "N/A"), { x: 480, y: 25, size: 8 });
 
       //? Guardar el PDF en memoria y generar una URL para previsualización
       const pdfBytes = await pdfDoc.save();

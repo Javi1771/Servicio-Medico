@@ -1,6 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useEffect, useState, useCallback } from "react";
-import Pusher from "pusher-js";
+import React, { useEffect, useState } from "react";
 
 const AtendiendoActualmente = () => {
   const [pacientes, setPacientes] = useState([]);
@@ -38,43 +37,10 @@ const AtendiendoActualmente = () => {
     }
   };
 
-  //* Manejo de eventos de Pusher
-  const manejarEventoPusher = useCallback(
-    (data) => {
-      console.log("[INFO] Evento recibido de Pusher:", data);
-
-      //* Validar datos del evento
-      if (!data.claveConsulta || typeof data.clavestatus === "undefined") {
-        console.error("[ERROR] Datos inválidos recibidos en el evento Pusher:", data);
-        return;
-      }
-
-      //* Recargar toda la lista de pacientes si hay un cambio
-      cargarConsultas();
-    },
-    [] //! Sin dependencias para evitar re-creación
-  );
-
+  // Llamamos a cargarConsultas una sola vez, cuando el componente se monta.
   useEffect(() => {
-    console.log("[INFO] Montando componente AtendiendoActualmente");
-    cargarConsultas(); //* Cargar datos iniciales
-
-    const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY, {
-      cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER,
-      encrypted: true,
-    });
-
-    const channel = pusher.subscribe("consultas");
-    channel.bind("estatus-actualizado", manejarEventoPusher);
-
-    //* Cleanup al desmontar el componente
-    return () => {
-      console.log("[INFO] Desmontando componente AtendiendoActualmente");
-      channel.unbind("estatus-actualizado", manejarEventoPusher);
-      channel.unsubscribe();
-      pusher.disconnect();
-    };
-  }, [manejarEventoPusher]);
+    cargarConsultas();
+  }, []);
 
   return (
     <div className="w-full overflow-x-auto p-4 bg-gradient-to-b from-gray-900 to-gray-800 rounded-lg shadow-lg">
