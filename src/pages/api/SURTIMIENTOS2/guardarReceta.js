@@ -7,15 +7,18 @@ export default async function handler(req, res) {
   }
 
   const { folio, medicamentos, diagnostico } = req.body;
+  console.log("📡 Recibiendo solicitud para guardar receta...");
+  console.log("📌 Folio recibido:", folio);
+  console.log("📌 Diagnóstico recibido en API:", diagnostico); // ✅ Depuración clave
+  console.log("📌 Medicamentos recibidos:", medicamentos);
 
   // Validación de datos recibidos
   if (
     !folio ||
     !Array.isArray(medicamentos) ||
     medicamentos.length === 0 ||
-    !diagnostico||
-    !medicamentos.every(med => med.piezas !== undefined)  // Asegúrate de que 'piezas' esté presente
-
+    !diagnostico ||
+    !medicamentos.every((med) => med.piezas !== undefined) // Asegúrate de que 'piezas' esté presente
   ) {
     console.error("Datos incompletos recibidos:", {
       folio,
@@ -89,15 +92,14 @@ export default async function handler(req, res) {
 
     const sindicato = await getSindicato(consulta.clavenomina, pool);
     console.log("Sindicato determinado:", sindicato);
-    
+
     // Si sindicato es null o undefined, asigna un valor predeterminado
     const sindicatoFinal = sindicato || "N/A"; // Valor por defecto
-    
+
     // Limitar el valor a 10 caracteres
     const sindicatoLimpio = sindicatoFinal.substring(0, 10);
-    
+
     console.log("Sindicato limpio:", sindicatoLimpio);
-    
 
     // Normalizar el valor del campo departamento
     let departamento = consulta.departamento || null;
@@ -168,7 +170,7 @@ export default async function handler(req, res) {
         )
         .input("indicaciones", sql.NVarChar(sql.MAX), medicamento.indicaciones)
         .input("cantidad", sql.NVarChar(70), medicamento.cantidad)
-        .input("piezas", sql.Int, medicamento.piezas)  // Aquí se pasa el campo piezas
+        .input("piezas", sql.Int, medicamento.piezas) // Aquí se pasa el campo piezas
 
         .query(insertDetalleQuery);
     }

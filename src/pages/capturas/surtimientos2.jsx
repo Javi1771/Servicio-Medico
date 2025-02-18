@@ -313,11 +313,13 @@ const SurtimientosBanner = () => {
           ) : (
             especialista && (
               <InformacionEspecialista
-                especialista={especialista}
-                onDiagnosticoChange={(value) => {
-                  if (!diagnostico) setDiagnostico(value); // Evita modificar si ya hay diagnóstico
-                }}
-              />
+              especialista={especialista}
+              onDiagnosticoChange={(value) => {
+                console.log("📝 Diagnóstico actualizado en `SurtimientosBanner`:", value);
+                setDiagnostico(value); // ✅ Permitir que el estado se actualice siempre
+              }}
+            />
+            
             )
           )}
         </div>
