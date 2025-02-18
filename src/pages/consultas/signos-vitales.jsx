@@ -496,37 +496,23 @@ const SignosVitales = () => {
       const data = await response.json();
   
       if (data.beneficiarios && data.beneficiarios.length > 0) {
-        //* Verificar la vigencia de todos los beneficiarios antes de actualizarlos
-        const updatedBeneficiarios = data.beneficiarios.map((beneficiary) => {
-          const vigenciaEstudios = new Date(beneficiary.VIGENCIA_ESTUDIOS);
-          const fechaActual = new Date();
-          beneficiary.isVencido = vigenciaEstudios.getTime() < fechaActual.getTime();
-          return beneficiary;
-        });
+        //* Actualizar beneficiarios directamente con los datos filtrados
+        setBeneficiaryData(data.beneficiarios);
   
-        setBeneficiaryData(updatedBeneficiarios);
-  
-        //* Seleccionar el primer beneficiario válido
-        const validBeneficiaryIndex = updatedBeneficiarios.findIndex(
-          (beneficiary) => !beneficiary.isVencido
-        );
-  
-        if (validBeneficiaryIndex !== -1) {
-          setSelectedBeneficiary(updatedBeneficiarios[validBeneficiaryIndex]);
-          document.querySelector("select").value = validBeneficiaryIndex; //* Actualizar el select
-        } else {
-          setSelectedBeneficiary(null);
-          setBeneficiaryData([]);
-          setConsultaSeleccionada("empleado"); //* Cambiar a "empleado" si no hay beneficiarios válidos
-        }
+        //* Seleccionar automáticamente el primer beneficiario válido
+        setSelectedBeneficiary(data.beneficiarios[0]);
+        document.querySelector("select").value = 0; //* Actualizar el select
       } else {
+        //* No hay beneficiarios
         setBeneficiaryData([]);
-        setConsultaSeleccionada("empleado"); //* Cambia a "empleado" si no hay beneficiarios
+        setConsultaSeleccionada("empleado");
+  
         MySwal.fire({
           icon: "info",
           title:
             "<span style='color: #00bcd4; font-weight: bold; font-size: 1.5em;'>ℹ️ Sin beneficiarios</span>",
-          html: "<p style='color: #fff; font-size: 1.1em;'>Este empleado no tiene beneficiarios registrados en el sistema.</p>",
+          html:
+            "<p style='color: #fff; font-size: 1.1em;'>Este empleado no tiene beneficiarios registrados en el sistema.</p>",
           background: "linear-gradient(145deg, #004d40, #00251a)",
           confirmButtonColor: "#00bcd4",
           confirmButtonText:
@@ -539,20 +525,6 @@ const SignosVitales = () => {
       }
     } catch (error) {
       console.error("Error al buscar beneficiarios:", error);
-      MySwal.fire({
-        icon: "error",
-        title:
-          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error al buscar beneficiarios</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>Hubo un problema al buscar los beneficiarios. Intenta nuevamente.</p>",
-        background: "linear-gradient(145deg, #4a0000, #220000)",
-        confirmButtonColor: "#ff1744",
-        confirmButtonText:
-          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-        },
-      });
     }
   };  
 

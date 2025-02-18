@@ -71,7 +71,7 @@ const MedicamentosTable = ({ medicamentos = [], onDelete, onEdit }) => {
         <table className="min-w-full bg-[#0b2424] text-teal-200 rounded-xl shadow-xl border border-teal-500 border-opacity-40">
           <thead className="bg-teal-800/60 text-teal-100 uppercase tracking-widest text-sm">
             <tr>
-              {["ID", "Medicamento", "Clasificación", "Presentación", "EAN", "Piezas", "Estado", "Acciones"].map(
+              {["Medicamento", "Clasificación", "Presentación", "EAN", "Piezas", "Estado", "Acciones"].map(
                 (header) => (
                   <th key={header} className="py-3 px-5 text-center border-b border-teal-600">
                     {header}
@@ -85,10 +85,7 @@ const MedicamentosTable = ({ medicamentos = [], onDelete, onEdit }) => {
               medicamentosPaginados.map((med) => {
                 const stockStatus = getStockStatus(med.piezas);
                 return (
-                  <tr
-                    key={med.id}
-                    className="border-b border-teal-700 hover:bg-teal-900 hover:shadow-[0_0_20px_#0ff] transition duration-300"
-                  >
+                  <tr key={med.id}>
                     <td className="py-3 px-5 text-center">{med.medicamento}</td>
                     <td className="py-3 px-5 text-center">
                       {classificationMapping[med.clasificacion?.toLowerCase()] || med.clasificacion}
@@ -97,9 +94,7 @@ const MedicamentosTable = ({ medicamentos = [], onDelete, onEdit }) => {
                     <td className="py-3 px-5 text-center">{med.ean}</td>
                     <td className="py-3 px-5 text-center">{`(${med.piezas}) en stock`}</td>
                     <td className="py-3 px-5 text-center">
-                      <span
-                        className={`px-3 py-1 rounded-full text-white ${stockStatus.color} shadow-[0_0_10px_#0ff]`}
-                      >
+                      <span className={`px-3 py-1 rounded-full text-white ${stockStatus.color} shadow-[0_0_10px_#0ff]`}>
                         {stockStatus.label}
                       </span>
                     </td>
@@ -125,7 +120,7 @@ const MedicamentosTable = ({ medicamentos = [], onDelete, onEdit }) => {
               })
             ) : (
               <tr>
-                <td colSpan="8" className="text-center py-6 text-gray-400">
+                <td colSpan="7" className="text-center py-6 text-gray-400">
                   ❌ No hay medicamentos registrados.
                 </td>
               </tr>

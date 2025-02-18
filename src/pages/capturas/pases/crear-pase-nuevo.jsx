@@ -142,16 +142,17 @@ const CrearPaseNuevo = () => {
       );
       return;
     }
-
+  
     try {
+      //* Buscar el empleado
       const response = await fetch("/api/empleado", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ num_nom: nomina }),
       });
-
+  
       if (!response.ok) throw new Error("Error al realizar la búsqueda");
-
+  
       const employee = await response.json();
       if (!employee || Object.keys(employee).length === 0) {
         showErrorAlert(
@@ -161,7 +162,7 @@ const CrearPaseNuevo = () => {
         resetState();
         return;
       }
-
+  
       const { display: employeeAge } = calcularEdad(employee.fecha_nacimiento);
       setEmployeeData({
         name: `${employee.nombre} ${employee.a_paterno} ${employee.a_materno}`,
@@ -172,8 +173,8 @@ const CrearPaseNuevo = () => {
         cuotaSindical: employee.cuotaSindical,
         photo: "/user_icon_.png",
       });
-
-      //* Obtener los beneficiarios
+  
+      //* Obtener beneficiarios ya filtrados del backend
       const beneficiariesResponse = await fetch(
         "/api/beneficiarios/beneficiario",
         {
@@ -182,24 +183,20 @@ const CrearPaseNuevo = () => {
           body: JSON.stringify({ nomina }),
         }
       );
-
+  
       const beneficiaries = await beneficiariesResponse.json();
-
-      //* Validación de la vigencia de los beneficiarios
-      const updatedBeneficiaries = beneficiaries.beneficiarios.map(
-        (beneficiary) => {
-          const vigenciaEstudios = new Date(beneficiary.VIGENCIA_ESTUDIOS);
-          const fechaActual = new Date();
-          beneficiary.isVencido =
-            vigenciaEstudios.getTime() < fechaActual.getTime();
-          return beneficiary;
-        }
-      );
-
+  
+      if (!beneficiaries.beneficiarios || beneficiaries.beneficiarios.length === 0) {
+        showErrorAlert(
+          "⚠️ Sin beneficiarios válidos",
+          "No hay beneficiarios activos o con vigencia de estudios válida."
+        );
+        setBeneficiaryData([]);
+      } else {
+        setBeneficiaryData(beneficiaries.beneficiarios);
+      }
+  
       setHideHistorial(true);
-
-      //* Actualizar los datos de los beneficiarios
-      setBeneficiaryData(updatedBeneficiaries);
     } catch (error) {
       console.error("Error al buscar empleado o beneficiarios:", error);
       showErrorAlert(
@@ -207,7 +204,7 @@ const CrearPaseNuevo = () => {
         "Hubo un problema al buscar los datos. Intenta nuevamente."
       );
     }
-  };
+  };  
 
   const fetchEspecialidades = async () => {
     try {

@@ -52,11 +52,7 @@ export default async function handler(req, res) {
           sql.NVarChar,
           "Sin tiempo de toma estimado, sin medicamentos."
         )
-        .input(
-          "piezas",
-          sql.Int,
-          0
-        )
+        .input("piezas", sql.Int, 0)
         .query(queryInsertarReceta);
 
       resultados.push({
@@ -95,7 +91,37 @@ export default async function handler(req, res) {
 
     await transaction.commit();
     console.log("✅ Transacción completada con éxito.");
-    res.status(200).json({ message: "Datos guardados correctamente.", resultados });
+
+    // Nueva consulta: Buscar en la tabla "consultas" donde claveconsulta coincida con folioReceta
+    const consultaQuery = `
+      SELECT 
+        clavepaciente, 
+        nombrepaciente, 
+        claveproveedor, 
+        motivoconsulta, 
+        diagnostico, 
+        claveusuario, 
+        clavenomina, 
+        elpacienteesempleado, 
+        departamento, 
+        edad, 
+        sindicato, 
+        fechaconsulta
+      FROM consultas
+      WHERE claveconsulta = @folioReceta
+    `;
+
+    const consultaResult = await pool.request()
+      .input("folioReceta", sql.Int, parseInt(folioReceta, 10))
+      .query(consultaQuery);
+
+    const consultaData = consultaResult.recordset[0] || null;
+
+    res.status(200).json({
+      message: "Datos guardados correctamente.",
+      resultados,
+      consulta: consultaData,
+    });
   } catch (error) {
     console.error("❌ Error inesperado:", error);
     res.status(500).json({ error: "Error inesperado en el servidor." });

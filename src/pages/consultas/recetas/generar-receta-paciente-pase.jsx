@@ -102,6 +102,12 @@ export default function GenerarReceta() {
     page.drawText(line, { x, y: currentY, size: fontSize });
   };
 
+  const getCookie = (name) => {
+    const cookies = document.cookie.split("; ");
+    const cookie = cookies.find((row) => row.startsWith(`${name}=`));
+    return cookie ? decodeURIComponent(cookie.split("=")[1]) : null;
+  };  
+
     //* Función para obtener los datos de la receta
     const fetchRecetaData = async () => {
         if (!claveconsulta) {
@@ -158,6 +164,9 @@ export default function GenerarReceta() {
 
       console.log("✅ PDF base cargado correctamente.");
 
+      //* Obtener la cookie con el nombre del usuario
+      const nombreUsuario = getCookie("nombreusuario") || "N/A";
+
       //? Crear el PDF a partir del PDF base
       const pdfDoc = await PDFDocument.load(existingPdfBytes);
       const firstPage = pdfDoc.getPages()[0];
@@ -202,7 +211,7 @@ export default function GenerarReceta() {
       firstPage.drawText(String(data.consulta?.nombrepaciente ?? "N/A"), { x: 370, y: 92, size: 10 });
 
       //? Elaboró 
-      firstPage.drawText(String(data.consulta?.nombreproveedor ?? "N/A"), { x: 460, y: 35, size: 8 });
+      firstPage.drawText(`${nombreUsuario}`, { x: 460, y: 35, size: 8 });
       firstPage.drawText(String(data.consulta?.fechaconsulta ?? "N/A"), { x: 480, y: 25, size: 8 });
 
       //? Guardar el PDF en memoria y generar una URL para previsualización

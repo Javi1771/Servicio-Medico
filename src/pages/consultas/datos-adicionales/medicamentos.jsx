@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState, useEffect, useContext } from "react";
 import { FormularioContext } from "/src/context/FormularioContext";
+import Swal from "sweetalert2";
 
 const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
   const [medicamentos, setMedicamentos] = useState([]);
@@ -171,13 +172,44 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
                 </label>
                 <select
                   value={med.medicamento}
-                  onChange={(e) =>
+                  onChange={(e) => {
+                    const selectedMedicamento = listaMedicamentos.find(
+                      (m) => m.CLAVEMEDICAMENTO === e.target.value
+                    );
+
+                    if (!selectedMedicamento) return;
+
+                    if (
+                      selectedMedicamento.piezas === 0 ||
+                      !selectedMedicamento.presentación
+                    ) {
+                      Swal.fire({
+                        icon: "error",
+                        title:
+                          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ No disponible</span>",
+                        html: "<p style='color: #fff; font-size: 1.1em;'>Este medicamento no tiene existencias o no cuenta con presentación.</p>",
+                        background: "linear-gradient(145deg, #4a0000, #220000)",
+                        confirmButtonColor: "#ff1744",
+                        confirmButtonText:
+                          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
+                        customClass: {
+                          popup:
+                            "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
+                        },
+                      });
+
+                      //! Evita que se seleccione el medicamento inválido
+                      e.target.value = med.medicamento;
+                      return;
+                    }
+
+                    //* Permitir la selección si cumple con los requisitos
                     handleMedicamentoChange(
                       index,
                       "medicamento",
                       e.target.value
-                    )
-                  }
+                    );
+                  }}
                   className="mt-2 block w-full h-12 rounded-lg bg-gray-700 border border-gray-600 text-white p-3 focus:ring-2 focus:ring-purple-600 text-lg"
                 >
                   <option value="" className="text-lg">
@@ -189,11 +221,15 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
                       value={m.CLAVEMEDICAMENTO}
                       className="text-lg py-2"
                     >
-                      {m.MEDICAMENTO} --- Presentación Por Caja: {m.presentación} --- Cajas Disponibles: {m.piezas}
+                      {m.MEDICAMENTO} --- Presentación Por Caja:{" "}
+                      {m.presentación || "Sin existencias"}
+                      --- Cajas Disponibles:{" "}
+                      {m.piezas > 0 ? m.piezas : "Sin existencias"}
                     </option>
                   ))}
                 </select>
               </div>
+
               {/* Indicaciones */}
               <div>
                 <label className="text-lg font-semibold text-gray-200">

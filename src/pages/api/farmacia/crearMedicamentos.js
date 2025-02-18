@@ -12,7 +12,7 @@ export default async function handler(req, res) {
     try {
       const dbPool = await connectToDatabase();
 
-      // Verificar si ya existe el medicamento (por EAN o nombre)
+      //* Verificar si ya existe el medicamento (por EAN o nombre)
       const checkQuery = `
         SELECT COUNT(*) AS count 
         FROM MEDICAMENTOS 
@@ -27,13 +27,22 @@ export default async function handler(req, res) {
         return res.status(400).json({ message: 'El medicamento ya está registrado.' });
       }
 
-      // Insertar el medicamento
+      //* Consultar el último valor de claveMedicamento y sumarle 1
+      const claveQuery = `
+        SELECT ISNULL(MAX(claveMedicamento), 0) + 1 AS newClave
+        FROM MEDICAMENTOS
+      `;
+      const claveResult = await dbPool.request().query(claveQuery);
+      const newClaveMedicamento = claveResult.recordset[0].newClave;
+
+      //* Insertar el medicamento con la nueva clave
       const insertQuery = `
-        INSERT INTO MEDICAMENTOS (medicamento, clasificacion, presentacion, ean, piezas)
-        VALUES (@medicamento, @clasificación, @presentación, @ean, @piezas)
+        INSERT INTO MEDICAMENTOS (claveMedicamento, medicamento, clasificacion, presentacion, ean, piezas)
+        VALUES (@claveMedicamento, @medicamento, @clasificación, @presentación, @ean, @piezas)
       `;
 
       await dbPool.request()
+        .input('claveMedicamento', sql.Int, newClaveMedicamento)
         .input('medicamento', sql.VarChar, medicamento)
         .input('clasificación', sql.NVarChar(1), clasificación)
         .input('presentación', sql.Int, presentación)

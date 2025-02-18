@@ -203,13 +203,13 @@ export default function GenerarReceta() {
       const lineSpacing = 30; //* Espacio más grande entre medicamentos
 
       if (data.receta.length > 0) {
-        data.receta.forEach((item, index) => {
+          data.receta.forEach((item, index) => {
           const posY = recetaStartY - index * lineSpacing; //* Aumenta el espacio entre líneas
-          drawMultilineText(firstPage, String(item.nombreMedicamento ?? "No hay"), 45, posY, 250, 10);
-          drawMultilineText(firstPage, String(item.indicaciones ?? "No hay"), 180, posY, 230, 10);
-          drawMultilineText(firstPage, String(item.cantidad ?? "No hay"), 380, posY, 150, 10);
+          drawMultilineText(firstPage, String(item.nombreMedicamento ?? "No hay"), 40, posY, 250, 10);
+          drawMultilineText(firstPage, String(item.indicaciones ?? "No hay"), 180, posY, 250, 10);
+          drawMultilineText(firstPage, String(item.cantidad ?? "No hay"), 380, posY, 250, 10);
           drawMultilineText(firstPage, String(item.piezas ?? "No hay"), 553, posY, 100, 10);
-        });
+          });
       }
 
       //? Bloque: OBSERVACIONES
@@ -218,8 +218,8 @@ export default function GenerarReceta() {
       //? Bloque: EXTRAS
       const incapacidad = data.incapacidades?.[0]; //* Obtiene el primer elemento del array de incapacidades
       firstPage.drawText(data.consulta?.seAsignoIncapacidad === 1 ? "Sí" : "No", { x: 150, y: 78, size: 10 });
-      firstPage.drawText(incapacidad ? incapacidad.fechaInicial : "No hay", { x: 219, y: 85, size: 10 });
-      firstPage.drawText(incapacidad ? incapacidad.fechaFinal : "No hay", { x: 209, y: 72, size: 10 });
+      firstPage.drawText(incapacidad ? incapacidad.fechaInicial : "No asignada", { x: 219, y: 85, size: 10 });
+      firstPage.drawText(incapacidad ? incapacidad.fechaFinal : "No asignada", { x: 209, y: 72, size: 10 });
       
       const especialidadText = data.consulta?.seasignoaespecialidad === "S" ? `Sí - ${data.detalleEspecialidad[0]?.nombreEspecialidad ?? "N/A"}` : "No";
       firstPage.drawText(especialidadText, { x: 440, y: 78, size: 10 });

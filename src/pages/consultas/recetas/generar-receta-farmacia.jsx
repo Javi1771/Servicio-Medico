@@ -103,6 +103,12 @@ export default function GenerarReceta() {
     page.drawText(line, { x, y: currentY, size: fontSize });
   };
 
+  const getCookie = (name) => {
+    const cookies = document.cookie.split("; ");
+    const cookie = cookies.find((row) => row.startsWith(`${name}=`));
+    return cookie ? decodeURIComponent(cookie.split("=")[1]) : null;
+  };  
+
     //* Función para obtener los datos de la receta
     const fetchRecetaData = async () => {
         if (!claveconsulta) {
@@ -164,6 +170,9 @@ export default function GenerarReceta() {
         const firstPage = pdfDoc.getPages()[0];
 
         console.log("✏️ Dibujando datos en el PDF...");
+
+        //* Obtener la cookie con el nombre del usuario
+        const nombreUsuario = getCookie("nombreusuario") || "N/A";
 
         //? Bloque: DATOS DE LA CONSULTA
         firstPage.drawText(String(data.consulta?.fechaconsulta ?? "N/A"), { x: 102, y: 664, size: 10 });
@@ -227,18 +236,20 @@ export default function GenerarReceta() {
         if (data.receta.length > 0) {
             data.receta.forEach((item, index) => {
             const posY = recetaStartY - index * lineSpacing; //* Aumenta el espacio entre líneas
-            drawMultilineText(firstPage, String(item.nombreMedicamento ?? "No hay"), 45, posY, 250, 10);
-            drawMultilineText(firstPage, String(item.indicaciones ?? "No hay"), 180, posY, 230, 10);
-            drawMultilineText(firstPage, String(item.cantidad ?? "No hay"), 380, posY, 150, 10);
+            drawMultilineText(firstPage, String(item.nombreMedicamento ?? "No hay"), 40, posY, 250, 10);
+            drawMultilineText(firstPage, String(item.indicaciones ?? "No hay"), 180, posY, 250, 10);
+            drawMultilineText(firstPage, String(item.cantidad ?? "No hay"), 380, posY, 250, 10);
             drawMultilineText(firstPage, String(item.piezas ?? "No hay"), 553, posY, 100, 10);
             });
         }
 
         //? Firmas
         firstPage.drawText(String(data.consulta?.nombreproveedor ?? "N/A"), { x: 108, y: 96, size: 10 });
-        firstPage.drawText(String(data.consulta?.cedulaproveedor ?? "N/A"), { x: 128, y: 78, size: 10 });
+        firstPage.drawText(String(data.consulta?.cedulaproveedor ?? "N/A"), { x: 65, y: 78, size: 10 });
         firstPage.drawText(String(data.consulta?.nombrepaciente ?? "N/A"), { x: 370, y: 78, size: 10 });
-        firstPage.drawText(String(data.consulta?.nombreproveedor ?? "N/A"), { x: 400, y: 18, size: 8 });
+
+        //? Elaboró
+        firstPage.drawText(`${nombreUsuario}`, { x: 396, y: 17, size: 8 });
 
         //? Guardar el PDF en memoria y generar una URL para previsualización
         const pdfBytes = await pdfDoc.save();

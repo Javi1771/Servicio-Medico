@@ -68,8 +68,8 @@ export default async function handler(req, res) {
                 //* Validar vigencia de estudios
                 const vigenciaEstudios = new Date(
                   beneficiary.VIGENCIA_ESTUDIOS
-                ); // Convertir a Date
-                const fechaActual = new Date(); // Obtener fecha actual como objeto Date
+                ); //* Convertir a Date
+                const fechaActual = new Date(); //* Obtener fecha actual como objeto Date
 
                 console.log(
                   `Validando vigencia de estudios para el beneficiario ${beneficiary.ID_BENEFICIARIO}:`,
