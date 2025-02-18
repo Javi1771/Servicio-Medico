@@ -50,7 +50,7 @@ export default async function handler(req, res) {
         ds.cantidad, 
         ds.piezas
       FROM [PRESIDENCIA].[dbo].[detalleSurtimientos] ds
-      LEFT JOIN [PRESIDENCIA].[dbo].[MEDICAMENTOS_NEW] mn ON ds.claveMedicamento = mn.claveMedicamento
+      LEFT JOIN [PRESIDENCIA].[dbo].[MEDICAMENTOS] mn ON ds.claveMedicamento = mn.claveMedicamento
       WHERE ds.folioSurtimiento = @folioSurtimiento
     `;
 
