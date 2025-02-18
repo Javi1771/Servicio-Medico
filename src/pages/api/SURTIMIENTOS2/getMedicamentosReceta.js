@@ -56,6 +56,7 @@ export default async function handler(req, res) {
           JOIN [PRESIDENCIA].[dbo].[MEDICAMENTOS_NEW] AS m 
             ON ds.claveMedicamento = m.CLAVEMEDICAMENTO
           WHERE ds.folioSurtimiento = @folioSurtimiento
+            AND m.estatus IS NULL
         `);
 
       console.log("📌 Medicamentos obtenidos de detalleSurtimientos:", medicamentosSurtidos.recordset);

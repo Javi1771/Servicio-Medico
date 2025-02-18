@@ -6,7 +6,7 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
     id: "",
     medicamento: "",
     clasificación: "",
-    presentación: "",
+    presentacion: "",
     ean: "",
     piezas: "",
   });
@@ -19,7 +19,7 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
         clasificación: medicamento.clasificación
           ? medicamento.clasificación.toLowerCase()
           : "",
-        presentación: medicamento.presentación || "",
+        presentacion: medicamento.presentacion || "",
         ean: medicamento.ean || "",
         piezas: medicamento.piezas || "",
       });
@@ -37,7 +37,7 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!formData.presentación || !formData.ean || !formData.piezas) {
+    if (!formData.presentacion || !formData.ean || !formData.piezas) {
       Swal.fire({
         icon: "error",
         title:
@@ -78,7 +78,7 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
           id: formData.id,
           medicamento: formData.medicamento,
           clasificación: formData.clasificación,
-          presentación: parseInt(formData.presentación, 10),
+          presentacion: parseInt(formData.presentacion, 10),
           ean: parseInt(formData.ean, 10),
           piezas: parseInt(formData.piezas, 10),
         });
@@ -152,7 +152,7 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
             <input
               type="number"
               name="presentación"
-              value={formData.presentación || ""}
+              value={formData.presentacion}
               onChange={handleChange}
               required
               className="w-full px-4 py-2 bg-[#0b2424] border border-teal-600 rounded-lg shadow-inner focus:outline-none focus:ring-2 focus:ring-teal-500 transition"
