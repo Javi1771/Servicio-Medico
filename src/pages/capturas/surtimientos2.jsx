@@ -12,6 +12,8 @@ import InformacionSindicato from "./components2/informacionSindicato";
 import InformacionEspecialista from "./components2/informacionEspecialista";
 import CargaMedicamentosForm from "./components2/cargaMedicamentosForm";
 import styles from "../css/SURTIMIENTOS_ESTILOS/surtimientos2.module.css";
+import { useRouter } from "next/router";
+
 
 import useFetchMedicamentosReceta from "../../hooks/hookSURTIMIENTOS2/useFetchMedicamentosReceta";
 import TablaMedicamentos from "./components2/tablaMedicamentos"; // Extensión .jsx
@@ -20,6 +22,10 @@ import jsPDF from "jspdf";
 import "jspdf-autotable";
 
 const SurtimientosBanner = () => {
+
+
+  const router = useRouter();
+
   // Fecha actual en formato "dd/mm/aaaa"
   const fechaActual = new Date().toLocaleDateString("es-ES");
 
@@ -252,6 +258,12 @@ const SurtimientosBanner = () => {
         <div className={styles.infoContainer}>
           {/* Barra de Búsqueda */}
           <div className={styles.searchContainer}>
+          <button 
+        onClick={() => router.replace("/inicio-servicio-medico")}
+        className={styles.regresarButton}
+      >
+        Regresar
+      </button>
             <input
               type="text"
               placeholder="Folio de consulta"

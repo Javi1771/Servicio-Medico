@@ -149,3 +149,23 @@
     justify-content: center;
   }
   
+
+
+
+  .regresarButton {
+    background: linear-gradient(45deg, #000000, #ff0000bd);
+    border: none;
+    color: #ffffff;
+    padding: 7px 24px;
+    font-size: 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.3sease, box-shadow 0.3sease;
+    height: 38px;
+  }
+  
+  .regresarButton:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+  }
+  
