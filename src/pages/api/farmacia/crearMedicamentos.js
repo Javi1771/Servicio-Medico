@@ -15,7 +15,7 @@ export default async function handler(req, res) {
       // Verificar si ya existe el medicamento (por EAN o nombre)
       const checkQuery = `
         SELECT COUNT(*) AS count 
-        FROM MEDICAMENTOS_NEW 
+        FROM MEDICAMENTOS 
         WHERE ean = @ean OR medicamento = @medicamento
       `;
       const checkResult = await dbPool.request()
@@ -29,7 +29,7 @@ export default async function handler(req, res) {
 
       // Insertar el medicamento
       const insertQuery = `
-        INSERT INTO MEDICAMENTOS_NEW (medicamento, clasificación, presentación, ean, piezas)
+        INSERT INTO MEDICAMENTOS (medicamento, clasificacion, presentacion, ean, piezas)
         VALUES (@medicamento, @clasificación, @presentación, @ean, @piezas)
       `;
 

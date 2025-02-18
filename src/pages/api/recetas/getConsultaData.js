@@ -80,7 +80,7 @@ export async function getConsultaData(claveConsulta) {
         dr.indicaciones, dr.cantidad, dr.descMedicamento, dr.piezas,
         m.medicamento AS nombreMedicamento
       FROM detalleReceta dr
-      LEFT JOIN MEDICAMENTOS_NEW m ON dr.descMedicamento = m.claveMedicamento
+      LEFT JOIN MEDICAMENTOS m ON dr.descMedicamento = m.claveMedicamento
       WHERE dr.folioReceta = @claveConsulta
     `;
 

@@ -226,7 +226,7 @@ export default async function handler(req, res) {
         SELECT
           claveMedicamento AS CLAVEMEDICAMENTO,
           medicamento AS MEDICAMENTO
-        FROM [PRESIDENCIA].[dbo].[MEDICAMENTOS_NEW]
+        FROM [PRESIDENCIA].[dbo].[MEDICAMENTOS]
         WHERE CLAVEMEDICAMENTO IN (${[...descMedicamentoSet].join(",")})
       `;
       const medsRes = await pool.request().query(queryMeds);

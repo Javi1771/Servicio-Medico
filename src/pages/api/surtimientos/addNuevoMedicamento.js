@@ -17,7 +17,7 @@ export default async function handler(req, res) {
       // Obtener el valor máximo de CLAVEMEDICAMENTO y sumar 1
       const resultClave = await pool
         .request()
-        .query(`SELECT ISNULL(MAX(CAST(claveMedicamento AS INT)), 0) + 1 AS NuevoClave FROM MEDICAMENTOS_NEW`);
+        .query(`SELECT ISNULL(MAX(CAST(claveMedicamento AS INT)), 0) + 1 AS NuevoClave FROM MEDICAMENTOS`);
 
       const nuevoClave = resultClave.recordset[0].NuevoClave;
 
@@ -28,7 +28,7 @@ export default async function handler(req, res) {
         .input("medicamento", nombre)
         .input("clasificacion", tipo)
         .query(`
-          INSERT INTO MEDICAMENTOS_NEW (claveMedicamento, medicamento, clasificacion)
+          INSERT INTO MEDICAMENTOS (claveMedicamento, medicamento, clasificacion)
           VALUES (@claveMedicamento, @medicamento, @clasificacion)
         `);
 

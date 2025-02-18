@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-// Función para obtener una cookie por su nombre
+//* Función para obtener una cookie por su nombre
 const getCookie = (name) => {
   const match = document.cookie.match(new RegExp(`(^| )${name}=([^;]+)`));
   return match ? decodeURIComponent(match[2]) : null;
@@ -10,15 +10,15 @@ const MedicamentosTable = ({ medicamentos = [], onDelete, onEdit }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [role, setRole] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10; // Mostrar 10 elementos por página
+  const itemsPerPage = 10; //* Mostrar 10 elementos por página
 
-  // Obtener el rol desde la cookie al montar el componente
+  //* Obtener el rol desde la cookie al montar el componente
   useEffect(() => {
     const rolCookie = getCookie("rol");
     setRole(rolCookie);
   }, []);
 
-  // Mapeo de clasificación: letra -> nombre completo
+  //* Mapeo de clasificación: letra -> nombre completo
   const classificationMapping = {
     p: "PATENTE",
     g: "GENERICO",
@@ -26,30 +26,30 @@ const MedicamentosTable = ({ medicamentos = [], onDelete, onEdit }) => {
     e: "ESPECIALIDAD",
   };
 
-  // Función para determinar el estado de las piezas
+  //* Función para determinar el estado de las piezas
   const getStockStatus = (piezas) => {
     if (piezas <= 10) return { label: "Bajo", color: "bg-red-600" };
     if (piezas >= 11 && piezas <= 39) return { label: "Medio", color: "bg-yellow-500" };
     return { label: "Alto", color: "bg-green-500" };
   };
 
-  // Filtrar por medicamento o clasificación
+  //* Filtrar por medicamento o clasificación
   const filteredMedicamentos = medicamentos.filter((med) =>
     [med.medicamento, med.clasificación, String(med.ean), String(med.piezas)]
       .filter(Boolean)
       .some((value) => value.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
-  // Cálculo de paginación
+  //* Cálculo de paginación
   const totalPages = Math.ceil(filteredMedicamentos.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const medicamentosPaginados = filteredMedicamentos.slice(startIndex, endIndex);
 
   return (
-    <div className="max-w-7xl mx-auto p-8 bg-black rounded-3xl shadow-[0_0_20px_#0ff] border border-teal-500">
-      <h2 
-        className="text-5xl font-extrabold text-teal-400 mb-8 text-center tracking-wider"
+    <div className="max-w-7xl mx-auto p-8 bg-gradient-to-br from-[#040f0f] to-[#0c1e1e] rounded-3xl border border-teal-500 border-opacity-40 shadow-[0_0_30px_#0ff]">
+      <h2
+        className="text-5xl font-extrabold text-teal-300 mb-8 text-center tracking-wider uppercase"
         style={{ textShadow: "0 0 15px #0ff" }}
       >
         📋 Medicamentos Registrados
@@ -60,7 +60,7 @@ const MedicamentosTable = ({ medicamentos = [], onDelete, onEdit }) => {
         <input
           type="text"
           placeholder="🔍 Buscar Medicamento, Clasificación, EAN..."
-          className="w-2/3 p-4 rounded-full bg-gray-800 text-teal-200 border border-teal-500 focus:ring-4 focus:ring-teal-400 transition duration-300 shadow-[0_0_10px_#0ff] outline-none"
+          className="w-2/3 p-4 rounded-full bg-[#0b2424] text-teal-200 border border-teal-500 focus:ring-4 focus:ring-teal-400 transition duration-300 shadow-[0_0_10px_#0ff] outline-none"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
@@ -68,12 +68,16 @@ const MedicamentosTable = ({ medicamentos = [], onDelete, onEdit }) => {
 
       {/* Tabla de medicamentos */}
       <div className="overflow-x-auto">
-        <table className="min-w-full bg-gray-800 text-teal-200 rounded-xl shadow-xl border border-teal-500">
-          <thead className="bg-gradient-to-r from-teal-400 to-teal-600 text-gray-900 uppercase tracking-wider text-sm">
+        <table className="min-w-full bg-[#0b2424] text-teal-200 rounded-xl shadow-xl border border-teal-500 border-opacity-40">
+          <thead className="bg-teal-800/60 text-teal-100 uppercase tracking-widest text-sm">
             <tr>
-              {["ID", "Medicamento", "Clasificación", "Presentación", "EAN", "Piezas", "Estado", "Acciones"].map((header) => (
-                <th key={header} className="py-3 px-5 text-center">{header}</th>
-              ))}
+              {["ID", "Medicamento", "Clasificación", "Presentación", "EAN", "Piezas", "Estado", "Acciones"].map(
+                (header) => (
+                  <th key={header} className="py-3 px-5 text-center border-b border-teal-600">
+                    {header}
+                  </th>
+                )
+              )}
             </tr>
           </thead>
           <tbody>
@@ -83,7 +87,7 @@ const MedicamentosTable = ({ medicamentos = [], onDelete, onEdit }) => {
                 return (
                   <tr
                     key={med.id}
-                    className="border-b border-gray-700 hover:scale-105 transition-transform duration-300"
+                    className="border-b border-teal-700 hover:bg-teal-900 hover:shadow-[0_0_20px_#0ff] transition duration-300"
                   >
                     <td className="py-3 px-5 text-center">{med.id}</td>
                     <td className="py-3 px-5 text-center">{med.medicamento}</td>
@@ -94,14 +98,16 @@ const MedicamentosTable = ({ medicamentos = [], onDelete, onEdit }) => {
                     <td className="py-3 px-5 text-center">{med.ean}</td>
                     <td className="py-3 px-5 text-center">{`(${med.piezas}) en stock`}</td>
                     <td className="py-3 px-5 text-center">
-                      <span className={`px-3 py-1 rounded-full text-white ${stockStatus.color} shadow-[0_0_10px_#0ff]`}>
+                      <span
+                        className={`px-3 py-1 rounded-full text-white ${stockStatus.color} shadow-[0_0_10px_#0ff]`}
+                      >
                         {stockStatus.label}
                       </span>
                     </td>
                     <td className="py-3 px-5 flex justify-center space-x-3">
                       <button
                         onClick={() => onEdit?.(med)}
-                        className="bg-teal-500 text-gray-900 px-4 py-2 rounded-lg border border-teal-500 shadow-[0_0_10px_#0ff] hover:bg-yellow-400 transition duration-300"
+                        className="bg-teal-600 text-white px-4 py-2 rounded-lg border border-teal-500 hover:bg-teal-500 hover:text-gray-900 transition duration-300 shadow-[0_0_10px_#0ff]"
                       >
                         ✏️ Editar
                       </button>
@@ -109,7 +115,7 @@ const MedicamentosTable = ({ medicamentos = [], onDelete, onEdit }) => {
                       {String(role) !== "9" && (
                         <button
                           onClick={() => onDelete?.(med.id)}
-                          className="bg-red-600 text-white px-4 py-2 rounded-lg border border-teal-500 shadow-[0_0_10px_#0ff] hover:bg-red-500 transition duration-300"
+                          className="bg-red-600 text-white px-4 py-2 rounded-lg border border-teal-500 hover:bg-red-500 transition duration-300 shadow-[0_0_10px_#0ff]"
                         >
                           🗑️ Eliminar
                         </button>
@@ -135,17 +141,20 @@ const MedicamentosTable = ({ medicamentos = [], onDelete, onEdit }) => {
           <button
             onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
             disabled={currentPage === 1}
-            className="bg-gray-700 text-teal-200 px-4 py-2 rounded-lg border border-teal-500 shadow-[0_0_10px_#0ff] hover:bg-teal-500 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-teal-900 text-teal-200 px-4 py-2 rounded-lg border border-teal-500 shadow-[0_0_10px_#0ff] hover:bg-teal-700 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             ⬅️ Anterior
           </button>
-          <span className="text-teal-200 text-lg" style={{ textShadow: "0 0 10px #0ff" }}>
+          <span
+            className="text-teal-200 text-lg px-3 py-2 border border-teal-600 rounded-full"
+            style={{ textShadow: "0 0 10px #0ff" }}
+          >
             Página {currentPage} de {totalPages}
           </span>
           <button
             onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
             disabled={currentPage === totalPages}
-            className="bg-gray-700 text-teal-200 px-4 py-2 rounded-lg border border-teal-500 shadow-[0_0_10px_#0ff] hover:bg-teal-500 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-teal-900 text-teal-200 px-4 py-2 rounded-lg border border-teal-500 shadow-[0_0_10px_#0ff] hover:bg-teal-700 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Siguiente ➡️
           </button>

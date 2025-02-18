@@ -12,7 +12,7 @@ export default async function handler(req, res) {
     try {
       const pool = await connectToDatabase();
       const query = `
-        DELETE FROM MEDICAMENTOS_NEW
+        DELETE FROM MEDICAMENTOS
         WHERE claveMedicamento = @id
       `;
       const result = await pool.request().input('id', sql.Int, id).query(query);

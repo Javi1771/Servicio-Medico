@@ -16,7 +16,7 @@ export default async function handler(req, res) {
             presentación,
             ean,
             piezas
-          FROM MEDICAMENTOS_NEW
+          FROM MEDICAMENTOS
         `);
 
       const medicamentos = result.recordset;
