@@ -168,7 +168,7 @@ const Home = () => {
     if (rol === "9") {
       menuOptions.push({
         title: "Farmacia",
-        options: ["Medicamentos"],
+        options: ["Medicamentos", "Farmacia Surtimientos"],
         icon: <FaCapsules className="inline-block mr-2" />,
       });
     }
@@ -177,7 +177,7 @@ const Home = () => {
       menuOptions.push(
         {
           title: "Farmacia",
-          options: ["Medicamentos"],
+          options: ["Medicamentos", "Farmacia Surtimientos"],
           icon: <FaCapsules className="inline-block mr-2" />,
         },
         {
