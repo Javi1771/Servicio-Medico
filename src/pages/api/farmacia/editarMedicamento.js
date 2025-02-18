@@ -19,8 +19,8 @@ export default async function handler(req, res) {
       const query = `
         UPDATE MEDICAMENTOS
         SET medicamento = @medicamento, 
-            clasificación = @clasificación, 
-            presentación = @presentación, 
+            clasificacion = @clasificación, 
+            presentacion = @presentación, 
             ean = @ean, 
             piezas = @piezas
         WHERE claveMedicamento = @id

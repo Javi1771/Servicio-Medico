@@ -35,7 +35,7 @@ const MedicamentosTable = ({ medicamentos = [], onDelete, onEdit }) => {
 
   //* Filtrar por medicamento o clasificación
   const filteredMedicamentos = medicamentos.filter((med) =>
-    [med.medicamento, med.clasificación, String(med.ean), String(med.piezas)]
+    [med.medicamento, med.clasificacion, String(med.ean), String(med.piezas)]
       .filter(Boolean)
       .some((value) => value.toLowerCase().includes(searchTerm.toLowerCase()))
   );
@@ -89,12 +89,11 @@ const MedicamentosTable = ({ medicamentos = [], onDelete, onEdit }) => {
                     key={med.id}
                     className="border-b border-teal-700 hover:bg-teal-900 hover:shadow-[0_0_20px_#0ff] transition duration-300"
                   >
-                    <td className="py-3 px-5 text-center">{med.id}</td>
                     <td className="py-3 px-5 text-center">{med.medicamento}</td>
                     <td className="py-3 px-5 text-center">
-                      {classificationMapping[med.clasificación?.toLowerCase()] || med.clasificación}
+                      {classificationMapping[med.clasificacion?.toLowerCase()] || med.clasificacion}
                     </td>
-                    <td className="py-3 px-5 text-center">{`c/${med.presentación}`}</td>
+                    <td className="py-3 px-5 text-center">{`c/${med.presentacion}`}</td>
                     <td className="py-3 px-5 text-center">{med.ean}</td>
                     <td className="py-3 px-5 text-center">{`(${med.piezas}) en stock`}</td>
                     <td className="py-3 px-5 text-center">

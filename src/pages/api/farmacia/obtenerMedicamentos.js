@@ -12,11 +12,12 @@ export default async function handler(req, res) {
           SELECT 
             claveMedicamento AS id,
             medicamento,
-            clasificación,
-            presentación,
+            clasificacion,
+            presentacion,
             ean,
             piezas
           FROM MEDICAMENTOS
+          WHERE estatus is null
         `);
 
       const medicamentos = result.recordset;
