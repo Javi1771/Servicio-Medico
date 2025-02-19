@@ -2,13 +2,13 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useRef, useState, useEffect } from "react";
 import { FaCamera } from "react-icons/fa";
-import { FaSpinner } from "react-icons/fa"; // Ícono de Spinner
+import { FaSpinner } from "react-icons/fa"; //* Ícono de Spinner
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 import * as faceapi from "face-api.js";
 import { useRouter } from "next/router";
 import useFaceRecognition from "../../../hooks/hookReconocimiento/useFaceRecognition";
-import Image from "next/image"; // si deseas usar <Image> de Next
+import Image from "next/image";
 import styles from "../../css/FaceTestPage.module.css";
 
 const MySwal = withReactContent(Swal);
@@ -23,7 +23,7 @@ export default function FaceAuth({ beneficiaries }) {
   const [message, setMessage] = useState("");
   const [buttonDisabled, setButtonDisabled] = useState(false);
 
-  // Manejo de estados para "escaneo" y "redirección" (cada uno mostrará un loader)
+  //* Manejo de estados para "escaneo" y "redirección" (cada uno mostrará un loader)
   const [loadingMessage, setLoadingMessage] = useState("");
 
   const successSound = "/assets/applepay.mp3";
@@ -36,7 +36,7 @@ export default function FaceAuth({ beneficiaries }) {
     return () => stopCamera();
   }, []);
 
-  /** Inicia la cámara */
+  //* Inicia la cámara
   const startCamera = async () => {
     try {
       console.log("🎥 Intentando activar la cámara...");
@@ -58,7 +58,7 @@ export default function FaceAuth({ beneficiaries }) {
     }
   };
 
-  /** Detiene la cámara */
+  //* Detiene la cámara
   const stopCamera = () => {
     console.log("🛑 Apagando cámara...");
     if (streamRef.current) {
@@ -67,15 +67,20 @@ export default function FaceAuth({ beneficiaries }) {
     setCameraActive(false);
   };
 
-  /** Reproduce un sonido de éxito/error */
+  //! Reproduce un sonido de éxito/error
   const playSound = (isSuccess) => {
     const audio = new Audio(isSuccess ? successSound : errorSound);
     audio.play();
   };
 
-  /** Captura la foto desde la cámara */
+  //* Captura la foto desde la cámara
   const capturePhoto = async () => {
-    if (!cameraActive || !canvasRef.current || !videoRef.current || buttonDisabled) {
+    if (
+      !cameraActive ||
+      !canvasRef.current ||
+      !videoRef.current ||
+      buttonDisabled
+    ) {
       setMessage(
         "No se puede capturar foto: cámara inactiva o botón deshabilitado."
       );
@@ -92,16 +97,16 @@ export default function FaceAuth({ beneficiaries }) {
     canvasRef.current.height = height;
     ctx.drawImage(videoRef.current, 0, 0, width, height);
 
-    // Muestra "Cargando..." mientras se realiza el escaneo
+    //* Muestra "Cargando..." mientras se realiza el escaneo
     setLoadingMessage("Escaneando rostro...");
     setTimeout(async () => {
       await handleVerify();
       setButtonDisabled(false);
-      setLoadingMessage(""); // Finaliza mensaje de carga
+      setLoadingMessage(""); //* Finaliza mensaje de carga
     }, 1500);
   };
 
-  /** Verifica la foto contra el descriptor de cada beneficiario */
+  //* Verifica la foto contra el descriptor de cada beneficiario
   const handleVerify = async () => {
     if (!modelsLoaded) {
       setMessage("Los modelos no están listos. Espera un momento.");
@@ -157,7 +162,7 @@ export default function FaceAuth({ beneficiaries }) {
     if (bestMatch) {
       playSound(true);
 
-      // Encriptar con Base64
+      //* Encriptar con Base64
       const encryptedNomina = btoa(bestMatch.NO_NOMINA);
       const encryptedBeneficiario = btoa(bestMatch.ID_BENEFICIARIO);
 
@@ -178,10 +183,10 @@ export default function FaceAuth({ beneficiaries }) {
         },
       }).then((result) => {
         if (result.isConfirmed) {
-          // Muestra loader al redirigir
+          //* Muestra loader al redirigir
           setLoadingMessage("Redirigiendo...");
           stopCamera();
-          // Redirigir con parámetros encriptados
+          //* Redirigir con parámetros encriptados
           router.replace(
             `/consultas/signos-vitales-facial?nomina=${encryptedNomina}&idBeneficiario=${encryptedBeneficiario}`
           );
@@ -198,14 +203,21 @@ export default function FaceAuth({ beneficiaries }) {
           "<span style='color: #ff9800; font-weight: bold; font-size: 1.5em;'>⚠️ No se encontró coincidencia</span>",
         html: "<p style='color: #fff; font-size: 1.1em;'>No se detectó una coincidencia con los beneficiarios registrados. Intenta de nuevo.</p>",
         background: "linear-gradient(145deg, #4a2600, #220f00)",
+        showCancelButton: true,
         confirmButtonColor: "#ff9800",
-        confirmButtonText: "Aceptar",
+        confirmButtonText: "Intentar de Nuevo",
+        cancelButtonColor: "#ff4444",
+        cancelButtonText: "Cancelar",
         customClass: {
           popup:
             "border border-yellow-600 shadow-[0px_0px_20px_5px_rgba(255,152,0,0.9)] rounded-lg",
         },
-      }).then(() => {
-        capturePhoto();
+      }).then((result) => {
+        if (result.isConfirmed) {
+          capturePhoto();
+        } else if (result.dismiss === Swal.DismissReason.cancel) {
+          router.replace("/consultas/signos-vitales");
+        }
       });
     }
   };
