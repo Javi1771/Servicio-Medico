@@ -26,14 +26,14 @@ const SurtimientosTable = ({ data }) => {
   const estatusTexto =
     surtimiento?.ESTATUS === 1 ? "Receta Pendiente" : "Receta Surtida";
 
-  // Estado local para el detalle: se usa el campo 'entregado' para calcular delivered y piezas pendientes
+  // Estado local: se inicializa "delivered" a partir del campo "entregado"
   const [detalle, setDetalle] = useState(
     detalleSurtimientos.map((item) => ({
       ...item,
       delivered: item.entregado || 0, // si 'entregado' es null, se asigna 0
       showInput: false,
       eanValue: "",
-      estatusLocal: (item.entregado || 0) >= item.piezas ? 2 : 1, // Si ya se entregó todo, se marca como surtido.
+      estatusLocal: (item.entregado || 0) >= item.piezas ? 2 : 1,
     }))
   );
 
@@ -60,15 +60,14 @@ const SurtimientosTable = ({ data }) => {
     const item = detalle.find((it) => it.idSurtimiento === idSurt);
     if (!item) return;
 
-    // Calcula cuántas piezas faltan entregar
+    // Calcula cuántas piezas faltan entregar (pending)
     const pending = item.piezas - item.delivered;
     if (pending <= 0) {
       alert("Ya se han entregado todas las piezas requeridas para este medicamento.");
       return;
     }
 
-    // Verifica que el número de piezas pendientes no exceda el stock disponible
-    // (se compara lo pendiente con el stock, ya que delivered ya se ha entregado)
+    // Compara lo pendiente con el stock (sin sumar delivered, ya que delivered ya se tomó en cuenta en pending)
     if (pending > item.stock) {
       alert("Stock insuficiente para este medicamento.");
       return;
@@ -81,7 +80,7 @@ const SurtimientosTable = ({ data }) => {
       return;
     }
 
-    // Actualiza: incrementa delivered en 1 y recalcula pendientes
+    // Aumenta delivered en 1 y recalcula pending y estatus
     const newDelivered = item.delivered + 1;
     const nuevasPiezasPendientes = item.piezas - newDelivered;
     const nuevoEstatusLocal = nuevasPiezasPendientes <= 0 ? 2 : 1;
