@@ -1,3 +1,4 @@
+// pages/api/farmacia/getSurtimientos.js
 import { connectToDatabase } from '../../api/connectToDatabase';
 import sql from 'mssql';
 
@@ -17,8 +18,6 @@ export default async function handler(req, res) {
     return res.status(400).json({ message: 'Formato de código de barras inválido' });
   }
 
-  // Desestructuramos las 4 partes y convertimos
-  // Según tu esquema: NOMINA (nvarchar), CLAVEMEDICO, FOLIO_PASE y FOLIO_SURTIMIENTO (int)
   const [rawNomina, rawClaveMedico, rawFolioPase, rawFolioSurtimiento] = parts;
   const NOMINA = rawNomina;
   const CLAVEMEDICO = parseInt(rawClaveMedico, 10);
@@ -28,7 +27,7 @@ export default async function handler(req, res) {
   try {
     const db = await connectToDatabase();
 
-    // 1) Consulta a SURTIMIENTOS (seleccionando explícitamente todas las columnas necesarias, incluido [ESTATUS])
+    // 1) Consulta a SURTIMIENTOS
     const surtimientosQuery = `
       SELECT 
         [FOLIO_SURTIMIENTO],
@@ -53,7 +52,6 @@ export default async function handler(req, res) {
         AND FOLIO_PASE = @FOLIO_PASE
         AND FOLIO_SURTIMIENTO = @FOLIO_SURTIMIENTO
     `;
-
     const surtimientoResult = await db.request()
       .input('NOMINA', sql.NVarChar(15), NOMINA)
       .input('CLAVEMEDICO', sql.Int, CLAVEMEDICO)
@@ -63,15 +61,18 @@ export default async function handler(req, res) {
 
     let surtimiento = surtimientoResult.recordset[0] || null;
     console.log('Resultado de SURTIMIENTOS:', surtimiento);
-    if (surtimiento) {
-      console.log('Campo [ESTATUS] recibido:', surtimiento.ESTATUS);
-    }
 
-    // 2) Consulta detalleSurtimientos junto con el nombre del medicamento y stock (JOIN con MEDICAMENTOS)
+    // 2) Consulta detalleSurtimientos, uniendo con medicamentos, e incluyendo el campo "entregado"
     const detalleQuery = `
-      SELECT ds.idSurtimiento, ds.claveMedicamento, ds.indicaciones, ds.cantidad, ds.piezas,
-             m.medicamento AS nombreMedicamento,
-             m.piezas AS stock
+      SELECT
+        ds.idSurtimiento,
+        ds.claveMedicamento,
+        ds.indicaciones,
+        ds.cantidad,
+        ds.piezas,
+        ds.entregado,             -- <--- Incluimos el campo entregado
+        m.medicamento AS nombreMedicamento,
+        m.piezas AS stock
       FROM [PRESIDENCIA].[dbo].[detalleSurtimientos] ds
       LEFT JOIN [PRESIDENCIA].[dbo].[medicamentos] m
         ON ds.claveMedicamento = m.claveMedicamento
@@ -83,9 +84,9 @@ export default async function handler(req, res) {
 
     const detalleSurtimientos = detalleResult.recordset;
 
-    // 3) Si surtimiento existe, consultas adicionales a proveedores para doctorName y userName
+    // 3) Si surtimiento existe, obtener nombres de médico y usuario desde proveedores
     if (surtimiento) {
-      // a) Obtener nombre del médico
+      // a) Nombre del médico
       const medicoQuery = `
         SELECT nombreproveedor AS nombreMedico
         FROM [PRESIDENCIA].[dbo].[proveedores]
@@ -96,7 +97,7 @@ export default async function handler(req, res) {
         .query(medicoQuery);
       const doctorName = medicoResult.recordset[0]?.nombreMedico || null;
 
-      // b) Obtener nombre de usuario
+      // b) Nombre de usuario
       const usuarioQuery = `
         SELECT nombreproveedor AS nombreUsuario
         FROM [PRESIDENCIA].[dbo].[proveedores]
