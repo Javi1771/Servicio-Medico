@@ -115,7 +115,7 @@ const FormMedicamento = ({ onAddMedicamento, message }) => {
             name="presentacion"
             value={formData.presentacion ? `c/${formData.presentacion}` : ""}
             onChange={(e) => {
-              // Permitir sólo números
+              //* Permitir sólo números
               const numericValue = e.target.value.replace(/\D/g, "");
               setFormData((prev) => ({
                 ...prev,
@@ -136,16 +136,19 @@ const FormMedicamento = ({ onAddMedicamento, message }) => {
             EAN (Código de Barras):
           </label>
           <input
-            type="number"
+            type="text"
+            inputMode="numeric"
             id="ean"
             name="ean"
             value={formData.ean}
             onChange={handleChange}
             placeholder="Ingresa el código de barras"
             required
+            pattern="^(\d{8}|\d{13})$"
+            title="El código EAN debe tener 8 o 13 dígitos"
             className="p-2 rounded-md border border-teal-500 bg-[#041616] text-teal-200 
-                       focus:outline-none focus:ring-2 focus:ring-cyan-500 
-                       placeholder:text-teal-500 transition-colors"
+               focus:outline-none focus:ring-2 focus:ring-cyan-500 
+               placeholder:text-teal-500 transition-colors"
           />
         </div>
 

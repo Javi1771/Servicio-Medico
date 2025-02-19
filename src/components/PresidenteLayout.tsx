@@ -169,12 +169,15 @@ const PresidenteLayout: React.FC<PresidenteLayoutProps> = ({ children }) => {
       icon: (
         <FaMedkit className="text-blue-400 text-3xl group-hover:scale-110 transition-transform duration-300" />
       ),
-      options: [{ name: "Medicamentos", path: "/farmacia/medicamentos" }],
+      options: [
+        { name: "Medicamentos", path: "/farmacia/medicamentos" },
+        { name: "Farmacia Medicamentos", path: "/farmacia/farmacia-surtimientos" },
+      ],
     },
   ]; 
 
   if (!isClient) {
-    return null; // Evita renderizar en SSR
+    return null; //! Evita renderizar en SSR
   }
   
   if (noLayoutRoutes.includes(router.pathname)) {
