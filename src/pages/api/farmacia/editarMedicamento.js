@@ -3,24 +3,24 @@ import sql from 'mssql';
 
 export default async function handler(req, res) {
   if (req.method === "PUT") {
-    const { id, medicamento, clasificación, presentación, ean, piezas } = req.body;
+    const { id, medicamento, clasificacion, presentacion, ean, piezas } = req.body;
 
     //* 🔴 Verificar si algún valor es `undefined` o `null`
-    if (id == null || medicamento == null || clasificación == null || presentación == null || ean == null || piezas == null) {
-      console.error("Faltan campos obligatorios:", { id, medicamento, clasificación, presentación, ean, piezas });
+    if (id == null || medicamento == null || clasificacion == null || presentacion == null || ean == null || piezas == null) {
+      console.error("Faltan campos obligatorios:", { id, medicamento, clasificacion, presentacion, ean, piezas });
       return res.status(400).json({ message: "Todos los campos son obligatorios." });
     }
 
     try {
       //* 🔵 Log para verificar datos enviados antes de ejecutar la consulta
-      console.log("Iniciando actualización del medicamento con los siguientes datos:", { id, medicamento, clasificación, presentación, ean, piezas });
+      console.log("Iniciando actualización del medicamento con los siguientes datos:", { id, medicamento, clasificacion, presentacion, ean, piezas });
 
       const pool = await connectToDatabase();
       const query = `
         UPDATE MEDICAMENTOS
         SET medicamento = @medicamento, 
-            clasificacion = @clasificación, 
-            presentacion = @presentación, 
+            clasificacion = @clasificacion, 
+            presentacion = @presentacion, 
             ean = @ean, 
             piezas = @piezas
         WHERE claveMedicamento = @id
@@ -30,8 +30,8 @@ export default async function handler(req, res) {
       const request = pool.request();
       request.input("id", sql.Int, id);
       request.input("medicamento", sql.VarChar, medicamento);
-      request.input("clasificación", sql.NVarChar(1), clasificación);
-      request.input("presentación", sql.Int, presentación);
+      request.input("clasificacion", sql.NVarChar(1), clasificacion);
+      request.input("presentacion", sql.Int, presentacion);
       request.input("ean", sql.BigInt, ean);
       request.input("piezas", sql.Int, piezas);
 
