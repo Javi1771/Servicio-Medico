@@ -150,7 +150,7 @@ const IncapacidadesDashboard = () => {
                     <motion.div className="absolute top-3 right-3 flex items-center gap-2 bg-red-600/40 text-white text-xs px-3 py-2 rounded-full shadow-lg backdrop-blur-xl">
                       <FaExclamationTriangle className="text-lg" />
                       <span>
-                        Incapacidad vencida hace {incapacidad.alerta} días
+                        Incapacidad vencida hace {incapacidad.alerta}
                       </span>
                     </motion.div>
                   )}

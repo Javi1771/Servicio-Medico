@@ -15,13 +15,13 @@ export default async function handler(req, res) {
   try {
     const pool = await connectToDatabase();
 
-    //* Consulta para obtener sólo usuarios activos
+    //* Consulta con COLLATE para diferenciar mayúsculas y minúsculas
     const result = await pool.request()
       .input('usuario', sql.VarChar, usuario)
       .query(
         `SELECT clavetipousuario, password, nombreproveedor, claveespecialidad, claveproveedor, costo, activo 
          FROM proveedores 
-         WHERE usuario = @usuario AND activo = 'S'`
+         WHERE usuario COLLATE Latin1_General_CS_AS = @usuario AND activo = 'S'`
       );
 
     console.log("Resultado de la consulta de usuarios activos:", result.recordset);
@@ -30,7 +30,7 @@ export default async function handler(req, res) {
     if (result.recordset.length === 0) {
       return res.status(401).json({
         success: false,
-        message: 'Usuario no encontrado o inactivo',
+        message: 'Usuario no encontrado o inactivo (diferenciando mayúsculas y minúsculas)',
       });
     }
 
@@ -57,7 +57,7 @@ export default async function handler(req, res) {
         .input('hashedPassword', sql.VarChar, hashedPassword)
         .input('usuario', sql.VarChar, usuario)
         .query(
-          `UPDATE proveedores SET password = @hashedPassword WHERE usuario = @usuario`
+          `UPDATE proveedores SET password = @hashedPassword WHERE usuario COLLATE Latin1_General_CS_AS = @usuario`
         );
 
       console.log("Contraseña encriptada y actualizada en la base de datos.");

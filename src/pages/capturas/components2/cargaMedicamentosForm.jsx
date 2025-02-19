@@ -7,7 +7,6 @@ const CargaMedicamentosForm = ({
   onAddMedicamento,
   onSave,
   disableAdd,
-  receta = [],
   folio, // 🔹 Recibir folio como prop desde SurtimientosBanner.jsx
 }) => {
   const [selectedMedicamento, setSelectedMedicamento] = useState("");

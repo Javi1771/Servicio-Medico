@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from "react";
 import { PDFDocument, rgb } from "pdf-lib";
 import JsBarcode from "jsbarcode";
@@ -8,7 +9,7 @@ const ModalPdf = ({ folio, onClose }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [dataReceta, setDataReceta] = useState(null);
-  const [nombreDoctor, setNombreDoctor] = useState("Dr.");
+  const [, setNombreDoctor] = useState("Dr.");
 
   // Función para obtener el nombre del doctor desde /api/getDoctor
   const fetchDoctorName = async (claveusuario) => {
