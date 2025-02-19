@@ -19,25 +19,6 @@ async function validarEAN(ean, claveMedicamento) {
   }
 }
 
-const iconMap = {
-  FOLIO_SURTIMIENTO: "fa-file-invoice",
-  FOLIO_PASE: "fa-file-medical",
-  FECHA_EMISION: "fa-calendar-day",
-  NOMINA: "fa-id-card",
-  CLAVE_PACIENTE: "fa-user",
-  NOMBRE_PACIENTE: "fa-user-check",
-  EDAD: "fa-user-clock",
-  ESEMPLEADO: "fa-user-tie",
-  CLAVEMEDICO: "fa-user-md",
-  DIAGNOSTICO: "fa-stethoscope",
-  DEPARTAMENTO: "fa-building",
-  ESTATUS: "fa-info-circle",
-  COSTO: "fa-money-bill-wave",
-  FECHA_DESPACHO: "fa-calendar-check",
-  SINDICATO: "fa-users",
-  claveusuario: "fa-user-shield",
-};
-
 const SurtimientosTable = ({ data }) => {
   const { surtimiento, detalleSurtimientos } = data;
 
