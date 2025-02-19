@@ -122,7 +122,7 @@ const CrearPaseNuevo = () => {
   const router = useRouter();
 
   const handleRegresar = () => {
-    router.back(); //* Navegar a la pantalla anterior
+    router.replace('/capturas/pases-a-especialidades'); //* Navegar a la pantalla anterior
   };
 
   const resetState = () => {

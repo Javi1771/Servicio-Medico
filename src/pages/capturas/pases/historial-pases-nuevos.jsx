@@ -66,7 +66,7 @@ const HistorialTable = () => {
   return (
     <div className="max-w-7xl w-full bg-gray-900 bg-opacity-90 rounded-3xl shadow-2xl p-12 border border-teal-500 border-opacity-40 my-8">
       <h2 className="text-3xl font-bold text-teal-300 mb-6 text-center tracking-wider">
-        Historial de Pase Nuevos
+        Historial de Pases Nuevos
       </h2>
       {isLoading ? (
         <p className="text-center text-white">Cargando historial...</p>

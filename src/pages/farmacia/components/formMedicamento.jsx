@@ -1,11 +1,10 @@
 import React, { useState } from "react";
-import styles from "../../css/EstilosFarmacia/RegisterMedicamento.module.css";
 
 const FormMedicamento = ({ onAddMedicamento, message }) => {
   const [formData, setFormData] = useState({
     medicamento: "",
-    clasificación: "",
-    presentación: "",
+    clasificacion: "",
+    presentacion: "",
     ean: "",
     piezas: "",
   });
@@ -22,27 +21,44 @@ const FormMedicamento = ({ onAddMedicamento, message }) => {
     e.preventDefault();
     onAddMedicamento({
       medicamento: formData.medicamento,
-      clasificación: formData.clasificación,
-      presentación: parseInt(formData.presentación, 10),
+      clasificacion: formData.clasificacion,
+      presentacion: parseInt(formData.presentacion, 10),
       ean: parseInt(formData.ean, 10),
       piezas: parseInt(formData.piezas, 10),
     });
     setFormData({
       medicamento: "",
-      clasificación: "",
-      presentación: "",
+      clasificacion: "",
+      presentacion: "",
       ean: "",
       piezas: "",
     });
   };
 
   return (
-    <div>
-      <h2 className={styles.title}>Registro de Medicamentos</h2>
-      <form onSubmit={handleSubmit} className={styles.form}>
-        {message && <p className={styles.message}>{message}</p>}
-        <div className={styles.formGroup}>
-          <label htmlFor="medicamento" className={styles.label}>
+    <div className="max-w-7xl mx-auto p-8 bg-gradient-to-br from-[#040f0f] to-[#0c1e1e] rounded-3xl border border-teal-500 border-opacity-40 shadow-[0_0_30px_#0ff]">
+      <h2
+        className="text-5xl font-extrabold text-teal-300 mb-8 text-center tracking-wider uppercase"
+        style={{ textShadow: "0 0 15px #0ff" }}
+      >
+        💊 Registro de Medicamentos
+      </h2>
+
+      {/* Mensaje de retroalimentación, si existe */}
+      {message && (
+        <p className="bg-[#0c3e3e] text-white p-3 rounded mb-4 text-center font-medium">
+          {message}
+        </p>
+      )}
+
+      {/* Formulario */}
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        {/* Medicamento */}
+        <div className="flex flex-col">
+          <label
+            htmlFor="medicamento"
+            className="mb-1 font-semibold text-teal-300"
+          >
             Medicamento:
           </label>
           <input
@@ -51,55 +67,72 @@ const FormMedicamento = ({ onAddMedicamento, message }) => {
             name="medicamento"
             value={formData.medicamento}
             onChange={handleChange}
-            placeholder="añade el nombre del medicamento con gramaje o ml"
+            placeholder="Nombre + gramaje o ml"
             required
-            className={styles.input}
+            className="p-2 rounded-md border border-teal-500 bg-[#041616] text-teal-200 
+                       focus:outline-none focus:ring-2 focus:ring-cyan-500 
+                       placeholder:text-teal-500 transition-colors"
           />
         </div>
-        <div className={styles.formGroup}>
-          <label htmlFor="clasificación" className={styles.label}>
+
+        {/* Clasificación */}
+        <div className="flex flex-col">
+          <label
+            htmlFor="clasificacion"
+            className="mb-1 font-semibold text-teal-300"
+          >
             Clasificación:
           </label>
           <select
-            id="clasificación"
-            name="clasificación"
-            value={formData.clasificación}
+            id="clasificacion"
+            name="clasificacion"
+            value={formData.clasificacion}
             onChange={handleChange}
             required
-            className={styles.input}
+            className="p-2 rounded-md border border-teal-500 bg-[#041616] text-teal-200 
+                       focus:outline-none focus:ring-2 focus:ring-cyan-500 
+                       placeholder:text-teal-500 transition-colors"
           >
             <option value="">Seleccione una opción</option>
             <option value="p">PATENTE</option>
-            <option value="g">GENERICO</option>
+            <option value="g">GENÉRICO</option>
             <option value="c">CONTROLADO</option>
             <option value="e">ESPECIALIDAD</option>
           </select>
         </div>
-        <div className={styles.formGroup}>
-  <label htmlFor="presentación" className={styles.label}>
-    Presentación:
-  </label>
-  <input
-    type="text"
-    id="presentación"
-    name="presentación"
-    value={formData.presentación ? `c/${formData.presentación}` : ""}
-    onChange={(e) => {
-      const numericValue = e.target.value.replace(/\D/g, ""); // Solo números
-      setFormData((prev) => ({
-        ...prev,
-        presentación: numericValue, // Guardamos solo el número en el estado
-      }));
-    }}
-    placeholder="Piezas"
-    required
-    className={styles.input}
-  />
-</div>
 
+        {/* Presentación */}
+        <div className="flex flex-col">
+          <label
+            htmlFor="presentacion"
+            className="mb-1 font-semibold text-teal-300"
+          >
+            Presentación:
+          </label>
+          <input
+            type="text"
+            id="presentacion"
+            name="presentacion"
+            value={formData.presentacion ? `c/${formData.presentacion}` : ""}
+            onChange={(e) => {
+              // Permitir sólo números
+              const numericValue = e.target.value.replace(/\D/g, "");
+              setFormData((prev) => ({
+                ...prev,
+                presentacion: numericValue,
+              }));
+            }}
+            placeholder="Piezas por caja o sobre o frasco"
+            required
+            className="p-2 rounded-md border border-teal-500 bg-[#041616] text-teal-200 
+                       focus:outline-none focus:ring-2 focus:ring-cyan-500 
+                       placeholder:text-teal-500 transition-colors"
+          />
+        </div>
 
-        <div className={styles.formGroup}>
-          <label htmlFor="ean" className={styles.label}>
+        {/* EAN */}
+        <div className="flex flex-col">
+          <label htmlFor="ean" className="mb-1 font-semibold text-teal-300">
             EAN (Código de Barras):
           </label>
           <input
@@ -108,13 +141,17 @@ const FormMedicamento = ({ onAddMedicamento, message }) => {
             name="ean"
             value={formData.ean}
             onChange={handleChange}
-            placeholder="coloca el código de barras"
+            placeholder="Ingresa el código de barras"
             required
-            className={styles.input}
+            className="p-2 rounded-md border border-teal-500 bg-[#041616] text-teal-200 
+                       focus:outline-none focus:ring-2 focus:ring-cyan-500 
+                       placeholder:text-teal-500 transition-colors"
           />
         </div>
-        <div className={styles.formGroup}>
-          <label htmlFor="piezas" className={styles.label}>
+
+        {/* Piezas */}
+        <div className="flex flex-col">
+          <label htmlFor="piezas" className="mb-1 font-semibold text-teal-300">
             Piezas:
           </label>
           <input
@@ -123,12 +160,23 @@ const FormMedicamento = ({ onAddMedicamento, message }) => {
             name="piezas"
             value={formData.piezas}
             onChange={handleChange}
-            placeholder="ingres el numero de piezas a registrar"
+            placeholder="Ingresa el número de piezas o cajas en almacen"
             required
-            className={styles.input}
+            className="p-2 rounded-md border border-teal-500 bg-[#041616] text-teal-200 
+                       focus:outline-none focus:ring-2 focus:ring-cyan-500 
+                       placeholder:text-teal-500 transition-colors"
           />
         </div>
-        <button type="submit" className={styles.button}>
+
+        {/* Botón */}
+        <button
+          type="submit"
+          className="mt-4 px-6 py-3 bg-gradient-to-r from-teal-500 to-cyan-500 
+                     hover:from-teal-600 hover:to-cyan-600 text-white font-extrabold 
+                     uppercase tracking-wide rounded-full shadow-2xl 
+                     transition-transform duration-300 transform hover:scale-105 
+                     focus:outline-none focus:ring-2 focus:ring-teal-400"
+        >
           Registrar
         </button>
       </form>

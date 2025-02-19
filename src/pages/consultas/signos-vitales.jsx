@@ -23,7 +23,6 @@ import {
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 import { useRouter } from "next/router";
-//import AtendiendoActualmente from "./consultas-adicionales/atendiendo-actualmente";
 import ConsultasCanceladas from "./consultas-adicionales/consultas-canceladas";
 import ConsultasAtendidas from "./consultas-adicionales/consultas-atendidas";
 
@@ -99,7 +98,6 @@ const SignosVitales = () => {
   const [empleadoEncontrado, setEmpleadoEncontrado] = useState(false);
 
   const [pacientes, setPacientes] = useState([]);
-  const [atendiendoActualmente, setAtendiendoActualmente] = useState([]);
   const [consultasCanceladas, setConsultasCanceladas] = useState([]);
   const [consultasAtendidas, setConsultasAtendidas] = useState([]);
   const [consultaSeleccionada, setConsultaSeleccionada] = useState("empleado");
@@ -116,11 +114,11 @@ const SignosVitales = () => {
 
   const handleBeneficiarySelect = (index) => {
     const selected = beneficiaryData[index];
-  
+
     if (selected.VIGENCIA_ESTUDIOS) {
       const vigenciaEstudios = new Date(selected.VIGENCIA_ESTUDIOS);
       const fechaActual = new Date();
-  
+
       //* Compara las fechas usando getTime() para asegurarte de que se comparan correctamente
       if (vigenciaEstudios.getTime() < fechaActual.getTime()) {
         //! Mostrar alerta si la constancia está vencida
@@ -138,7 +136,7 @@ const SignosVitales = () => {
               "border border-yellow-600 shadow-[0px_0px_20px_5px_rgba(255,152,0,0.9)] rounded-lg",
           },
         });
-  
+
         //* Buscar el siguiente beneficiario válido
         const validBeneficiaryIndex = beneficiaryData.findIndex(
           (beneficiary) => {
@@ -150,7 +148,7 @@ const SignosVitales = () => {
             return true; //* Beneficiario sin validación de vigencia
           }
         );
-  
+
         if (validBeneficiaryIndex !== -1) {
           //* Seleccionar automáticamente el primer beneficiario válido
           setSelectedBeneficiary(beneficiaryData[validBeneficiaryIndex]);
@@ -161,24 +159,28 @@ const SignosVitales = () => {
           setBeneficiaryData([]);
           setConsultaSeleccionada("empleado"); //! Cambiar a "empleado" si no hay beneficiarios
         }
-  
+
         return;
       }
     }
-  
+
     //* Si el beneficiario es válido, actualizar la selección
     setSelectedBeneficiary(selected);
-  };  
+  };
 
   //* Función para cargar la lista de espera
   const cargarPacientesDelDia = async () => {
     try {
-      const response = await fetch("/api/pacientes-consultas/consultasHoy");
+      const response = await fetch(
+        "/api/pacientes-consultas/consultasHoy?clavestatus=1"
+      );
       const data = await response.json();
+
       if (response.ok && data.consultas?.length > 0) {
         const consultasOrdenadas = data.consultas.sort(
           (a, b) => new Date(a.fechaconsulta) - new Date(b.fechaconsulta)
         );
+
         setPacientes((prevPacientes) => {
           //? Solo actualiza si los datos son diferentes
           if (
@@ -492,13 +494,13 @@ const SignosVitales = () => {
         },
         body: JSON.stringify({ nomina }),
       });
-  
+
       const data = await response.json();
-  
+
       if (data.beneficiarios && data.beneficiarios.length > 0) {
         //* Actualizar beneficiarios directamente con los datos filtrados
         setBeneficiaryData(data.beneficiarios);
-  
+
         //* Seleccionar automáticamente el primer beneficiario válido
         setSelectedBeneficiary(data.beneficiarios[0]);
         document.querySelector("select").value = 0; //* Actualizar el select
@@ -506,13 +508,12 @@ const SignosVitales = () => {
         //* No hay beneficiarios
         setBeneficiaryData([]);
         setConsultaSeleccionada("empleado");
-  
+
         MySwal.fire({
           icon: "info",
           title:
             "<span style='color: #00bcd4; font-weight: bold; font-size: 1.5em;'>ℹ️ Sin beneficiarios</span>",
-          html:
-            "<p style='color: #fff; font-size: 1.1em;'>Este empleado no tiene beneficiarios registrados en el sistema.</p>",
+          html: "<p style='color: #fff; font-size: 1.1em;'>Este empleado no tiene beneficiarios registrados en el sistema.</p>",
           background: "linear-gradient(145deg, #004d40, #00251a)",
           confirmButtonColor: "#00bcd4",
           confirmButtonText:
@@ -526,7 +527,7 @@ const SignosVitales = () => {
     } catch (error) {
       console.error("Error al buscar beneficiarios:", error);
     }
-  };  
+  };
 
   const handleVitalChange = (e) => {
     const { name, value } = e.target;
@@ -535,6 +536,10 @@ const SignosVitales = () => {
       [name]: value,
     }));
   };
+
+  useEffect(() => {
+    cargarPacientesDelDia();
+    }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-900 to-black text-white px-4 py-8 md:px-12 flex flex-col items-center pt-10">
@@ -659,9 +664,6 @@ const SignosVitales = () => {
         </div>
 
         {/* Renderizar cada tabla de estado específico con el mismo ancho y espaciado */}
-        {/* <div className="w-full overflow-x-auto p-6 bg-gradient-to-b from-gray-900 to-gray-800 rounded-xl shadow-lg mb-8">
-          <AtendiendoActualmente data={atendiendoActualmente} />
-        </div> */}
         <div className="w-full overflow-x-auto p-6 bg-gradient-to-b from-gray-900 to-gray-800 rounded-xl shadow-lg mb-8">
           <ConsultasCanceladas data={consultasCanceladas} />
         </div>

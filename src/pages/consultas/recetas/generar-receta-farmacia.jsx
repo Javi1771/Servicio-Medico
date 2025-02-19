@@ -12,6 +12,7 @@ export default function GenerarReceta() {
   const [loading, setLoading] = useState(false);
   const [pdfUrl, setPdfUrl] = useState(null); //* Estado para previsualizar el PDF
   const [, setCodigoBarras] = useState("");
+  const [errorMessage, setErrorMessage] = useState(null); //* Estado para el mensaje de error
 
   useEffect(() => {
     if (router.query.claveconsulta) {
@@ -111,37 +112,47 @@ export default function GenerarReceta() {
 
     //* Función para obtener los datos de la receta
     const fetchRecetaData = async () => {
-        if (!claveconsulta) {
-            console.error("⚠️ Clave de consulta no está definida.");
-            return null;
-        }
-
-        console.log("📡 Consultando API con claveconsulta:", claveconsulta);
-
-        const response = await fetch(`/api/recetas/recetaPaciente?claveconsulta=${claveconsulta}`);
-
-        if (!response.ok) {
-            console.error("❌ Error en la API:", await response.text());
-            throw new Error("Error al obtener los datos de la receta");
-        }
-
-        const data = await response.json();
-
-        let nombreCompleto = "No encontrado";  //* Variable local para el nombre
-        let folioSurtimiento = data.folioSurtimiento ?? null; //* Obtener el folioSurtimiento de la respuesta
-
-        let codigoBarrasBase64 = null;
-        if (data.consulta) {
-            nombreCompleto = await fetchNombreEmpleado(data.consulta.clavenomina);
-            codigoBarrasBase64 = generarCodigoBarras(data.consulta.clavenomina, data.consulta.claveproveedor, data.consulta.claveconsulta, folioSurtimiento);
-        }        
-
-        console.log("✅ Datos de la receta recibidos:", data);
-        console.log("✅ Folio surtimiento obtenido:", folioSurtimiento);
-
-        return { ...data, nombreEmpleado: nombreCompleto, folioSurtimiento, codigoBarrasBase64 };
-    };    
-
+      if (!claveconsulta) {
+          console.error("⚠️ Clave de consulta no está definida.");
+          return null;
+      }
+  
+      console.log("📡 Consultando API con claveconsulta:", claveconsulta);
+  
+      const response = await fetch(`/api/recetas/recetaPaciente?claveconsulta=${claveconsulta}`);
+  
+      if (!response.ok) {
+          console.error("❌ Error en la API:", await response.text());
+          throw new Error("Error al obtener los datos de la receta");
+      }
+  
+      const data = await response.json();
+  
+      console.log("✅ Datos de la receta recibidos:", data);
+  
+      //* 🔴 VALIDACIÓN: Si hay algún medicamento con idMedicamento = 0, NO generar la receta
+      const medicamentoInvalido = data.receta?.some(item => item.idMedicamento === '0');
+  
+      if (medicamentoInvalido) {
+          console.warn("⚠️ Se detectó un medicamento inválido con idMedicamento = 0. Cancelando la generación de la receta.");
+          setPdfUrl(null);
+          setLoading(false);
+          setErrorMessage("⚠️ No se puede generar la receta porque no hay medicamentos asignados.");
+          return null;
+      }
+  
+      let nombreCompleto = "No encontrado";  
+      let folioSurtimiento = data.folioSurtimiento ?? null;
+  
+      let codigoBarrasBase64 = null;
+      if (data.consulta) {
+          nombreCompleto = await fetchNombreEmpleado(data.consulta.clavenomina);
+          codigoBarrasBase64 = generarCodigoBarras(data.consulta.clavenomina, data.consulta.claveproveedor, data.consulta.claveconsulta, folioSurtimiento);
+      }        
+  
+      return { ...data, nombreEmpleado: nombreCompleto, folioSurtimiento, codigoBarrasBase64 };
+  };
+  
     //* Genera el PDF con pdf-lib
     const generatePdf = async (nombreEmpleado, codigoBarrasBase64) => {
         try {
@@ -236,10 +247,10 @@ export default function GenerarReceta() {
         if (data.receta.length > 0) {
             data.receta.forEach((item, index) => {
             const posY = recetaStartY - index * lineSpacing; //* Aumenta el espacio entre líneas
-            drawMultilineText(firstPage, String(item.nombreMedicamento ?? "No hay"), 40, posY, 250, 10);
-            drawMultilineText(firstPage, String(item.indicaciones ?? "No hay"), 180, posY, 250, 10);
-            drawMultilineText(firstPage, String(item.cantidad ?? "No hay"), 380, posY, 250, 10);
-            drawMultilineText(firstPage, String(item.piezas ?? "No hay"), 553, posY, 100, 10);
+            drawMultilineText(firstPage, String(item.nombreMedicamento ?? "No Asignado"), 40, posY, 120, 10);
+            drawMultilineText(firstPage, String(item.indicaciones ?? "No Asignado"), 180, posY, 250, 10);
+            drawMultilineText(firstPage, String(item.cantidad ?? "No Asignado"), 380, posY, 250, 10);
+            drawMultilineText(firstPage, String(item.piezas ?? "No haAsignadoy"), 553, posY, 100, 10);
             });
         }
 
@@ -269,10 +280,14 @@ export default function GenerarReceta() {
     useEffect(() => {
       if (claveconsulta) {
           fetchRecetaData().then(data => {
-              if (data) generatePdf(data.nombreEmpleado, data.codigoBarrasBase64);
-          });        
+              if (data) {
+                  generatePdf(data.nombreEmpleado, data.codigoBarrasBase64);
+              } else {
+                  console.warn("⛔ PDF no generado debido a medicamentos inválidos.");
+              }
+          });
       }
-  }, [claveconsulta]);
+  }, [claveconsulta]);  
 
   //* Abrir automáticamente el PDF en una nueva pestaña cuando esté listo
   useEffect(() => {
@@ -280,6 +295,18 @@ export default function GenerarReceta() {
       window.open(pdfUrl, "_blank");
     }
   }, [pdfUrl]);
+
+    //* Mostrar mensaje de error a pantalla completa si no hay medicamentos asignados
+    if (errorMessage) {
+      return (
+        <div className="flex items-center justify-center min-h-screen bg-black text-white text-center">
+          <div className="bg-orange-700 text-white p-10 rounded-lg shadow-lg border border-red-600">
+            <h1 className="text-3xl font-bold mb-4">🚨 Alerta: No se Generó la Receta 🚨</h1>
+            <p className="text-lg">{errorMessage}</p>
+          </div>
+        </div>
+      );
+    }
 
   return (
     <div className="relative min-h-screen bg-black text-white p-10 overflow-hidden">

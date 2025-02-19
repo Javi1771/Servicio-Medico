@@ -5,7 +5,7 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
   const [formData, setFormData] = useState({
     id: "",
     medicamento: "",
-    clasificación: "",
+    clasificacion: "",
     presentacion: "",
     ean: "",
     piezas: "",
@@ -16,8 +16,8 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
       setFormData({
         id: medicamento.id || "",
         medicamento: medicamento.medicamento || "",
-        clasificación: medicamento.clasificación
-          ? medicamento.clasificación.toLowerCase()
+        clasificacion: medicamento.clasificacion
+          ? medicamento.clasificacion.toLowerCase()
           : "",
         presentacion: medicamento.presentacion || "",
         ean: medicamento.ean || "",
@@ -77,7 +77,7 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
         onEdit({
           id: formData.id,
           medicamento: formData.medicamento,
-          clasificación: formData.clasificación,
+          clasificacion: formData.clasificacion,
           presentacion: parseInt(formData.presentacion, 10),
           ean: parseInt(formData.ean, 10),
           piezas: parseInt(formData.piezas, 10),
@@ -132,8 +132,8 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
               Clasificación:
             </label>
             <select
-              name="clasificación"
-              value={formData.clasificación}
+              name="clasificacion"
+              value={formData.clasificacion}
               disabled
               className="w-full px-4 py-2 bg-[#0b2424] border border-teal-600 rounded-lg text-gray-300 cursor-not-allowed shadow-inner"
             >
@@ -151,7 +151,7 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
             </label>
             <input
               type="number"
-              name="presentación"
+              name="presentacion"
               value={formData.presentacion}
               onChange={handleChange}
               required

@@ -107,7 +107,7 @@ const Diagnostico = () => {
   //* Función para cargar pacientes del día
   const cargarPacientesDelDia = async () => {
     try {
-      const response = await fetch("/api/pacientes-consultas/consultasHoy");
+      const response = await fetch("/api/pacientes-consultas/consultasHoy?clavestatus=1");
       const data = await response.json();
       if (response.ok) {
         const pacientesOrdenados = data.consultas.sort(

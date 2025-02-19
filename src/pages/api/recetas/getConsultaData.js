@@ -4,12 +4,18 @@ import sql from "mssql";
 //* Función para formatear la fecha con día de la semana
 function formatFecha(fecha) {
   if (!fecha) return "N/A"; //* Si la fecha es nula, retorna "N/A"
-  
+
   const date = new Date(fecha);
 
   //* Días de la semana en español
   const diasSemana = [
-    "Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"
+    "Domingo",
+    "Lunes",
+    "Martes",
+    "Miércoles",
+    "Jueves",
+    "Viernes",
+    "Sábado",
   ];
 
   //* Obtener los valores en UTC para preservar la hora exacta de la base de datos
@@ -27,10 +33,10 @@ function formatFecha(fecha) {
 
 export async function getConsultaData(claveConsulta) {
   try {
-    console.log("🔍 Conectando a la base de datos...");
+    //console.log("🔍 Conectando a la base de datos...");
     const db = await connectToDatabase();
 
-    console.log("📡 Buscando consulta en la BD con claveconsulta:", claveConsulta);
+    //console.log("📡 Buscando consulta en la BD con claveconsulta:", claveConsulta);
 
     //? Consulta a la tabla "consultas"
     const consultaQuery = `
@@ -62,22 +68,22 @@ export async function getConsultaData(claveConsulta) {
 
     //* Formatear la fecha de la consulta antes de enviarla
     if (consultaData && consultaData.fechaconsulta) {
-      console.log("📅 Fecha original (fechaconsulta):", consultaData.fechaconsulta);
+      //console.log("📅 Fecha original (fechaconsulta):", consultaData.fechaconsulta);
       consultaData.fechaconsulta = formatFecha(consultaData.fechaconsulta);
-      console.log("✅ Fecha formateada (fechaconsulta):", consultaData.fechaconsulta);
+      //console.log("✅ Fecha formateada (fechaconsulta):", consultaData.fechaconsulta);
     }
 
     //* Formatear la fecha de la cita (fechacita)
     if (consultaData && consultaData.fechacita) {
-      console.log("📅 Fecha original (fechacita):", consultaData.fechacita);
+      //console.log("📅 Fecha original (fechacita):", consultaData.fechacita);
       consultaData.fechacita = formatFecha(consultaData.fechacita);
-      console.log("✅ Fecha formateada (fechacita):", consultaData.fechacita);
+      //console.log("✅ Fecha formateada (fechacita):", consultaData.fechacita);
     }
 
     //? Consulta a la tabla "detalleReceta"
     const recetaQuery = `
       SELECT 
-        dr.indicaciones, dr.cantidad, dr.descMedicamento, dr.piezas,
+        dr.indicaciones, dr.cantidad, dr.descMedicamento AS idMedicamento, dr.piezas,
         m.medicamento AS nombreMedicamento
       FROM detalleReceta dr
       LEFT JOIN MEDICAMENTOS m ON dr.descMedicamento = m.claveMedicamento
@@ -89,7 +95,7 @@ export async function getConsultaData(claveConsulta) {
       .input("claveConsulta", sql.VarChar, claveConsulta)
       .query(recetaQuery);
 
-    console.log("✅ Datos de la receta obtenidos:", recetaResult.recordset);
+    //console.log("✅ Datos de la receta obtenidos:", recetaResult.recordset);
 
     //? Consulta a la tabla "incapacidades"
     const incapacidadesQuery = `
@@ -103,17 +109,19 @@ export async function getConsultaData(claveConsulta) {
       .input("claveConsulta", sql.VarChar, claveConsulta)
       .query(incapacidadesQuery);
 
-    console.log("✅ Datos de incapacidades obtenidos:", incapacidadesResult.recordset);
+    //console.log("✅ Datos de incapacidades obtenidos:", incapacidadesResult.recordset);
 
     //* Formatear las fechas de incapacidad antes de enviarlas
     if (incapacidadesResult.recordset.length > 0) {
-      incapacidadesResult.recordset = incapacidadesResult.recordset.map((incapacidad) => ({
-        ...incapacidad,
-        fechaInicial: formatFecha(incapacidad.fechaInicial),
-        fechaFinal: formatFecha(incapacidad.fechaFinal),
-      }));
+      incapacidadesResult.recordset = incapacidadesResult.recordset.map(
+        (incapacidad) => ({
+          ...incapacidad,
+          fechaInicial: formatFecha(incapacidad.fechaInicial),
+          fechaFinal: formatFecha(incapacidad.fechaFinal),
+        })
+      );
 
-      console.log("✅ Fechas de incapacidad formateadas:", incapacidadesResult.recordset);
+      //console.log("✅ Fechas de incapacidad formateadas:", incapacidadesResult.recordset);
     }
 
     //? Consulta a la tabla "detalleEspecialidad"
@@ -131,25 +139,32 @@ export async function getConsultaData(claveConsulta) {
       .input("claveConsulta", sql.VarChar, claveConsulta)
       .query(detalleEspecialidadQuery);
 
-    console.log("✅ Datos de detalleEspecialidad obtenidos:", detalleEspecialidadResult.recordset);
+    //console.log("✅ Datos de detalleEspecialidad obtenidos:", detalleEspecialidadResult.recordset);
 
-    //? Nueva consulta para obtener el último FOLIO_SURTIMIENTO y sumarle 1
+    //? Nueva consulta para obtener el FOLIO_SURTIMIENTO basado en la claveConsulta
     const folioSurtimientoQuery = `
-      SELECT ISNULL(MAX(FOLIO_SURTIMIENTO), 0) + 1 AS nuevoFolio FROM SURTIMIENTOS
+      SELECT FOLIO_SURTIMIENTO 
+      FROM SURTIMIENTOS 
+      WHERE FOLIO_PASE = @claveConsulta
     `;
 
-    const folioSurtimientoResult = await db.request().query(folioSurtimientoQuery);
+    const folioSurtimientoResult = await db
+      .request()
+      .input("claveConsulta", sql.Int, claveConsulta) //* Asegurar que claveConsulta es Int
+      .query(folioSurtimientoQuery);
 
-    const nuevoFolioSurtimiento = folioSurtimientoResult.recordset[0]?.nuevoFolio || 1;
+    //? Si no encuentra un FOLIO_SURTIMIENTO, asignar null
+    const folioSurtimiento =
+      folioSurtimientoResult.recordset[0]?.FOLIO_SURTIMIENTO || null;
 
-    console.log("✅ Nuevo FOLIO_SURTIMIENTO obtenido:", nuevoFolioSurtimiento);
+    console.log("✅ FOLIO_SURTIMIENTO obtenido:", folioSurtimiento);
 
     return {
       consulta: consultaData,
       receta: recetaResult.recordset || [],
       incapacidades: incapacidadesResult.recordset || [],
       detalleEspecialidad: detalleEspecialidadResult.recordset || [],
-      folioSurtimiento: nuevoFolioSurtimiento, //* Enviar al frontend
+      folioSurtimiento, //* Enviar al frontend
     };
   } catch (error) {
     console.error("❌ Error en getConsultaData:", error);

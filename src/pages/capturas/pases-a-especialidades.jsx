@@ -58,11 +58,21 @@ const PasesAEspecialidad = () => {
     router.replace(`/capturas/pases/crear-pase?claveconsulta=${encryptedFolio}`);
   };
 
+  const handleRegresar = () => {
+    router.replace("/inicio-servicio-medico"); //* Navegar a la pantalla anterior
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-blue-900 to-teal-700 text-white py-8 px-6">
       {/* Header */}
       <header className="bg-gradient-to-r from-blue-800 to-teal-700 rounded-2xl p-8 text-center shadow-xl">
         <h1 className="text-5xl font-extrabold tracking-wide flex items-center justify-center gap-4 text-teal-300">
+        <button
+        onClick={handleRegresar}
+        className="px-6 py-3 text-lg font-semibold rounded-full bg-gradient-to-r from-red-600 via-pink-600 to-purple-700 shadow-[0px_0px_15px_5px_rgba(255,0,0,0.5)] hover:shadow-[0px_0px_30px_10px_rgba(255,0,0,0.7)] text-white hover:brightness-125 transition-all duration-300"
+      >
+        ← Regresar
+      </button>
           <FaClipboardList className="text-teal-400" />
           Pases a Especialidad
         </h1>

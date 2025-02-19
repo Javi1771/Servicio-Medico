@@ -14,7 +14,7 @@ const InicioPresidente = () => {
     const user = Cookies.get("nombreusuario") || "Presidente";
     setUsername(user);
 
-    // Prefetch de las rutas con control de errores
+    //! Prefetch de las rutas con control de errores
     statisticsCards.forEach((card) => {
       try {
         router.prefetch(card.path);
@@ -26,12 +26,12 @@ const InicioPresidente = () => {
 
   const navigateTo = async (path: string) => {
     try {
-      setLoadingPath(path); // Establece el estado de carga
-      router.replace(path); // Navega a la ruta
+      setLoadingPath(path); //* Establece el estado de carga
+      router.replace(path); //* Navega a la ruta
     } catch (error) {
       console.error(`Error navigating to ${path}:`, error);
     } finally {
-      setLoadingPath(null); // Resetea el estado de carga
+      setLoadingPath(null); //! Resetea el estado de carga
     }
   };
 

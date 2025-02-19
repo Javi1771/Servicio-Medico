@@ -1,31 +1,18 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState, useEffect } from "react";
-import { AiOutlineUserAdd } from "react-icons/ai";
-import Image from "next/image";
-import Swal from "sweetalert2";
-import withReactContent from "sweetalert2-react-content";
-import { FaCalendarAlt } from "react-icons/fa";
-import Calendar from "react-calendar";
 import { useRouter } from "next/router";
 
 import { useMedicamentos } from "../../hooks/farmaciaHook/useMedicamentos";
 import FormMedicamento from "./components/formMedicamento";
 import MedicamentosTable from "./components/medicamentosTable";
 import SideMenu from "./components/sideMenu";
-import Banner from "./components/banner";
 import EditMedicamentoForm from "./components/editMedicamentoForm";
 import { motion, AnimatePresence } from "framer-motion";
-
-//* Eliminamos la importación de CSS puro
-// import "react-calendar/dist/Calendar.css";
 
 const getCookie = (name) => {
   if (typeof document === "undefined") return null;
   const match = document.cookie.match(new RegExp("(^| )" + name + "=([^;]+)"));
   return match ? match[2] : null;
 };
-
-const MySwal = withReactContent(Swal);
 
 const Medicamentos = () => {
   const {
@@ -43,7 +30,6 @@ const Medicamentos = () => {
   const [role, setRole] = useState(null);
   const router = useRouter();
 
-  //* Al montar el componente, obtenemos el rol desde la cookie "rol"
   useEffect(() => {
     const rolCookie = getCookie("rol");
     setRole(rolCookie);
@@ -59,8 +45,8 @@ const Medicamentos = () => {
     setIsModalOpen(false);
   };
 
-  const handleRegresar = () => {
-    router.back();
+  const handleSalir = () => {
+    router.replace("/inicio-servicio-medico");
   };
 
   const fadeVariants = {
@@ -70,19 +56,48 @@ const Medicamentos = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-blue-900 text-white">
-      <div className="flex">
-        {/* Menú lateral (solo si el rol NO es 9) */}
+    <div className="min-h-screen bg-gradient-to-br from-[#040f0f] to-[#0c1e1e] text-teal-200">
+      <div className="flex flex-col lg:flex-row">
+        {/* Menú lateral (si rol !== "9") */}
         {role !== "9" && (
-          <div className="w-64 bg-gray-800 shadow-xl">
+          <div className="lg:w-64 flex-none bg-[#0b2424] shadow-xl border border-teal-500">
             <SideMenu onMenuClick={setActiveView} />
           </div>
         )}
 
-        <div className="flex-grow p-8">
-          <Banner imageSrc="/baner_sjr.png" altText="Banner de Medicamentos" />
+        {/* Contenedor principal */}
+        <div className="flex-grow relative">
+          {/* Botón de salida */}
+          <button
+            onClick={handleSalir}
+            className="absolute top-4 left-4 flex items-center gap-2 px-6 py-3 
+                       bg-gradient-to-r from-teal-500 to-cyan-500 
+                       hover:from-teal-600 hover:to-cyan-600 
+                       text-white font-extrabold uppercase 
+                       tracking-wide rounded-full shadow-2xl 
+                       transition-transform duration-300 
+                       transform hover:scale-105 
+                       focus:outline-none focus:ring-2 focus:ring-teal-400"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="w-5 h-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M17 8l4 4m0 0l-4 4m4-4H3"
+              />
+            </svg>
+            Salir
+          </button>
 
-          <div className="mt-6 bg-white text-gray-900 p-6 rounded-lg shadow-lg">
+          {/* Contenedor centrado con padding para el contenido */}
+          <div className="container mx-auto px-4 py-6">
             {role !== "9" ? (
               activeView === "registrar" && (
                 <motion.div
@@ -93,19 +108,29 @@ const Medicamentos = () => {
                   exit="exit"
                   transition={{ duration: 0.2 }}
                 >
-                  <FormMedicamento
-                    onAddMedicamento={addMedicamento}
-                    message={message}
-                  />
-                  <MedicamentosTable
-                    medicamentos={medicamentos || []}
-                    onDelete={deleteMedicamento}
-                    onEdit={handleEdit}
-                  />
+                  {/* Stacking (uno debajo del otro) */}
+                  <div className="flex flex-col gap-8">
+                    {/* Formulario para registrar */}
+                    <div className="bg-[#0b2424] p-6 rounded-2xl shadow-[0_0_40px_rgba(0,255,255,0.2)] border border-teal-500">
+                      <FormMedicamento
+                        onAddMedicamento={addMedicamento}
+                        message={message}
+                      />
+                    </div>
+                    {/* Tabla de medicamentos */}
+                    <div className="bg-[#0b2424] p-6 rounded-2xl shadow-[0_0_40px_rgba(0,255,255,0.2)] border border-teal-500">
+                      <MedicamentosTable
+                        medicamentos={medicamentos || []}
+                        onDelete={deleteMedicamento}
+                        onEdit={handleEdit}
+                      />
+                    </div>
+                  </div>
                 </motion.div>
               )
             ) : (
-              <div className="flex justify-center items-center w-full">
+              // Si rol === "9", solo mostramos la tabla
+              <div className="bg-[#0b2424] p-6 rounded-2xl shadow-[0_0_40px_rgba(0,255,255,0.2)] border border-teal-500">
                 <MedicamentosTable
                   medicamentos={medicamentos || []}
                   onDelete={deleteMedicamento}
@@ -121,7 +146,7 @@ const Medicamentos = () => {
       <AnimatePresence mode="wait">
         {isModalOpen && (
           <motion.div
-            className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50"
+            className="fixed inset-0 bg-black bg-opacity-80 backdrop-blur-sm flex items-center justify-center z-50"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -134,7 +159,7 @@ const Medicamentos = () => {
             }}
           >
             <motion.div
-              className="bg-white text-gray-900 p-8 rounded-lg shadow-2xl"
+              className="bg-[#0b2424] text-teal-200 p-8 rounded-2xl shadow-2xl border border-teal-500"
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.8 }}

@@ -6,6 +6,10 @@ export default function VerRecetas() {
   const { claveconsulta } = router.query;
   const [encryptedClave, setEncryptedClave] = useState("");
 
+  const handleRegresar = () => {
+    router.replace("/inicio-servicio-medico"); //* Navegar a la pantalla anterior
+  };
+
   useEffect(() => {
     if (claveconsulta) {
       setEncryptedClave(claveconsulta);
@@ -15,13 +19,21 @@ export default function VerRecetas() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black text-white p-10">
       {/* Encabezado con animación y mejor diseño */}
+
+      <button
+        onClick={handleRegresar}
+        className="px-6 py-3 text-lg font-semibold rounded-full bg-gradient-to-r from-red-600 via-pink-600 to-purple-700 shadow-[0px_0px_15px_5px_rgba(255,0,0,0.5)] hover:shadow-[0px_0px_30px_10px_rgba(255,0,0,0.7)] text-white hover:brightness-125 transition-all duration-300"
+      >
+        ← Regresar
+      </button>
+
       <h1 className="text-4xl font-extrabold text-cyan-400 text-center mb-10 flex items-center justify-center gap-3">
-        <span className="bg-cyan-600 p-3 rounded-full text-black">💊</span> Ver Recetas en PDF
+        <span className="bg-cyan-600 p-3 rounded-full text-black">💊</span> Ver
+        Recetas en PDF
       </h1>
 
       {/* Contenedor con ajuste de espacio */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        
         {/* Contenedor de Receta Farmacia */}
         <div className="bg-gray-900 p-6 rounded-2xl border-2 border-cyan-400 shadow-lg shadow-cyan-500/50 relative">
           <h2 className="text-2xl font-semibold text-cyan-300 text-center mb-4 flex items-center gap-2">

@@ -205,10 +205,10 @@ export default function GenerarReceta() {
       if (data.receta.length > 0) {
           data.receta.forEach((item, index) => {
           const posY = recetaStartY - index * lineSpacing; //* Aumenta el espacio entre líneas
-          drawMultilineText(firstPage, String(item.nombreMedicamento ?? "No hay"), 40, posY, 250, 10);
-          drawMultilineText(firstPage, String(item.indicaciones ?? "No hay"), 180, posY, 250, 10);
-          drawMultilineText(firstPage, String(item.cantidad ?? "No hay"), 380, posY, 250, 10);
-          drawMultilineText(firstPage, String(item.piezas ?? "No hay"), 553, posY, 100, 10);
+          drawMultilineText(firstPage, String(item.nombreMedicamento ?? "No Asignado"), 40, posY, 120, 10);
+          drawMultilineText(firstPage, String(item.indicaciones ?? "No Asignado"), 180, posY, 250, 10);
+          drawMultilineText(firstPage, String(item.cantidad ?? "No Asignado"), 380, posY, 250, 10);
+          drawMultilineText(firstPage, String(item.piezas ?? "No Asignados"), 553, posY, 100, 10);
           });
       }
 

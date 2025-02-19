@@ -19,6 +19,10 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
       .catch((err) => console.error("Error al cargar medicamentos:", err));
   }, []);
 
+  useEffect(() => {
+    console.log("📦 Datos recibidos de la API /api/medicamentos/listar:", listaMedicamentos);
+  }, [listaMedicamentos]);  
+
   //? 2) Cargar historial de medicamentos desde el backend
   useEffect(() => {
     if (clavenomina && clavepaciente) {
@@ -181,7 +185,7 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
 
                     if (
                       selectedMedicamento.piezas === 0 ||
-                      !selectedMedicamento.presentación
+                      !selectedMedicamento.presentacion
                     ) {
                       Swal.fire({
                         icon: "error",
@@ -222,7 +226,7 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
                       className="text-lg py-2"
                     >
                       {m.MEDICAMENTO} --- Presentación Por Caja:{" "}
-                      {m.presentación || "Sin existencias"}
+                      {m.presentacion || "Sin existencias"}
                       --- Cajas Disponibles:{" "}
                       {m.piezas > 0 ? m.piezas : "Sin existencias"}
                     </option>

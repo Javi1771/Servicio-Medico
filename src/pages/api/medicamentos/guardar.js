@@ -7,11 +7,9 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Método no permitido" });
   }
 
-  console.log("📨 Datos recibidos en el backend:", req.body);
-
+  console.log("📨 Datos recibidos en el backend:", JSON.stringify(req.body, null, 2));
   const { medicamentos = [], folioReceta, decisionTomada } = req.body;
 
-  //* Validar que el payload tenga los campos esperados
   if (!folioReceta || decisionTomada === undefined) {
     console.error("❌ Faltan datos obligatorios en el payload.");
     return res.status(400).json({
@@ -19,60 +17,52 @@ export default async function handler(req, res) {
     });
   }
 
+  let transaction;
   try {
     console.log("🌐 Conectando a la base de datos...");
     const pool = await connectToDatabase();
-    console.log("🌐 Conexión establecida con éxito.");
+    console.log("✅ Conexión establecida con éxito.");
 
-    const transaction = new sql.Transaction(pool);
+    //* Iniciamos una única transacción para todas las operaciones
+    transaction = new sql.Transaction(pool);
     await transaction.begin();
+    console.log("🔄 Transacción iniciada.");
 
+    //? 1. Inserción en detalleReceta
     const queryInsertarReceta = `
       INSERT INTO [PRESIDENCIA].[dbo].[detalleReceta]
       (folioReceta, descMedicamento, indicaciones, estatus, cantidad, piezas)
       VALUES (@folioReceta, @descMedicamento, @indicaciones, @estatus, @cantidad, @piezas)
     `;
-
     const resultados = [];
-
     if (decisionTomada === "no") {
-      //! Insertar valores predeterminados si la decisión es "No"
-      console.log("⚠️ Decisión tomada: No. Insertando valores predeterminados.");
+      console.log("⚠️ Decisión tomada: NO. Insertando registro predeterminado en detalleReceta.");
       await transaction.request()
         .input("folioReceta", sql.Int, parseInt(folioReceta, 10))
         .input("descMedicamento", sql.Int, 0)
-        .input(
-          "indicaciones",
-          sql.NVarChar,
-          "Sin indicaciones ya que no se asignaron medicamentos."
-        )
+        .input("indicaciones", sql.NVarChar, "Sin indicaciones ya que no se asignaron medicamentos.")
         .input("estatus", sql.Int, 1)
-        .input(
-          "cantidad",
-          sql.NVarChar,
-          "Sin tiempo de toma estimado, sin medicamentos."
-        )
+        .input("cantidad", sql.NVarChar, "Sin tiempo de toma estimado, sin medicamentos.")
         .input("piezas", sql.Int, 0)
         .query(queryInsertarReceta);
 
       resultados.push({
         folioReceta,
         status: "success",
-        message: "Registro predeterminado insertado.",
+        message: "Registro predeterminado insertado en detalleReceta.",
       });
     } else {
-      //* Insertar medicamentos reales
+      console.log(`💊 Insertando ${medicamentos.length} medicamento(s) en detalleReceta...`);
       for (const med of medicamentos) {
+        console.log("📦 Medicamento a insertar:", med);
         const { descMedicamento, indicaciones, cantidad, piezas } = med;
-
         if (!descMedicamento || !indicaciones || !cantidad || !piezas) {
-          console.error("❌ Medicamento tiene campos faltantes:", med);
+          console.error("❌ Error: Medicamento con campos faltantes:", med);
           await transaction.rollback();
           return res.status(400).json({
             message: "Error: Medicamento tiene campos faltantes.",
           });
         }
-
         await transaction.request()
           .input("folioReceta", sql.Int, parseInt(folioReceta, 10))
           .input("descMedicamento", sql.Int, parseInt(descMedicamento, 10))
@@ -81,49 +71,152 @@ export default async function handler(req, res) {
           .input("cantidad", sql.NVarChar, cantidad.trim())
           .input("piezas", sql.Int, parseInt(piezas, 10))
           .query(queryInsertarReceta);
-
         resultados.push({
           medicamento: med,
           status: "success",
         });
       }
     }
+    console.log("✅ Inserción en detalleReceta completada.");
 
-    await transaction.commit();
-    console.log("✅ Transacción completada con éxito.");
-
-    // Nueva consulta: Buscar en la tabla "consultas" donde claveconsulta coincida con folioReceta
+    //? 2. Consulta en la tabla "consultas"
+    console.log(`🔎 Buscando consulta con folioReceta: ${folioReceta}...`);
     const consultaQuery = `
       SELECT 
-        clavepaciente, 
-        nombrepaciente, 
-        claveproveedor, 
-        motivoconsulta, 
-        diagnostico, 
-        claveusuario, 
-        clavenomina, 
-        elpacienteesempleado, 
-        departamento, 
-        edad, 
-        sindicato, 
-        fechaconsulta
+        clavepaciente, nombrepaciente, claveproveedor, motivoconsulta, 
+        diagnostico, claveusuario, clavenomina, elpacienteesempleado, 
+        departamento, edad, sindicato, fechaconsulta
       FROM consultas
       WHERE claveconsulta = @folioReceta
     `;
-
-    const consultaResult = await pool.request()
+    const consultaResult = await transaction.request()
       .input("folioReceta", sql.Int, parseInt(folioReceta, 10))
       .query(consultaQuery);
 
     const consultaData = consultaResult.recordset[0] || null;
+    if (!consultaData) {
+      console.error("❌ No se encontró consulta con la clave proporcionada.");
+      await transaction.rollback();
+      return res.status(404).json({ error: "No se encontró consulta asociada al folioReceta." });
+    }
+    console.log("✅ Consulta encontrada:", JSON.stringify(consultaData, null, 2));
 
+    //? 3. Calcular el nuevo FOLIO_SURTIMIENTO
+    const queryNuevoFolio = `SELECT ISNULL(MAX(FOLIO_SURTIMIENTO), 0) + 1 AS newFolio FROM SURTIMIENTOS`;
+    const nuevoFolioResult = await transaction.request().query(queryNuevoFolio);
+    const newFolioSurtimiento = nuevoFolioResult.recordset[0].newFolio;
+    console.log("✅ Nuevo FOLIO_SURTIMIENTO calculado:", newFolioSurtimiento);
+
+    //? 4. Inserción en SURTIMIENTOS (incluyendo el nuevo folio)
+    console.log("📦 Insertando en SURTIMIENTOS...");
+    const queryInsertSurtimientos = `
+      INSERT INTO SURTIMIENTOS (
+        FOLIO_SURTIMIENTO, FOLIO_PASE,
+        FECHA_EMISION, NOMINA,
+        CLAVE_PACIENTE, NOMBRE_PACIENTE,
+        EDAD, ESEMPLEADO, CLAVEMEDICO,
+        DIAGNOSTICO, DEPARTAMENTO,
+        ESTATUS, SINDICATO, claveusuario
+      )
+      VALUES (
+        @folioSurtimiento, @folioPase,
+        @fechaEmision, @nomina,
+        @clavePaciente, @nombrePaciente,
+        @edad, @epacienteEsEmpleado,
+        @claveMedico, @diagnostico,
+        @departamento, @estatus,
+        @sindicato, @claveUsuario
+      )
+    `;
+    await transaction.request()
+      .input("folioSurtimiento", sql.Int, newFolioSurtimiento)
+      .input("folioPase", sql.Int, parseInt(folioReceta, 10))
+      .input("fechaEmision", sql.DateTime, consultaData.fechaconsulta)
+      .input("nomina", sql.VarChar, consultaData.clavenomina)
+      .input("clavePaciente", sql.VarChar, consultaData.clavepaciente)
+      .input("nombrePaciente", sql.VarChar, consultaData.nombrepaciente)
+      //* Se guarda la edad tal cual se recibe (cadena)
+      .input("edad", sql.VarChar, consultaData.edad)
+      //* Se guarda el valor tal cual ("S" o "N")
+      .input("epacienteEsEmpleado", sql.VarChar, consultaData.elpacienteesempleado)
+      //* Convertimos claveproveedor a cadena
+      .input("claveMedico", sql.VarChar, String(consultaData.claveproveedor))
+      .input("diagnostico", sql.NVarChar, consultaData.diagnostico)
+      .input("departamento", sql.VarChar, consultaData.departamento)
+      .input("estatus", sql.Int, 1)
+      .input("sindicato", sql.VarChar, consultaData.sindicato)
+      .input("claveUsuario", sql.VarChar, String(consultaData.claveusuario))
+      .query(queryInsertSurtimientos);
+    console.log("✅ Inserción en SURTIMIENTOS completada.");
+
+    //? 5. Inserción en detalleSurtimientos
+    console.log("📦 Insertando en detalleSurtimientos...");
+    const queryInsertDetalleSurtimientos = `
+      INSERT INTO detalleSurtimientos (
+        folioSurtimiento,
+        claveMedicamento,
+        indicaciones,
+        cantidad,
+        estatus,
+        piezas,
+        entregado
+      )
+      VALUES (
+        @folioSurtimiento,
+        @claveMedicamento,
+        @indicaciones,
+        @cantidad,
+        @estatus,
+        @piezas,
+        @entregado
+      )
+    `;
+    let medsForDetalle = [];
+    if (decisionTomada === "no") {
+      medsForDetalle.push({
+        descMedicamento: 0,
+        indicaciones: "Sin indicaciones ya que no se asignaron medicamentos.",
+        cantidad: "Sin tiempo de toma estimado, sin medicamentos.",
+        piezas: 0,
+        entregado: 0
+      });
+    } else {
+      medsForDetalle = medicamentos;
+    }
+    for (const med of medsForDetalle) {
+      console.log("📝 Insertando detalleSurtimiento:", med);
+      await transaction.request()
+        .input("folioSurtimiento", sql.Int, newFolioSurtimiento)
+        .input("claveMedicamento", sql.Int, parseInt(med.descMedicamento, 10))
+        .input("indicaciones", sql.NVarChar, med.indicaciones.trim())
+        .input("cantidad", sql.NVarChar, med.cantidad.trim())
+        .input("estatus", sql.Int, 1)
+        .input("piezas", sql.Int, parseInt(med.piezas, 10))
+        .input("entregado", sql.Int, 0)
+        .query(queryInsertDetalleSurtimientos);
+    }
+    console.log("✅ Inserción en detalleSurtimientos completada.");
+
+    //* Commit de la transacción
+    await transaction.commit();
+    console.log("🎉 Transacción COMPLETA. Todos los datos guardados correctamente.");
     res.status(200).json({
       message: "Datos guardados correctamente.",
       resultados,
       consulta: consultaData,
+      surtimientos: "Registro en SURTIMIENTOS insertado.",
+      detalleSurtimientos: "Registros en detalleSurtimientos insertados.",
     });
   } catch (error) {
     console.error("❌ Error inesperado:", error);
+    if (transaction) {
+      try {
+        await transaction.rollback();
+        console.log("🔄 Transacción revertida.");
+      } catch (rollbackError) {
+        console.error("❌ Error al hacer rollback:", rollbackError);
+      }
+    }
     res.status(500).json({ error: "Error inesperado en el servidor." });
   }
 }
