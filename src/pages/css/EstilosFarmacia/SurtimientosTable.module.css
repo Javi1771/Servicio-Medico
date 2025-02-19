@@ -1,0 +1,133 @@
+/* CARD PRINCIPAL */
+.card {
+    background: #fff;
+    padding: 1.5rem 2rem;
+    border-radius: 12px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    margin-top: 2rem;
+    animation: fadeIn 0.5s ease;
+  }
+  
+  /* ANIMACIÓN DE ENTRADA */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* TÍTULOS */
+  .subtitle {
+    font-size: 1.5rem;
+    color: #333;
+    margin-bottom: 1rem;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  
+  /* INFORMACIÓN DEL SURTIMIENTO */
+  /* Usamos grid para poner dos columnas y que no quede todo tan vertical */
+  .info {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  
+  /* Cada campo de la info en una "cajita" con icono */
+  .infoItem {
+    background: #fafafa;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    padding: 1rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  .infoItem:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Icono en la cajita */
+  .infoIcon {
+    font-size: 1.3rem;
+    color: #252525;
+    margin-top: 3px;
+  }
+  
+  /* Texto dentro de la cajita */
+  .infoText {
+    color: #555;
+  }
+  .infoText strong {
+    color: #333;
+  }
+  
+  /* DETALLE DE MEDICAMENTOS */
+  /* Se mantiene un layout tipo "cards" en lugar de tabla */
+  .medicamentosContainer {
+    display: grid;
+    gap: 1rem;
+  }
+  
+  /* Cada "fila" es una card */
+  .medicamentoCard {
+    background: #fafafa;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    padding: 1rem;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  .medicamentoCard:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Iconos dentro de cada card */
+  .medicamentoIcon {
+    font-size: 1.2rem;
+    color: #2e2e2e;
+    margin-right: 0.5rem;
+  }
+  
+  /* Pequeña fila con label + valor */
+  .medicamentoRow {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin: 0.25rem 0;
+  }
+  
+  .medicamentoLabel {
+    font-weight: bold;
+    color: #333;
+  }
+  .medicamentoValue {
+    color: #555;
+  }
+  
+  
+
+
+
+  .dualContainer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    justify-content: space-between;
+  }
+  
+  .section {
+    flex: 1 1 300px;
+    min-width: 300px;
+  }
+  

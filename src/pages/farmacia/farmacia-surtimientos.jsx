@@ -1,37 +1,36 @@
 // FarmaciaSurtimientos.jsx
 import React, { useState } from 'react';
-
+import styles from '../css/EstilosFarmacia/FarmaciaSurtimientos.module.css';
+import SurtimientosTable from './components/surtimientosTable';
+import useSurtimientos from '../../hooks/farmaciaHook/useSurtimientos';
 const FarmaciaSurtimientos = () => {
-  const [folio, setFolio] = useState('');
-  const { data, loading, error } = useFolioSurtimiento(folio);
+  const [barcode, setBarcode] = useState('');
+  const { data, loading, error, fetchSurtimientos } = useSurtimientos();
 
-  const handleInputChange = (e) => {
-    setFolio(e.target.value);
+  const handleSearch = async () => {
+    await fetchSurtimientos(barcode);
   };
 
   return (
-    <div className="farmacia-surtimientos">
-      <h1>Farmacia Surtimientos</h1>
-      <div>
-        <label htmlFor="folio">Folio Surtimiento</label>
-        <input
-          id="folio"
-          type="text"
-          placeholder="FOLIO SURTIMIENTO"
-          value={folio}
-          onChange={handleInputChange}
-          className="input-folio"
-        />
-      </div>
-
-      {folio && (
-        <div>
-          <h2>Detalles del Surtimiento</h2>
-          {loading && <p>Cargando...</p>}
-          {error && <p>Error al cargar los detalles: {error.message}</p>}
-          {data && <DetalleSurtimiento data={data} />}
+    <div className={styles.container}>
+      <div className={styles.card}>
+        <h1 className={styles.title}>Farmacia Surtimientos</h1>
+        <div className={styles.inputContainer}>
+          <label htmlFor="barcode" className={styles.label}>Código de Barras</label>
+          <input
+            id="barcode"
+            type="text"
+            placeholder="Escanea el código de barras"
+            className={styles.input}
+            value={barcode}
+            onChange={(e) => setBarcode(e.target.value)}
+          />
         </div>
-      )}
+        <button onClick={handleSearch} className={styles.button}>Buscar</button>
+        {loading && <p>Cargando...</p>}
+        {error && <p>Error: {error}</p>}
+        {data && <SurtimientosTable data={data} />}
+      </div>
     </div>
   );
 };
