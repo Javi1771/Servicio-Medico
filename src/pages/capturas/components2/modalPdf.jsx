@@ -78,7 +78,7 @@ const ModalPdf = ({ folio, onClose }) => {
       // --- Generación del código de barras ---
       // Se asume que el API retorna también el campo FOLIO_SURTIMIENTO.
       // Se forma el string concatenando NOMINA, CLAVEMEDICO, el folio (FOLIO_PASE) y (FOLIO_SURTIMIENTO + 1)
-      const barcodeString = `${data.NOMINA}-${data.CLAVEMEDICO}-${folio}-${Number(data.FOLIO_SURTIMIENTO) + 1}`;
+      const barcodeString = `${data.NOMINA} ${data.CLAVEMEDICO} ${folio} ${Number(data.FOLIO_SURTIMIENTO)}`;
       console.log("Barcode string generado:", barcodeString);
       // Crear un canvas y generar el código de barras usando JsBarcode
       const canvas = document.createElement("canvas");

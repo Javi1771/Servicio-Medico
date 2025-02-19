@@ -219,7 +219,7 @@ export default async function handler(req, res) {
       .input("claveMedico", sql.Int, consulta.claveproveedor)
       .input("diagnostico", sql.NVarChar(sql.MAX), diagnostico)
       .input("departamento", sql.NVarChar(100), departamento)
-      .input("estatus", sql.Bit, estatusBIT) // Usar 'estatusBIT' aquí
+      .input("estatus", sql.Bit, estatusBIT)
       .input("sindicato", sql.NVarChar(10), sindicato || null)
       .input("claveUsuario", sql.Int, consulta.claveusuario)
       .query(insertSurtimientoQuery);
@@ -227,19 +227,18 @@ export default async function handler(req, res) {
     console.log("Surtimiento insertado exitosamente.");
 
     // 8. Insertar medicamentos en la tabla detalleSurtimientos
+    // Se agregó el campo "entregado" que se guardará en 0
     const insertDetalleQuery = `
       INSERT INTO [PRESIDENCIA].[dbo].[detalleSurtimientos] (
-        folioSurtimiento, claveMedicamento, indicaciones, cantidad, estatus
+        folioSurtimiento, claveMedicamento, indicaciones, cantidad, estatus, entregado
       ) VALUES (
-        @folioSurtimiento, @claveMedicamento, @indicaciones, @cantidad, 1
+        @folioSurtimiento, @claveMedicamento, @indicaciones, @cantidad, 1, @entregado
       )
     `;
 
     for (const medicamento of medicamentos) {
-      // Asegúrate de que 'medicamentos' es el nombre correcto
       console.log("Insertando medicamento:", medicamento);
 
-      // Crear una nueva instancia de sql.Request para cada medicamento
       const insertDetalleRequest = new sql.Request(transaction);
 
       await insertDetalleRequest
@@ -251,6 +250,7 @@ export default async function handler(req, res) {
         )
         .input("indicaciones", sql.NVarChar(sql.MAX), medicamento.indicaciones)
         .input("cantidad", sql.NVarChar(70), medicamento.cantidad)
+        .input("entregado", sql.Int, 0) // Campo 'entregado' se inicializa en 0
         .query(insertDetalleQuery);
     }
 

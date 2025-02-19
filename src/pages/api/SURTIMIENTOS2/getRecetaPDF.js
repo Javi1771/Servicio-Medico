@@ -86,31 +86,7 @@ export default async function handler(req, res) {
 
     const surtimientoData = resultSurtimientoData.recordset[0];
 
-    // 4️⃣ Obtener el nombre del empleado usando el endpoint interno /api/empleado (opción B)
-    let nombreEmpleado = "No disponible";
-    if (NOMINA) {
-      try {
-        console.log("📡 Llamando a /api/empleado para obtener nombre del empleado con NOMINA =", NOMINA);
-        // Se usa una URL base absoluta configurada vía variable de entorno o usando req.headers.origin
-        const baseUrl = process.env.BASE_URL || req.headers.origin || "http://localhost:3000";
-        const responseEmpleado = await fetch(`${baseUrl}/api/empleado`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ num_nom: NOMINA })
-        });
-        const empleadoData = await responseEmpleado.json();
-        if (empleadoData && empleadoData.nombre) {
-          nombreEmpleado = `${empleadoData.nombre || ""} ${empleadoData.a_paterno || ""} ${empleadoData.a_materno || ""}`.trim();
-          console.log("👤 Nombre completo del empleado obtenido:", nombreEmpleado);
-        } else {
-          console.log("⚠ No se encontraron datos del empleado desde /api/empleado.");
-        }
-      } catch (error) {
-        console.error("❌ Error llamando a /api/empleado:", error);
-      }
-    }
-
-    // 5️⃣ Obtener el nombre y cédula del doctor
+    // 4️⃣ Obtener el nombre y cédula del doctor
     let nombreDoctor = "Desconocido";
     let cedulaDoctor = "Cédula no disponible";
 
@@ -135,7 +111,7 @@ export default async function handler(req, res) {
       console.log("📜 Cédula del doctor obtenida:", cedulaDoctor);
     }
 
-    // 6️⃣ Obtener el nombre del usuario que elaboró la receta
+    // 5️⃣ Obtener el nombre del usuario que elaboró la receta
     let nombreElaboro = "Desconocido";
 
     if (CLAVEUSUARIO) {
@@ -157,16 +133,15 @@ export default async function handler(req, res) {
       console.log("✍ Nombre del usuario que elaboró la receta:", nombreElaboro);
     }
 
-    // 7️⃣ Enviar la respuesta con los datos actualizados
+    // 6️⃣ Enviar la respuesta con los datos actualizados
     return res.status(200).json({
       ...surtimientoData,
       medicamentos,
-      empleado: nombreEmpleado,
       doctor: nombreDoctor,
       cedula: cedulaDoctor,
       elaboro: nombreElaboro,
-      FOLIO_SURTIMIENTO: folioSurtimiento, // <--
-      CLAVEMEDICO                        // <--
+      FOLIO_SURTIMIENTO: folioSurtimiento, // <-- se añade FOLIO_SURTIMIENTO
+      CLAVEMEDICO                        // <-- se añade CLAVEMEDICO
     });
   } catch (error) {
     console.error("❌ Error al obtener la receta:", error.message);

@@ -29,17 +29,19 @@ export default async function handler(req, res) {
 
     const query = `
       INSERT INTO [PRESIDENCIA].[dbo].[detalleSurtimientos]
-        ([folioSurtimiento]
-        ,[claveMedicamento]
-        ,[indicaciones]
-        ,[cantidad]
-        ,[ESTATUS])
+        ([folioSurtimiento],
+         [claveMedicamento],
+         [indicaciones],
+         [cantidad],
+         [ESTATUS],
+         [entregado])
       VALUES
-        (@folioSurtimiento
-        ,@claveMedicamento
-        ,@indicaciones
-        ,@cantidad
-        ,@estatus)
+        (@folioSurtimiento,
+         @claveMedicamento,
+         @indicaciones,
+         @cantidad,
+         @estatus,
+         @entregado)
     `;
 
     await pool
@@ -47,8 +49,9 @@ export default async function handler(req, res) {
       .input("folioSurtimiento", sql.Int, folioSurtimiento)
       .input("claveMedicamento", sql.Int, claveMedicamento)
       .input("indicaciones", sql.NVarChar(sql.MAX), indicaciones)
-      .input("cantidad", sql.NVarChar ,cantidad)
+      .input("cantidad", sql.NVarChar, cantidad)
       .input("estatus", sql.Bit, estatus)
+      .input("entregado", sql.Int, 0) // Se establece en 0 por defecto
       .query(query);
 
     res.status(200).json({ message: "Detalle del surtimiento insertado exitosamente." });

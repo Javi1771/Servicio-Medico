@@ -1,0 +1,79 @@
+/* CONTENEDOR PRINCIPAL */
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+    min-height: 100vh;
+    background: #f0f2f5;
+  }
+  
+  /* CARD GENERAL */
+  .card {
+    background: #fff;
+    padding: 2rem;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 700px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+  }
+  
+  /* TÍTULO */
+  .title {
+    font-size: 2rem;
+    text-align: center;
+    margin-bottom: 1.5rem;
+    color: #333;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+  
+  /* CONTENEDOR DEL INPUT */
+  .inputContainer {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 1rem;
+  }
+  
+  /* LABEL E INPUT */
+  .label {
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #555;
+  }
+  .input {
+    padding: 0.75rem 1rem;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+  .input:focus {
+    outline: none;
+    border-color: #146aff;
+    box-shadow: 0 0 10px rgba(20, 94, 255, 0.5);
+  }
+  
+  /* BOTÓN DE BÚSQUEDA */
+  .button {
+    padding: 0.75rem 1.5rem;
+    background: #1414ff;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.3s ease;
+  }
+  .button:hover {
+    background: #1275e0;
+    transform: scale(1.05);
+  }
+  

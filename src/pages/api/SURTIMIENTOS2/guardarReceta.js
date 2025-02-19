@@ -76,6 +76,7 @@ export default async function handler(req, res) {
           .query(
             "SELECT sindicato FROM consultas WHERE claveconsulta = @claveconsulta"
           );
+
         if (!result.recordset || result.recordset.length === 0) {
           console.warn(
             `no se encontró sindicato para la claveconsulta: ${folioReceta}`
@@ -123,6 +124,26 @@ export default async function handler(req, res) {
         @departamento, @estatus, NULL, NULL, @sindicato, @claveUsuario
       )
     `;
+
+    console.log("Insertando en SURTIMIENTOS con los siguientes datos:");
+    console.log("nuevoFolio:", nuevoFolio);
+    console.log("folioPase:", folio);
+    console.log("nomina:", consulta.clavenomina);
+    console.log("clavePaciente:", consulta.clavepaciente);
+    console.log("nombrePaciente:", consulta.nombrepaciente);
+    console.log("edad:", consulta.edad);
+    console.log("esEmpleado:", consulta.elpacienteesempleado);
+    console.log("claveMedico:", consulta.claveproveedor);
+    console.log("diagnostico:", diagnostico);
+    console.log("departamento:", departamento);
+    console.log("estatus:", consulta.clavestatus);
+    console.log("sindicato:", sindicato);
+    console.log("claveUsuario:", consulta.claveusuario);
+
+    // **Mapear 'clavestatus' a BIT**
+    // Si 'clavestatus' es mayor que 0, asigna 1, de lo contrario 0
+    const estatusBIT = consulta.clavestatus > 0 ? 1 : 0;
+
     await pool
       .request()
       .input("nuevoFolio", sql.Int, nuevoFolio)
@@ -135,7 +156,7 @@ export default async function handler(req, res) {
       .input("claveMedico", sql.Int, consulta.claveproveedor)
       .input("diagnostico", sql.NVarChar(sql.MAX), diagnostico)
       .input("departamento", sql.NVarChar(100), departamento)
-      .input("estatus", sql.Bit, consulta.clavestatus)
+      .input("estatus", sql.Bit, estatusBIT)
       .input("sindicato", sql.NVarChar(10), sindicato || null)
       .input("claveUsuario", sql.Int, consulta.claveusuario)
       .query(insertSurtimientoQuery);
@@ -145,9 +166,9 @@ export default async function handler(req, res) {
     // Insertar medicamentos en la tabla detalleSurtimientos
     const insertDetalleQuery = `
       INSERT INTO [PRESIDENCIA].[dbo].[detalleSurtimientos] (
-  folioSurtimiento, claveMedicamento, indicaciones, cantidad, piezas, estatus
+        folioSurtimiento, claveMedicamento, indicaciones, cantidad, piezas, estatus, entregado
       ) VALUES (
-  @folioSurtimiento, @claveMedicamento, @indicaciones, @cantidad, @piezas, 1
+        @folioSurtimiento, @claveMedicamento, @indicaciones, @cantidad, @piezas, 1, @entregado
       )
     `;
 
@@ -157,8 +178,10 @@ export default async function handler(req, res) {
           "claveMedicamento es null o vacío para el medicamento:",
           medicamento
         );
-        continue; // Salta este medicamento si la clave es inválida
+        continue;
       }
+
+      console.log("Insertando medicamento:", medicamento);
 
       await pool
         .request()
@@ -170,8 +193,8 @@ export default async function handler(req, res) {
         )
         .input("indicaciones", sql.NVarChar(sql.MAX), medicamento.indicaciones)
         .input("cantidad", sql.NVarChar(70), medicamento.cantidad)
-        .input("piezas", sql.Int, medicamento.piezas) // Aquí se pasa el campo piezas
-
+        .input("piezas", sql.Int, medicamento.piezas)
+        .input("entregado", sql.Int, 0) // Se establece en 0
         .query(insertDetalleQuery);
     }
 
