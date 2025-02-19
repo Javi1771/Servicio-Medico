@@ -200,7 +200,7 @@ const Home = () => {
         {/* Efecto "partículas" o "estrellas" en el fondo */}
         <div className="absolute inset-0 pointer-events-none">
           {/* Puedes jugar con la opacidad y el número de partículas */}
-          <div className="absolute w-full h-full bg-[url('/stars.png')] bg-repeat opacity-40"></div>
+          {/* <div className="absolute w-full h-full bg-[url('/stars.png')] bg-repeat opacity-40"></div> */}
         </div>
 
         {/* Contenedor interno con margen superior */}
