@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import Head from "next/head"; // Para inyectar el link de FontAwesome
+import Head from "next/head"; // Inyección del link de FontAwesome
 import styles from "../../css/EstilosFarmacia/SurtimientosTable.module.css";
 
 // Función para validar el EAN a través del endpoint /api/farmacia/validarEAN
@@ -41,22 +41,21 @@ const iconMap = {
 const SurtimientosTable = ({ data }) => {
   const { surtimiento, detalleSurtimientos } = data;
 
-  // Si en la DB ESTATUS es int: 1 = pendiente, 2 = surtida
+  // Traduce ESTATUS: 1 = pendiente, 2 = surtida
   const estatusTexto =
     surtimiento?.ESTATUS === 1 ? "Receta Pendiente" : "Receta Surtida";
 
-  // Estado local: extendemos cada detalle con propiedades para el manejo del escaneo
+  // Estado local para el detalle: se usa el campo 'entregado' para calcular delivered y piezas pendientes
   const [detalle, setDetalle] = useState(
     detalleSurtimientos.map((item) => ({
       ...item,
-      piezasPendientes: item.piezas, // Inicialmente, las piezas pendientes son las que se requieren
-      showInput: false, // Control para mostrar el input de EAN
+      delivered: item.entregado || 0, // si 'entregado' es null, se asigna 0
+      showInput: false,
       eanValue: "",
-      estatusLocal: 1, // 1 = pendiente, 2 = surtido (cuando piezasPendientes llegue a 0)
+      estatusLocal: (item.entregado || 0) >= item.piezas ? 2 : 1, // Si ya se entregó todo, se marca como surtido.
     }))
   );
 
-  // Alterna la visibilidad del input mediante botón (sin depender del clic de la card)
   const toggleInput = (idSurt) => {
     setDetalle((prev) =>
       prev.map((it) =>
@@ -67,7 +66,6 @@ const SurtimientosTable = ({ data }) => {
     );
   };
 
-  // Actualiza el valor del input EAN
   const handleEANChange = (idSurt, value) => {
     setDetalle((prev) =>
       prev.map((it) =>
@@ -76,21 +74,21 @@ const SurtimientosTable = ({ data }) => {
     );
   };
 
-  // Valida el EAN y descuenta 1 pieza si es correcto
+  // Valida EAN y, si es correcto, "entrega" 1 pieza
   const handleAceptarEAN = async (idSurt) => {
     const item = detalle.find((it) => it.idSurtimiento === idSurt);
     if (!item) return;
 
-    // Impide escanear si ya se han entregado todas las piezas requeridas
-    if (item.piezasPendientes <= 0) {
-      alert("Ya se han escaneado todas las piezas requeridas para este medicamento.");
+    // Calcula cuántas piezas faltan entregar
+    const pending = item.piezas - item.delivered;
+    if (pending <= 0) {
+      alert("Ya se han entregado todas las piezas requeridas para este medicamento.");
       return;
     }
 
-    // Calcula cuántas piezas ya se han entregado
-    const piezasEscaneadas = item.piezas - item.piezasPendientes;
-    // Valida que al escanear una pieza más, no se supere el stock disponible
-    if (piezasEscaneadas + 1 > item.stock) {
+    // Verifica que el número de piezas pendientes no exceda el stock disponible
+    // (se compara lo pendiente con el stock, ya que delivered ya se ha entregado)
+    if (pending > item.stock) {
       alert("Stock insuficiente para este medicamento.");
       return;
     }
@@ -102,8 +100,9 @@ const SurtimientosTable = ({ data }) => {
       return;
     }
 
-    // Descuenta 1 pieza
-    const nuevasPiezasPendientes = item.piezasPendientes - 1;
+    // Actualiza: incrementa delivered en 1 y recalcula pendientes
+    const newDelivered = item.delivered + 1;
+    const nuevasPiezasPendientes = item.piezas - newDelivered;
     const nuevoEstatusLocal = nuevasPiezasPendientes <= 0 ? 2 : 1;
 
     setDetalle((prev) =>
@@ -111,25 +110,24 @@ const SurtimientosTable = ({ data }) => {
         it.idSurtimiento === idSurt
           ? {
               ...it,
-              piezasPendientes: nuevasPiezasPendientes,
+              delivered: newDelivered,
               eanValue: "",
               estatusLocal: nuevoEstatusLocal,
-              showInput: false, // Oculta el input tras aceptar
+              showInput: false,
             }
           : it
       )
     );
   };
 
-  // Al dar clic en "Guardar", se envía la información a la DB
+  // Al presionar "Guardar", se envían los datos al backend
   const handleGuardar = async () => {
     try {
       const todosSurtidos = detalle.every((it) => it.estatusLocal === 2);
-      // Para cada detalle, calculamos las piezas entregadas: (cantidad - piezasPendientes)
+      // Se envía "delivered" para cada registro
       const detallesParaGuardar = detalle.map((it) => ({
         idSurtimiento: it.idSurtimiento,
-        // delivered: piezas entregadas
-        delivered: it.piezas - it.piezasPendientes,
+        delivered: it.delivered,
         claveMedicamento: it.claveMedicamento,
         estatus: it.estatusLocal,
       }));
@@ -269,95 +267,88 @@ const SurtimientosTable = ({ data }) => {
             <h2 className={styles.subtitle}>Detalle de Medicamentos</h2>
             {detalle && detalle.length > 0 ? (
               <div className={styles.medicamentosContainer}>
-                {detalle.map((item) => (
-                  <div
-                    className={styles.medicamentoCard}
-                    key={item.idSurtimiento}
-                  >
-                    {/* Muestra el nombre del medicamento si está disponible */}
-                    <div className={styles.medicamentoRow}>
-                      <i
-                        className={`fa-solid fa-pills ${styles.medicamentoIcon}`}
-                      ></i>
-                      <span className={styles.medicamentoLabel}>
-                        Medicamento:
-                      </span>
-                      <span className={styles.medicamentoValue}>
-                        {item.nombreMedicamento || item.claveMedicamento}
-                      </span>
-                    </div>
-                    <div className={styles.medicamentoRow}>
-                      <i
-                        className={`fa-solid fa-prescription ${styles.medicamentoIcon}`}
-                      ></i>
-                      <span className={styles.medicamentoLabel}>
-                        Indicaciones:
-                      </span>
-                      <span className={styles.medicamentoValue}>
-                        {item.indicaciones}
-                      </span>
-                    </div>
-                    <div className={styles.medicamentoRow}>
-                      <i
-                        className={`fa-solid fa-boxes-stacked ${styles.medicamentoIcon}`}
-                      ></i>
-                      <span className={styles.medicamentoLabel}>
-                        Cantidad:
-                      </span>
-                      <span className={styles.medicamentoValue}>
-                        {item.cantidad}
-                      </span>
-                    </div>
-                    <div className={styles.medicamentoRow}>
-                      <i
-                        className={`fa-solid fa-cubes ${styles.medicamentoIcon}`}
-                      ></i>
-                      <span className={styles.medicamentoLabel}>
-                        Piezas:
-                      </span>
-                      <span className={styles.medicamentoValue}>
-                        {item.piezasPendientes} / {item.piezas}
-                      </span>
-                    </div>
-                    {/* Botón para activar el input EAN */}
-                    <div className={styles.medicamentoRow}>
-                      <button
-                        onClick={() => toggleInput(item.idSurtimiento)}
-                        className={styles.toggleInputButton}
-                      >
-                        {item.showInput ? "Ocultar" : "Escanear EAN"}
-                      </button>
-                    </div>
-                    {/* Input EAN, visible si showInput es true */}
-                    {item.showInput && (
+                {detalle.map((item) => {
+                  const pendiente = item.piezas - item.delivered;
+                  return (
+                    <div className={styles.medicamentoCard} key={item.idSurtimiento}>
                       <div className={styles.medicamentoRow}>
-                        <input
-                          type="text"
-                          placeholder="Escanea el EAN"
-                          value={item.eanValue}
-                          onChange={(e) =>
-                            handleEANChange(item.idSurtimiento, e.target.value)
-                          }
-                          className={styles.eanInput}
-                        />
+                        <i className={`fa-solid fa-pills ${styles.medicamentoIcon}`}></i>
+                        <span className={styles.medicamentoLabel}>Medicamento:</span>
+                        <span className={styles.medicamentoValue}>
+                          {item.nombreMedicamento || item.claveMedicamento}
+                        </span>
+                      </div>
+                      <div className={styles.medicamentoRow}>
+                        <i className={`fa-solid fa-prescription ${styles.medicamentoIcon}`}></i>
+                        <span className={styles.medicamentoLabel}>Indicaciones:</span>
+                        <span className={styles.medicamentoValue}>
+                          {item.indicaciones}
+                        </span>
+                      </div>
+                      <div className={styles.medicamentoRow}>
+                        <i className={`fa-solid fa-boxes-stacked ${styles.medicamentoIcon}`}></i>
+                        <span className={styles.medicamentoLabel}>Cantidad:</span>
+                        <span className={styles.medicamentoValue}>{item.cantidad}</span>
+                      </div>
+                      
+                      {/* Sección para mostrar piezas */}
+                      <div className={styles.medicamentoRow}>
+                        <i className={`fa-solid fa-cubes ${styles.medicamentoIcon}`}></i>
+                        <span className={styles.medicamentoLabel}>Piezas por entregar:</span>
+                        <span className={styles.medicamentoValue}>{item.piezas}</span>
+                      </div>
+                      <div className={styles.medicamentoRow}>
+                        <i className={`fa-solid fa-check ${styles.medicamentoIcon}`}></i>
+                        <span className={styles.medicamentoLabel}>Entregado:</span>
+                        <span className={styles.medicamentoValue}>{item.delivered}</span>
+                      </div>
+                      <div className={styles.medicamentoRow}>
+                        <i className={`fa-solid fa-clock ${styles.medicamentoIcon}`}></i>
+                        <span className={styles.medicamentoLabel}>Pendiente:</span>
+                        <span className={styles.medicamentoValue}>{pendiente}</span>
+                      </div>
+
+                      {/* Botón para activar el input EAN */}
+                      <div className={styles.medicamentoRow}>
                         <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleAceptarEAN(item.idSurtimiento);
-                          }}
-                          className={styles.eanButton}
+                          onClick={() => toggleInput(item.idSurtimiento)}
+                          className={styles.toggleInputButton}
+                          disabled={pendiente <= 0}
                         >
-                          Aceptar
+                          {item.showInput ? "Ocultar" : "Escanear EAN"}
                         </button>
                       </div>
-                    )}
-                  </div>
-                ))}
+
+                      {/* Input EAN, visible si showInput es true */}
+                      {item.showInput && (
+                        <div className={styles.medicamentoRow}>
+                          <input
+                            type="text"
+                            placeholder="Escanea el EAN"
+                            value={item.eanValue}
+                            onChange={(e) =>
+                              handleEANChange(item.idSurtimiento, e.target.value)
+                            }
+                            className={styles.eanInput}
+                          />
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleAceptarEAN(item.idSurtimiento);
+                            }}
+                            className={styles.eanButton}
+                          >
+                            Aceptar
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             ) : (
               <p>No se encontró detalle de medicamentos.</p>
             )}
-            {/* Botón Guardar */}
             <button onClick={handleGuardar} className={styles.saveButton}>
               Guardar
             </button>

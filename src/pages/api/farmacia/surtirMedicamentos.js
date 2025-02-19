@@ -1,4 +1,4 @@
-import { connectToDatabase } from '../../api/connectToDatabase'; 
+import { connectToDatabase } from '../../api/connectToDatabase';
 import sql from 'mssql';
 
 export default async function handler(req, res) {
@@ -18,21 +18,23 @@ export default async function handler(req, res) {
     await transaction.begin();
 
     try {
-      // Para cada detalle, se actualiza la tabla MEDICAMENTOS descontando la cantidad entregada
+      // Para cada detalle, se actualiza la tabla MEDICAMENTOS y el detalle de surtimiento
       for (const item of detalle) {
-        // item.delivered: piezas entregadas = (cantidad requerida - piezasPendientes)
-        if (item.delivered > 0) {
+        // item.delivered: piezas entregadas = (cantidad - piezasPendientes)
+        const delivered = item.delivered; // calculado en el componente
+
+        if (delivered > 0) {
           const updateMed = `
             UPDATE [PRESIDENCIA].[dbo].[medicamentos]
             SET piezas = piezas - @delivered
             WHERE claveMedicamento = @claveMedicamento
           `;
           await transaction.request()
-            .input('delivered', sql.Int, item.delivered)
-            .input('claveMedicamento', sql.VarChar(50), item.claveMedicamento)
+            .input('delivered', sql.Int, delivered)
+            .input('claveMedicamento', sql.NVarChar(50), item.claveMedicamento)
             .query(updateMed);
         }
-        // Actualiza el detalle de surtimiento, estableciendo el estatus y el campo "entregado"
+        // Actualizar el detalle de surtimiento: asignar estatus y actualizar el campo "entregado"
         const updateDetalle = `
           UPDATE [PRESIDENCIA].[dbo].[detalleSurtimientos]
           SET estatus = @estatus,
@@ -41,12 +43,12 @@ export default async function handler(req, res) {
         `;
         await transaction.request()
           .input('estatus', sql.Int, item.estatus)
-          .input('delivered', sql.Int, item.delivered)
+          .input('delivered', sql.Int, delivered)
           .input('idSurtimiento', sql.Int, item.idSurtimiento)
           .query(updateDetalle);
       }
 
-      // Si la receta se completó, actualizamos SURTIMIENTOS a ESTATUS=0 (receta surtida)
+      // Si la receta se completó, actualizar la tabla SURTIMIENTOS a ESTATUS=0 (receta surtida)
       if (recetaCompletada) {
         const updateSurtimiento = `
           UPDATE [PRESIDENCIA].[dbo].[SURTIMIENTOS]
