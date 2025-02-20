@@ -233,7 +233,11 @@ const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
                 <FaCalendarAlt className="text-cyan-400 mr-4" size={28} />
                 <span className="text-cyan-200 font-medium">
                   {fechaInicio
-                    ? fechaInicio.substring(0, 10)
+                    ? typeof fechaInicio === "string"
+                      ? fechaInicio.substring(0, 10)
+                      : fechaInicio instanceof Date
+                      ? fechaInicio.toISOString().substring(0, 10) //* Convertir Date a string
+                      : "📅 Selecciona una fecha"
                     : "📅 Selecciona una fecha"}
                 </span>
               </div>
@@ -262,7 +266,7 @@ const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
                     tileDisabled={({ date }) => {
                       const today = new Date();
                       today.setHours(0, 0, 0, 0);
-                      return date < today; // deshabilitar fechas pasadas
+                      return date < today; //! deshabilitar fechas pasadas
                     }}
                     navigationLabel={({ date }) => (
                       <p className="text-lg font-bold text-cyan-400">
@@ -296,9 +300,13 @@ const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
                 }}
               >
                 <FaCalendarAlt className="text-pink-400 mr-4" size={28} />
-                <span className="text-pink-200 font-medium">
-                  {fechaFin
-                    ? fechaFin.substring(0, 10)
+                <span>
+                {fechaFin
+                    ? typeof fechaFin === "string"
+                      ? fechaFin.substring(0, 10)
+                      : fechaFin instanceof Date
+                      ? fechaFin.toISOString().substring(0, 10) //* Convertir Date a string
+                      : "📅 Selecciona una fecha"
                     : "📅 Selecciona una fecha"}
                 </span>
               </div>
@@ -318,12 +326,19 @@ const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
                       console.log("Fecha Final:", fechaFinalSeleccionada);
                     }}
                     value={
-                      fechaFin ? new Date(fechaFin.replace(" ", "T")) : null
+                      fechaFin
+                        ? typeof fechaFin === "string"
+                          ? new Date(fechaFin.replace(" ", "T"))
+                          : fechaFin instanceof Date
+                          ? fechaFin
+                          : null
+                        : null
                     }
+                    
                     className="bg-gradient-to-br from-gray-900 via-black to-gray-800 rounded-lg text-pink-300"
                     tileDisabled={({ date }) => {
                       if (!fechaInicio) return true;
-                      // Máximo 15 días después de inicial
+                      //* Máximo 15 días después de inicial
                       const fechaIni = new Date(fechaInicio.replace(" ", "T"));
                       const maxDate = new Date(fechaIni);
                       maxDate.setDate(fechaIni.getDate() + 15);
