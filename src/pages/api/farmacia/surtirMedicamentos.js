@@ -1,3 +1,4 @@
+// pages/api/farmacia/surtirMedicamentos.js
 import { connectToDatabase } from '../../api/connectToDatabase';
 import sql from 'mssql';
 
@@ -5,7 +6,7 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ message: 'Método no permitido' });
   }
-  const { folioSurtimiento, detalle, recetaCompletada } = req.body;
+  const { folioSurtimiento, detalle, recetaCompletada, cost } = req.body;
   if (!folioSurtimiento || !detalle) {
     return res
       .status(400)
@@ -20,9 +21,9 @@ export default async function handler(req, res) {
     try {
       // Para cada detalle, se actualiza la tabla MEDICAMENTOS y el detalle de surtimiento
       for (const item of detalle) {
-        // item.delivered: piezas entregadas = (cantidad - piezasPendientes)
         const delivered = item.delivered; // calculado en el componente
 
+        // Descontamos del stock de medicamentos si se entregó algo
         if (delivered > 0) {
           const updateMed = `
             UPDATE [PRESIDENCIA].[dbo].[medicamentos]
@@ -34,7 +35,8 @@ export default async function handler(req, res) {
             .input('claveMedicamento', sql.NVarChar(50), item.claveMedicamento)
             .query(updateMed);
         }
-        // Actualizar el detalle de surtimiento: asignar estatus y actualizar el campo "entregado"
+
+        // Actualizamos detalleSurtimientos con estatus y entregado
         const updateDetalle = `
           UPDATE [PRESIDENCIA].[dbo].[detalleSurtimientos]
           SET estatus = @estatus,
@@ -49,14 +51,18 @@ export default async function handler(req, res) {
       }
 
       // Si la receta se completó, actualizar la tabla SURTIMIENTOS a ESTATUS=0 (receta surtida)
+      // y setear FECHA_DESPACHO = GETDATE(), COSTO = @cost
       if (recetaCompletada) {
         const updateSurtimiento = `
           UPDATE [PRESIDENCIA].[dbo].[SURTIMIENTOS]
-          SET ESTATUS = 0
-          WHERE FOLIO_SURTIMIENTO = @folio
+          SET ESTATUS = 0,
+              FECHA_DESPACHO = GETDATE(),
+              COSTO = @cost
+          WHERE FOLIO_SURTIMIMIENTO = @folio
         `;
         await transaction.request()
           .input('folio', sql.Int, folioSurtimiento)
+          .input('cost', sql.Numeric(18, 2), cost || 0) // Si cost no viene, asignamos 0
           .query(updateSurtimiento);
       }
 
@@ -65,7 +71,9 @@ export default async function handler(req, res) {
     } catch (err) {
       await transaction.rollback();
       console.error('Error en transacción surtirMedicamentos:', err);
-      return res.status(500).json({ message: 'Error en la transacción', error: err.message });
+      return res
+        .status(500)
+        .json({ message: 'Error en la transacción', error: err.message });
     }
   } catch (error) {
     console.error('Error conectando a DB en surtirMedicamentos:', error);

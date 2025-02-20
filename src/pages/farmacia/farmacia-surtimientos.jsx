@@ -1,8 +1,9 @@
-// FarmaciaSurtimientos.jsx
+// pages/farmacia/farmacia-surtimientos.jsx
 import React, { useState } from 'react';
 import styles from '../css/EstilosFarmacia/FarmaciaSurtimientos.module.css';
 import SurtimientosTable from './components/surtimientosTable';
 import useSurtimientos from '../../hooks/farmaciaHook/useSurtimientos';
+
 const FarmaciaSurtimientos = () => {
   const [barcode, setBarcode] = useState('');
   const { data, loading, error, fetchSurtimientos } = useSurtimientos();
