@@ -9,7 +9,7 @@ export default async function handler(req, res) {
     const result = await pool.request().query(`
       SELECT CLAVEMEDICAMENTO, MEDICAMENTO, CLASIFICACION, EAN, ESTATUS
       FROM MEDICAMENTOS
-      WHERE ESTATUS = 1
+      WHERE ESTATUS IS NULL
     `);
 
     // Imprimir los resultados en la consola para depuración

@@ -8,22 +8,24 @@ import {
   FaExclamationTriangle,
   FaIdCard,
   FaHourglassHalf,
-  FaHourglassStart,
+  FaSearch,
 } from "react-icons/fa";
 
 const IncapacidadesDashboard = () => {
   const [incapacidades, setIncapacidades] = useState([]);
+  const [filteredIncapacidades, setFilteredIncapacidades] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     const fetchIncapacidades = async () => {
       try {
         const response = await fetch("/api/incapacidades/historialRH");
-        if (!response.ok)
-          throw new Error("Error al obtener las incapacidades.");
+        if (!response.ok) throw new Error("Error al obtener las incapacidades.");
         const data = await response.json();
         setIncapacidades(data.historial);
+        setFilteredIncapacidades(data.historial);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -33,6 +35,16 @@ const IncapacidadesDashboard = () => {
     fetchIncapacidades();
   }, []);
 
+  //* 🔎 FUNCIÓN PARA FILTRAR POR NÓMINA O NOMBREPACIENTE
+  useEffect(() => {
+    const lowerSearch = searchTerm.toLowerCase();
+    const filtered = incapacidades.filter((item) =>
+      item.nombrepaciente.toLowerCase().includes(lowerSearch) ||
+      item.nomina.toLowerCase().includes(lowerSearch)
+    );
+    setFilteredIncapacidades(filtered);
+  }, [searchTerm, incapacidades]);
+
   return (
     <div className="relative min-h-screen bg-black text-white p-10 overflow-hidden">
       {/* 🔥 FONDO ANIMADO */}
@@ -41,13 +53,27 @@ const IncapacidadesDashboard = () => {
 
       {/* 🟢 TÍTULO NEÓN */}
       <motion.h1
-        className="relative z-10 text-5xl font-extrabold text-center mb-10 neon-text uppercase"
+        className="relative z-10 text-5xl font-extrabold text-center mb-6 neon-text uppercase"
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.5 }}
       >
         🌟 Historial de Incapacidades 🌟
       </motion.h1>
+
+      {/* 🔍 INPUT DE BÚSQUEDA */}
+      <div className="relative z-10 flex justify-center mb-8">
+        <div className="relative w-full max-w-md">
+          <input
+            type="text"
+            placeholder="Buscar por nómina o nombre..."
+            className="w-full bg-gray-900 text-white text-lg py-3 px-5 rounded-full border border-cyan-400 focus:ring-2 focus:ring-cyan-500 outline-none transition-all"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          <FaSearch className="absolute right-4 top-1/2 transform -translate-y-1/2 text-cyan-400 text-xl" />
+        </div>
+      </div>
 
       {/* 🔄 CARGA Y ERRORES */}
       {loading && (
@@ -59,12 +85,12 @@ const IncapacidadesDashboard = () => {
 
       {!loading && !error && (
         <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {incapacidades.length === 0 ? (
+          {filteredIncapacidades.length === 0 ? (
             <p className="text-center text-gray-400 col-span-full">
-              No hay incapacidades activas.
+              No se encontraron resultados.
             </p>
           ) : (
-            incapacidades.map((incapacidad, index) => {
+            filteredIncapacidades.map((incapacidad, index) => {
               const isVencida = !!incapacidad.alerta;
               const isActiva = !isVencida && incapacidad.diasRestantes !== null;
               const isFutura = incapacidad.futura;
@@ -85,18 +111,6 @@ const IncapacidadesDashboard = () => {
                   transition={{ duration: 0.5, delay: index * 0.1 }}
                   whileHover={{ scale: 1.05 }}
                 >
-                  {/* 🔥 EFECTO HOLOGRÁFICO */}
-                  <div
-                    className={`absolute inset-0 bg-gradient-to-br opacity-10 hover:opacity-40 transition-all duration-500 
-                      ${
-                        isVencida
-                          ? "from-red-500/40"
-                          : isFutura
-                          ? "from-blue-500/40"
-                          : "from-cyan-500/40"
-                      }`}
-                  ></div>
-
                   {/* 🏥 Nombre del paciente */}
                   <h2
                     className={`text-3xl font-bold flex items-center gap-2 
@@ -145,19 +159,13 @@ const IncapacidadesDashboard = () => {
                     </p>
                   </div>
 
-                  {/* ⚠️ ALERTAS (Más transparencia y desenfoque) */}
+                  {/* ⚠️ ALERTAS */}
                   {isVencida && (
                     <motion.div className="absolute top-3 right-3 flex items-center gap-2 bg-red-600/40 text-white text-xs px-3 py-2 rounded-full shadow-lg backdrop-blur-xl">
                       <FaExclamationTriangle className="text-lg" />
                       <span>
                         Incapacidad vencida hace {incapacidad.alerta}
                       </span>
-                    </motion.div>
-                  )}
-                  {isFutura && (
-                    <motion.div className="absolute top-3 right-3 flex items-center gap-2 bg-blue-600/40 text-white text-xs px-3 py-2 rounded-full shadow-lg backdrop-blur-xl">
-                      <FaHourglassStart className="text-lg" />
-                      <span>Aún no inicia</span>
                     </motion.div>
                   )}
                   {isActiva && (
