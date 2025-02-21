@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
+import { useRouter } from 'next/router';
 import {
   FaSearch,
   FaUserMd,
@@ -68,6 +69,7 @@ const calcularEdad = (fechaNacimiento) => {
 };
 
 const CapturaIncapacidades = () => {
+  const router = useRouter();
   const [folioConsulta, setFolioConsulta] = useState("");
   const [nomina, setNomina] = useState("");
   const [employeeData, setEmployeeData] = useState({});
@@ -387,6 +389,11 @@ const CapturaIncapacidades = () => {
     fetchHistorialIncapacidades();
   }, [nomina]);
 
+  const handleRegresar = () => {
+    router.push('/inicio-servicio-medico'); // Redirige a /inicio-servicio-medico
+  };
+  
+
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-black via-gray-900 to-blue-900 text-white py-16 px-4 sm:px-20 flex flex-col items-center overflow-hidden">
       {/* Efecto de fondo */}
@@ -402,6 +409,15 @@ const CapturaIncapacidades = () => {
           animate={{ scale: 1, opacity: 1 }}
           className="text-center mb-12 space-y-4"
         >
+                {/* Botón regresar */}
+  <div className="flex justify-start mb-12">
+    <button
+      onClick={handleRegresar}
+      className="relative px-6 py-3 text-lg font-semibold rounded-full bg-gradient-to-r from-red-600 via-pink-600 to-purple-700 shadow-[0px_0px_15px_5px_rgba(255,0,0,0.5)] hover:shadow-[0px_0px_30px_10px_rgba(255,0,0,0.7)] text-white hover:brightness-125 transition-all duration-300"
+    >
+      ← Regresar
+    </button>
+  </div>
           <h1 className="text-5xl font-extrabold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent drop-shadow-[0_0_15px_rgba(34,211,238,0.8)]">
             <div className="flex items-center justify-center gap-4">
               <FaClipboardList className="text-cyan-400 text-6xl animate-pulse" />

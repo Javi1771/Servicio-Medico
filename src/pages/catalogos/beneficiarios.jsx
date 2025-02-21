@@ -1243,7 +1243,7 @@ export default function RegistroBeneficiario() {
   }
 
   const handleBack = () => {
-    router.back(); // Navegar a la página anterior en el historial
+    router.push('/inicio-servicio-medico'); // Redirige a /inicio-servicio-medico
   };
 
   // Función para obtener las opciones de sexo desde la API

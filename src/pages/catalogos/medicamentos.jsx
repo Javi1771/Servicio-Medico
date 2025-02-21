@@ -31,7 +31,7 @@ export default function MedicamentosTable() {
       // Filtrar medicamentos activos
       const medicamentosActivos = data.filter(
         (medicamento) =>
-          medicamento.ESTATUS === 1 || medicamento.ESTATUS === true
+          medicamento.ESTATUS == 1
       );
 
       setMedicamentos(medicamentosActivos);

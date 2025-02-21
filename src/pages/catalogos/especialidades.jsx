@@ -164,7 +164,7 @@ export default function EspecialidadesTable() {
 
   const router = useRouter();
   const handleBack = () => {
-    router.back();
+    router.push('/inicio-servicio-medico'); // Redirige a /inicio-servicio-medico
   };
 
   return (

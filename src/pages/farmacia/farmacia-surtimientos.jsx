@@ -1,10 +1,11 @@
-// pages/farmacia/farmacia-surtimientos.jsx
 import React, { useState } from 'react';
+import { useRouter } from 'next/router'; // Importa useRouter
 import styles from '../css/EstilosFarmacia/FarmaciaSurtimientos.module.css';
 import SurtimientosTable from './components/surtimientosTable';
 import useSurtimientos from '../../hooks/farmaciaHook/useSurtimientos';
 
 const FarmaciaSurtimientos = () => {
+  const router = useRouter(); // Declara el router
   const [barcode, setBarcode] = useState('');
   const { data, loading, error, fetchSurtimientos } = useSurtimientos();
 
@@ -12,9 +13,18 @@ const FarmaciaSurtimientos = () => {
     await fetchSurtimientos(barcode);
   };
 
+  // Función para redireccionar a /inicio-servicio-medico
+  const handleRegresar = () => {
+    router.push('/inicio-servicio-medico');
+  };
+
   return (
     <div className={styles.container}>
       <div className={styles.card}>
+        {/* Botón de Regresar */}
+        <button onClick={handleRegresar} className={styles.button}>
+          Regresar
+        </button>
         <h1 className={styles.title}>Farmacia Surtimientos</h1>
         <div className={styles.inputContainer}>
           <label htmlFor="barcode" className={styles.label}>Código de Barras</label>

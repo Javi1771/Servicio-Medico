@@ -85,7 +85,7 @@ const Home = () => {
           options: [
             "Beneficiarios",
             "Especialidades",
-            "Medicamentos",
+            //"Medicamentos",
             "Enfermedades Cronicas",
             "Usuarios y Proveedores",
           ],

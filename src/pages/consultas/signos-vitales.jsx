@@ -1,5 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-unused-vars */
+import Link from 'next/link'
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { AiOutlineUserAdd } from "react-icons/ai";
@@ -555,8 +556,15 @@ const SignosVitales = () => {
           <h1 className="text-3xl md:text-5xl font-extrabold">
             Registro de Pacientes
           </h1>
+            {/* Botón de Regresar */}
+      <div className="w-full flex justify-start mb-4">
+        <Link href="/inicio-servicio-medico">
+          <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-full text-white font-semibold">
+            Regresar
+          </button>
+        </Link>
+      </div>
         </div>
-
         <div className="flex space-x-4 mt-4">
           {/* Botón de Agregar Paciente - Compacto */}
           <button

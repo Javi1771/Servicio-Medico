@@ -510,7 +510,7 @@ export default function UsuariosTable() {
 
   const router = useRouter(); //* declaro la variable router
   const handleBack = () => {
-    router.back("/inicio-servicio-medico"); //* Esto regresa a la página anterior en el historial de navegación
+    router.push("/inicio-servicio-medico"); //* Esto regresa a la página anterior en el historial de navegación
   };
 
   const handleSearchChange = (e) => {
