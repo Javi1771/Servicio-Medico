@@ -70,7 +70,7 @@ export default async function handler(req, res) {
         ds.indicaciones,
         ds.cantidad,
         ds.piezas,
-        ds.entregado,             -- <--- Incluimos el campo entregado
+        ds.entregado,             
         m.medicamento AS nombreMedicamento,
         m.piezas AS stock
       FROM [PRESIDENCIA].[dbo].[detalleSurtimientos] ds

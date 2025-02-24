@@ -25,7 +25,8 @@ export default async function handler(req, res) {
               ELSE 'stock medio'
             END AS stockStatus
           FROM MEDICAMENTOS
-          WHERE estatus = 1
+          WHERE estatus = 1 
+            AND piezas < maximo
         `);
 
       const medicamentos = result.recordset;

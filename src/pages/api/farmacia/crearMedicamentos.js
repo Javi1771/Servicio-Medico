@@ -7,7 +7,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ message: `Método ${req.method} no permitido` });
   }
 
-  const { medicamento, clasificacion, presentacion, ean, piezas, maximo, minimo } = req.body;
+  const { medicamento, clasificacion, presentacion, ean, piezas, maximo, minimo, medida } = req.body;
 
   console.log("📌 Datos recibidos en la solicitud:", req.body);
 
@@ -19,9 +19,10 @@ export default async function handler(req, res) {
     ean == null || 
     piezas == null ||
     maximo == null ||
-    minimo == null
+    minimo == null ||
+    medida == null
   ) {
-    console.error("⚠️ Faltan datos obligatorios:", { medicamento, clasificacion, presentacion, ean, piezas, maximo, minimo });
+    console.error("⚠️ Faltan datos obligatorios:", { medicamento, clasificacion, presentacion, ean, piezas, maximo, minimo, medida });
     return res.status(400).json({ message: 'Todos los campos son obligatorios.' });
   }
 
@@ -73,12 +74,13 @@ export default async function handler(req, res) {
       ean,
       piezas,
       maximo,
-      minimo
+      minimo,
+      medida
     });
 
     const insertQuery = `
-      INSERT INTO MEDICAMENTOS (claveMedicamento, medicamento, clasificacion, presentacion, ean, piezas, maximo, minimo)
-      VALUES (@claveMedicamento, @medicamento, @clasificacion, @presentacion, @ean, @piezas, @maximo, @minimo)
+      INSERT INTO MEDICAMENTOS (claveMedicamento, medicamento, clasificacion, presentacion, ean, piezas, maximo, minimo, medida)
+      VALUES (@claveMedicamento, @medicamento, @clasificacion, @presentacion, @ean, @piezas, @maximo, @minimo, @medida)
     `;
 
     await dbPool.request()
@@ -90,6 +92,7 @@ export default async function handler(req, res) {
       .input('piezas', sql.Int, piezas)
       .input('maximo', sql.Int, maximo)
       .input('minimo', sql.Int, minimo)
+      .input('medida', sql.NVarChar(10), medida)
       .query(insertQuery);
 
     console.log("✅ Medicamento registrado exitosamente:", medicamento);

@@ -9,6 +9,7 @@ const FormMedicamento = ({ onAddMedicamento, message }) => {
     piezas: "",
     minimo: "",
     maximo: "",
+    medida: "",
   });
 
   const handleChange = (e) => {
@@ -30,9 +31,10 @@ const FormMedicamento = ({ onAddMedicamento, message }) => {
       piezas: parseInt(formData.piezas, 10),
       minimo: parseInt(formData.minimo, 10),
       maximo: parseInt(formData.maximo, 10),
+      medida: formData.medida,
     });
 
-    // Reset del formulario
+    //! Reset del formulario
     setFormData({
       medicamento: "",
       clasificacion: "",
@@ -41,6 +43,7 @@ const FormMedicamento = ({ onAddMedicamento, message }) => {
       piezas: "",
       minimo: "",
       maximo: "",
+      medida: "",
     });
   };
 
@@ -107,6 +110,43 @@ const FormMedicamento = ({ onAddMedicamento, message }) => {
             <option value="g">GENÉRICO</option>
             <option value="c">CONTROLADO</option>
             <option value="e">ESPECIALIDAD</option>
+          </select>
+        </div>
+
+        {/* Unidad de Medida */}
+        <div className="flex flex-col">
+          <label
+            htmlFor="medida"
+            className="mb-1 font-semibold text-teal-300"
+          >
+            Unidad de Medida:
+          </label>
+          <select
+            id="medida"
+            name="medida"
+            value={formData.medida}
+            onChange={handleChange}
+            required
+            className="p-2 rounded-md border border-teal-500 bg-[#041616] text-teal-200 
+               focus:outline-none focus:ring-2 focus:ring-cyan-500 
+               placeholder:text-teal-500 transition-colors"
+          >
+            <option value="">Seleccione una unidad</option>
+            <option value="tab">Tab</option>
+            <option value="cap">Cap</option>
+            <option value="ms">ms</option>
+            <option value="sob">sob</option>
+            <option value="amp">amp</option>
+            <option value="comp">comp</option>
+            <option value="fco">fco</option>
+            <option value="gr">gr</option>
+            <option value="ui">ui</option>
+            <option value="mcg">mcg</option>
+            <option value="mg/ml">mg/ml</option>
+            <option value="ov">Ov</option>
+            <option value="1%">1%</option>
+            <option value="gts">gts</option>
+            <option value="oft">oft</option>
           </select>
         </div>
 

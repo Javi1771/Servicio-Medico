@@ -3,7 +3,7 @@ import sql from 'mssql';
 
 export default async function handler(req, res) {
   if (req.method === "PUT") {
-    const { id, medicamento, clasificacion, presentacion, ean, piezas, maximo, minimo } = req.body;
+    const { id, medicamento, clasificacion, presentacion, ean, piezas, maximo, minimo, medida } = req.body;
 
     // Verificar campos obligatorios
     if (
@@ -14,14 +14,15 @@ export default async function handler(req, res) {
       ean == null ||
       piezas == null ||
       maximo == null ||
-      minimo == null
+      minimo == null ||
+      medida == null
     ) {
-      console.error("Faltan campos obligatorios:", { id, medicamento, clasificacion, presentacion, ean, piezas, maximo, minimo });
+      console.error("Faltan campos obligatorios:", { id, medicamento, clasificacion, presentacion, ean, piezas, maximo, minimo, medida });
       return res.status(400).json({ message: "Todos los campos son obligatorios." });
     }
 
     try {
-      console.log("Iniciando actualización con los siguientes datos:", { id, medicamento, clasificacion, presentacion, ean, piezas, maximo, minimo });
+      console.log("Iniciando actualización con los siguientes datos:", { id, medicamento, clasificacion, presentacion, ean, piezas, maximo, minimo, medida });
 
       const pool = await connectToDatabase();
       const query = `
@@ -32,7 +33,8 @@ export default async function handler(req, res) {
             ean = @ean, 
             piezas = @piezas,
             maximo = @maximo,
-            minimo = @minimo
+            minimo = @minimo,
+            medida = @medida
         WHERE claveMedicamento = @id
       `;
 
@@ -45,6 +47,7 @@ export default async function handler(req, res) {
       request.input("piezas", sql.Int, piezas);
       request.input("maximo", sql.Int, maximo);
       request.input("minimo", sql.Int, minimo);
+      request.input("medida", sql.NVarChar(10), medida);
 
       console.log("Ejecutando query de actualización:", query);
       const result = await request.query(query);

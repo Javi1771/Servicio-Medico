@@ -26,11 +26,11 @@ const MedicamentosTable = ({ medicamentos = [], onDelete, onEdit }) => {
     e: "ESPECIALIDAD",
   };
 
-  //* Función para determinar el estado de las piezas
-  const getStockStatus = (piezas) => {
-    if (piezas <= 10) return { label: "Bajo", color: "bg-red-600" };
-    if (piezas >= 11 && piezas <= 39) return { label: "Medio", color: "bg-yellow-500" };
-    return { label: "Alto", color: "bg-green-500" };
+  //* Mapeo de stockStatus proveniente del backend a label y color
+  const stockStatusMapping = {
+    "stock bajo": { label: "Bajo", color: "bg-red-600" },
+    "stock medio": { label: "Medio", color: "bg-yellow-500" },
+    "stock alto": { label: "Bueno", color: "bg-green-500" },
   };
 
   //* Filtrar por medicamento o clasificación
@@ -91,21 +91,25 @@ const MedicamentosTable = ({ medicamentos = [], onDelete, onEdit }) => {
           <tbody>
             {medicamentosPaginados.length > 0 ? (
               medicamentosPaginados.map((med) => {
-                const stockStatus = getStockStatus(med.piezas);
+                const status =
+                  stockStatusMapping[med.stockStatus.toLowerCase()] || {
+                    label: med.stockStatus,
+                    color: "bg-gray-500",
+                  };
                 return (
                   <tr key={med.id}>
                     <td className="py-3 px-5 text-center">{med.medicamento}</td>
                     <td className="py-3 px-5 text-center">
                       {classificationMapping[med.clasificacion?.toLowerCase()] || med.clasificacion}
                     </td>
-                    <td className="py-3 px-5 text-center">{`c/${med.presentacion}`}</td>
+                    <td className="py-3 px-5 text-center">{`${med.presentacion} ${med.medida || "Sin Unidad de Medida"}`}</td>
                     <td className="py-3 px-5 text-center">{med.ean}</td>
                     <td className="py-3 px-5 text-center">{`(${med.piezas}) en stock`}</td>
                     <td className="py-3 px-5 text-center">{med.maximo}</td>
                     <td className="py-3 px-5 text-center">{med.minimo}</td>
                     <td className="py-3 px-5 text-center">
-                      <span className={`px-3 py-1 rounded-full text-white ${stockStatus.color} shadow-[0_0_10px_#0ff]`}>
-                        {stockStatus.label}
+                      <span className={`px-3 py-1 rounded-full text-white ${status.color} shadow-[0_0_10px_#0ff]`}>
+                        {status.label}
                       </span>
                     </td>
                     <td className="py-3 px-5 flex justify-center space-x-3">

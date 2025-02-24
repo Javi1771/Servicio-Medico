@@ -7,7 +7,7 @@ export default async function handler(req, res) {
 
     // Consulta solo los medicamentos activos y selecciona las columnas necesarias
     const result = await pool.request().query(`
-      SELECT CLAVEMEDICAMENTO, MEDICAMENTO, CLASIFICACION, EAN, ESTATUS
+      SELECT CLAVEMEDICAMENTO, MEDICAMENTO, CLASIFICACION, EAN, ESTATUS, maximo, minimo
       FROM MEDICAMENTOS
       WHERE ESTATUS = 1
     `);

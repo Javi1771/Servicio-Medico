@@ -114,7 +114,7 @@ const Home = () => {
         },
         {
           title: "Farmacia",
-          options: ["Medicamentos","Farmacia Surtimientos"],
+          options: ["Medicamentos", "Farmacia Surtimientos", "Notificaciones"],
           icon: <FaCapsules className="inline-block mr-2" />,
         }
       );
@@ -168,7 +168,7 @@ const Home = () => {
     if (rol === "9") {
       menuOptions.push({
         title: "Farmacia",
-        options: ["Medicamentos", "Farmacia Surtimientos"],
+        options: ["Medicamentos"],
         icon: <FaCapsules className="inline-block mr-2" />,
       });
     }
@@ -177,7 +177,7 @@ const Home = () => {
       menuOptions.push(
         {
           title: "Farmacia",
-          options: ["Medicamentos", "Farmacia Surtimientos"],
+          options: ["Medicamentos", "Farmacia Surtimientos", "Notificaciones"],
           icon: <FaCapsules className="inline-block mr-2" />,
         },
         {

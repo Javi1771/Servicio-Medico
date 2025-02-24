@@ -179,12 +179,12 @@ export const useMedicamentos = () => {
 
   //? Editar un medicamento
   const editMedicamento = async (medicamentoData) => {
-    const { id, medicamento, clasificacion, presentacion, ean, piezas } = medicamentoData;
+    const { id, medicamento, clasificacion, presentacion, ean, piezas, maximo, minimo, medida } = medicamentoData;
     try {
       const response = await fetch("/api/farmacia/editarMedicamento", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, medicamento, clasificacion, presentacion, ean, piezas }),
+        body: JSON.stringify({ id, medicamento, clasificacion, presentacion, ean, piezas, maximo, minimo, medida }),
       });
 
       const data = await response.json();

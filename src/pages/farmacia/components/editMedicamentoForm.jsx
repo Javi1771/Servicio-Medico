@@ -11,6 +11,7 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
     piezas: "",
     maximo: "",
     minimo: "",
+    medida: "",
   });
 
   useEffect(() => {
@@ -26,6 +27,7 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
         piezas: medicamento.piezas || "",
         maximo: medicamento.maximo || "",
         minimo: medicamento.minimo || "",
+        medida: medicamento.medida || "",
       });
     }
   }, [medicamento]);
@@ -93,6 +95,7 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
           piezas: parseInt(formData.piezas, 10),
           maximo: parseInt(formData.maximo, 10),
           minimo: parseInt(formData.minimo, 10),
+          medida: formData.medida,
         });
 
         Swal.fire({
@@ -235,6 +238,35 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
               className="w-full px-4 py-2 bg-[#0b2424] border border-teal-600 rounded-lg shadow-inner focus:outline-none focus:ring-2 focus:ring-teal-500 transition"
               placeholder="*Cantidad mínima permitida*"
             />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold mb-1">
+              Unidad de Medida:
+            </label>
+            <select
+              name="medida"
+              value={formData.medida}
+              onChange={handleChange}
+              required
+              className="w-full px-4 py-2 bg-[#0b2424] border border-teal-600 rounded-lg shadow-inner focus:outline-none focus:ring-2 focus:ring-teal-500 transition"
+            >
+              <option value="">Seleccione una unidad</option>
+              <option value="tab">Tab</option>
+              <option value="cap">Cap</option>
+              <option value="ms">ms</option>
+              <option value="sob">sob</option>
+              <option value="amp">amp</option>
+              <option value="comp">comp</option>
+              <option value="fco">fco</option>
+              <option value="gr">gr</option>
+              <option value="ui">ui</option>
+              <option value="mcg">mcg</option>
+              <option value="mg/ml">mg/ml</option>
+              <option value="ov">Ov</option>
+              <option value="1%">1%</option>
+              <option value="gts">gts</option>
+              <option value="oft">oft</option>
+            </select>
           </div>
           <div className="flex justify-between gap-4 mt-4">
             <button
