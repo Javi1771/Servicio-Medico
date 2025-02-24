@@ -1,14 +1,16 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { FaPlusCircle } from "react-icons/fa";
+import { FaPlusCircle, FaArrowLeft } from "react-icons/fa";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
+import { useRouter } from "next/router";
 
 const MySwal = withReactContent(Swal);
 
 const InsertarUnidadForm = () => {
   const [medida, setMedida] = useState("");
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -75,16 +77,29 @@ const InsertarUnidadForm = () => {
     }
   };
 
+  const handleGoBack = () => {
+    router.replace("/inicio-servicio-medico");
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-black">
       <motion.div
-        className="bg-gradient-to-br from-gray-900 to-black p-10 rounded-3xl shadow-2xl border border-white border-opacity-20"
+        className="relative bg-gradient-to-br from-gray-900 to-black p-10 rounded-3xl shadow-2xl border border-white border-opacity-20 w-full max-w-lg mx-4"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <div className="flex items-center justify-center mb-6">
+        {/* Header con botón de regreso integrado */}
+        <div className="flex items-center justify-between mb-6">
+          <button
+            onClick={handleGoBack}
+            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-500 to-red-700 text-white font-bold rounded-full shadow-lg hover:shadow-[0_0_20px_rgba(255,0,0,0.8)] transition-all duration-300"
+          >
+            <FaArrowLeft />
+            <span className="hidden sm:inline">Regresar</span>
+          </button>
           <FaPlusCircle className="text-6xl text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.8)]" />
+          <div className="w-24" /> {/* Espacio para balancear */}
         </div>
         <h2 className="text-4xl font-extrabold text-center mb-8 text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400 drop-shadow-lg">
           Nueva Unidad de Medida
@@ -92,7 +107,7 @@ const InsertarUnidadForm = () => {
         <form onSubmit={handleSubmit} className="flex flex-col gap-6">
           <div className="flex flex-col">
             <label htmlFor="medida" className="text-white font-bold text-lg mb-2">
-              Unidad Abrebviada:
+              Unidad Abreviada:
             </label>
             <input
               type="text"
