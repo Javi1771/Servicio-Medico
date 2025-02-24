@@ -18,7 +18,7 @@ const TablaMedicamentos = ({
   }
 
   if (!medicamentos || medicamentos.length === 0) {
-    return <p className={styles.error}>No hay medicamentos disponibles.</p>;
+    return <p className={styles.error}>No hay medicamentos asignados.</p>;
   }
 
   return (
