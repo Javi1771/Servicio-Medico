@@ -1,6 +1,7 @@
 // pages/farmacia/components/SurtimientosTable.jsx
 import React, { useState } from "react";
 import Head from "next/head";
+import Swal from "sweetalert2"; // Asegúrate de importar SweetAlert2
 import styles from "../../css/EstilosFarmacia/SurtimientosTable.module.css";
 
 import SurtimientosInfo from "./surtimientosInfo";
@@ -26,17 +27,20 @@ async function validarEAN(ean, claveMedicamento) {
 const SurtimientosTable = ({ data }) => {
   const { surtimiento, detalleSurtimientos } = data;
 
-  // Estado para el costo (si la receta sigue pendiente, podemos editarlo)
+  // Estado para el costo (si la receta sigue pendiente, se puede editar)
   const [cost, setCost] = useState(surtimiento?.COSTO || "");
 
-  // Inicializamos la lista de medicamentos
+  // Inicializamos la lista de medicamentos y agregamos alreadyDiscounted (0 por defecto)
+  // Además, agregamos "stock": si viene en el objeto, se usa; si no, se toma "piezas" como fallback.
   const [detalle, setDetalle] = useState(
     detalleSurtimientos.map((item) => ({
       ...item,
       delivered: item.entregado || 0,
+      alreadyDiscounted: item.alreadyDiscounted || 0, // Nuevo campo para controlar lo descontado
       showInput: false,
       eanValue: "",
       estatusLocal: (item.entregado || 0) >= item.piezas ? 2 : 1,
+      stock: item.stock !== undefined ? item.stock : item.piezas, // Si no viene stock, se asume igual a piezas
     }))
   );
 
@@ -71,11 +75,11 @@ const SurtimientosTable = ({ data }) => {
       return;
     }
 
-    // Permitir escanear mientras delivered < item.stock
+    // Validar que no se exceda el stock disponible
     if (item.delivered >= item.stock) {
       alert(
         `Stock insuficiente para este medicamento.
-         Solo se pueden entregar ${item.stock} piezas en total.`
+Solo se pueden entregar ${item.stock} piezas en total.`
       );
       return;
     }
@@ -106,35 +110,35 @@ const SurtimientosTable = ({ data }) => {
     );
   };
 
-  // Guardar
+  // Guardar: se calculará el delta (nuevas piezas entregadas) para cada detalle
   const handleGuardar = async () => {
-    try {
-      const todosSurtidos = detalle.every((it) => it.estatusLocal === 2);
-
-      const detallesParaGuardar = detalle.map((it) => ({
+    // Preparar la data a enviar: delta = delivered - alreadyDiscounted
+    const detallesParaGuardar = detalle.map((it) => {
+      const delta = it.delivered - it.alreadyDiscounted;
+      return {
         idSurtimiento: it.idSurtimiento,
         delivered: it.delivered,
+        delta, // Piezas nuevas a descontar
         claveMedicamento: it.claveMedicamento,
         estatus: it.estatusLocal,
-      }));
+        piezas: it.piezas,
+      };
+    });
 
-      let finalCost = cost;
-
-      // Si la receta se completó y la BD dice ESTATUS=1 => pedimos costo
-      if (todosSurtidos && surtimiento.ESTATUS === 1) {
-        if (!finalCost || finalCost.toString().trim() === "") {
-          const confirmar = confirm(
-            "No se ingresó costo. ¿Deseas continuar con costo = $0?"
-          );
-          if (!confirmar) {
-            return; // Cancela la transacción
-          } else {
-            finalCost = 0;
-          }
+    const todosSurtidos = detalle.every((it) => it.delivered >= it.piezas);
+    let finalCost = cost;
+    if (todosSurtidos && surtimiento.ESTATUS === 1) {
+      if (!finalCost || finalCost.toString().trim() === "") {
+        const confirmar = confirm("No se ingresó costo. ¿Deseas continuar con costo = $0?");
+        if (!confirmar) {
+          return; // Cancela la transacción
+        } else {
+          finalCost = 0;
         }
       }
+    }
 
-      // Llamada al backend
+    try {
       const resp = await fetch("/api/farmacia/surtirMedicamentos", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -148,11 +152,24 @@ const SurtimientosTable = ({ data }) => {
 
       const dataResp = await resp.json();
       if (!resp.ok) throw new Error(dataResp.message || "Error al guardar");
-      alert("Cambios guardados correctamente.");
-
-      // location.reload();
+      Swal.fire({
+        icon: "success",
+        title: "Éxito",
+        text: "Cambios guardados correctamente.",
+      });
+      // Actualizar el estado: marcar lo ya descontado como igual al delivered actual
+      setDetalle((prev) =>
+        prev.map((it) => ({
+          ...it,
+          alreadyDiscounted: it.delivered,
+        }))
+      );
     } catch (err) {
-      alert("Error guardando cambios: " + err.message);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Error guardando cambios: " + err.message,
+      });
     }
   };
 

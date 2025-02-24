@@ -1,4 +1,4 @@
-// CargaMedicamentosForm.jsx
+// CargaMedicamentosForm.jsx 
 import React, { useState } from "react";
 import Swal from "sweetalert2";
 import ModalPdf from "./modalPdf";
@@ -62,27 +62,14 @@ const CargaMedicamentosForm = ({
       return;
     }
 
-    // Verificar piezas disponibles
+    // Obtener información del medicamento seleccionado para agregar el nombre
     const medSeleccionado = medicamentos.find(
       (med) => med.CLAVEMEDICAMENTO === selectedMedicamento
     );
-    if (medSeleccionado) {
-      const piezasDisponibles = Number(medSeleccionado.PIEZAS);
-      const piezasIngresadas = Number(piezas);
-      if (piezasIngresadas > piezasDisponibles) {
-        Swal.fire({
-          icon: "error",
-          title: "Error",
-          text: `La cantidad de piezas ingresadas (${piezasIngresadas}) es mayor a las disponibles (${piezasDisponibles}).`,
-        });
-        return;
-      }
-    }
 
-    // 🔴 Aquí agregamos el nombre del medicamento
     const nuevoMedicamento = {
       claveMedicamento: selectedMedicamento,
-      nombreMedicamento: medSeleccionado.MEDICAMENTO, // <--- Lo importante
+      nombreMedicamento: medSeleccionado.MEDICAMENTO,
       indicaciones,
       cantidad,
       piezas,
