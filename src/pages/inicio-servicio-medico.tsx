@@ -96,7 +96,7 @@ const Home = () => {
           options: [
             "Pases a Especialidades",
             "Surtimientos",
-            "Orden de Estudio de Laboratorio",
+            //"Orden de Estudio de Laboratorio",
             "Incapacidades",
           ],
           icon: <FaHeartbeat className="inline-block mr-2" />,
@@ -148,7 +148,7 @@ const Home = () => {
         options: [
           "Pases a Especialidades",
           "Surtimientos",
-          "Orden de Estudio de Laboratorio",
+          // "Orden de Estudio de Laboratorio",
           "Incapacidades",
         ],
         icon: <FaHeartbeat className="inline-block mr-2" />,

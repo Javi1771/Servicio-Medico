@@ -138,10 +138,10 @@ const PresidenteLayout: React.FC<PresidenteLayoutProps> = ({ children }) => {
           path: "/capturas/pases-a-especialidades",
         },
         { name: "Surtimientos", path: "/capturas/surtimientos" },
-        {
-          name: "Orden de Estudio de Laboratorio",
-          path: "/capturas/orden-estudio-laboratorio",
-        },
+        // {
+        //   name: "Orden de Estudio de Laboratorio",
+        //   path: "/capturas/orden-estudio-laboratorio",
+        // },
         { name: "Incapacidades", path: "/capturas/incapacidades" },
       ],
     },
