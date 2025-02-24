@@ -95,7 +95,7 @@ const Home = () => {
           title: "Capturas",
           options: [
             "Pases a Especialidades",
-            "Surtimientos2",
+            "Surtimientos",
             "Orden de Estudio de Laboratorio",
             "Incapacidades",
             "Gastos",

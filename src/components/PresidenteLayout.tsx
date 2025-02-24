@@ -138,7 +138,6 @@ const PresidenteLayout: React.FC<PresidenteLayoutProps> = ({ children }) => {
           path: "/capturas/pases-a-especialidades",
         },
         { name: "Surtimientos", path: "/capturas/surtimientos" },
-        { name: "Surtimientos2", path: "/capturas/surtimientos2" },
         {
           name: "Orden de Estudio de Laboratorio",
           path: "/capturas/orden-estudio-laboratorio",

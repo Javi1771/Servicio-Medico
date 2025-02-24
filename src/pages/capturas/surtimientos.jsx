@@ -1,505 +1,377 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState, useEffect } from "react";
-import useFetchConsulta from "../../hooks/surtimientosHook/useFetchConsulta";
-import useFetchEmpleado from "../../hooks/surtimientosHook/useFetchEmpleado";
-import styles from "../css/estilosSurtimientos/surtimientos.module.css";
-import MedicamentosForm from "./components/medicamentosForm";
-import TablaResultados from "./components/TablaResultados";
-import Cookies from "js-cookie"; // Asegúrate de tener instalada esta librería
-import Swal from "sweetalert2";
-import { FiInfo } from "react-icons/fi";
 import Image from "next/image";
+import useFetchEmpleado from "../../hooks/hookSURTIMIENTOS2/useFetchEmpleado";
+import useFetchPaciente from "../../hooks/hookSURTIMIENTOS2/useFetchPaciente";
+import useFetchSindicato from "../../hooks/hookSURTIMIENTOS2/useFetchSindicato";
+import useFetchEspecialista from "../../hooks/hookSURTIMIENTOS2/useFetchEspecialista";
+import useFetchMedicamentos from "../../hooks/hookSURTIMIENTOS2/useFetchMedicamentos";
+import DatosEmpleado from "./components2/datosEmpleado";
+import InformacionPaciente from "./components2/informacionPaciente";
+import InformacionSindicato from "./components2/informacionSindicato";
+import InformacionEspecialista from "./components2/informacionEspecialista";
+import CargaMedicamentosForm from "./components2/cargaMedicamentosForm";
+import styles from "../css/SURTIMIENTOS_ESTILOS/surtimientos2.module.css";
+import { useRouter } from "next/router";
 
-export default function Surtimientos() {
-  const [folioConsulta, setFolioConsulta] = useState("");
-  const [claveNomina, setClaveNomina] = useState(null);
-  const [sindicato, setSindicato] = useState("");
-  const [medico, setMedico] = useState(null); // Información del médico
 
-  // Declara los estados
-  const [detalles, setDetalles] = useState([]); // Estado para detalles
+import useFetchMedicamentosReceta from "../../hooks/hookSURTIMIENTOS2/useFetchMedicamentosReceta";
+import TablaMedicamentos from "./components2/tablaMedicamentos"; // Extensión .jsx
+import Swal from "sweetalert2";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
 
-  const [nombreMedico, setNombreMedico] = useState("");
-  const [claveEspecialidad, setClaveEspecialidad] = useState("");
-  const [especialidades, setEspecialidades] = useState([]);
-  const [especialidadNombre, setEspecialidadNombre] = useState("No registrada");
+const SurtimientosBanner = () => {
 
-  const { empleadoData, fetchEmpleado } = useFetchEmpleado();
 
-  const [diagnosticoEditable, setDiagnosticoEditable] = useState("");
+  const router = useRouter();
 
-  const [isSearchAttempted, setIsSearchAttempted] = useState(false);
+  // Fecha actual en formato "dd/mm/aaaa"
+  const fechaActual = new Date().toLocaleDateString("es-ES");
 
-  const [isDiagnosticoEditable, setIsDiagnosticoEditable] = useState(true);
+  // Estados locales
+  const [folio, setFolio] = useState("");
+  const [receta, setReceta] = useState([]);
+  const [diagnostico, setDiagnostico] = useState(""); // Diagnóstico editable
 
-  const [claveusuario, setClaveusuario] = useState("");
+  // Hooks para obtener datos
+  const {
+    empleado,
+    loading: loadingEmpleado,
+    error: errorEmpleado,
+    fetchEmpleado,
+  } = useFetchEmpleado();
 
-  //const para mostrar informacion del medico especialista
+  const {
+    paciente,
+    loading: loadingPaciente,
+    error: errorPaciente,
+    fetchPaciente,
+  } = useFetchPaciente();
 
- 
-  const { data, fetchConsulta, error, loading } = useFetchConsulta();
-  const [showHistorial, setShowHistorial] = useState(false);
+  const {
+    sindicato,
+    loading: loadingSindicato,
+    error: errorSindicato,
+    fetchSindicato,
+  } = useFetchSindicato();
 
-  const handleToggleHistorial = () => {
-    setShowHistorial(!showHistorial);
+  const {
+    especialista,
+    loading: loadingEspecialista,
+    error: errorEspecialista,
+    fetchEspecialista,
+  } = useFetchEspecialista();
+
+  const {
+    medicamentos,
+    loading: loadingMedicamentos,
+    error: errorMedicamentos,
+  } = useFetchMedicamentos();
+
+  const {
+    medicamentos: medicamentosReceta,
+    loading: loadingReceta,
+    error: errorReceta,
+    fetchMedicamentosReceta,
+  } = useFetchMedicamentosReceta();
+
+  const handleRemoveMedicamento = (medicamento) => {
+    setReceta((prevReceta) => {
+      const newReceta = prevReceta.filter(
+        (med) => med.claveMedicamento !== medicamento.claveMedicamento
+      );
+      console.log("Nueva receta después de quitar:", newReceta);
+      return newReceta;
+    });
   };
 
+  // Función que se ejecuta al pulsar "Buscar"
   const handleSearch = async () => {
-    setIsSearchAttempted(true); // Marcar que se hizo un intento de búsqueda
-
-    if (!folioConsulta.trim()) {
-      Swal.fire({
-        title: "Campo Vacío",
-        text: "Por favor, ingresa un folio de consulta.",
-        icon: "warning",
-        confirmButtonText: "Aceptar",
-      });
-      return;
-    }
-
-    try {
-      Swal.fire({
-        title: "Cargando...",
-        text: "Por favor, espera mientras se carga la consulta.",
-        allowOutsideClick: false,
-        didOpen: () => {
-          Swal.showLoading();
-        },
-      });
-
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      // 1. Obtener detalles de la receta
-      const detallesResponse = await fetch(
-        `/api/surtimientos/getDetallesReceta?folioReceta=${folioConsulta}`
-      );
-
-      if (!detallesResponse.ok) {
+    if (folio.trim()) {
+      const folioNumero = parseInt(folio, 10);
+      if (isNaN(folioNumero) || folioNumero <= 0) {
         Swal.fire({
-          title: "Error al Cargar Detalles",
-          text: "No se pudieron obtener los detalles de la receta.",
+          title: "Error",
+          text: "Folio inválido. Debe ser un número entero positivo.",
           icon: "error",
           confirmButtonText: "Aceptar",
         });
         return;
       }
 
-      const detallesData = await detallesResponse.json();
-      setDetalles(detallesData);
+      fetchEmpleado(folioNumero);
+      fetchPaciente(folioNumero);
+      fetchSindicato(folioNumero);
+      fetchEspecialista(folioNumero);
 
-      // 2. Obtener información del folio de consulta
-      const consultaData = await fetchConsulta(folioConsulta);
-
-      if (consultaData) {
-        setClaveNomina(consultaData.clavenomina);
-        setSindicato(consultaData.sindicato);
-
-        let medicoNombre = "No disponible";
-        let especialidadNombre = "No registrada";
-
-        try {
-          // 3. Consultar el especialista
-          if (consultaData.claveproveedor) {
-            const especialistaResponse = await fetch(
-              `/api/surtimientos/getEspecialista?claveProveedor=${consultaData.claveproveedor}`
-            );
-
-            if (especialistaResponse.ok) {
-              const especialistaData = await especialistaResponse.json();
-              medicoNombre = especialistaData.nombreusuario || "No disponible";
-
-              if (especialistaData.claveespecialidad) {
-                const especialidadResponse = await fetch(
-                  `/api/surtimientos/getEspecialidad?claveEspecialidad=${especialistaData.claveespecialidad}`
-                );
-
-                if (especialidadResponse.ok) {
-                  const especialidadData = await especialidadResponse.json();
-                  especialidadNombre =
-                    especialidadData.especialidad || "No registrada";
-                }
-              }
-            }
+      try {
+        const response = await fetch(
+          "/api/SURTIMIENTOS2/getMedicamentosReceta",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ folioReceta: folioNumero }),
           }
-        } catch (especialistaError) {
-          console.warn(
-            "Error al obtener especialista o especialidad:",
-            especialistaError.message
-          );
+        );
+
+        if (!response.ok) {
+          throw new Error("Error al obtener los medicamentos.");
         }
 
-        setMedico({
-          nombre: medicoNombre,
-          especialidad: especialidadNombre,
+        const data = await response.json();
+        setReceta(data); // ✅ Actualizar la receta local
+
+        // 🔹 Llamar al hook para actualizar medicamentosReceta
+        fetchMedicamentosReceta(folioNumero);
+      } catch (error) {
+        console.error("Error al obtener medicamentos:", error);
+        Swal.fire({
+          title: "Error",
+          text: "Hubo un error al obtener los medicamentos.",
+          icon: "error",
+          confirmButtonText: "Aceptar",
         });
-
-        setDiagnosticoEditable(consultaData.diagnostico || "");
-        setIsDiagnosticoEditable(!consultaData.diagnostico);
       }
-
-      Swal.close();
-    } catch (error) {
-      console.error("Error al buscar información:", error.message);
-      Swal.fire({
-        title: "Error al Buscar Información",
-        text: "Ocurrió un problema al buscar el folio. Por favor, intenta de nuevo.",
-        icon: "error",
-        confirmButtonText: "Aceptar",
-      });
-      setClaveNomina(null);
-      setSindicato("");
-      setMedico(null);
-      setDetalles([]);
-      setDiagnosticoEditable("");
     }
   };
 
-  useEffect(() => {
-    if (claveNomina) {
-      fetchEmpleado(claveNomina);
-    }
-  }, [claveNomina, fetchEmpleado]);
+  // Añadir medicamento a la receta local
+  const handleAddMedicamento = (medicamento) => {
+    setReceta((prevReceta) => [...prevReceta, medicamento]);
+  };
 
-  // Leer cookies al cargar
-  useEffect(() => {
-    const nombre = Cookies.get("nombreusuario");
-    const clave = Cookies.get("claveespecialidad");
-    console.log("Nombre Médico desde cookies:", nombre);
-    console.log("Clave Especialidad desde cookies:", clave);
-    setNombreMedico(nombre || "No especificado");
-    setClaveEspecialidad(clave || "No especificado");
+  const handleSave = (medicamentosRestantes) => {
+    // Aquí puedes manejar el proceso de guardar los medicamentos restantes
+    console.log("Medicamentos a guardar:", medicamentosRestantes);
+    // Realizar el fetch o las operaciones necesarias para guardar los datos
+  };
+
+  // Guardar la receta en la BD o generar surtimiento
+  const handleSaveReceta = async () => {
+    const folioNumero = parseInt(folio, 10);
+    if (isNaN(folioNumero)) {
+      throw new Error("Folio inválido. Debe ser un número.");
+    }
   
-    const claveusuario = Cookies.get("claveusuario");
-    console.log("Clave claveusuario: ", claveusuario);
-    setClaveusuario(claveusuario || "No especificado");
-  }, [setClaveusuario]);
-
-  // Fetch para obtener especialidades
-  useEffect(() => {
-    const fetchEspecialidades = async () => {
-      try {
-        const response = await fetch("/api/surtimientos/getEspecialidades");
-        const data = await response.json();
-        const normalizedData = data.map((item) => ({
-          ...item,
-          claveespecialidad: parseInt(item.claveespecialidad, 10),
-        }));
-        console.log("Especialidades cargadas:", normalizedData);
-        setEspecialidades(normalizedData);
-      } catch (error) {
-        console.error("Error al cargar las especialidades:", error);
+    try {
+      // Verificar si ya existe el surtimiento para este folio
+      const response = await fetch("/api/SURTIMIENTOS2/getMedicamentosReceta", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ folio: folioNumero }),
+      });
+      const medicamentosExistentes = await response.json();
+  
+      if (medicamentosExistentes.length > 0) {
+        // **Caso 1:** Ya existen medicamentos en `detalleSurtimientos`
+        const surtimientoResponse = await fetch(
+          "/api/SURTIMIENTOS2/generarSurtimiento",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              folioReceta: folioNumero,
+              medicamentos: medicamentosExistentes,
+              diagnostico,
+            }),
+          }
+        );
+  
+        if (!surtimientoResponse.ok) {
+          const errorData = await surtimientoResponse.json();
+          throw new Error(errorData.message || "Error al generar surtimiento");
+        }
+  
+        Swal.fire({
+          title: "Éxito",
+          text: "Surtimiento generado correctamente.",
+          icon: "success",
+          confirmButtonText: "Aceptar",
+        });
+      } else {
+        // **Caso 2:** No existen medicamentos en `detalleSurtimientos`, transferimos desde `detalleReceta`
+        const recetaResponse = await fetch("/api/SURTIMIENTOS2/guardarReceta", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            folio: folioNumero,
+            medicamentos: receta,
+            diagnostico,
+          }),
+        });
+  
+        if (!recetaResponse.ok) {
+          const errorData = await recetaResponse.json();
+          throw new Error(errorData.message || "Error al guardar la receta.");
+        }
+  
+        Swal.fire({
+          title: "Éxito",
+          text: "Receta guardada exitosamente.",
+          icon: "success",
+          confirmButtonText: "Aceptar",
+        });
+  
+        // ✅ En lugar de limpiar la receta, volvemos a cargar los medicamentos
+        fetchMedicamentosReceta(folioNumero);
       }
-    };
-
-    fetchEspecialidades();
-  }, []);
-
-  // Interpretar la claveEspecialidad
-  useEffect(() => {
-    if (claveEspecialidad && especialidades.length > 0) {
-      const especialidadEncontrada = especialidades.find(
-        (esp) => esp.claveespecialidad === parseInt(claveEspecialidad, 10)
-      );
-      console.log("Especialidad encontrada:", especialidadEncontrada);
-      setEspecialidadNombre(
-        especialidadEncontrada?.especialidad || "No registrada"
-      );
-    }
-  }, [claveEspecialidad, especialidades]);
-
-  useEffect(() => {
-    console.log("Estado detalles actualizado:", detalles);
-  }, [detalles]);
-
-  useEffect(() => {
-    // Muestra SweetAlert en caso de error
-    if (error) {
+    } catch (error) {
+      console.error("Error al guardar la receta:", error.message);
       Swal.fire({
         title: "Error",
-        text: `Ocurrió un problema: ${error}`,
+        text: error.message || "No se pudo guardar la receta.",
         icon: "error",
         confirmButtonText: "Aceptar",
       });
     }
-  }, [error]);
+  };
+  
+
+  // Verificar si al menos uno de los datos se obtuvo (folio válido)
+  const isFolioValido = empleado || paciente || sindicato || especialista;
 
   useEffect(() => {
-    // Muestra SweetAlert mientras está cargando
-    if (loading) {
-      Swal.fire({
-        title: "Cargando...",
-        text: "Por favor, espera mientras se carga la consulta.",
-        allowOutsideClick: false,
-        didOpen: () => {
-          Swal.showLoading();
-        },
-      });
-    }
-  }, [loading]);
+    console.log("Medicamentos Recetados:", medicamentosReceta);
+  }, [medicamentosReceta]);
 
   return (
-    <div className={styles.bodyContainer}>
+    <div className={styles.pageContainer}>
       <div className={styles.container}>
-        {/* Banner en la parte superior */}
+        {/* Banner */}
         <div className={styles.bannerContainer}>
           <Image
-            src="/baner_sjr.png" // Ruta de tu imagen
+            src="/baner_sjr.png"
             alt="Banner Superior"
-            width={1920} // Ajusta según el ancho del contenedor
-            height={200} // Ajusta la altura
-            priority // Carga la imagen de forma prioritaria
+            width={900}
+            height={200}
+            priority
             className={styles.bannerImage}
           />
         </div>
+
+        {/* Título */}
         <h1 className={styles.title}>Surtimientos</h1>
-        {/* Header */}
-        <div className={styles.customHeader}>
-          <div className={styles.customSearchSection}>
+
+        {/* Encapsulador para la barra de búsqueda y la fecha */}
+        <div className={styles.infoContainer}>
+          {/* Barra de Búsqueda */}
+          <div className={styles.searchContainer}>
+          <button 
+        onClick={() => router.replace("/inicio-servicio-medico")}
+        className={styles.regresarButton}
+      >
+        Regresar
+      </button>
             <input
               type="text"
-              id="folioConsulta"
-              value={folioConsulta}
-              onChange={(e) => setFolioConsulta(e.target.value)}
               placeholder="Folio de consulta"
-              className={styles.customInput}
+              className={styles.searchInput}
+              value={folio}
+              onChange={(e) => setFolio(e.target.value)}
             />
-            <button
-              onClick={handleSearch}
-              className={styles.customSearchButton}
-            >
+            <button className={styles.searchButton} onClick={handleSearch}>
               Buscar
             </button>
           </div>
-          <span className={styles.customDate}>
-            Fecha Actual: {new Date().toLocaleDateString("es-ES")}
-          </span>
 
-          <div className={styles.customMedicoInfo}>
-            <p>
-              <span>Nombre del Médico:</span> {nombreMedico}
-            </p>
-            <p>
-              <span>Especialidad:</span> {especialidadNombre}
-            </p>
-          </div>
+          {/* Fecha actual */}
+          <span className={styles.date}>Fecha Actual: {fechaActual}</span>
         </div>
 
-        {/* Renderizar solo si se ha intentado buscar */}
-        {isSearchAttempted &&
-          (empleadoData || sindicato || detalles.length > 0 ? (
-            <>
-              {/* Información del empleado */}
-              {empleadoData && (
-                <>
-                  <h2 className={styles.employeeTitle}>
-                    Información del Empleado
-                  </h2>
-                  <div className={styles.employeeCard}>
-                    <p>
-                      <strong>Número de Nómina:</strong>{" "}
-                      {claveNomina || "No disponible"}
-                    </p>
-                    <p>
-                      <strong>Nombre:</strong>{" "}
-                      {`${empleadoData.nombre || "No disponible"} ${
-                        empleadoData.a_paterno || ""
-                      } ${empleadoData.a_materno || ""}`}
-                    </p>
-                  </div>
-                </>
-              )}
-
-              {/* Sección del Paciente y Sindicato */}
-              {(empleadoData || sindicato) && (
-                <div className={styles.section}>
-                  <h2 className={styles.sectionTitle}>
-                    Información del Paciente y Sindicato
-                  </h2>
-
-                  <div className={styles.row}>
-                    {/* Información del paciente */}
-                    {empleadoData && (
-                      <div
-                        className={`${styles.cardContainer} ${styles.cardt}`}
-                      >
-                        <h3 className={styles.cardSubtitle}>
-                          Información del Paciente
-                        </h3>
-                        <p>
-                          <strong>Paciente:</strong>{" "}
-                          {data?.nombrepaciente || "No disponible"}
-                        </p>
-                        <p>
-                          <strong>Edad:</strong>{" "}
-                          {empleadoData?.edad || "No disponible"} años
-                        </p>
-                        <p>
-                          <strong>Departamento:</strong>{" "}
-                          {empleadoData?.departamento || "No disponible"}
-                        </p>
-                        <p>
-                          <strong>Parentesco:</strong>{" "}
-                          {data?.parentesco || "No disponible"}
-                        </p>
-                      </div>
-                    )}
-
-                    {/* Información de sindicato */}
-                    <div
-                      className={`${styles.sindicatoCard} ${styles.cardt} ${
-                        sindicato
-                          ? styles.sindicalizado
-                          : styles.noSindicalizado
-                      }`}
-                    >
-                      <h3 className={styles.cardSubtitle}>Sindicato</h3>
-                      <p>
-                        <strong>Estado:</strong>{" "}
-                        {sindicato ? "Sindicalizado" : "No Sindicalizado"}
-                      </p>
-                      <p>
-                        <strong>Tipo:</strong> {sindicato || "No registrado"}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Información del médico especialista */}
-              {medico ? (
-                <div className={`${styles.section}`}>
-                  <h2 className={styles.sectionTitle2}>
-                    Información del Especialista
-                  </h2>
-                  <div
-                    className={`${styles.medicoCard} group relative`}
-                    title={
-                      medico?.nombre === "No disponible"
-                        ? "Especialista no asignado"
-                        : ""
-                    }
-                  >
-                    <h3>Médico Especialista</h3>
-                    <div className={styles.medicoInfo}>
-                      {/* Nombre y Especialidad como campos con tooltip */}
-                      <div className={`${styles.medicoDetails} group relative`}>
-                        <p
-                          className={
-                            medico?.nombre === "No disponible"
-                              ? styles.tooltipTrigger
-                              : undefined
-                          }
-                        >
-                          <strong>Nombre:</strong>{" "}
-                          {medico?.nombre || "No disponible"}
-                        </p>
-                        <p
-                          className={
-                            medico?.especialidad === "No registrada"
-                              ? styles.tooltipTrigger
-                              : undefined
-                          }
-                        >
-                          <strong>Especialidad:</strong>{" "}
-                          {medico?.especialidad || "No registrada"}
-                        </p>
-
-                        {/* Tooltip si no se asignó especialista */}
-                        {(medico?.nombre === "No disponible" ||
-                          medico?.especialidad === "No registrada") && (
-                          <div
-                            className={`${styles.tooltip} invisible opacity-0 group-hover:visible group-hover:opacity-100 absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-72 transition-all duration-300 ease-out transform group-hover:translate-y-0 translate-y-2`}
-                          >
-                            <div className={styles.tooltipContent}>
-                              <div className={styles.tooltipHeader}>
-                                <div className={styles.tooltipIcon}>
-                                  <FiInfo className="w-4 h-4" />
-                                </div>
-                                <h3 className={styles.tooltipTitle}>
-                                  Especialista no asignado
-                                </h3>
-                              </div>
-                              <p className={styles.tooltipText}>
-                                Este folio no tiene un especialista asignado.
-                                Por favor, verifica.
-                              </p>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Diagnóstico */}
-                      <div className={styles.diagnosticoField}>
-                        <label htmlFor="diagnostico">
-                          <strong>Diagnóstico:</strong>
-                        </label>
-                        <textarea
-                          id="diagnostico"
-                          className={styles.diagnosticoTextarea}
-                          value={diagnosticoEditable}
-                          onChange={(e) =>
-                            setDiagnosticoEditable(e.target.value)
-                          }
-                          placeholder="Escribe el diagnóstico..."
-                          disabled={!isDiagnosticoEditable} // Deshabilitado si ya existe diagnóstico
-                        />
-                        <p
-                          className={`${styles.infoMessage} ${
-                            isDiagnosticoEditable
-                              ? styles.successMessage
-                              : styles.errorMessage
-                          }`}
-                        >
-                          <FiInfo className={styles.infoIcon} />
-                          {!isDiagnosticoEditable
-                            ? "El diagnóstico ya existe y no puede ser modificado."
-                            : "Puedes escribir un diagnóstico."}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className={styles.section}>
-                  <h2 className={styles.sectionTitle2}>
-                    Información del Especialista
-                  </h2>
-                  <div className={styles.tooltip}>
-                    <p className={styles.tooltipText}>
-                      No se asignó especialista
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* Formulario */}
-              {medico && (
-                <MedicamentosForm
-                  folioConsulta={folioConsulta}
-                  diagnostico={diagnosticoEditable}
-                  onFormSubmitted={handleSearch}
-                  detalles={detalles}
-                  showHistorial={showHistorial} // Pasar el estado showHistorial
-                  handleToggleHistorial={handleToggleHistorial} // Pasar la función handleToggleHistorial
-                />
-              )}
-
-              {/* Tabla de Resultados */}
-              {detalles.length > 0 && (
-                <TablaResultados
-                  folioPase={folioConsulta} // Se asegura de pasar el folio correcto
-                  data={detalles}
-                  onEstatusUpdated={handleSearch}
-                />
-              )}
-            </>
+        {/* Sección de Tarjetas (Empleado / Paciente / Sindicato) */}
+        <div className={styles.rowCards}>
+          {/* Datos del Empleado */}
+          {loadingEmpleado ? (
+            <p className={styles.loading}>Cargando datos del empleado...</p>
+          ) : errorEmpleado ? (
+            <p className={styles.error}>Error: {errorEmpleado}</p>
           ) : (
-            // Mostrar el mensaje si no hay datos
-            <p className={styles.noDataMessage}>
-              No hay información disponible. Introduce un folio válido y busca.
+            empleado && <DatosEmpleado empleado={empleado} />
+          )}
+
+          {/* Información del Paciente */}
+          {loadingPaciente ? (
+            <p className={styles.loading}>
+              Cargando información del paciente...
             </p>
-          ))}
+          ) : errorPaciente ? (
+            <p className={styles.error}>Error: {errorPaciente}</p>
+          ) : (
+            paciente && <InformacionPaciente paciente={paciente} />
+          )}
+
+          {/* Información del Sindicato */}
+          {loadingSindicato ? (
+            <p className={styles.loading}>
+              Cargando información del sindicato...
+            </p>
+          ) : errorSindicato ? (
+            <p className={styles.error}>Error: {errorSindicato}</p>
+          ) : (
+            sindicato && <InformacionSindicato sindicato={sindicato} />
+          )}
+        </div>
+
+        {/* Información del Especialista */}
+        <div className={styles.fullWidthCard}>
+          {loadingEspecialista ? (
+            <p className={styles.loading}>
+              Cargando información del especialista...
+            </p>
+          ) : errorEspecialista ? (
+            <p className={styles.error}>Error: {errorEspecialista}</p>
+          ) : (
+            especialista && (
+              <InformacionEspecialista
+              especialista={especialista}
+              onDiagnosticoChange={(value) => {
+                console.log("📝 Diagnóstico actualizado en `SurtimientosBanner`:", value);
+                setDiagnostico(value); // ✅ Permitir que el estado se actualice siempre
+              }}
+            />
+            
+            )
+          )}
+        </div>
+
+        {/* Carga de Medicamentos (solo si el folio es válido) */}
+        {isFolioValido && (
+          <div className={styles.medicamentosContainer}>
+            {loadingMedicamentos ? (
+              <p className={styles.loading}>Cargando medicamentos...</p>
+            ) : errorMedicamentos ? (
+              <p className={styles.error}>Error: {errorMedicamentos}</p>
+            ) : (
+              medicamentos && (
+                <CargaMedicamentosForm
+                  medicamentos={medicamentos}
+                  onAddMedicamento={handleAddMedicamento}
+                  onSave={handleSaveReceta}
+                  disableAdd={medicamentosReceta.length > 0}
+                  receta={receta}
+                  folio={folio} // 🔹 Pasar el folio como prop
+                />
+              )
+            )}
+          </div>
+        )}
+
+        {/* Tabla de Medicamentos Recetados */}
+        {isFolioValido && (
+          <div className={styles.historialContainer}>
+            <TablaMedicamentos
+              medicamentos={receta} // Pasa el estado actualizado de receta aquí
+              loading={loadingReceta}
+              error={errorReceta}
+              onSave={handleSaveReceta}
+              onRemoveMedicamento={handleRemoveMedicamento}
+            />
+          </div>
+        )}
       </div>
     </div>
   );
-}
+};
+
+export default SurtimientosBanner;
