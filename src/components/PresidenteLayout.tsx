@@ -143,15 +143,7 @@ const PresidenteLayout: React.FC<PresidenteLayoutProps> = ({ children }) => {
           path: "/capturas/orden-estudio-laboratorio",
         },
         { name: "Incapacidades", path: "/capturas/incapacidades" },
-        { name: "Gastos", path: "/capturas/gastos" },
       ],
-    },
-    {
-      title: "Cancelaciones",
-      icon: (
-        <FaBan className="text-blue-400 text-3xl group-hover:scale-110 transition-transform duration-300" />
-      ),
-      options: [{ name: "Formatos", path: "/cancelaciones/formatos" }],
     },
     {
       title: "Reportes",
@@ -160,7 +152,6 @@ const PresidenteLayout: React.FC<PresidenteLayoutProps> = ({ children }) => {
       ),
       options: [
         { name: "Incapacidades", path: "/reportes/incapacidades" },
-        { name: "Costos", path: "/reportes/costos" },
       ],
     },
     {

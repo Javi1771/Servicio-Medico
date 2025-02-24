@@ -14,7 +14,7 @@ import {
   FaCapsules,
   FaSignOutAlt,
   FaChevronDown,
-  FaBan,
+  // FaBan,
   FaFeatherAlt,
 } from "react-icons/fa";
 
@@ -98,18 +98,17 @@ const Home = () => {
             "Surtimientos",
             "Orden de Estudio de Laboratorio",
             "Incapacidades",
-            "Gastos",
           ],
           icon: <FaHeartbeat className="inline-block mr-2" />,
         },
-        {
-          title: "Cancelaciones",
-          options: ["Formatos"],
-          icon: <FaBan className="inline-block mr-2" />,
-        },
+        // {
+        //   title: "Cancelaciones",
+        //   options: ["Formatos"],
+        //   icon: <FaBan className="inline-block mr-2" />,
+        // },
         {
           title: "Reportes",
-          options: ["Incapacidades", "Costos"],
+          options: ["Incapacidades"],
           icon: <FaFeatherAlt className="inline-block mr-2" />,
         },
         {
@@ -151,7 +150,6 @@ const Home = () => {
           "Surtimientos",
           "Orden de Estudio de Laboratorio",
           "Incapacidades",
-          "Gastos",
         ],
         icon: <FaHeartbeat className="inline-block mr-2" />,
       });
@@ -160,7 +158,7 @@ const Home = () => {
     if (rol === "8") {
       menuOptions.push({
         title: "Reportes",
-        options: ["Incapacidades", "Costos"],
+        options: ["Incapacidades"],
         icon: <FaFeatherAlt className="inline-block mr-2" />,
       });
     }
