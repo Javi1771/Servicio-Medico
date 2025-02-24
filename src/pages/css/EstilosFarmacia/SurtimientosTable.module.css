@@ -1,133 +1,170 @@
 /* CARD PRINCIPAL */
 .card {
-    background: #fff;
-    padding: 1.5rem 2rem;
-    border-radius: 12px;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-    margin-top: 2rem;
-    animation: fadeIn 0.5s ease;
-  }
-  
-  /* ANIMACIÓN DE ENTRADA */
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-      transform: translateY(10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  
-  /* TÍTULOS */
-  .subtitle {
-    font-size: 1.5rem;
-    color: #333;
-    margin-bottom: 1rem;
-    text-align: center;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-  }
-  
-  /* INFORMACIÓN DEL SURTIMIENTO */
-  /* Usamos grid para poner dos columnas y que no quede todo tan vertical */
-  .info {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1rem;
-    margin-bottom: 2rem;
-  }
-  
-  /* Cada campo de la info en una "cajita" con icono */
-  .infoItem {
-    background: #fafafa;
-    border: 1px solid #eee;
-    border-radius: 8px;
-    padding: 1rem;
-    display: flex;
-    align-items: flex-start;
-    gap: 0.5rem;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-  }
-  .infoItem:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-  }
-  
-  /* Icono en la cajita */
-  .infoIcon {
-    font-size: 1.3rem;
-    color: #252525;
-    margin-top: 3px;
-  }
-  
-  /* Texto dentro de la cajita */
-  .infoText {
-    color: #555;
-  }
-  .infoText strong {
-    color: #333;
-  }
-  
-  /* DETALLE DE MEDICAMENTOS */
-  /* Se mantiene un layout tipo "cards" en lugar de tabla */
-  .medicamentosContainer {
-    display: grid;
-    gap: 1rem;
-  }
-  
-  /* Cada "fila" es una card */
-  .medicamentoCard {
-    background: #fafafa;
-    border: 1px solid #eee;
-    border-radius: 8px;
-    padding: 1rem;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-  }
-  .medicamentoCard:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-  }
-  
-  /* Iconos dentro de cada card */
-  .medicamentoIcon {
-    font-size: 1.2rem;
-    color: #2e2e2e;
-    margin-right: 0.5rem;
-  }
-  
-  /* Pequeña fila con label + valor */
-  .medicamentoRow {
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-    margin: 0.25rem 0;
-  }
-  
-  .medicamentoLabel {
-    font-weight: bold;
-    color: #333;
-  }
-  .medicamentoValue {
-    color: #555;
-  }
-  
-  
+  background: #ffffff;
+  padding: 2rem;
+  border-radius: 16px;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+  margin: 2rem auto;
+  max-width: 1200px;
+  animation: fadeIn 0.5s ease;
+}
 
-
-
-  .dualContainer {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 2rem;
-    justify-content: space-between;
+/* ANIMACIÓN DE ENTRADA */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
   }
-  
-  .section {
-    flex: 1 1 300px;
-    min-width: 300px;
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
-  
+}
+
+/* TÍTULOS Y SUBTÍTULOS */
+.subtitle {
+  font-size: 1.75rem;
+  color: #2c3e50;
+  margin-bottom: 1rem;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.section {
+  flex: 1 1 300px;
+  min-width: 300px;
+}
+
+/* INFORMACIÓN DEL SURTIMIENTO - GRID */
+.info {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+/* Cada campo de información */
+.infoItem {
+  background: #f7f9fa;
+  border: 1px solid #e0e6ed;
+  border-radius: 8px;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.infoItem:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+/* Iconos en información */
+.infoIcon {
+  font-size: 1.4rem;
+  color: #34495e;
+}
+
+/* Texto de información */
+.infoText {
+  color: #4a5568;
+  font-size: 1rem;
+}
+.infoText strong {
+  color: #2c3e50;
+}
+
+/* Lista de Medicamentos (cards) */
+.medicamentosContainer {
+  display: grid;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+.medicamentoCard {
+  background: #f7f9fa;
+  border: 1px solid #e0e6ed;
+  border-radius: 8px;
+  padding: 1rem;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.medicamentoCard:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+/* Filas en cada medicamento */
+.medicamentoRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.25rem 0;
+}
+.medicamentoLabel {
+  font-weight: bold;
+  color: #2c3e50;
+}
+.medicamentoValue {
+  color: #4a5568;
+}
+
+/* Botón de toggle (para EAN) */
+.toggleInputButton {
+  background: #3498db;
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+.toggleInputButton:hover {
+  background: #2980b9;
+}
+
+/* Estilos para inputs de EAN */
+.eanInput {
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  flex: 1;
+}
+.eanButton {
+  background: #27ae60;
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+.eanButton:hover {
+  background: #1e8449;
+}
+
+/* Botón Guardar */
+.saveButton {
+  background: #2ecc71;
+  color: #fff;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  margin-top: 1rem;
+  width: 100%;
+  max-width: 300px;
+  align-self: center;
+}
+.saveButton:hover {
+  background: #27ae60;
+}
+
+/* Container dual (para info y lista) */
+.dualContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  justify-content: space-between;
+}
