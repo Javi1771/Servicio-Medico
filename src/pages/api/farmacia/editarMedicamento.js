@@ -3,17 +3,25 @@ import sql from 'mssql';
 
 export default async function handler(req, res) {
   if (req.method === "PUT") {
-    const { id, medicamento, clasificacion, presentacion, ean, piezas } = req.body;
+    const { id, medicamento, clasificacion, presentacion, ean, piezas, maximo, minimo } = req.body;
 
-    //* 🔴 Verificar si algún valor es `undefined` o `null`
-    if (id == null || medicamento == null || clasificacion == null || presentacion == null || ean == null || piezas == null) {
-      console.error("Faltan campos obligatorios:", { id, medicamento, clasificacion, presentacion, ean, piezas });
+    // Verificar campos obligatorios
+    if (
+      id == null ||
+      medicamento == null ||
+      clasificacion == null ||
+      presentacion == null ||
+      ean == null ||
+      piezas == null ||
+      maximo == null ||
+      minimo == null
+    ) {
+      console.error("Faltan campos obligatorios:", { id, medicamento, clasificacion, presentacion, ean, piezas, maximo, minimo });
       return res.status(400).json({ message: "Todos los campos son obligatorios." });
     }
 
     try {
-      //* 🔵 Log para verificar datos enviados antes de ejecutar la consulta
-      console.log("Iniciando actualización del medicamento con los siguientes datos:", { id, medicamento, clasificacion, presentacion, ean, piezas });
+      console.log("Iniciando actualización con los siguientes datos:", { id, medicamento, clasificacion, presentacion, ean, piezas, maximo, minimo });
 
       const pool = await connectToDatabase();
       const query = `
@@ -22,11 +30,12 @@ export default async function handler(req, res) {
             clasificacion = @clasificacion, 
             presentacion = @presentacion, 
             ean = @ean, 
-            piezas = @piezas
+            piezas = @piezas,
+            maximo = @maximo,
+            minimo = @minimo
         WHERE claveMedicamento = @id
       `;
 
-      //* CORREGIDO: Se debe declarar "id" y NO "claveMedicamento"
       const request = pool.request();
       request.input("id", sql.Int, id);
       request.input("medicamento", sql.VarChar, medicamento);
@@ -34,6 +43,8 @@ export default async function handler(req, res) {
       request.input("presentacion", sql.Int, presentacion);
       request.input("ean", sql.BigInt, ean);
       request.input("piezas", sql.Int, piezas);
+      request.input("maximo", sql.Int, maximo);
+      request.input("minimo", sql.Int, minimo);
 
       console.log("Ejecutando query de actualización:", query);
       const result = await request.query(query);

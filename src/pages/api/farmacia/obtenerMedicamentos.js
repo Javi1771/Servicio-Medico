@@ -15,7 +15,9 @@ export default async function handler(req, res) {
             clasificacion,
             presentacion,
             ean,
-            piezas
+            piezas,
+            maximo,
+            minimo
           FROM MEDICAMENTOS
           WHERE estatus = 1
         `);

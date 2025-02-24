@@ -9,6 +9,8 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
     presentacion: "",
     ean: "",
     piezas: "",
+    maximo: "",
+    minimo: "",
   });
 
   useEffect(() => {
@@ -22,6 +24,8 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
         presentacion: medicamento.presentacion || "",
         ean: medicamento.ean || "",
         piezas: medicamento.piezas || "",
+        maximo: medicamento.maximo || "",
+        minimo: medicamento.minimo || "",
       });
     }
   }, [medicamento]);
@@ -37,7 +41,13 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!formData.presentacion || !formData.ean || !formData.piezas) {
+    if (
+      !formData.presentacion ||
+      !formData.ean ||
+      !formData.piezas ||
+      !formData.maximo ||
+      !formData.minimo
+    ) {
       Swal.fire({
         icon: "error",
         title:
@@ -81,6 +91,8 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
           presentacion: parseInt(formData.presentacion, 10),
           ean: parseInt(formData.ean, 10),
           piezas: parseInt(formData.piezas, 10),
+          maximo: parseInt(formData.maximo, 10),
+          minimo: parseInt(formData.minimo, 10),
         });
 
         Swal.fire({
@@ -103,16 +115,11 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-80 backdrop-blur-sm flex items-center justify-center z-50">
-      {/* Contenedor principal con gradiente oscuro y borde neón */}
       <div className="relative bg-gradient-to-br from-[#040f0f] to-[#0c1e1e] text-teal-200 border border-teal-500 border-opacity-30 rounded-2xl shadow-[0_0_40px_rgba(0,255,255,0.2)] p-8 w-full max-w-lg mx-4">
-        {/* Título con efecto neón */}
         <h2 className="text-3xl font-extrabold text-center mb-8 text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-cyan-400 drop-shadow-[0_0_8px_rgba(0,255,255,0.8)] uppercase tracking-wide">
           Editar Medicamento
         </h2>
-
-        {/* Formulario */}
         <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-          {/* Medicamento */}
           <div>
             <label className="block text-sm font-semibold mb-1">
               Medicamento:
@@ -125,8 +132,6 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
               className="w-full px-4 py-2 bg-[#0b2424] border border-teal-600 rounded-lg text-gray-300 cursor-not-allowed shadow-inner"
             />
           </div>
-
-          {/* Clasificación */}
           <div>
             <label className="block text-sm font-semibold mb-1">
               Clasificación:
@@ -143,8 +148,6 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
               <option value="e">ESPECIALIDAD</option>
             </select>
           </div>
-
-          {/* Presentación */}
           <div>
             <label className="block text-sm font-semibold mb-1">
               Presentación:
@@ -159,8 +162,6 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
               placeholder="*Cantidad de producto por caja o frasco*"
             />
           </div>
-
-          {/* EAN */}
           <div>
             <label className="block text-sm font-semibold mb-1">EAN:</label>
             <input
@@ -199,8 +200,6 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
               className="w-full px-4 py-2 bg-[#0b2424] border border-teal-500 rounded-lg shadow-inner focus:outline-none focus:ring-2 focus:ring-teal-500 transition"
             />
           </div>
-
-          {/* Piezas */}
           <div>
             <label className="block text-sm font-semibold mb-1">Piezas:</label>
             <input
@@ -213,8 +212,30 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
               placeholder="*Cantidad de cajas o frascos en stock*"
             />
           </div>
-
-          {/* Botones */}
+          <div>
+            <label className="block text-sm font-semibold mb-1">Máximo:</label>
+            <input
+              type="number"
+              name="maximo"
+              value={formData.maximo || ""}
+              onChange={handleChange}
+              required
+              className="w-full px-4 py-2 bg-[#0b2424] border border-teal-600 rounded-lg shadow-inner focus:outline-none focus:ring-2 focus:ring-teal-500 transition"
+              placeholder="*Cantidad máxima permitida*"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold mb-1">Mínimo:</label>
+            <input
+              type="number"
+              name="minimo"
+              value={formData.minimo || ""}
+              onChange={handleChange}
+              required
+              className="w-full px-4 py-2 bg-[#0b2424] border border-teal-600 rounded-lg shadow-inner focus:outline-none focus:ring-2 focus:ring-teal-500 transition"
+              placeholder="*Cantidad mínima permitida*"
+            />
+          </div>
           <div className="flex justify-between gap-4 mt-4">
             <button
               type="submit"

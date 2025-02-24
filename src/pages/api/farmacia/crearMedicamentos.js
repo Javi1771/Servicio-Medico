@@ -7,12 +7,21 @@ export default async function handler(req, res) {
     return res.status(405).json({ message: `Método ${req.method} no permitido` });
   }
 
-  const { medicamento, clasificacion, presentacion, ean, piezas } = req.body;
+  const { medicamento, clasificacion, presentacion, ean, piezas, maximo, minimo } = req.body;
 
   console.log("📌 Datos recibidos en la solicitud:", req.body);
 
-  if (!medicamento || clasificacion == null || presentacion == null || ean == null || piezas == null) {
-    console.error("⚠️ Faltan datos obligatorios:", { medicamento, clasificacion, presentacion, ean, piezas });
+  // Validar que todos los campos estén presentes
+  if (
+    !medicamento || 
+    clasificacion == null || 
+    presentacion == null || 
+    ean == null || 
+    piezas == null ||
+    maximo == null ||
+    minimo == null
+  ) {
+    console.error("⚠️ Faltan datos obligatorios:", { medicamento, clasificacion, presentacion, ean, piezas, maximo, minimo });
     return res.status(400).json({ message: 'Todos los campos son obligatorios.' });
   }
 
@@ -62,12 +71,14 @@ export default async function handler(req, res) {
       clasificacion,
       presentacion,
       ean,
-      piezas
+      piezas,
+      maximo,
+      minimo
     });
 
     const insertQuery = `
-      INSERT INTO MEDICAMENTOS (claveMedicamento, medicamento, clasificacion, presentacion, ean, piezas)
-      VALUES (@claveMedicamento, @medicamento, @clasificacion, @presentacion, @ean, @piezas)
+      INSERT INTO MEDICAMENTOS (claveMedicamento, medicamento, clasificacion, presentacion, ean, piezas, maximo, minimo)
+      VALUES (@claveMedicamento, @medicamento, @clasificacion, @presentacion, @ean, @piezas, @maximo, @minimo)
     `;
 
     await dbPool.request()
@@ -77,6 +88,8 @@ export default async function handler(req, res) {
       .input('presentacion', sql.Int, presentacion)
       .input('ean', sql.BigInt, ean)
       .input('piezas', sql.Int, piezas)
+      .input('maximo', sql.Int, maximo)
+      .input('minimo', sql.Int, minimo)
       .query(insertQuery);
 
     console.log("✅ Medicamento registrado exitosamente:", medicamento);

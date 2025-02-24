@@ -7,6 +7,8 @@ const FormMedicamento = ({ onAddMedicamento, message }) => {
     presentacion: "",
     ean: "",
     piezas: "",
+    minimo: "",
+    maximo: "",
   });
 
   const handleChange = (e) => {
@@ -19,19 +21,26 @@ const FormMedicamento = ({ onAddMedicamento, message }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
     onAddMedicamento({
       medicamento: formData.medicamento,
       clasificacion: formData.clasificacion,
       presentacion: parseInt(formData.presentacion, 10),
       ean: parseInt(formData.ean, 10),
       piezas: parseInt(formData.piezas, 10),
+      minimo: parseInt(formData.minimo, 10),
+      maximo: parseInt(formData.maximo, 10),
     });
+
+    // Reset del formulario
     setFormData({
       medicamento: "",
       clasificacion: "",
       presentacion: "",
       ean: "",
       piezas: "",
+      minimo: "",
+      maximo: "",
     });
   };
 
@@ -113,9 +122,9 @@ const FormMedicamento = ({ onAddMedicamento, message }) => {
             type="text"
             id="presentacion"
             name="presentacion"
-            value={formData.presentacion ? `c/${formData.presentacion}` : ""}
+            value={formData.presentacion}
             onChange={(e) => {
-              //* Permitir sólo números
+              // Permitir sólo números
               const numericValue = e.target.value.replace(/\D/g, "");
               setFormData((prev) => ({
                 ...prev,
@@ -147,8 +156,8 @@ const FormMedicamento = ({ onAddMedicamento, message }) => {
             pattern="^(\d{8}|\d{13})$"
             title="El código EAN debe tener 8 o 13 dígitos"
             className="p-2 rounded-md border border-teal-500 bg-[#041616] text-teal-200 
-               focus:outline-none focus:ring-2 focus:ring-cyan-500 
-               placeholder:text-teal-500 transition-colors"
+                       focus:outline-none focus:ring-2 focus:ring-cyan-500 
+                       placeholder:text-teal-500 transition-colors"
           />
         </div>
 
@@ -163,7 +172,45 @@ const FormMedicamento = ({ onAddMedicamento, message }) => {
             name="piezas"
             value={formData.piezas}
             onChange={handleChange}
-            placeholder="Ingresa el número de piezas o cajas en almacen"
+            placeholder="Ingresa el número de piezas en almacén"
+            required
+            className="p-2 rounded-md border border-teal-500 bg-[#041616] text-teal-200 
+                       focus:outline-none focus:ring-2 focus:ring-cyan-500 
+                       placeholder:text-teal-500 transition-colors"
+          />
+        </div>
+
+        {/* Mínimo */}
+        <div className="flex flex-col">
+          <label htmlFor="minimo" className="mb-1 font-semibold text-teal-300">
+            Mínimo:
+          </label>
+          <input
+            type="number"
+            id="minimo"
+            name="minimo"
+            value={formData.minimo}
+            onChange={handleChange}
+            placeholder="Stock mínimo permitido"
+            required
+            className="p-2 rounded-md border border-teal-500 bg-[#041616] text-teal-200 
+                       focus:outline-none focus:ring-2 focus:ring-cyan-500 
+                       placeholder:text-teal-500 transition-colors"
+          />
+        </div>
+
+        {/* Máximo */}
+        <div className="flex flex-col">
+          <label htmlFor="maximo" className="mb-1 font-semibold text-teal-300">
+            Máximo:
+          </label>
+          <input
+            type="number"
+            id="maximo"
+            name="maximo"
+            value={formData.maximo}
+            onChange={handleChange}
+            placeholder="Stock máximo permitido"
             required
             className="p-2 rounded-md border border-teal-500 bg-[#041616] text-teal-200 
                        focus:outline-none focus:ring-2 focus:ring-cyan-500 
