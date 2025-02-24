@@ -85,7 +85,7 @@ const DatosAdicionales = ({
           "Pase a Especialidad",
           "Incapacidades",
           "Historial de Consultas",
-          "Padecimientos Críticos",
+          "Padecimientos Cronicos",
           "Antecedentes",
         ].map((pantalla, index) => (
           <button
@@ -197,7 +197,7 @@ const DatosAdicionales = ({
         />
       )}
 
-      {subPantalla === "Padecimientos Críticos" && (
+      {subPantalla === "Padecimientos Cronicos" && (
         <EnfermedadesCronicas
           clavenomina={numeroDeNomina}
           clavepaciente={clavepaciente}

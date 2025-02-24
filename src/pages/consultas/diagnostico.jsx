@@ -30,7 +30,7 @@ const Diagnostico = () => {
   const router = useRouter();
 
   const handleRegresar = () => {
-    router.back(); //* Navegar a la pantalla anterior
+    router.push('/inicio-servicio-medico'); // Redirige a /inicio-servicio-medico
   };
 
   const { formCompleto } = useContext(FormularioContext);

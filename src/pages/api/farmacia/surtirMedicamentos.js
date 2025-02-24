@@ -58,7 +58,7 @@ export default async function handler(req, res) {
           SET ESTATUS = 0,
               FECHA_DESPACHO = GETDATE(),
               COSTO = @cost
-          WHERE FOLIO_SURTIMIMIENTO = @folio
+          WHERE FOLIO_SURTIMIENTO = @folio
         `;
         await transaction.request()
           .input('folio', sql.Int, folioSurtimiento)

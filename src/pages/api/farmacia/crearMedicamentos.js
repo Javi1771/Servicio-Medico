@@ -21,7 +21,7 @@ export default async function handler(req, res) {
     const dbPool = await connectToDatabase();
     console.log("✅ Conexión exitosa a la base de datos");
 
-    //* Verificar si ya existe el medicamento por EAN o nombre
+    // Verificar si ya existe el medicamento por EAN o nombre
     console.log("🔍 Verificando si el medicamento ya existe...");
     const checkQuery = `
       SELECT COUNT(*) AS count 
@@ -40,19 +40,21 @@ export default async function handler(req, res) {
       return res.status(400).json({ message: 'El medicamento ya está registrado.' });
     }
 
-    //* Consultar el último valor de claveMedicamento
+    // Consultar el último valor de claveMedicamento convirtiéndolo a int
     console.log("🔢 Obteniendo la última claveMedicamento...");
     const claveQuery = `
-      SELECT TOP 1 claveMedicamento
+      SELECT TOP 1 CONVERT(int, claveMedicamento) AS claveInt
       FROM MEDICAMENTOS
-      ORDER BY claveMedicamento DESC
+      ORDER BY CONVERT(int, claveMedicamento) DESC
     `;
     const claveResult = await dbPool.request().query(claveQuery);
-    const newClaveMedicamento = (claveResult.recordset[0]?.claveMedicamento || 0) + 1;
+    const newClaveMedicamentoInt = (claveResult.recordset[0]?.claveInt || 0) + 1;
+    // Convertir a string para almacenarlo en la BD
+    const newClaveMedicamento = newClaveMedicamentoInt.toString();
 
     console.log("🆕 Nueva claveMedicamento asignada:", newClaveMedicamento);
 
-    //* Insertar el medicamento
+    // Insertar el medicamento (claveMedicamento se inserta como string)
     console.log("📝 Insertando medicamento en la base de datos...");
     console.log("📦 Datos a insertar:", {
       claveMedicamento: newClaveMedicamento,
@@ -69,7 +71,7 @@ export default async function handler(req, res) {
     `;
 
     await dbPool.request()
-      .input('claveMedicamento', sql.Int, newClaveMedicamento)
+      .input('claveMedicamento', sql.VarChar, newClaveMedicamento)
       .input('medicamento', sql.VarChar, medicamento)
       .input('clasificacion', sql.NVarChar(1), clasificacion)
       .input('presentacion', sql.Int, presentacion)

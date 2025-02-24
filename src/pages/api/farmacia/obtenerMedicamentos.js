@@ -17,7 +17,7 @@ export default async function handler(req, res) {
             ean,
             piezas
           FROM MEDICAMENTOS
-          WHERE estatus is null
+          WHERE estatus = 1
         `);
 
       const medicamentos = result.recordset;

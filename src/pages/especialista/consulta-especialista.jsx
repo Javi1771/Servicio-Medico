@@ -17,6 +17,10 @@ const PasesNuevoEspecialista = () => {
   const [loading, setLoading] = useState(true);
   const [busqueda, setBusqueda] = useState("");
   const router = useRouter();
+  
+  const handleRegresar = () => {
+    router.push('/inicio-servicio-medico'); // Redirige a /inicio-servicio-medico
+  };
 
   //* Cargar datos desde el endpoint
   const fetchData = async () => {
@@ -70,6 +74,16 @@ const PasesNuevoEspecialista = () => {
           <FaUserMd className="text-white text-6xl" />
           Pases a Especialidades
         </h1>
+
+      {/* Botón regresar */}
+  <div className="flex justify-start mb-12">
+    <button
+      onClick={handleRegresar}
+      className="relative px-6 py-3 text-lg font-semibold rounded-full bg-gradient-to-r from-red-600 via-pink-600 to-purple-700 shadow-[0px_0px_15px_5px_rgba(255,0,0,0.5)] hover:shadow-[0px_0px_30px_10px_rgba(255,0,0,0.7)] text-white hover:brightness-125 transition-all duration-300"
+    >
+      ← Regresar
+    </button>
+  </div>
       </header>
 
       <section className="mb-10">

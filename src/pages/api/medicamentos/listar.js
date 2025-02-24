@@ -9,7 +9,7 @@ export default async function handler(req, res) {
       const query = `
         SELECT claveMedicamento AS CLAVEMEDICAMENTO, medicamento AS MEDICAMENTO, piezas, presentacion
         FROM [PRESIDENCIA].[dbo].[MEDICAMENTOS] WITH (NOLOCK)
-        WHERE estatus IS NULL
+        WHERE estatus IS NOT NULL
         ORDER BY MEDICAMENTO ASC
       `;
 
