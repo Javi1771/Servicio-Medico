@@ -1,5 +1,7 @@
+// CargaMedicamentosForm.jsx
 import React, { useState } from "react";
-import ModalPdf from "./modalPdf"; // Importamos el modal que mostrará el PDF
+import Swal from "sweetalert2";
+import ModalPdf from "./modalPdf";
 import styles from "../../css/SURTIMIENTOS_ESTILOS/cargaMedicamentos.module.css";
 
 const CargaMedicamentosForm = ({
@@ -7,59 +9,111 @@ const CargaMedicamentosForm = ({
   onAddMedicamento,
   onSave,
   disableAdd,
-  folio, // 🔹 Recibir folio como prop desde SurtimientosBanner.jsx
+  folio,
+  receta,
 }) => {
   const [selectedMedicamento, setSelectedMedicamento] = useState("");
   const [indicaciones, setIndicaciones] = useState("");
   const [cantidad, setCantidad] = useState("");
-  const [piezas, setPiezas] = useState(""); 
-  const [showModal, setShowModal] = useState(false); // Controla la visibilidad del modal
+  const [piezas, setPiezas] = useState("");
+  const [showModal, setShowModal] = useState(false);
 
   const handleAddMedicamentoLocal = () => {
     if (!selectedMedicamento) {
-      alert("Por favor, selecciona un medicamento.");
+      Swal.fire({
+        icon: "warning",
+        title: "Atención",
+        text: "Por favor, selecciona un medicamento.",
+      });
       return;
     }
     if (!indicaciones.trim()) {
-      alert("Por favor, proporciona las indicaciones.");
+      Swal.fire({
+        icon: "warning",
+        title: "Atención",
+        text: "Por favor, proporciona las indicaciones.",
+      });
       return;
     }
     if (!cantidad.trim()) {
-      alert("Por favor, proporciona la cantidad.");
+      Swal.fire({
+        icon: "warning",
+        title: "Atención",
+        text: "Por favor, proporciona la cantidad.",
+      });
       return;
     }
     if (!piezas.trim()) {
-      alert("Por favor, proporciona las piezas.");
+      Swal.fire({
+        icon: "warning",
+        title: "Atención",
+        text: "Por favor, proporciona las piezas.",
+      });
       return;
     }
 
+    // Verificar si ya existe en la receta
+    if (receta.find((med) => med.claveMedicamento === selectedMedicamento)) {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Este medicamento ya está en la receta.",
+      });
+      return;
+    }
+
+    // Verificar piezas disponibles
+    const medSeleccionado = medicamentos.find(
+      (med) => med.CLAVEMEDICAMENTO === selectedMedicamento
+    );
+    if (medSeleccionado) {
+      const piezasDisponibles = Number(medSeleccionado.PIEZAS);
+      const piezasIngresadas = Number(piezas);
+      if (piezasIngresadas > piezasDisponibles) {
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: `La cantidad de piezas ingresadas (${piezasIngresadas}) es mayor a las disponibles (${piezasDisponibles}).`,
+        });
+        return;
+      }
+    }
+
+    // 🔴 Aquí agregamos el nombre del medicamento
     const nuevoMedicamento = {
-      claveMedicamento: selectedMedicamento || "", 
+      claveMedicamento: selectedMedicamento,
+      nombreMedicamento: medSeleccionado.MEDICAMENTO, // <--- Lo importante
       indicaciones,
       cantidad,
       piezas,
     };
+
     console.log("Nuevo medicamento añadido:", nuevoMedicamento);
     onAddMedicamento(nuevoMedicamento);
+
+    // Limpiar campos
     setSelectedMedicamento("");
     setIndicaciones("");
     setCantidad("");
-    setPiezas(""); 
+    setPiezas("");
   };
 
-  // 🔹 Modificación: Guardar receta y mostrar PDF
   const handleSaveAndShowPdf = async () => {
     if (!folio || isNaN(folio)) {
-      alert("Folio inválido.");
-      console.error("⚠️ Folio inválido en handleSaveAndShowPdf:", folio);
+      Swal.fire({
+        icon: "error",
+        title: "Folio inválido",
+        text: "El folio ingresado es inválido.",
+      });
+      console.error("Folio inválido en handleSaveAndShowPdf:", folio);
       return;
     }
 
     await onSave(); // Guardar en la BD
 
     setTimeout(() => {
-      console.log("📌 Mostrando modal con folio:", folio);
-      setShowModal(true); // Mostrar modal con el folio correcto
+      console.log("Mostrando modal con folio:", folio);
+      setShowModal(true);
     }, 1000);
   };
 
@@ -79,7 +133,7 @@ const CargaMedicamentosForm = ({
           <option value="">Seleccionar Medicamento</option>
           {medicamentos.map((med) => (
             <option key={med.CLAVEMEDICAMENTO} value={med.CLAVEMEDICAMENTO}>
-              {med.MEDICAMENTO}
+              {`${med.MEDICAMENTO} - Presentación: c/${med.PRESENTACION} - Piezas: ${med.PIEZAS}`}
             </option>
           ))}
         </select>
@@ -133,7 +187,6 @@ const CargaMedicamentosForm = ({
         Guardar y Generar Receta
       </button>
 
-      {/* 🔹 Modal que muestra el PDF */}
       {showModal && <ModalPdf folio={folio} onClose={() => setShowModal(false)} />}
     </div>
   );

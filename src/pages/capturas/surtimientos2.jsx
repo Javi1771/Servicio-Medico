@@ -153,7 +153,7 @@ const SurtimientosBanner = () => {
     if (isNaN(folioNumero)) {
       throw new Error("Folio inválido. Debe ser un número.");
     }
-
+  
     try {
       // Verificar si ya existe el surtimiento para este folio
       const response = await fetch("/api/SURTIMIENTOS2/getMedicamentosReceta", {
@@ -162,9 +162,9 @@ const SurtimientosBanner = () => {
         body: JSON.stringify({ folio: folioNumero }),
       });
       const medicamentosExistentes = await response.json();
-
+  
       if (medicamentosExistentes.length > 0) {
-        // **Caso 1:** Ya existen medicamentos en detalleSurtimientos, solo generamos el surtimiento
+        // **Caso 1:** Ya existen medicamentos en `detalleSurtimientos`
         const surtimientoResponse = await fetch(
           "/api/SURTIMIENTOS2/generarSurtimiento",
           {
@@ -177,12 +177,12 @@ const SurtimientosBanner = () => {
             }),
           }
         );
-
+  
         if (!surtimientoResponse.ok) {
           const errorData = await surtimientoResponse.json();
           throw new Error(errorData.message || "Error al generar surtimiento");
         }
-
+  
         Swal.fire({
           title: "Éxito",
           text: "Surtimiento generado correctamente.",
@@ -190,32 +190,30 @@ const SurtimientosBanner = () => {
           confirmButtonText: "Aceptar",
         });
       } else {
-        // **Caso 2:** No existen medicamentos en detalleSurtimientos, transferimos desde detalleReceta
+        // **Caso 2:** No existen medicamentos en `detalleSurtimientos`, transferimos desde `detalleReceta`
         const recetaResponse = await fetch("/api/SURTIMIENTOS2/guardarReceta", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             folio: folioNumero,
-            medicamentos: receta, // Medicamentos nuevos
+            medicamentos: receta,
             diagnostico,
           }),
         });
-
+  
         if (!recetaResponse.ok) {
           const errorData = await recetaResponse.json();
           throw new Error(errorData.message || "Error al guardar la receta.");
         }
-
+  
         Swal.fire({
           title: "Éxito",
           text: "Receta guardada exitosamente.",
           icon: "success",
           confirmButtonText: "Aceptar",
         });
-
-        setReceta([]); // Reiniciar la receta local
-
-        // Opcional: Actualizar los medicamentos recetados
+  
+        // ✅ En lugar de limpiar la receta, volvemos a cargar los medicamentos
         fetchMedicamentosReceta(folioNumero);
       }
     } catch (error) {
@@ -228,6 +226,7 @@ const SurtimientosBanner = () => {
       });
     }
   };
+  
 
   // Verificar si al menos uno de los datos se obtuvo (folio válido)
   const isFolioValido = empleado || paciente || sindicato || especialista;

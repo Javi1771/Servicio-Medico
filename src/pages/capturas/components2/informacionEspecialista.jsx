@@ -7,11 +7,23 @@ const InformacionEspecialista = ({ especialista, onDiagnosticoChange }) => {
   );
 
   useEffect(() => {
-    // Llamar a la función onDiagnosticoChange cuando el diagnóstico cambie
+    setDiagnosticoEditable(especialista?.diagnostico || "");
+  }, [especialista]);
+
+  useEffect(() => {
     if (onDiagnosticoChange) {
       onDiagnosticoChange(diagnosticoEditable);
     }
   }, [diagnosticoEditable, onDiagnosticoChange]);
+
+  // Permitir edición solo si no existe ya un diagnóstico
+  const isEditable = !especialista?.diagnostico;
+
+  const handleChange = (e) => {
+    if (isEditable) {
+      setDiagnosticoEditable(e.target.value);
+    }
+  };
 
   if (!especialista) return null;
 
@@ -34,8 +46,9 @@ const InformacionEspecialista = ({ especialista, onDiagnosticoChange }) => {
           id="diagnostico"
           className={styles.diagnosticoTextarea}
           value={diagnosticoEditable}
-          onChange={(e) => setDiagnosticoEditable(e.target.value)}
+          onChange={handleChange}
           placeholder="Escribe el diagnóstico..."
+          disabled={!isEditable}
         />
       </div>
     </div>

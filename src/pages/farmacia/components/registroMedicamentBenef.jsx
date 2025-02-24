@@ -210,7 +210,7 @@ const SurtirMedicamentoModal = ({
                       </option>
                     ))
                   ) : (
-                    <option disabled>No hay medicamentos disponibles</option>
+                    <option disabled>No hay medicamentos asignados</option>
                   )}
                 </select>
               </div>
