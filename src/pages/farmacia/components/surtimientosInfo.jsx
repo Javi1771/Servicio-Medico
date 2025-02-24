@@ -1,13 +1,40 @@
 // pages/farmacia/components/SurtimientosInfo.jsx
-import React from "react";
+import React, { useState } from "react";
 import styles from "../../css/EstilosFarmacia/SurtimientosTable.module.css";
 
+// Función para formatear la fecha usando la hora local
+function formatFecha(fecha) {
+  if (!fecha) return "N/A"; // Si la fecha es nula, retorna "N/A"
+  
+  const date = new Date(fecha);
+  const diasSemana = [
+    "Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"
+  ];
+  const diaSemana = diasSemana[date.getDay()];
+  const dia = String(date.getDate()).padStart(2, "0");
+  const mes = String(date.getMonth() + 1).padStart(2, "0");
+  const año = date.getFullYear();
+  const horas = date.getHours();
+  const minutos = String(date.getMinutes()).padStart(2, "0");
+  const periodo = horas >= 12 ? "p.m." : "a.m.";
+  const horas12 = horas % 12 === 0 ? 12 : horas % 12;
+  return `${diaSemana}, ${dia}/${mes}/${año}, ${horas12}:${minutos} ${periodo}`;
+}
+
 const SurtimientosInfo = ({ surtimiento, cost, setCost }) => {
-  // Determina el texto del estatus en base al valor de la BD:
-  // Si ESTATUS es 1 (pendiente) se muestra "Receta Pendiente",
-  // si es 0 o 2 (ya surtida) se muestra "Receta Surtida"
+  const [editingCost, setEditingCost] = useState(false);
   const estatusTexto =
     surtimiento?.ESTATUS === 1 ? "Receta Pendiente" : "Receta Surtida";
+
+  const handleCostClick = () => {
+    if (surtimiento.ESTATUS === 1) {
+      setEditingCost(true);
+    }
+  };
+
+  const handleCostBlur = () => {
+    setEditingCost(false);
+  };
 
   return (
     <div className={styles.section}>
@@ -99,18 +126,26 @@ const SurtimientosInfo = ({ surtimiento, cost, setCost }) => {
             </p>
           </div>
           {/* Costo */}
-          <div className={styles.infoItem}>
+          <div className={styles.infoItem} onClick={handleCostClick}>
             <i className={`fa-solid fa-money-bill-wave ${styles.infoIcon}`}></i>
             <p className={styles.infoText}>
               <strong>Costo:</strong>{" "}
               {surtimiento.ESTATUS === 1 ? (
-                <input
-                  type="text"
-                  placeholder="Ingresa el costo ej: 5000"
-                  value={cost}
-                  onChange={(e) => setCost(e.target.value)}
-                  style={{ width: "100px", marginLeft: "5px" }}
-                />
+                editingCost ? (
+                  <input
+                    type="text"
+                    placeholder="Ingresa el costo ej: 5000"
+                    value={cost}
+                    onChange={(e) => setCost(e.target.value)}
+                    onBlur={handleCostBlur}
+                    autoFocus
+                    style={{ width: "100px", marginLeft: "5px" }}
+                  />
+                ) : (
+                  <span style={{ cursor: "pointer", marginLeft: "5px" }}>
+                    {cost || "(Click para editar)"}
+                  </span>
+                )
               ) : (
                 surtimiento.COSTO || 0
               )}
@@ -121,7 +156,9 @@ const SurtimientosInfo = ({ surtimiento, cost, setCost }) => {
             <i className={`fa-solid fa-calendar-check ${styles.infoIcon}`}></i>
             <p className={styles.infoText}>
               <strong>Fecha Despacho:</strong>{" "}
-              {surtimiento.FECHA_DESPACHO || "(Pendiente)"}
+              {surtimiento.FECHA_DESPACHO
+                ? formatFecha(surtimiento.FECHA_DESPACHO)
+                : "(Pendiente)"}
             </p>
           </div>
           {/* Sindicato */}

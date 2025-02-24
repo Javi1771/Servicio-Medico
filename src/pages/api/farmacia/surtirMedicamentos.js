@@ -26,10 +26,9 @@ export default async function handler(req, res) {
     await transaction.begin();
 
     try {
-      // Para cada detalle, actualizamos stock y detalleSurtimientos
+      // Actualizar stock y detalleSurtimientos para cada detalle
       for (const item of detalle) {
         const delta = item.delta; // Piezas nuevas a descontar
-        // Descontamos del stock solo si hay piezas nuevas a entregar
         if (delta > 0) {
           const updateMed = `
             UPDATE [PRESIDENCIA].[dbo].[medicamentos]
@@ -42,7 +41,6 @@ export default async function handler(req, res) {
             .query(updateMed);
         }
 
-        // Actualizamos detalleSurtimientos con estatus y entregado
         const updateDetalle = `
           UPDATE [PRESIDENCIA].[dbo].[detalleSurtimientos]
           SET estatus = @estatus,
@@ -56,7 +54,7 @@ export default async function handler(req, res) {
           .query(updateDetalle);
       }
 
-      // Si la receta se completó, actualizar SURTIMIENTOS (ESTATUS=0, FECHA_DESPACHO, COSTO)
+      // Si la receta se completó, actualizar SURTIMIENTOS usando GETDATE() sin formateo
       if (recetaCompletada) {
         const updateSurtimiento = `
           UPDATE [PRESIDENCIA].[dbo].[SURTIMIENTOS]
