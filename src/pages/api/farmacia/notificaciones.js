@@ -27,6 +27,7 @@ export default async function handler(req, res) {
           FROM MEDICAMENTOS
           WHERE estatus = 1 
             AND piezas < maximo
+          ORDER BY stockStatus ASC
         `);
 
       const medicamentos = result.recordset;

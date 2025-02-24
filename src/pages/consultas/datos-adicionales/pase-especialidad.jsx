@@ -45,11 +45,13 @@ const PaseEspecialidad = ({
 
   //* Restaurar datos desde localStorage al montar el componente
   useEffect(() => {
-    const cachedData = localStorage.getItem(`PaseEspecialidad:${claveConsulta}`);
+    const cachedData = localStorage.getItem(
+      `PaseEspecialidad:${claveConsulta}`
+    );
     if (cachedData) {
       const parsedData = JSON.parse(cachedData);
       console.log("Restaurando datos desde localStorage:", parsedData);
-  
+
       if (parsedData.hasOwnProperty("prioridad"))
         setPrioridad(parsedData.prioridad);
       if (parsedData.hasOwnProperty("pasarEspecialidad"))
@@ -60,7 +62,6 @@ const PaseEspecialidad = ({
         setObservaciones(parsedData.observaciones);
     }
   }, [claveConsulta]);
-  
 
   useEffect(() => {
     const fetchHistorialEspecialidades = async () => {
@@ -80,7 +81,9 @@ const PaseEspecialidad = ({
 
         if (response.ok && Array.isArray(data.historial)) {
           const historialMapeado = data.historial.map((item) => ({
-            especialidad: item.especialidad || "En Esta Consulta No Se Asignó A Ninguna Especialidad",
+            especialidad:
+              item.especialidad ||
+              "En Esta Consulta No Se Asignó A Ninguna Especialidad",
             prioridad: item.prioridad || "Prioridad No Existente",
             observaciones: item.observaciones || "Sin Observaciones",
             fecha_asignacion: item.fecha_asignacion || "Fecha No Disponible",
@@ -120,7 +123,6 @@ const PaseEspecialidad = ({
     observaciones,
     claveConsulta,
   ]);
-  
 
   //* Sincronizar datos al desmontar el componente
   useEffect(() => {
@@ -187,7 +189,6 @@ const PaseEspecialidad = ({
               setPasarEspecialidad("no");
               updateFormulario("PaseEspecialidad", true); //! Indica que el formulario está completo
             }}
-            
             aria-label="Seleccionar No para no pasar a especialidad"
           >
             No
@@ -233,11 +234,19 @@ const PaseEspecialidad = ({
             <textarea
               id="textareaObservaciones"
               value={observaciones}
-              onChange={(e) => setObservaciones(e.target.value)}
+              onChange={(e) => {
+                if (e.target.value.length <= 120) {
+                  setObservaciones(e.target.value);
+                }
+              }}
+              maxLength={120} //* También evita escribir más de 120 caracteres
               className="block w-full rounded-lg bg-gray-600 border-gray-500 text-white p-2 md:p-3 focus:ring-2 focus:ring-green-500"
-              placeholder="Escribe aquí las observaciones..."
+              placeholder="Escribe aquí las observaciones... (máx. 120 caracteres)"
               aria-label="Escribe observaciones"
             />
+            <p className="text-sm text-gray-300 mt-1">
+              {observaciones.length}/120 caracteres
+            </p>
           </div>
 
           <div className="bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 p-10 rounded-2xl shadow-2xl border-4 border-indigo-700">

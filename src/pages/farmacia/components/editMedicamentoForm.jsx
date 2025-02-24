@@ -14,6 +14,9 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
     medida: "",
   });
 
+  // Estado para almacenar las unidades obtenidas del endpoint
+  const [unidades, setUnidades] = useState([]);
+
   useEffect(() => {
     if (medicamento) {
       setFormData({
@@ -31,6 +34,24 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
       });
     }
   }, [medicamento]);
+
+  // Fetch de las unidades de medida desde el endpoint
+  useEffect(() => {
+    const fetchUnidades = async () => {
+      try {
+        const res = await fetch("/api/farmacia/unidades");
+        if (!res.ok) {
+          throw new Error("Error al obtener las unidades de medida");
+        }
+        const data = await res.json();
+        setUnidades(data);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    fetchUnidades();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -178,7 +199,10 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
                 }
               }}
               onBlur={() => {
-                if (formData.ean.length !== 8 && formData.ean.length !== 13) {
+                if (
+                  formData.ean.length !== 8 &&
+                  formData.ean.length !== 13
+                ) {
                   Swal.fire({
                     icon: "error",
                     title:
@@ -251,21 +275,11 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
               className="w-full px-4 py-2 bg-[#0b2424] border border-teal-600 rounded-lg shadow-inner focus:outline-none focus:ring-2 focus:ring-teal-500 transition"
             >
               <option value="">Seleccione una unidad</option>
-              <option value="tab">Tab</option>
-              <option value="cap">Cap</option>
-              <option value="ms">ms</option>
-              <option value="sob">sob</option>
-              <option value="amp">amp</option>
-              <option value="comp">comp</option>
-              <option value="fco">fco</option>
-              <option value="gr">gr</option>
-              <option value="ui">ui</option>
-              <option value="mcg">mcg</option>
-              <option value="mg/ml">mg/ml</option>
-              <option value="ov">Ov</option>
-              <option value="1%">1%</option>
-              <option value="gts">gts</option>
-              <option value="oft">oft</option>
+              {unidades.map((unidad) => (
+                <option key={unidad.code} value={unidad.code}>
+                  {unidad.label}
+                </option>
+              ))}
             </select>
           </div>
           <div className="flex justify-between gap-4 mt-4">

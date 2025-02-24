@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 const FormMedicamento = ({ onAddMedicamento, message }) => {
   const [formData, setFormData] = useState({
@@ -11,6 +11,27 @@ const FormMedicamento = ({ onAddMedicamento, message }) => {
     maximo: "",
     medida: "",
   });
+
+  // Estado para las unidades de medida traídas de la API
+  const [unidades, setUnidades] = useState([]);
+
+  // Fetch de las unidades de medida desde el endpoint
+  useEffect(() => {
+    const fetchUnidades = async () => {
+      try {
+        const res = await fetch("/api/farmacia/unidades");
+        if (!res.ok) {
+          throw new Error("Error al obtener las unidades de medida");
+        }
+        const data = await res.json();
+        setUnidades(data);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    fetchUnidades();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -34,7 +55,7 @@ const FormMedicamento = ({ onAddMedicamento, message }) => {
       medida: formData.medida,
     });
 
-    //! Reset del formulario
+    // Reset del formulario
     setFormData({
       medicamento: "",
       clasificacion: "",
@@ -56,14 +77,12 @@ const FormMedicamento = ({ onAddMedicamento, message }) => {
         💊 Registro de Medicamentos
       </h2>
 
-      {/* Mensaje de retroalimentación, si existe */}
       {message && (
         <p className="bg-[#0c3e3e] text-white p-3 rounded mb-4 text-center font-medium">
           {message}
         </p>
       )}
 
-      {/* Formulario */}
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         {/* Medicamento */}
         <div className="flex flex-col">
@@ -132,21 +151,12 @@ const FormMedicamento = ({ onAddMedicamento, message }) => {
                placeholder:text-teal-500 transition-colors"
           >
             <option value="">Seleccione una unidad</option>
-            <option value="tab">Tab</option>
-            <option value="cap">Cap</option>
-            <option value="ms">ms</option>
-            <option value="sob">sob</option>
-            <option value="amp">amp</option>
-            <option value="comp">comp</option>
-            <option value="fco">fco</option>
-            <option value="gr">gr</option>
-            <option value="ui">ui</option>
-            <option value="mcg">mcg</option>
-            <option value="mg/ml">mg/ml</option>
-            <option value="ov">Ov</option>
-            <option value="1%">1%</option>
-            <option value="gts">gts</option>
-            <option value="oft">oft</option>
+            {/* Se generan las opciones desde las unidades obtenidas de la API */}
+            {unidades.map((unidad) => (
+              <option key={unidad.code} value={unidad.code}>
+                {unidad.label}
+              </option>
+            ))}
           </select>
         </div>
 
@@ -164,7 +174,6 @@ const FormMedicamento = ({ onAddMedicamento, message }) => {
             name="presentacion"
             value={formData.presentacion}
             onChange={(e) => {
-              // Permitir sólo números
               const numericValue = e.target.value.replace(/\D/g, "");
               setFormData((prev) => ({
                 ...prev,
@@ -258,7 +267,7 @@ const FormMedicamento = ({ onAddMedicamento, message }) => {
           />
         </div>
 
-        {/* Botón */}
+        {/* Botón de envío */}
         <button
           type="submit"
           className="mt-4 px-6 py-3 bg-gradient-to-r from-teal-500 to-cyan-500 

@@ -301,7 +301,7 @@ const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
               >
                 <FaCalendarAlt className="text-pink-400 mr-4" size={28} />
                 <span>
-                {fechaFin
+                  {fechaFin
                     ? typeof fechaFin === "string"
                       ? fechaFin.substring(0, 10)
                       : fechaFin instanceof Date
@@ -334,7 +334,6 @@ const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
                           : null
                         : null
                     }
-                    
                     className="bg-gradient-to-br from-gray-900 via-black to-gray-800 rounded-lg text-pink-300"
                     tileDisabled={({ date }) => {
                       if (!fechaInicio) return true;
@@ -371,10 +370,18 @@ const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
             </label>
             <textarea
               value={diagnostico}
-              onChange={(e) => setDiagnostico(e.target.value)}
+              onChange={(e) => {
+                if (e.target.value.length <= 120) {
+                  setDiagnostico(e.target.value);
+                }
+              }}
+              maxLength={120} //! Restringe el número de caracteres a 120
               className="block w-full rounded-lg bg-gray-600 border-gray-500 text-white p-2 md:p-3"
-              placeholder="Escribe aquí el diagnóstico..."
+              placeholder="Escribe aquí el diagnóstico... (máx. 120 caracteres)"
             />
+            <p className="text-sm text-gray-300 mt-1">
+              {diagnostico.length}/120 caracteres
+            </p>
           </div>
         </>
       )}

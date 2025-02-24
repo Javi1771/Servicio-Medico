@@ -168,7 +168,7 @@ export default function GenerarReceta() {
       firstPage.drawText(String(data.consulta?.claveconsulta ?? "N/A"), { x: 152, y: 645, size: 10 });
       firstPage.drawText(String(data.consulta?.fechaconsulta ?? "N/A"), { x: 102, y: 625, size: 10 });
       firstPage.drawText(String(data.consulta?.clavenomina ?? "N/A"), { x: 404, y: 665, size: 10 });
-      drawMultilineText(firstPage, String(data.consulta?.departamento?.trim() ?? "N/A"), 410, 625, 150, 10);
+      drawMultilineText(firstPage, String(data.consulta?.departamento?.trim() ?? "N/A"), 410, 625, 170, 10);
       firstPage.drawText(String(data.consulta?.sindicato ? data.consulta.sindicato : ""), { x: 408, y: 645, size: 10 });
 
       //? Bloque: DATOS DEL PACIENTE
@@ -206,8 +206,8 @@ export default function GenerarReceta() {
           data.receta.forEach((item, index) => {
           const posY = recetaStartY - index * lineSpacing; //* Aumenta el espacio entre líneas
           drawMultilineText(firstPage, String(item.nombreMedicamento ?? "No Asignado"), 40, posY, 120, 10);
-          drawMultilineText(firstPage, String(item.indicaciones ?? "No Asignado"), 180, posY, 250, 10);
-          drawMultilineText(firstPage, String(item.cantidad ?? "No Asignado"), 380, posY, 250, 10);
+          drawMultilineText(firstPage, String(item.indicaciones ?? "No Asignado"), 180, posY, 210, 10);
+          drawMultilineText(firstPage, String(item.cantidad ?? "No Asignado"), 380, posY, 170, 10);
           drawMultilineText(firstPage, String(item.piezas ?? "No Asignados"), 553, posY, 100, 10);
           });
       }
