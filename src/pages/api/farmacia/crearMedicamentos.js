@@ -92,7 +92,7 @@ export default async function handler(req, res) {
       .input('piezas', sql.Int, piezas)
       .input('maximo', sql.Int, maximo)
       .input('minimo', sql.Int, minimo)
-      .input('medida', sql.NVarChar(10), medida)
+      .input('medida', sql.Int, medida)
       .query(insertQuery);
 
     console.log("✅ Medicamento registrado exitosamente:", medicamento);

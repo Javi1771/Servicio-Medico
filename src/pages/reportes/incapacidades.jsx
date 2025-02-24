@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { useRouter } from "next/router";
 import {
   FaUserMd,
   FaCalendarAlt,
@@ -9,6 +10,7 @@ import {
   FaIdCard,
   FaHourglassHalf,
   FaSearch,
+  FaArrowLeft,
 } from "react-icons/fa";
 
 const IncapacidadesDashboard = () => {
@@ -17,6 +19,7 @@ const IncapacidadesDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const router = useRouter();
 
   useEffect(() => {
     const fetchIncapacidades = async () => {
@@ -35,7 +38,7 @@ const IncapacidadesDashboard = () => {
     fetchIncapacidades();
   }, []);
 
-  //* 🔎 FUNCIÓN PARA FILTRAR POR NÓMINA O NOMBREPACIENTE
+  // Función para filtrar por nómina o nombre del paciente
   useEffect(() => {
     const lowerSearch = searchTerm.toLowerCase();
     const filtered = incapacidades.filter((item) =>
@@ -45,23 +48,38 @@ const IncapacidadesDashboard = () => {
     setFilteredIncapacidades(filtered);
   }, [searchTerm, incapacidades]);
 
+  const handleGoBack = () => {
+    router.replace("/inicio-servicio-medico");
+  };
+
   return (
     <div className="relative min-h-screen bg-black text-white p-10 overflow-hidden">
-      {/* 🔥 FONDO ANIMADO */}
+      {/* Fondo Animado */}
       <div className="absolute inset-0 z-0 bg-gradient-to-br from-black via-gray-900 to-black opacity-90"></div>
       <div className="absolute inset-0 bg-grid opacity-10 animate-grid-move"></div>
 
-      {/* 🟢 TÍTULO NEÓN */}
-      <motion.h1
-        className="relative z-10 text-5xl font-extrabold text-center mb-6 neon-text uppercase"
-        initial={{ y: -20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.5 }}
-      >
-        🌟 Historial de Incapacidades 🌟
-      </motion.h1>
+      {/* Header con botón de regresar */}
+      <div className="relative z-10 flex items-center justify-between mb-6">
+        <button
+          onClick={handleGoBack}
+          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-500 to-red-700 text-white font-bold rounded-full shadow-lg hover:shadow-[0_0_20px_rgba(255,0,0,0.8)] transition-all duration-300"
+        >
+          <FaArrowLeft />
+          <span className="hidden sm:inline">Regresar</span>
+        </button>
+        <motion.h1
+          className="text-5xl font-extrabold uppercase neon-text text-center flex-1"
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          🌟 Historial de Incapacidades 🌟
+        </motion.h1>
+        {/* Espacio para balancear */}
+        <div className="w-24" />
+      </div>
 
-      {/* 🔍 INPUT DE BÚSQUEDA */}
+      {/* Input de Búsqueda */}
       <div className="relative z-10 flex justify-center mb-8">
         <div className="relative w-full max-w-md">
           <input
@@ -75,7 +93,7 @@ const IncapacidadesDashboard = () => {
         </div>
       </div>
 
-      {/* 🔄 CARGA Y ERRORES */}
+      {/* Carga y Errores */}
       {loading && (
         <p className="text-center text-lg animate-pulse text-cyan-400">
           Cargando incapacidades...
@@ -83,6 +101,7 @@ const IncapacidadesDashboard = () => {
       )}
       {error && <p className="text-red-500 text-center">{error}</p>}
 
+      {/* Grid de Tarjetas */}
       {!loading && !error && (
         <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filteredIncapacidades.length === 0 ? (
@@ -111,7 +130,7 @@ const IncapacidadesDashboard = () => {
                   transition={{ duration: 0.5, delay: index * 0.1 }}
                   whileHover={{ scale: 1.05 }}
                 >
-                  {/* 🏥 Nombre del paciente */}
+                  {/* Nombre del Paciente */}
                   <h2
                     className={`text-3xl font-bold flex items-center gap-2 
                       ${
@@ -125,13 +144,13 @@ const IncapacidadesDashboard = () => {
                     <FaUserMd /> {incapacidad.nombrepaciente}
                   </h2>
 
-                  {/* 💳 Nómina */}
+                  {/* Nómina */}
                   <h2 className="text-xl text-gray-300 flex items-center gap-2 mt-2">
                     <FaIdCard className="text-yellow-400" /> Nómina:{" "}
                     {incapacidad.nomina}
                   </h2>
 
-                  {/* 📅 Fechas */}
+                  {/* Fechas */}
                   <p className="text-gray-300 text-md flex items-center gap-2 mt-3">
                     <FaCalendarAlt className="text-yellow-400" /> <b>Inicio:</b>{" "}
                     {incapacidad.fechainicio}
@@ -141,13 +160,13 @@ const IncapacidadesDashboard = () => {
                     {incapacidad.fechafin}
                   </p>
 
-                  {/* 📝 Observaciones */}
+                  {/* Observaciones */}
                   <p className="text-gray-300 text-md flex items-center gap-2 mt-3">
                     <FaNotesMedical className="text-green-400" />{" "}
                     <b>Observaciones:</b> {incapacidad.observaciones || "N/A"}
                   </p>
 
-                  {/* 🔬 Médico y Especialidad */}
+                  {/* Médico y Especialidad */}
                   <div className="mt-4 text-md text-gray-400 border-t border-gray-500/50 pt-3">
                     <p className="flex items-center gap-2">
                       <FaUserMd className="text-blue-400" /> <b>Médico:</b>{" "}
@@ -159,7 +178,7 @@ const IncapacidadesDashboard = () => {
                     </p>
                   </div>
 
-                  {/* ⚠️ ALERTAS */}
+                  {/* Alertas */}
                   {isVencida && (
                     <motion.div className="absolute top-3 right-3 flex items-center gap-2 bg-red-600/40 text-white text-xs px-3 py-2 rounded-full shadow-lg backdrop-blur-xl">
                       <FaExclamationTriangle className="text-lg" />
