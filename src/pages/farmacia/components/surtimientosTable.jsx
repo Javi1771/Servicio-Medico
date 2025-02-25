@@ -1,7 +1,7 @@
 // pages/farmacia/components/SurtimientosTable.jsx
 import React, { useState } from "react";
 import Head from "next/head";
-import Swal from "sweetalert2"; // Asegúrate de importar SweetAlert2
+import Swal from "sweetalert2";
 import styles from "../../css/EstilosFarmacia/SurtimientosTable.module.css";
 
 import SurtimientosInfo from "./surtimientosInfo";
@@ -26,21 +26,16 @@ async function validarEAN(ean, claveMedicamento) {
 
 const SurtimientosTable = ({ data }) => {
   const { surtimiento, detalleSurtimientos } = data;
-
-  // Estado para el costo (si la receta sigue pendiente, se puede editar)
   const [cost, setCost] = useState(surtimiento?.COSTO || "");
-
-  // Inicializamos la lista de medicamentos y agregamos alreadyDiscounted (0 por defecto)
-  // Además, agregamos "stock": si viene en el objeto, se usa; si no, se toma "piezas" como fallback.
   const [detalle, setDetalle] = useState(
     detalleSurtimientos.map((item) => ({
       ...item,
       delivered: item.entregado || 0,
-      alreadyDiscounted: item.alreadyDiscounted || 0, // Nuevo campo para controlar lo descontado
+      alreadyDiscounted: item.alreadyDiscounted || 0,
       showInput: false,
       eanValue: "",
       estatusLocal: (item.entregado || 0) >= item.piezas ? 2 : 1,
-      stock: item.stock !== undefined ? item.stock : item.piezas, // Si no viene stock, se asume igual a piezas
+      stock: item.stock !== undefined ? item.stock : item.piezas,
     }))
   );
 
@@ -68,76 +63,54 @@ const SurtimientosTable = ({ data }) => {
   const handleAceptarEAN = async (idSurt) => {
     const item = detalle.find((it) => it.idSurtimiento === idSurt);
     if (!item) return;
-
     const pending = item.piezas - item.delivered;
     if (pending <= 0) {
       alert("Ya se han entregado todas las piezas requeridas para este medicamento.");
       return;
     }
-
-    // Validar que no se exceda el stock disponible
     if (item.delivered >= item.stock) {
-      alert(
-        `Stock insuficiente para este medicamento.
-Solo se pueden entregar ${item.stock} piezas en total.`
-      );
+      alert(`Stock insuficiente para este medicamento.
+Solo se pueden entregar ${item.stock} piezas en total.`);
       return;
     }
-
-    // Validar EAN
     const { valido } = await validarEAN(item.eanValue, item.claveMedicamento);
     if (!valido) {
       alert("EAN no válido o no coincide con el medicamento.");
       return;
     }
-
-    // Aumentar delivered
     const newDelivered = item.delivered + 1;
     const nuevoEstatusLocal = newDelivered >= item.piezas ? 2 : 1;
-
     setDetalle((prev) =>
       prev.map((it) =>
         it.idSurtimiento === idSurt
-          ? {
-              ...it,
-              delivered: newDelivered,
-              eanValue: "",
-              estatusLocal: nuevoEstatusLocal,
-              showInput: false,
-            }
+          ? { ...it, delivered: newDelivered, eanValue: "", estatusLocal: nuevoEstatusLocal, showInput: false }
           : it
       )
     );
   };
 
-  // Guardar: se calculará el delta (nuevas piezas entregadas) para cada detalle
+  // Guardar: se calculará el delta para cada detalle
   const handleGuardar = async () => {
-    // Preparar la data a enviar: delta = delivered - alreadyDiscounted
     const detallesParaGuardar = detalle.map((it) => {
       const delta = it.delivered - it.alreadyDiscounted;
       return {
         idSurtimiento: it.idSurtimiento,
         delivered: it.delivered,
-        delta, // Piezas nuevas a descontar
+        delta,
         claveMedicamento: it.claveMedicamento,
         estatus: it.estatusLocal,
         piezas: it.piezas,
       };
     });
-
     const todosSurtidos = detalle.every((it) => it.delivered >= it.piezas);
     let finalCost = cost;
     if (todosSurtidos && surtimiento.ESTATUS === 1) {
       if (!finalCost || finalCost.toString().trim() === "") {
         const confirmar = confirm("No se ingresó costo. ¿Deseas continuar con costo = $0?");
-        if (!confirmar) {
-          return; // Cancela la transacción
-        } else {
-          finalCost = 0;
-        }
+        if (!confirmar) return;
+        finalCost = 0;
       }
     }
-
     try {
       const resp = await fetch("/api/farmacia/surtirMedicamentos", {
         method: "POST",
@@ -149,7 +122,6 @@ Solo se pueden entregar ${item.stock} piezas en total.`
           cost: finalCost,
         }),
       });
-
       const dataResp = await resp.json();
       if (!resp.ok) throw new Error(dataResp.message || "Error al guardar");
       Swal.fire({
@@ -157,12 +129,8 @@ Solo se pueden entregar ${item.stock} piezas en total.`
         title: "Éxito",
         text: "Cambios guardados correctamente.",
       });
-      // Actualizar el estado: marcar lo ya descontado como igual al delivered actual
       setDetalle((prev) =>
-        prev.map((it) => ({
-          ...it,
-          alreadyDiscounted: it.delivered,
-        }))
+        prev.map((it) => ({ ...it, alreadyDiscounted: it.delivered }))
       );
     } catch (err) {
       Swal.fire({
@@ -185,18 +153,13 @@ Solo se pueden entregar ${item.stock} piezas en total.`
       </Head>
       <div className={styles.card}>
         <div className={styles.dualContainer}>
-          {/* Información del Surtimiento */}
           <SurtimientosInfo surtimiento={surtimiento} cost={cost} setCost={setCost} />
-
-          {/* Lista de Medicamentos */}
           <MedicamentosList
             detalle={detalle}
             toggleInput={toggleInput}
             handleEANChange={handleEANChange}
             handleAceptarEAN={handleAceptarEAN}
           />
-
-          {/* Botón Guardar */}
           <button onClick={handleGuardar} className={styles.saveButton}>
             Guardar
           </button>
