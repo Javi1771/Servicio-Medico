@@ -33,14 +33,14 @@
 import "../styles/globals.css";
 import { FormularioProvider } from "../context/FormularioContext";
 import AuthGuard from "../components/AuthGuard";
-import Head from "next/head"; // ✅ Importa Head de Next.js
+import Head from "next/head";
 
 function MyApp({ Component, pageProps }) {
   return (
     <>
       <Head>
         <link rel="icon" href="/favicon.ico" type="image/x-icon" />
-        <title>Mi Aplicación</title>
+        <title>PANDORA</title>
       </Head>
 
       <FormularioProvider>

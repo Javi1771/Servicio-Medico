@@ -113,7 +113,7 @@ const Home = () => {
         },
         {
           title: "Farmacia",
-          options: ["Medicamentos", "Farmacia Surtimientos", "Notificaciones", "Unidades de Medida"],
+          options: ["Medicamentos", "Farmacia Surtimientos", "Alertas de Stock", "Unidades de Medida"],
           icon: <FaCapsules className="inline-block mr-2" />,
         }
       );
@@ -175,7 +175,7 @@ const Home = () => {
       menuOptions.push(
         {
           title: "Farmacia",
-          options: ["Medicamentos", "Farmacia Surtimientos", "Notificaciones", "Unidades de Medida"],
+          options: ["Medicamentos", "Farmacia Surtimientos", "Alertas de Stock", "Unidades de Medida"],
           icon: <FaCapsules className="inline-block mr-2" />,
         },
         {

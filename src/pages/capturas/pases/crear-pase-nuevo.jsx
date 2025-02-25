@@ -187,8 +187,8 @@ const CrearPaseNuevo = () => {
       const beneficiaries = await beneficiariesResponse.json();
   
       if (!beneficiaries.beneficiarios || beneficiaries.beneficiarios.length === 0) {
-        showErrorAlert(
-          "⚠️ Sin beneficiarios válidos",
+        showInfoAlert(
+          "ℹ Sin beneficiarios válidos",
           "No hay beneficiarios activos o con vigencia de estudios válida."
         );
         setBeneficiaryData([]);
