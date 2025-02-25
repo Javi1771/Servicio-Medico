@@ -1,9 +1,10 @@
-import cloudinary from "../../../lib/cloudinaryServer";
 import formidable from "formidable";
+import fs from "fs";
+import path from "path";
 
 export const config = {
   api: {
-    bodyParser: false, // usamos formidable, así que deshabilitamos el bodyParser
+    bodyParser: false, // Deshabilitamos el bodyParser para usar formidable
   },
 };
 
@@ -14,7 +15,7 @@ export default async function handler(req, res) {
   }
 
   const form = formidable({
-    multiples: false, 
+    multiples: false,
     keepExtensions: true,
   });
 
@@ -25,39 +26,54 @@ export default async function handler(req, res) {
     }
 
     const file = Array.isArray(files.file) ? files.file[0] : files.file;
-    const { numNomina } = fields;
+    let { numNomina } = fields;
+
+    // Asegurarse de que numNomina sea una cadena
+    if (Array.isArray(numNomina)) {
+      numNomina = numNomina[0];
+    }
 
     if (!file) {
-      return res
-        .status(400)
-        .json({ error: "No se recibió ningún archivo en la solicitud." });
+      return res.status(400).json({ error: "No se recibió ningún archivo en la solicitud." });
     }
 
     if (!numNomina) {
-      return res
-        .status(400)
-        .json({ error: "El número de nómina es obligatorio." });
+      return res.status(400).json({ error: "El número de nómina es obligatorio." });
     }
 
     try {
-      // Carpeta en Cloudinary
-      const folderPath = `acta_concubinato_manual/${numNomina}`;
+      // Definir la carpeta donde se guardará el archivo: /public/acta_concubinatos/{numNomina}/
+      const uploadDir = path.join(
+        process.cwd(),
+        "public",
+        "acta_concubinatos",
+        numNomina
+      );
 
-      const uploadResponse = await cloudinary.uploader.upload(file.filepath, {
-        resource_type: "raw", // Para PDF
-        folder: folderPath,
-        use_filename: true,
-        unique_filename: false,
-      });
+      // Crear la carpeta si no existe
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+
+      // Generar nombre único para el archivo
+      const fileName = `acta_concubinato_manual_${Date.now()}${path.extname(file.originalFilename || "")}`;
+      const filePath = path.join(uploadDir, fileName);
+
+      // Guardar el archivo en el servidor (mover desde la ubicación temporal)
+      fs.renameSync(file.filepath, filePath);
+
+      // Construir la URL final para acceder al archivo
+      // Asegúrate de ajustar el puerto según el que use tu servidor
+      const port = process.env.PORT || 3005;
+      const finalURL = `${process.env.NEXT_PUBLIC_BASE_URL}/acta_concubinatos/${numNomina}/${fileName}`;
 
       return res.status(200).json({
-        url: uploadResponse.secure_url, // URL pública
+        url: finalURL,
+        message: "Archivo subido correctamente al servidor propio.",
       });
     } catch (error) {
       console.error("Error al subir el archivo de Concubinato Manual:", error);
-      return res
-        .status(500)
-        .json({ error: "Error al subir el archivo de Concubinato Manual." });
+      return res.status(500).json({ error: "Error al subir el archivo de Concubinato Manual." });
     }
   });
 }

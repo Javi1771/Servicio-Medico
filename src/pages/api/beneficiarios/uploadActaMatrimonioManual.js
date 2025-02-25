@@ -1,9 +1,10 @@
-import cloudinary from "../../../lib/cloudinaryServer";
 import formidable from "formidable";
+import fs from "fs";
+import path from "path";
 
 export const config = {
   api: {
-    bodyParser: false, // Deshabilitar bodyParser para usar formidable
+    bodyParser: false, // Deshabilitamos el bodyParser para usar formidable
   },
 };
 
@@ -25,30 +26,48 @@ export default async function handler(req, res) {
     }
 
     const file = Array.isArray(files.file) ? files.file[0] : files.file;
-    const { numNomina } = fields; // sacamos la nómina
+    let { numNomina } = fields;
+
+    // Asegurarse de que numNomina sea una cadena
+    if (Array.isArray(numNomina)) {
+      numNomina = numNomina[0];
+    }
 
     if (!file) {
       return res.status(400).json({ error: "No se recibió archivo en la solicitud." });
     }
-
     if (!numNomina) {
       return res.status(400).json({ error: "El número de nómina es obligatorio." });
     }
 
     try {
-      // Estructura de carpeta en Cloudinary
-      const folderPath = `acta_matrimonio_manual/${numNomina}`;
+      // Definir la carpeta de destino: /public/acta_matrimonios/{numNomina}/
+      const uploadDir = path.join(
+        process.cwd(),
+        "public",
+        "acta_matrimonios",
+        numNomina
+      );
 
-      // Subimos
-      const uploadResponse = await cloudinary.uploader.upload(file.filepath, {
-        resource_type: "raw", // PDF
-        folder: folderPath,
-        use_filename: true,
-        unique_filename: false,
-      });
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+
+      // Generar nombre único para el archivo
+      const fileName = `acta_matrimonio_manual_${Date.now()}${path.extname(file.originalFilename || "")}`;
+      const filePath = path.join(uploadDir, fileName);
+
+      // Mover el archivo desde la carpeta temporal a la carpeta destino
+      fs.renameSync(file.filepath, filePath);
+
+      // Construir la URL pública final.
+      // Asegúrate de ajustar el puerto según donde corra tu servidor.
+      const port = process.env.PORT || 3005;
+     const finalURL = `${process.env.NEXT_PUBLIC_BASE_URL}/acta_matrimonios/${numNomina}/${fileName}`;
 
       return res.status(200).json({
-        url: uploadResponse.secure_url,
+        url: finalURL,
+        message: "Archivo subido correctamente al servidor propio.",
       });
     } catch (error) {
       console.error("Error al subir ActaMatrimonioManual:", error);

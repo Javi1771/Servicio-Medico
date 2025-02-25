@@ -57,7 +57,7 @@ export default async function handler(req, res) {
     // Asumiendo que sirves /public en http://172.16.0.7/uploads
     // Si tu Next.js corre en el puerto 3000:
     const port = process.env.PORT || 3005;
-    const finalURL = `https://172.16.4.47:${port}/uploads/beneficiarios/${numNomina}/${fileName}`;
+   const finalURL = `${process.env.NEXT_PUBLIC_BASE_URL}/uploads/beneficiarios/${numNomina}/${fileName}`;
 
     return res.status(200).json({
       imageUrl: finalURL,

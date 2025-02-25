@@ -1,9 +1,10 @@
-import cloudinary from "../../../lib/cloudinaryServer";
 import formidable from "formidable";
+import fs from "fs";
+import path from "path";
 
 export const config = {
   api: {
-    bodyParser: false, // Deshabilitar bodyParser
+    bodyParser: false, // Deshabilitamos el bodyParser para usar formidable
   },
 };
 
@@ -14,8 +15,8 @@ export default async function handler(req, res) {
   }
 
   const form = formidable({
-    multiples: false, // No permitir múltiples archivos
-    keepExtensions: true, // Mantener extensiones de archivo
+    multiples: false,
+    keepExtensions: true,
   });
 
   form.parse(req, async (err, fields, files) => {
@@ -25,44 +26,46 @@ export default async function handler(req, res) {
     }
 
     const file = Array.isArray(files.file) ? files.file[0] : files.file;
-    const { numNomina } = fields; // Obtener el número de nómina del formulario
+    let { numNomina } = fields; // Obtener el número de nómina del formulario
+    if (Array.isArray(numNomina)) {
+      numNomina = numNomina[0];
+    }
 
     if (!file) {
       console.error("Archivo no encontrado en la solicitud");
-      return res
-        .status(400)
-        .json({ error: "Archivo no encontrado en la solicitud." });
+      return res.status(400).json({ error: "Archivo no encontrado en la solicitud." });
     }
-
     if (!numNomina) {
       console.error("Número de nómina no proporcionado");
-      return res
-        .status(400)
-        .json({ error: "El número de nómina es obligatorio." });
+      return res.status(400).json({ error: "El número de nómina es obligatorio." });
     }
 
     try {
-      // Definir la carpeta en Cloudinary
-      const folderPath = `curps/${numNomina}`;
+      // Definir la carpeta destino: /public/curps/{numNomina}/
+      const uploadDir = path.join(process.cwd(), "public", "curps", numNomina);
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
 
-      // Subir el archivo a Cloudinary
-      const uploadResponse = await cloudinary.uploader.upload(file.filepath, {
-        resource_type: "raw", // Subir como archivo raw (PDF)
-        folder: folderPath, // Carpeta con estructura específica
-        use_filename: true, // Usar el nombre original del archivo
-        unique_filename: false, // Permitir nombres duplicados
-      });
+      // Generar un nombre único para el archivo
+      const fileName = `curp_${Date.now()}${path.extname(file.originalFilename || "")}`;
+      const filePath = path.join(uploadDir, fileName);
 
-      console.log("Archivo subido exitosamente:", uploadResponse);
+      // Mover el archivo desde la carpeta temporal a la carpeta destino
+      fs.renameSync(file.filepath, filePath);
+
+      // Construir la URL final para acceder al archivo.
+      // Ajusta el puerto según la configuración de tu servidor (por ejemplo, 3005)
+      const port = process.env.PORT || 3005;
+    const finalURL = `${process.env.NEXT_PUBLIC_BASE_URL}/curps/${numNomina}/${fileName}`;
 
       return res.status(200).json({
-        url: uploadResponse.secure_url, // URL pública del archivo
+        url: finalURL,
+        message: "CURP subida correctamente al servidor propio.",
       });
     } catch (error) {
-      console.error("Error al subir el archivo:", error);
-      return res
-        .status(500)
-        .json({ error: "Error al subir el archivo. Intenta nuevamente." });
+      console.error("Error al subir el archivo CURP:", error);
+      return res.status(500).json({ error: "Error al subir el archivo. Intenta nuevamente." });
     }
   });
 }

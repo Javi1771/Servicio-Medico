@@ -1,14 +1,10 @@
-import cloudinary from "../../lib/cloudinaryServer";
 import formidable from "formidable";
-
-// Desactivar validación SSL (solo para desarrollo)
-if (process.env.NODE_ENV === "development") {
-  process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
-}
+import fs from "fs";
+import path from "path";
 
 export const config = {
   api: {
-    bodyParser: false, // Deshabilitar bodyParser
+    bodyParser: false, // Deshabilitar bodyParser para usar formidable
   },
 };
 
@@ -26,51 +22,51 @@ export default async function handler(req, res) {
   form.parse(req, async (err, fields, files) => {
     if (err) {
       console.error("Error al parsear el formulario:", err);
-      return res.status(500).json({ error: "Error al parsear el formulario" });
+      return res.status(500).json({ error: "Error al procesar el archivo." });
     }
 
     const file = Array.isArray(files.file) ? files.file[0] : files.file;
-    const { numNomina } = fields; // Obtener el número de nómina del formulario
+    let { numNomina } = fields; // Obtener el número de nómina del formulario
+    if (Array.isArray(numNomina)) {
+      numNomina = numNomina[0];
+    }
 
     if (!file) {
       console.error("Archivo no encontrado en la solicitud");
-      return res
-        .status(400)
-        .json({ error: "Archivo no encontrado en la solicitud" });
+      return res.status(400).json({ error: "Archivo no encontrado en la solicitud." });
     }
 
     if (!numNomina) {
       console.error("Número de nómina no proporcionado");
-      return res
-        .status(400)
-        .json({ error: "El número de nómina es obligatorio." });
+      return res.status(400).json({ error: "El número de nómina es obligatorio." });
     }
 
-    const filePath = file.filepath;
-
     try {
-      // Definir la carpeta en Cloudinary
-      const folderPath = `constancias/${numNomina}`;
+      // Definir la carpeta destino: /public/constancias/{numNomina}/
+      const uploadDir = path.join(process.cwd(), "public", "constancias", numNomina);
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
 
-      // Subir el archivo a Cloudinary
-      const uploadResponse = await cloudinary.uploader.upload(filePath, {
-        resource_type: "raw", // Para subir archivos PDF
-        folder: folderPath, // Carpeta en Cloudinary
-        use_filename: true, // Mantener el nombre original del archivo
-        unique_filename: false, // Permitir nombres repetidos
-      });
+      // Generar un nombre único para el archivo
+      const fileName = `constancia_${Date.now()}${path.extname(file.originalFilename || "")}`;
+      const filePath = path.join(uploadDir, fileName);
 
-      console.log("Archivo subido exitosamente:", uploadResponse);
+      // Mover el archivo desde la carpeta temporal a la carpeta destino
+      fs.renameSync(file.filepath, filePath);
 
-      // Enviar la URL pública del archivo como respuesta
+      // Construir la URL final para acceder al archivo.
+      // Ajusta el puerto según la configuración de tu servidor.
+      const port = process.env.PORT || 3005;
+     const finalURL = `${process.env.NEXT_PUBLIC_BASE_URL}/constancias/${numNomina}/${fileName}`;
+
       return res.status(200).json({
-        url: uploadResponse.secure_url, // URL pública para acceder al archivo
+        url: finalURL,
+        message: "Constancia de Estudios subida correctamente al servidor propio.",
       });
     } catch (error) {
       console.error("Error al subir el archivo:", error);
-      return res
-        .status(500)
-        .json({ error: "Error al subir el archivo. Intenta nuevamente." });
+      return res.status(500).json({ error: "Error al subir el archivo. Intenta nuevamente." });
     }
   });
 }

@@ -159,22 +159,19 @@ export default function RegistroBeneficiario() {
   const handleFileUploadActaConcubinatoManual = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
-
+  
     const formData = new FormData();
     formData.append("file", file);
     formData.append("numNomina", numNomina); // Enviar la nómina
-
+  
     try {
-      const response = await fetch(
-        "/api/beneficiarios/uploadActaConcubinatoManual",
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
-
+      const response = await fetch("/api/beneficiarios/uploadActaConcubinatoManual", {
+        method: "POST",
+        body: formData,
+      });
+  
       const data = await response.json();
-
+  
       if (response.ok) {
         console.log("Acta de Concubinato subida manualmente:", data.url);
         // Actualizar el estado con la nueva URL
@@ -182,115 +179,88 @@ export default function RegistroBeneficiario() {
           ...prev,
           actaConcubinatoUrl: data.url,
         }));
-        Swal.fire(
-          "Éxito",
-          "Acta de Concubinato subida manualmente con éxito.",
-          "success"
-        );
+        Swal.fire("Éxito", "Acta de Concubinato subida manualmente con éxito.", "success");
       } else {
-        Swal.fire(
-          "Error",
-          "Error al subir el Acta de Concubinato manual. Intenta nuevamente.",
-          "error"
-        );
+        Swal.fire("Error", "Error al subir el Acta de Concubinato manual. Intenta nuevamente.", "error");
       }
     } catch (error) {
       console.error("Error al subir el Acta de Concubinato manual:", error);
-      Swal.fire(
-        "Error",
-        "No se pudo subir el Acta de Concubinato manual.",
-        "error"
-      );
+      Swal.fire("Error", "No se pudo subir el Acta de Concubinato manual.", "error");
     }
   };
+  
   /********************************************************************* */
 
   /*****************SUBIR ACTA DE MATROMONIO MANUAL ********************/
   const handleFileUploadActaMatrimonioManual = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
-
+  
     // Preparamos FormData
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("numNomina", numNomina); // pasamos la nómina
-
+    formData.append("numNomina", numNomina); // Enviar la nómina
+  
     try {
-      // Llamada al endpoint
-      const response = await fetch(
-        "/api/beneficiarios/uploadActaMatrimonioManual",
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
-
+      // Llamada al nuevo endpoint que guarda el archivo en el servidor local
+      const response = await fetch("/api/beneficiarios/uploadActaMatrimonioManual", {
+        method: "POST",
+        body: formData,
+      });
+  
       const data = await response.json();
-
+  
       if (response.ok) {
         console.log("Acta de Matrimonio subida manualmente:", data.url);
-        // Actualizamos el state con la nueva URL
+        // Actualizar el estado con la nueva URL
         setFormData((prev) => ({
           ...prev,
-          actaMatrimonioUrl: data.url, // le ponemos la misma variable que usas en tu formData
+          actaMatrimonioUrl: data.url,
         }));
+        Swal.fire("Éxito", "Acta de Matrimonio subida manualmente con éxito.", "success");
       } else {
-        Swal.fire(
-          "Error",
-          "Error al subir el Acta de Matrimonio manual.",
-          "error"
-        );
+        Swal.fire("Error", "Error al subir el Acta de Matrimonio manual.", "error");
       }
     } catch (error) {
       console.error("Error al subir el Acta de Matrimonio manual:", error);
-      Swal.fire(
-        "Error",
-        "No se pudo subir el Acta de Matrimonio manual.",
-        "error"
-      );
+      Swal.fire("Error", "No se pudo subir el Acta de Matrimonio manual.", "error");
     }
   };
+  
   /********************************************************************* */
 
   const handleFileUploadIncap = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
-
+  
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("numNomina", numNomina); // Enviar el número de nómina desde el estado
-
+    formData.append("numNomina", numNomina); // Enviar el número de nómina
+  
     try {
       const response = await fetch("/api/beneficiarios/uploadIncap", {
         method: "POST",
         body: formData,
       });
-
+  
       const data = await response.json();
-
+  
       if (response.ok) {
         console.log("Acta de incapacidad subida exitosamente:", data.url);
         setFormData((prev) => ({
           ...prev,
           urlIncap: data.url, // Guardar la URL en el estado
         }));
-        Swal.fire(
-          "Éxito",
-          "Acta de Incapacidad subida correctamente.",
-          "success"
-        );
+        Swal.fire("Éxito", "Acta de Incapacidad subida correctamente.", "success");
       } else {
-        Swal.fire(
-          "Error",
-          "Error al subir el Acta de Incapacidad. Intenta nuevamente.",
-          "error"
-        );
+        Swal.fire("Error", "Error al subir el Acta de Incapacidad. Intenta nuevamente.", "error");
       }
     } catch (error) {
       console.error("Error al subir el Acta de Incapacidad:", error);
       Swal.fire("Error", "No se pudo subir el Acta de Incapacidad.", "error");
     }
   };
+  
 
   /**VALIDACION SI EL BENEFICIARIO NO ES MAYOR A 16 ANOS */
   const calculateTimeUntil16 = (birthDate) => {
@@ -456,19 +426,19 @@ export default function RegistroBeneficiario() {
   const handleFileUploadINE = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
-
+  
     const formData = new FormData();
     formData.append("file", file);
     formData.append("numNomina", numNomina); // Enviar el número de nómina desde el estado
-
+  
     try {
       const response = await fetch("/api/beneficiarios/uploadINE", {
         method: "POST",
         body: formData,
       });
-
+  
       const data = await response.json();
-
+  
       if (response.ok) {
         console.log("INE subida exitosamente:", data.url);
         setFormData((prev) => ({
@@ -476,37 +446,31 @@ export default function RegistroBeneficiario() {
           ineUrl: data.url, // Guardar la URL correcta en el estado
         }));
       } else {
-        Swal.fire(
-          "Error",
-          "Error al subir el INE. Intenta nuevamente.",
-          "error"
-        );
+        Swal.fire("Error", "Error al subir el INE. Intenta nuevamente.", "error");
       }
     } catch (error) {
       console.error("Error al subir el INE:", error);
       Swal.fire("Error", "No se pudo subir el INE.", "error");
     }
   };
+  
 
   const handleFileUploadCartaNoAfiliacion = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
-
+  
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("numNomina", numNomina); // Aquí usamos directamente el estado `numNomina`
-
+    formData.append("numNomina", numNomina); // Enviar el número de nómina desde el estado
+  
     try {
-      const response = await fetch(
-        "/api/beneficiarios/uploadCartaNoAfiliacion",
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
-
+      const response = await fetch("/api/beneficiarios/uploadCartaNoAfiliacion", {
+        method: "POST",
+        body: formData,
+      });
+  
       const data = await response.json();
-
+  
       if (response.ok) {
         console.log("Carta de No Afiliación subida exitosamente:", data.url);
         setFormData((prev) => ({
@@ -514,38 +478,30 @@ export default function RegistroBeneficiario() {
           cartaNoAfiliacionUrl: data.url, // Guardar la URL correcta
         }));
       } else {
-        Swal.fire(
-          "Error",
-          "Error al subir la Carta de No Afiliación. Intenta nuevamente.",
-          "error"
-        );
+        Swal.fire("Error", "Error al subir la Carta de No Afiliación. Intenta nuevamente.", "error");
       }
     } catch (error) {
       console.error("Error al subir la Carta de No Afiliación:", error);
-      Swal.fire(
-        "Error",
-        "No se pudo subir la Carta de No Afiliación.",
-        "error"
-      );
+      Swal.fire("Error", "No se pudo subir la Carta de No Afiliación.", "error");
     }
   };
-
+  
   const handleFileUploadCurp = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
-
+  
     const formData = new FormData();
     formData.append("file", file);
     formData.append("numNomina", numNomina); // Enviar el número de nómina desde el estado
-
+  
     try {
       const response = await fetch("/api/beneficiarios/uploadCurp", {
         method: "POST",
         body: formData,
       });
-
+  
       const data = await response.json();
-
+  
       if (response.ok) {
         console.log("CURP subida exitosamente:", data.url);
         setFormData((prev) => ({
@@ -553,34 +509,31 @@ export default function RegistroBeneficiario() {
           urlCurp: data.url, // Guardar la URL correcta en el estado
         }));
       } else {
-        Swal.fire(
-          "Error",
-          "Error al subir la CURP. Intenta nuevamente.",
-          "error"
-        );
+        Swal.fire("Error", "Error al subir la CURP. Intenta nuevamente.", "error");
       }
     } catch (error) {
       console.error("Error al subir la CURP:", error);
       Swal.fire("Error", "No se pudo subir la CURP.", "error");
     }
   };
+  
 
   const handleFileUploadActa = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
-
+  
     const formData = new FormData();
     formData.append("file", file);
     formData.append("numNomina", numNomina); // Asegúrate de enviar el número de nómina
-
+  
     try {
       const response = await fetch("/api/beneficiarios/uploadActa", {
         method: "POST",
         body: formData,
       });
-
+  
       const data = await response.json();
-
+  
       if (response.ok) {
         console.log("Acta de Nacimiento subida exitosamente:", data.url);
         setFormData((prev) => ({
@@ -599,32 +552,32 @@ export default function RegistroBeneficiario() {
       Swal.fire("Error", "No se pudo subir el Acta de Nacimiento.", "error");
     }
   };
+  
+  
 
   //SUBIR DOCUMENTO DE CONSTANCIA DE ESTUDIOS//
   const handleFileUpload = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
-
+  
     const formData = new FormData();
     formData.append("file", file);
     formData.append("numNomina", numNomina); // Enviar el número de nómina desde el estado
-
+  
     try {
       const response = await fetch("/api/uploadConstancia", {
         method: "POST",
         body: formData,
       });
-
+  
       const data = await response.json();
-
+  
       if (response.ok) {
         console.log("Constancia de Estudios subida exitosamente:", data.url);
-
-        // Guardar la URL pública en el estado
         setFormData((prev) => ({
           ...prev,
           urlConstancia: data.url, // Guardar la URL pública del archivo
-          fileName: file.name, // Guardar el nombre del archivo
+          fileName: file.name,      // Guardar también el nombre del archivo
         }));
       } else {
         Swal.fire(
@@ -635,13 +588,10 @@ export default function RegistroBeneficiario() {
       }
     } catch (error) {
       console.error("Error al subir la Constancia de Estudios:", error);
-      Swal.fire(
-        "Error",
-        "No se pudo subir la Constancia de Estudios.",
-        "error"
-      );
+      Swal.fire("Error", "No se pudo subir la Constancia de Estudios.", "error");
     }
   };
+   
 
   /**VIGENCIA DE ESTUDIOS VALIDACION */
   const handleVigenciaChange = (e) => {

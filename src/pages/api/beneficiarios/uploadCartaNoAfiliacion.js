@@ -1,9 +1,10 @@
-import cloudinary from "../../../lib/cloudinaryServer";
 import formidable from "formidable";
+import fs from "fs";
+import path from "path";
 
 export const config = {
   api: {
-    bodyParser: false, // Deshabilitar bodyParser
+    bodyParser: false, // Deshabilitamos el bodyParser para usar formidable
   },
 };
 
@@ -14,8 +15,8 @@ export default async function handler(req, res) {
   }
 
   const form = formidable({
-    multiples: false, // No permitir múltiples archivos
-    keepExtensions: true, // Mantener extensiones de archivo
+    multiples: false,
+    keepExtensions: true,
   });
 
   form.parse(req, async (err, fields, files) => {
@@ -25,7 +26,10 @@ export default async function handler(req, res) {
     }
 
     const file = Array.isArray(files.file) ? files.file[0] : files.file;
-    const { numNomina } = fields; // Obtener el número de nómina del formulario
+    let { numNomina } = fields; // Obtener el número de nómina
+    if (Array.isArray(numNomina)) {
+      numNomina = numNomina[0];
+    }
 
     if (!file) {
       console.error("Archivo no encontrado en la solicitud");
@@ -38,27 +42,31 @@ export default async function handler(req, res) {
     }
 
     try {
-      // Definir la carpeta en Cloudinary
-      const folderPath = `cartas_no_afiliacion/${numNomina}`;
+      // Definir la carpeta destino: /public/cartas_no_afiliacion/{numNomina}/
+      const uploadDir = path.join(process.cwd(), "public", "cartas_no_afiliacion", numNomina);
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
 
-      // Subir el archivo a Cloudinary
-      const uploadResponse = await cloudinary.uploader.upload(file.filepath, {
-        resource_type: "raw", // Subir como archivo raw (PDF)
-        folder: folderPath, // Carpeta con estructura específica
-        use_filename: true, // Usar el nombre original del archivo
-        unique_filename: false, // Permitir nombres duplicados
-      });
+      // Generar un nombre único para el archivo
+      const fileName = `carta_no_afiliacion_${Date.now()}${path.extname(file.originalFilename || "")}`;
+      const filePath = path.join(uploadDir, fileName);
 
-      console.log("Archivo subido exitosamente:", uploadResponse);
+      // Mover el archivo desde la ubicación temporal a la carpeta destino
+      fs.renameSync(file.filepath, filePath);
+
+      // Construir la URL final para acceder al archivo.
+      // Asegúrate de ajustar el puerto según la configuración de tu servidor.
+      const port = process.env.PORT || 3005;
+     const finalURL = `${process.env.NEXT_PUBLIC_BASE_URL}/cartas_no_afiliacion/${numNomina}/${fileName}`;
 
       return res.status(200).json({
-        url: uploadResponse.secure_url, // URL pública del archivo
+        url: finalURL,
+        message: "Archivo subido correctamente al servidor propio.",
       });
     } catch (error) {
       console.error("Error al subir el archivo:", error);
-      return res
-        .status(500)
-        .json({ error: "Error al subir el archivo. Intenta nuevamente." });
+      return res.status(500).json({ error: "Error al subir el archivo. Intenta nuevamente." });
     }
   });
 }
