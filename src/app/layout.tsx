@@ -14,8 +14,11 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Servicio Medico SJR",
-  description: "",
+  title: "Pandora",
+  description: "Servicio Médico de Calidad Para el Municipio de San Juan del Río",
+  icons: {
+    icon: "/favicon.ico",
+  }
 };
 
 export default function RootLayout({

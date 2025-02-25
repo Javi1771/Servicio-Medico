@@ -33,14 +33,22 @@
 import "../styles/globals.css";
 import { FormularioProvider } from "../context/FormularioContext";
 import AuthGuard from "../components/AuthGuard";
+import Head from "next/head"; // ✅ Importa Head de Next.js
 
 function MyApp({ Component, pageProps }) {
   return (
-    <FormularioProvider>
-      <AuthGuard>
-        <Component {...pageProps} />
-      </AuthGuard>
-    </FormularioProvider>
+    <>
+      <Head>
+        <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+        <title>Mi Aplicación</title>
+      </Head>
+
+      <FormularioProvider>
+        <AuthGuard>
+          <Component {...pageProps} />
+        </AuthGuard>
+      </FormularioProvider>
+    </>
   );
 }
 
