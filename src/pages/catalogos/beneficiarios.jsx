@@ -321,7 +321,7 @@ export default function RegistroBeneficiario() {
   const handleCapturePhoto = async () => {
     try {
       let isVideoReady = false;
-  
+
       const result = await Swal.fire({
         title: "Captura una foto",
         html: '<video id="video" autoplay></video>',
@@ -353,11 +353,11 @@ export default function RegistroBeneficiario() {
           }
         },
       });
-  
+
       if (result.isConfirmed) {
         const video = document.getElementById("video");
         const canvas = document.createElement("canvas");
-  
+
         if (!isVideoReady || !video.videoWidth || !video.videoHeight) {
           Swal.fire(
             "Error",
@@ -366,16 +366,16 @@ export default function RegistroBeneficiario() {
           );
           return;
         }
-  
+
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
         const context = canvas.getContext("2d");
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
-  
+
         // Convertir la imagen a Base64
         const base64Image = canvas.toDataURL("image/jpeg");
         setImagePreview(base64Image);
-  
+
         // Mostrar previsualización antes de subir
         const confirmUpload = await Swal.fire({
           title: "Previsualización",
@@ -387,11 +387,11 @@ export default function RegistroBeneficiario() {
           confirmButtonText: "Sí, subir",
           cancelButtonText: "Cancelar",
         });
-  
+
         if (!confirmUpload.isConfirmed) {
           return;
         }
-  
+
         // Detectar el rostro (si usas face-api)
         const descriptor = await computeDescriptorFromBase64(base64Image);
         if (!descriptor) {
@@ -405,7 +405,7 @@ export default function RegistroBeneficiario() {
           descriptorFacial: descriptorJSON,
         }));
         console.log("Descriptor facial calculado:", descriptorJSON);
-  
+
         // Subir la imagen al servidor (nuevo endpoint en lugar de Cloudinary)
         await uploadImage(base64Image);
       }
@@ -414,37 +414,38 @@ export default function RegistroBeneficiario() {
       Swal.fire("Error", "Ocurrió un problema al capturar la foto.", "error");
     }
   };
-  
-  
+
   // Función para subir la imagen capturada
   const uploadImage = async (base64Image) => {
     if (!numNomina) {
       Swal.fire("Error", "Por favor, ingresa el número de nómina.", "error");
       return;
     }
-  
+
     try {
       const response = await fetch("/api/uploadImage", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ image: base64Image, numNomina }),
       });
-  
+
       const data = await response.json();
-  
+
       if (response.ok && data.imageUrl) {
         setFormData((prev) => ({ ...prev, imageUrl: data.imageUrl }));
         Swal.fire("Éxito", "Imagen subida correctamente.", "success");
       } else {
-        Swal.fire("Error", data.error || "No se pudo subir la imagen.", "error");
+        Swal.fire(
+          "Error",
+          data.error || "No se pudo subir la imagen.",
+          "error"
+        );
       }
     } catch (error) {
       console.error("Error al subir la imagen:", error);
       Swal.fire("Error", "Error al subir la imagen.", "error");
     }
   };
-  
-
 
   const getFileNameFromURL = (url) => {
     if (!url) return "Sin archivo";
@@ -1165,7 +1166,7 @@ export default function RegistroBeneficiario() {
       reader.readAsDataURL(file);
       reader.onloadend = async () => {
         const base64Image = reader.result;
-  
+
         try {
           const response = await fetch("/api/uploadImage", {
             method: "POST",
@@ -1177,13 +1178,17 @@ export default function RegistroBeneficiario() {
               numNomina, // Enviar la nómina
             }),
           });
-  
+
           const data = await response.json();
           if (response.ok && data.imageUrl) {
             setFormData({ ...formData, imageUrl: data.imageUrl });
             Swal.fire("Éxito", "Imagen subida correctamente.", "success");
           } else {
-            Swal.fire("Error", data.error || "No se pudo subir la imagen.", "error");
+            Swal.fire(
+              "Error",
+              data.error || "No se pudo subir la imagen.",
+              "error"
+            );
           }
         } catch (error) {
           console.error("Error al subir la imagen:", error);
@@ -1192,8 +1197,6 @@ export default function RegistroBeneficiario() {
       };
     }
   };
-  
-  
 
   const getSindicato = (grupoNomina, cuotaSindical) => {
     if (grupoNomina === "NS") {
@@ -1222,7 +1225,7 @@ export default function RegistroBeneficiario() {
   }
 
   const handleBack = () => {
-    router.push('/inicio-servicio-medico'); // Redirige a /inicio-servicio-medico
+    router.push("/inicio-servicio-medico"); // Redirige a /inicio-servicio-medico
   };
 
   // Función para obtener las opciones de sexo desde la API
@@ -2893,19 +2896,16 @@ export default function RegistroBeneficiario() {
 
             {/* Vista previa de la imagen */}
             {imagePreview && (
-  <div className={styles.imagePreview}>
-    <Image
-      src={imagePreview}
-      alt="Vista previa de la foto"
-      width={150}
-      height={150}
-      className={styles.previewImage}
-      unoptimized // <-- si la imagen es base64, a veces es necesario unoptimized
-    />
-  </div>
-)}
-
-
+              <div className={styles.imagePreview}>
+                <Image
+                  src={formData.imageUrl}
+                  alt="Vista previa de la foto"
+                  width={150}
+                  height={150}
+                  className={styles.previewImage}
+                />
+              </div>
+            )}
 
             <fieldset className={styles.fieldset}>
               <legend>En caso de emergencia avisar a:</legend>
