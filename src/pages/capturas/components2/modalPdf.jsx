@@ -8,7 +8,7 @@ const ModalPdf = ({ folio, onClose }) => {
   const [pdfUrl, setPdfUrl] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [dataReceta, setDataReceta] = useState(null);
+  const [setDataReceta] = useState(null);
   const [, setNombreDoctor] = useState("Dr.");
 
   // Función para obtener el nombre del doctor desde /api/getDoctor

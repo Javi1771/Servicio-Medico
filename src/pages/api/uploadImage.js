@@ -56,7 +56,6 @@ export default async function handler(req, res) {
     // Construir la URL final para acceder al archivo
     // Asumiendo que sirves /public en http://172.16.0.7/uploads
     // Si tu Next.js corre en el puerto 3000:
-    const port = process.env.PORT || 3005;
    const finalURL = `${process.env.NEXT_PUBLIC_BASE_URL}/uploads/beneficiarios/${numNomina}/${fileName}`;
 
     return res.status(200).json({

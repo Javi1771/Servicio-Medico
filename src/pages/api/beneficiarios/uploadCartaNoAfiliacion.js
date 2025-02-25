@@ -57,7 +57,6 @@ export default async function handler(req, res) {
 
       // Construir la URL final para acceder al archivo.
       // Asegúrate de ajustar el puerto según la configuración de tu servidor.
-      const port = process.env.PORT || 3005;
      const finalURL = `${process.env.NEXT_PUBLIC_BASE_URL}/cartas_no_afiliacion/${numNomina}/${fileName}`;
 
       return res.status(200).json({
