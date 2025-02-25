@@ -1,41 +1,72 @@
-import cloudinary from '../../lib/cloudinaryServer';
+// pages/api/uploadImage.js
+import fs from "fs";
+import path from "path";
 
 export const config = {
   api: {
     bodyParser: {
-      sizeLimit: '3mb', // Ajusta el tamaño según tus necesidades
+      sizeLimit: "5mb", // Ajusta según necesites
     },
   },
 };
 
-// Desactivar la verificación SSL solo en desarrollo
-if (process.env.NODE_ENV === 'development') {
-  process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-}
-
 export default async function handler(req, res) {
-  if (req.method === 'POST') {
-    const { image, numNomina } = req.body; // Recibir la imagen y el número de nómina
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Método no permitido" });
+  }
+
+  try {
+    const { image, numNomina } = req.body;
 
     if (!numNomina) {
-      return res.status(400).json({ error: 'El número de nómina es obligatorio.' });
+      return res
+        .status(400)
+        .json({ error: "El número de nómina es obligatorio." });
+    }
+    if (!image) {
+      return res.status(400).json({ error: "No se recibió la imagen base64." });
     }
 
-    try {
-      // Definir la carpeta en Cloudinary
-      const folderPath = `beneficiarios/${numNomina}`;
+    // Decodificar la imagen base64
+    const base64Data = image.replace(/^data:image\/\w+;base64,/, "");
+    const buffer = Buffer.from(base64Data, "base64");
 
-      // Subir la imagen a Cloudinary
-      const result = await cloudinary.uploader.upload(image, {
-        folder: folderPath,
-      });
+    // Define dónde guardarás el archivo en tu servidor
+    // p.ej. /public/uploads/beneficiarios/<numNomina>/
+    const uploadDir = path.join(
+      process.cwd(),
+      "public",
+      "uploads",
+      "beneficiarios",
+      numNomina
+    );
 
-      res.status(200).json({ imageUrl: result.secure_url });
-    } catch (error) {
-      console.error('Error al subir imagen a Cloudinary:', error);
-      res.status(500).json({ error: 'Error al subir imagen' });
+    // Crear la carpeta si no existe
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
     }
-  } else {
-    res.status(405).json({ error: 'Método no permitido' });
+
+    // Generar nombre único para la foto
+    const fileName = `foto_${Date.now()}.jpg`;
+    const filePath = path.join(uploadDir, fileName);
+
+    // Guardar el archivo
+    fs.writeFileSync(filePath, buffer);
+
+    // Construir la URL final para acceder al archivo
+    // Asumiendo que sirves /public en http://172.16.0.7/uploads
+    // Si tu Next.js corre en el puerto 3000:
+    const port = process.env.PORT || 3005;
+    const finalURL = `https://172.16.4.47:${port}/uploads/beneficiarios/${numNomina}/${fileName}`;
+
+    return res.status(200).json({
+      imageUrl: finalURL,
+      message: "Imagen subida correctamente al servidor propio.",
+    });
+  } catch (error) {
+    console.error("Error al subir la imagen en el servidor:", error);
+    return res
+      .status(500)
+      .json({ error: "Error al guardar la imagen en el servidor." });
   }
 }

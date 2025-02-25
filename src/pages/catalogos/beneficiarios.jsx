@@ -103,7 +103,7 @@ export default function RegistroBeneficiario() {
     loadFaceApiModels();
   }, []);
 
-  // Función para convertir una imagen base64 a un descriptor
+  // Función para convertir una imagen base64 a un descriptor *************************************************
   async function computeDescriptorFromBase64(base64Image) {
     try {
       if (!modelsLoaded) {
@@ -392,28 +392,21 @@ export default function RegistroBeneficiario() {
           return;
         }
   
-        // Detectar el rostro antes de subir la imagen
+        // Detectar el rostro (si usas face-api)
         const descriptor = await computeDescriptorFromBase64(base64Image);
         if (!descriptor) {
           Swal.fire("Error", "No se detectó un rostro en la imagen.", "error");
           return;
         }
-  
-        // Convertimos el Float32Array en un array normal y luego a string JSON
         const descriptorArray = Array.from(descriptor);
         const descriptorJSON = JSON.stringify(descriptorArray);
-  
-        // Guardamos en formData
         setFormData((prev) => ({
           ...prev,
           descriptorFacial: descriptorJSON,
         }));
-        console.log(
-          "Descriptor facial calculado y guardado en formData:",
-          descriptorJSON
-        );
+        console.log("Descriptor facial calculado:", descriptorJSON);
   
-        // Subimos la imagen solo si se detectó un rostro
+        // Subir la imagen al servidor (nuevo endpoint en lugar de Cloudinary)
         await uploadImage(base64Image);
       }
     } catch (error) {
@@ -422,27 +415,19 @@ export default function RegistroBeneficiario() {
     }
   };
   
+  
   // Función para subir la imagen capturada
   const uploadImage = async (base64Image) => {
     if (!numNomina) {
-      Swal.fire(
-        "Error",
-        "Por favor, ingresa el número de nómina antes de continuar.",
-        "error"
-      );
+      Swal.fire("Error", "Por favor, ingresa el número de nómina.", "error");
       return;
     }
   
     try {
       const response = await fetch("/api/uploadImage", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          image: base64Image,
-          numNomina, // Aquí se envía correctamente
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ image: base64Image, numNomina }),
       });
   
       const data = await response.json();
@@ -451,11 +436,7 @@ export default function RegistroBeneficiario() {
         setFormData((prev) => ({ ...prev, imageUrl: data.imageUrl }));
         Swal.fire("Éxito", "Imagen subida correctamente.", "success");
       } else {
-        Swal.fire(
-          "Error",
-          data.error || "No se pudo subir la imagen.",
-          "error"
-        );
+        Swal.fire("Error", data.error || "No se pudo subir la imagen.", "error");
       }
     } catch (error) {
       console.error("Error al subir la imagen:", error);
@@ -1184,7 +1165,7 @@ export default function RegistroBeneficiario() {
       reader.readAsDataURL(file);
       reader.onloadend = async () => {
         const base64Image = reader.result;
-
+  
         try {
           const response = await fetch("/api/uploadImage", {
             method: "POST",
@@ -1193,20 +1174,16 @@ export default function RegistroBeneficiario() {
             },
             body: JSON.stringify({
               image: base64Image,
-              numNomina, // Enviar el número de nómina desde el estado
+              numNomina, // Enviar la nómina
             }),
           });
-
+  
           const data = await response.json();
-          if (data.imageUrl) {
-            // Actualizar el estado con la URL de la imagen subida
+          if (response.ok && data.imageUrl) {
             setFormData({ ...formData, imageUrl: data.imageUrl });
+            Swal.fire("Éxito", "Imagen subida correctamente.", "success");
           } else {
-            Swal.fire(
-              "Error",
-              "No se pudo subir la imagen. Intenta nuevamente.",
-              "error"
-            );
+            Swal.fire("Error", data.error || "No se pudo subir la imagen.", "error");
           }
         } catch (error) {
           console.error("Error al subir la imagen:", error);
@@ -1215,6 +1192,8 @@ export default function RegistroBeneficiario() {
       };
     }
   };
+  
+  
 
   const getSindicato = (grupoNomina, cuotaSindical) => {
     if (grupoNomina === "NS") {
@@ -2914,15 +2893,18 @@ export default function RegistroBeneficiario() {
 
             {/* Vista previa de la imagen */}
             {imagePreview && (
-    <div className={styles.imagePreview}>
-        <Image
-src={formData.imageUrl}alt="Vista previa de la foto"
-            width={150}
-            height={150}
-            className={styles.previewImage}
-        />
-    </div>
+  <div className={styles.imagePreview}>
+    <Image
+      src={imagePreview}
+      alt="Vista previa de la foto"
+      width={150}
+      height={150}
+      className={styles.previewImage}
+      unoptimized // <-- si la imagen es base64, a veces es necesario unoptimized
+    />
+  </div>
 )}
+
 
 
             <fieldset className={styles.fieldset}>

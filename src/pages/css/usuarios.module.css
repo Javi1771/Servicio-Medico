@@ -292,28 +292,15 @@
   z-index: 1000;
 }
 
-/* Mantener el estilo original del modalContent */
-.modalOverlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background-color: rgba(36, 36, 36, 0.644); /* Fondo oscuro sólido */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
 
 /* Mantener el estilo original del modalContent */
 .modalContent {
   position: relative;
   background-color: #2b2f3a;
-  padding: 20px;
-  border-radius: 10px;
-  max-width: 800px;
-  width: 90%;
+  padding: 80px;
+  border-radius: 30px;
+  max-width: 700px;
+  width: 80%;
   color: #e1e4eb;
   display: flex;
   flex-direction: column;
