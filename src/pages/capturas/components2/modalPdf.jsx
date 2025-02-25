@@ -172,12 +172,6 @@ const ModalPdf = ({ folio, onClose }) => {
     fetchPdf();
   }, [folio]);
 
-  // Abrir el PDF en una nueva pestaña cuando esté listo
-  useEffect(() => {
-    if (pdfUrl) {
-      window.open(pdfUrl, "_blank");
-    }
-  }, [pdfUrl]);
 
   return (
     <div className={styles.modalOverlay}>
@@ -189,30 +183,9 @@ const ModalPdf = ({ folio, onClose }) => {
           <p className={styles.errorText}>{error}</p>
         ) : (
           <>
-            {dataReceta && (
-              <div className={styles.infoContainer}>
-                <p><strong>Nombre Paciente:</strong> {dataReceta.NOMBRE_PACIENTE}</p>
-                <p><strong>Diagnóstico:</strong> {dataReceta.DIAGNOSTICO}</p>
-                <p><strong>Departamento:</strong> {dataReceta.DEPARTAMENTO}</p>
-                <h4>Medicamentos:</h4>
-                {dataReceta.medicamentos && dataReceta.medicamentos.length > 0 ? (
-                  dataReceta.medicamentos.map((med, idx) => (
-                    <div key={idx} className={styles.medItem}>
-                      <p>
-                        <strong>Clave:</strong> {med.claveMedicamento} &nbsp;
-                        <strong>Cantidad:</strong> {med.cantidad} &nbsp;
-                        <strong>Indicaciones:</strong> {med.indicaciones}
-                      </p>
-                    </div>
-                  ))
-                ) : (
-                  <p>No hay medicamentos.</p>
-                )}
-              </div>
-            )}
             {pdfUrl && (
               <>
-                <iframe src={pdfUrl} width="100%" height="500px" title="Vista previa PDF"></iframe>
+                <iframe src={pdfUrl} width="100%" height="700px" title="Vista previa PDF"></iframe>
                 <a href={pdfUrl} download="Receta-Farmacia.pdf" className={styles.downloadLink}>
                   Descargar PDF
                 </a>

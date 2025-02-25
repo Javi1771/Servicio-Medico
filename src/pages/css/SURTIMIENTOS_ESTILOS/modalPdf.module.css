@@ -1,60 +1,79 @@
-/* Fondo oscuro semitransparente para el modal */
+/* Fondo glassmorphism con blur */
 .modalOverlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.7); /* Fondo semitransparente */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(41, 41, 41, 0.463);
+  backdrop-filter: blur(10px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* Contenedor del modal con mayor altura y efecto glass */
+.modalContent {
+  background: rgba(41, 41, 41, 0.386);
+  border: 1px solid rgba(41, 41, 41, 0.429);
+  border-radius: 16px;
+  padding: 2rem;
+  width: 90%;
+  max-width: 1000px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+  animation: modalFadeIn 0.5s ease;
+}
+
+/* Animación modal */
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
   }
-  
-  /* Contenedor del modal */
-  .modalContent {
-    background-color: #fff;
-    padding: 20px;
-    width: 80%;
-    max-width: 800px;
-    border-radius: 10px;
-    box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.3);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+  to {
+    opacity: 1;
+    transform: scale(1);
   }
-  
-  /* Título del modal */
-  .modalContent h2 {
-    font-size: 20px;
-    margin-bottom: 15px;
-    color: #333;
-    text-align: center;
-  }
-  
-  /* Estilos para el PDF */
-  .modalContent iframe {
-    width: 100%;
-    height: 500px;
-    border: none;
-    border-radius: 5px;
-  }
-  
-  /* Botón de cerrar */
-  .closeButton {
-    margin-top: 15px;
-    padding: 10px 20px;
-    background-color: #d9534f;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 16px;
-    transition: background 0.3s;
-  }
-  
-  .closeButton:hover {
-    background-color: #c9302c;
-  }
-  
+}
+
+/* Ajusta la altura del iframe */
+.modalContent iframe {
+  width: 100%;
+  height: 850px; /* Aumenta la altura para que se vea más largo */
+  border: none;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+/* Link de descarga */
+.downloadLink {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  background: #2ecc71;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 8px;
+  transition: background 0.3s ease;
+  margin-bottom: 1rem;
+}
+.downloadLink:hover {
+  background: #27ae60;
+}
+
+/* Botón de cerrar */
+.closeButton {
+  padding: 0.75rem 1.5rem;
+  background: #d9534f;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background 0.3s ease;
+}
+.closeButton:hover {
+  background: #c9302c;
+}
