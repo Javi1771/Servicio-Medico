@@ -1,12 +1,21 @@
 // pages/api/farmacia/surtirMedicamentos.js
-import { connectToDatabase } from '../../api/connectToDatabase';
+import { connectToDatabase } from '../connectToDatabase';
 import sql from 'mssql';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ message: 'Método no permitido' });
   }
-  const { folioSurtimiento, detalle, recetaCompletada, cost } = req.body;
+
+  const { folioSurtimiento, detalle, recetaCompletada, cost, fechaDespacho } = req.body;
+  
+  console.log("📌 Datos recibidos en la API:");
+  console.log(`   🔹 Folio: ${folioSurtimiento}`);
+  console.log(`   🔹 Receta Completada: ${recetaCompletada}`);
+  console.log(`   🔹 Costo: ${cost}`);
+  console.log(`   🔹 Fecha Despacho: ${fechaDespacho}`);
+  console.log(`   🔹 Detalle recibido:`, detalle);
+
   if (!folioSurtimiento || !detalle) {
     return res.status(400).json({ message: 'folioSurtimiento y detalle son requeridos' });
   }
@@ -15,7 +24,7 @@ export default async function handler(req, res) {
   for (const item of detalle) {
     if (item.delta < 0) {
       return res.status(400).json({
-        message: `Error en el detalle del medicamento con clave ${item.claveMedicamento}: delta negativo.`
+        message: `Error en el detalle del medicamento con clave ${item.claveMedicamento}: delta negativo.`,
       });
     }
   }
@@ -26,10 +35,14 @@ export default async function handler(req, res) {
     await transaction.begin();
 
     try {
-      // Actualizar stock y detalleSurtimientos para cada detalle
+      // 🔹 Actualizar stock y detalleSurtimientos para cada detalle
       for (const item of detalle) {
-        const delta = item.delta; // Piezas nuevas a descontar
+        const delta = item.delta;
+
         if (delta > 0) {
+          console.log(`📌 Actualizando stock de medicamento ${item.claveMedicamento}`);
+          console.log(`   🔹 Descontando ${delta} piezas`);
+
           const updateMed = `
             UPDATE [PRESIDENCIA].[dbo].[medicamentos]
             SET piezas = piezas - @delta
@@ -40,6 +53,10 @@ export default async function handler(req, res) {
             .input('claveMedicamento', sql.NVarChar(50), item.claveMedicamento)
             .query(updateMed);
         }
+
+        console.log(`📌 Actualizando detalleSurtimientos ID ${item.idSurtimiento}`);
+        console.log(`   🔹 Nuevo estatus: ${item.estatus}`);
+        console.log(`   🔹 Cantidad entregada: ${item.delivered}`);
 
         const updateDetalle = `
           UPDATE [PRESIDENCIA].[dbo].[detalleSurtimientos]
@@ -54,30 +71,49 @@ export default async function handler(req, res) {
           .query(updateDetalle);
       }
 
-      // Si la receta se completó, actualizar SURTIMIENTOS usando GETDATE() sin formateo
+      // 🔹 Si la receta está completada, actualizar el estatus del surtimiento
       if (recetaCompletada) {
+        const formattedFechaDespacho = new Date(fechaDespacho)
+          .toISOString()
+          .slice(0, 19)
+          .replace("T", " "); // 🔹 Asegurar formato "YYYY-MM-DD HH:MM:SS"
+
+        console.log(`📌 Actualizando SURTIMIENTOS - Folio: ${folioSurtimiento}`);
+        console.log(`   🔹 Nuevo estatus: 0`);
+        console.log(`   🔹 Fecha despacho: ${formattedFechaDespacho}`);
+        console.log(`   🔹 Costo: ${cost || 0}`);
+
         const updateSurtimiento = `
           UPDATE [PRESIDENCIA].[dbo].[SURTIMIENTOS]
           SET ESTATUS = 0,
-              FECHA_DESPACHO = GETDATE(),
+              FECHA_DESPACHO = @fechaDespacho,
               COSTO = @cost
           WHERE FOLIO_SURTIMIENTO = @folio
         `;
-        await transaction.request()
+        
+        console.log("🟢 Ejecutando UPDATE en SURTIMIENTOS...");
+        
+        const updateResult = await transaction.request()
           .input('folio', sql.Int, folioSurtimiento)
+          .input('fechaDespacho', sql.DateTime, formattedFechaDespacho) // 🔹 Cambiado a DateTime
           .input('cost', sql.Numeric(18, 2), cost || 0)
           .query(updateSurtimiento);
+        
+        console.log("✅ Resultado del UPDATE en SURTIMIENTOS:", updateResult);
+      } else {
+        console.log("⚠️ Receta NO completada, no se actualizó SURTIMIENTOS.");
       }
 
       await transaction.commit();
+      console.log(`✅ Transacción completada con éxito para folio ${folioSurtimiento}`);
       return res.status(200).json({ message: 'Cambios guardados con éxito' });
     } catch (err) {
       await transaction.rollback();
-      console.error('Error en transacción surtirMedicamentos:', err);
+      console.error('❌ Error en transacción surtirMedicamentos:', err);
       return res.status(500).json({ message: 'Error en la transacción', error: err.message });
     }
   } catch (error) {
-    console.error('Error conectando a DB en surtirMedicamentos:', error);
+    console.error('❌ Error conectando a DB en surtirMedicamentos:', error);
     return res.status(500).json({ message: error.message });
   }
-}
+};
