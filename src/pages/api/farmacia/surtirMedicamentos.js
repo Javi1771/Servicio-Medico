@@ -1,4 +1,3 @@
-// pages/api/farmacia/surtirMedicamentos.js
 import { connectToDatabase } from '../connectToDatabase';
 import sql from 'mssql';
 
@@ -13,20 +12,11 @@ export default async function handler(req, res) {
   console.log(`   🔹 Folio: ${folioSurtimiento}`);
   console.log(`   🔹 Receta Completada: ${recetaCompletada}`);
   console.log(`   🔹 Costo: ${cost}`);
-  console.log(`   🔹 Fecha Despacho: ${fechaDespacho}`);
+  console.log(`   🔹 Fecha Despacho Recibida: ${fechaDespacho}`);
   console.log(`   🔹 Detalle recibido:`, detalle);
 
   if (!folioSurtimiento || !detalle) {
     return res.status(400).json({ message: 'folioSurtimiento y detalle son requeridos' });
-  }
-
-  // Validar que delta sea >= 0 para cada detalle
-  for (const item of detalle) {
-    if (item.delta < 0) {
-      return res.status(400).json({
-        message: `Error en el detalle del medicamento con clave ${item.claveMedicamento}: delta negativo.`,
-      });
-    }
   }
 
   try {
@@ -35,7 +25,7 @@ export default async function handler(req, res) {
     await transaction.begin();
 
     try {
-      // 🔹 Actualizar stock y detalleSurtimientos para cada detalle
+      //* 🔹 Actualizar stock y detalleSurtimientos para cada detalle
       for (const item of detalle) {
         const delta = item.delta;
 
@@ -71,16 +61,11 @@ export default async function handler(req, res) {
           .query(updateDetalle);
       }
 
-      // 🔹 Si la receta está completada, actualizar el estatus del surtimiento
+      //* 🔹 Si la receta está completada, actualizar el estatus del surtimiento
       if (recetaCompletada) {
-        const formattedFechaDespacho = new Date(fechaDespacho)
-          .toISOString()
-          .slice(0, 19)
-          .replace("T", " "); // 🔹 Asegurar formato "YYYY-MM-DD HH:MM:SS"
-
         console.log(`📌 Actualizando SURTIMIENTOS - Folio: ${folioSurtimiento}`);
         console.log(`   🔹 Nuevo estatus: 0`);
-        console.log(`   🔹 Fecha despacho: ${formattedFechaDespacho}`);
+        console.log(`   🔹 Fecha despacho a guardar: ${fechaDespacho}`);
         console.log(`   🔹 Costo: ${cost || 0}`);
 
         const updateSurtimiento = `
@@ -95,7 +80,7 @@ export default async function handler(req, res) {
         
         const updateResult = await transaction.request()
           .input('folio', sql.Int, folioSurtimiento)
-          .input('fechaDespacho', sql.DateTime, formattedFechaDespacho) // 🔹 Cambiado a DateTime
+          .input('fechaDespacho', sql.VarChar, fechaDespacho) //* 🔹 Se asegura que la fecha es DateTime
           .input('cost', sql.Numeric(18, 2), cost || 0)
           .query(updateSurtimiento);
         

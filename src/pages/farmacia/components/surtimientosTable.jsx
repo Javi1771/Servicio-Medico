@@ -176,9 +176,17 @@ const SurtimientosTable = ({ data, resetSurtimiento }) => {
     //* 🔹 Determinar si la receta está completamente surtida
     const recetaCompletada = detalle.every((it) => it.delivered >= it.piezas);
 
-    //* 🔹 Formatear la fecha de despacho al formato "YYYY-MM-DD HH:MM:SS"
     const now = new Date();
-    const fechaDespacho = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}:${String(now.getSeconds()).padStart(2, "0")}`;
+    const fechaDespacho = `${now.getFullYear()}-${String(
+      now.getMonth() + 1
+    ).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")} ${String(
+      now.getHours()
+    ).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}:${String(
+      now.getSeconds()
+    ).padStart(2, "0")}`;
+    
+    console.log("📌 Fecha Despacho Generada:", fechaDespacho);
+      
 
     try {
       console.log("📌 Enviando datos al backend:");
