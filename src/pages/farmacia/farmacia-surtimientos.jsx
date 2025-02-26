@@ -1,21 +1,27 @@
 import React, { useState } from 'react';
-import { useRouter } from 'next/router'; // Importa useRouter
+import { useRouter } from 'next/router';
 import styles from '../css/EstilosFarmacia/FarmaciaSurtimientos.module.css';
 import SurtimientosTable from './components/surtimientosTable';
 import useSurtimientos from '../../hooks/farmaciaHook/useSurtimientos';
 
 const FarmaciaSurtimientos = () => {
-  const router = useRouter(); // Declara el router
+  const router = useRouter();
   const [barcode, setBarcode] = useState('');
-  const { data, loading, error, fetchSurtimientos } = useSurtimientos();
+  const { data, setData, loading, error, fetchSurtimientos } = useSurtimientos();
 
   const handleSearch = async () => {
     await fetchSurtimientos(barcode);
   };
 
-  // Función para redireccionar a /inicio-servicio-medico
+  // Redireccionar a /inicio-servicio-medico
   const handleRegresar = () => {
     router.push('/inicio-servicio-medico');
+  };
+
+  // 🔹 Función para limpiar la pantalla después de guardar
+  const limpiarPantalla = () => {
+    setData(null); // Resetea los datos
+    setBarcode(""); // Limpia el input del código de barras
   };
 
   return (
@@ -40,7 +46,7 @@ const FarmaciaSurtimientos = () => {
         <button onClick={handleSearch} className={styles.button}>Buscar</button>
         {loading && <p>Cargando...</p>}
         {error && <p>Error: {error}</p>}
-        {data && <SurtimientosTable data={data} />}
+        {data && <SurtimientosTable data={data} resetSurtimiento={limpiarPantalla} />}
       </div>
     </div>
   );

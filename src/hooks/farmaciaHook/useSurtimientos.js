@@ -25,7 +25,7 @@ const useSurtimientos = () => {
     setLoading(false);
   };
 
-  return { data, loading, error, fetchSurtimientos };
+  return { data, setData, loading, error, fetchSurtimientos };
 };
 
 export default useSurtimientos;

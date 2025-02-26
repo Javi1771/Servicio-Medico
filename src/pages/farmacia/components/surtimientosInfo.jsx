@@ -2,34 +2,14 @@
 import React, { useState } from "react";
 import styles from "../../css/EstilosFarmacia/SurtimientosTable.module.css";
 
-// Función para formatear la fecha usando la hora local
-function formatFecha(fecha) {
-  if (!fecha) return "N/A"; // Si la fecha es nula, retorna "N/A"
-  
-  const date = new Date(fecha);
-  const diasSemana = [
-    "Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"
-  ];
-  const diaSemana = diasSemana[date.getDay()];
-  const dia = String(date.getDate()).padStart(2, "0");
-  const mes = String(date.getMonth() + 1).padStart(2, "0");
-  const año = date.getFullYear();
-  const horas = date.getHours();
-  const minutos = String(date.getMinutes()).padStart(2, "0");
-  const periodo = horas >= 12 ? "p.m." : "a.m.";
-  const horas12 = horas % 12 === 0 ? 12 : horas % 12;
-  return `${diaSemana}, ${dia}/${mes}/${año}, ${horas12}:${minutos} ${periodo}`;
-}
-
 const SurtimientosInfo = ({ surtimiento, cost, setCost }) => {
   const [editingCost, setEditingCost] = useState(false);
-  const estatusTexto =
-    surtimiento?.ESTATUS === 1 ? "Receta Pendiente" : "Receta Surtida";
+  const estatusTexto = surtimiento?.ESTATUS ? "Receta Pendiente" : "Receta Surtida";
 
   const handleCostClick = () => {
-    if (surtimiento.ESTATUS === 1) {
+    if (surtimiento.ESTATUS) {
       setEditingCost(true);
-    }
+    }    
   };
 
   const handleCostBlur = () => {
@@ -45,7 +25,8 @@ const SurtimientosInfo = ({ surtimiento, cost, setCost }) => {
           <div className={styles.infoItem}>
             <i className={`fa-solid fa-file-invoice ${styles.infoIcon}`}></i>
             <p className={styles.infoText}>
-              <strong>Folio Surtimiento:</strong> {surtimiento.FOLIO_SURTIMIENTO}
+              <strong>Folio Surtimiento:</strong>{" "}
+              {surtimiento.FOLIO_SURTIMIENTO}
             </p>
           </div>
           {/* Folio Pase */}
@@ -130,16 +111,14 @@ const SurtimientosInfo = ({ surtimiento, cost, setCost }) => {
             <i className={`fa-solid fa-money-bill-wave ${styles.infoIcon}`}></i>
             <p className={styles.infoText}>
               <strong>Costo:</strong>{" "}
-              {surtimiento.ESTATUS === 1 ? (
+              {surtimiento.ESTATUS ? (
                 editingCost ? (
                   <input
-                    type="text"
-                    placeholder="Ingresa el costo ej: 5000"
+                    type="number"
                     value={cost}
                     onChange={(e) => setCost(e.target.value)}
                     onBlur={handleCostBlur}
                     autoFocus
-                    style={{ width: "100px", marginLeft: "5px" }}
                   />
                 ) : (
                   <span style={{ cursor: "pointer", marginLeft: "5px" }}>
@@ -155,10 +134,7 @@ const SurtimientosInfo = ({ surtimiento, cost, setCost }) => {
           <div className={styles.infoItem}>
             <i className={`fa-solid fa-calendar-check ${styles.infoIcon}`}></i>
             <p className={styles.infoText}>
-              <strong>Fecha Despacho:</strong>{" "}
-              {surtimiento.FECHA_DESPACHO
-                ? formatFecha(surtimiento.FECHA_DESPACHO)
-                : "(Pendiente)"}
+              <strong>Fecha Despacho:</strong> {surtimiento.FECHA_DESPACHO}
             </p>
           </div>
           {/* Sindicato */}
@@ -172,7 +148,7 @@ const SurtimientosInfo = ({ surtimiento, cost, setCost }) => {
           <div className={styles.infoItem}>
             <i className={`fa-solid fa-user-shield ${styles.infoIcon}`}></i>
             <p className={styles.infoText}>
-              <strong>Elaboró:</strong> {surtimiento.userName || "(Sin datos)"}
+              <strong>Elaboró:</strong> {surtimiento.nombreproveedor || "(Sin datos)"}
             </p>
           </div>
         </div>

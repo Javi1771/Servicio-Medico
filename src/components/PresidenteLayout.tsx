@@ -162,7 +162,7 @@ const PresidenteLayout: React.FC<PresidenteLayoutProps> = ({ children }) => {
       options: [
         { name: "Medicamentos", path: "/farmacia/medicamentos" },
         { name: "Farmacia Medicamentos", path: "/farmacia/farmacia-surtimientos" },
-        { name: "alertas-de-stock", path: "/farmacia/alertas-de-stock" },
+        { name: "Alertas de Stock", path: "/farmacia/alertas-de-stock" },
         { name: "Unidades de Medida", path: "/farmacia/unidades-de-medida" },
       ],
     },
