@@ -1,0 +1,78 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+.yarn/install-state.gz 
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+.vercel
+.env.local
+
+serve.js
+web.config
+172.16.4.47-key.pem
+172.16.4.47.pem
+
+
+# Ignorar todo en /public/acta_concubinatos excepto .gitkeep
+public/acta_concubinatos/*
+!public/acta_concubinatos/.gitkeep
+
+# Ignorar todo en /public/acta_matrimonios excepto .gitkeep
+public/acta_matrimonios/*
+!public/acta_matrimonios/.gitkeep
+
+# Ignorar todo en /public/actasNacimiento excepto .gitkeep
+public/actasNacimiento/*
+!public/actasNacimiento/.gitkeep
+
+# Ignorar todo en /public/cartas_no_afiliacion excepto .gitkeep
+public/cartas_no_afiliacion/*
+!public/cartas_no_afiliacion/.gitkeep
+
+# Ignorar todo en /public/constancias excepto .gitkeep
+public/constancias/*
+!public/constancias/.gitkeep
+
+# Ignorar todo en /public/curps excepto .gitkeep
+public/curps/*
+!public/curps/.gitkeep
+
+# Ignorar todo en /public/incapacidad excepto .gitkeep
+public/incapacidad/*
+!public/incapacidad/.gitkeep
+
+# Ignorar todo en /public/ine excepto .gitkeep
+public/ine/*
+!public/ine/.gitkeep
+
+# Ignorar todo en /public/uploads/beneficiarios excepto .gitkeep
+public/uploads/beneficiarios/*
+!public/uploads/beneficiarios/.gitkeep

@@ -9,7 +9,7 @@ const rolePermissions = {
   "6": ["/inicio-servicio-medico", "/consultas", "/catalogos", "/capturas", "/reportes", "/especialista", "/farmacia"], //* Permisos para administrador
   "1": ["/inicio-servicio-medico", "/consultas", "/especialista"], //* Permisos para médico
   "2": ["/inicio-servicio-medico", "/consultas/signos-vitales"], //* Permisos para enfermera
-  "3": ["/inicio-servicio-medico", "/capturas"], //* Permisos para capturista
+  "3": ["/inicio-servicio-medico", "/capturas", "/consultas"], //* Permisos para capturista
   "8": ["/inicio-servicio-medico", "/reportes"], //* Permisos para RRHH
   "9": ["/inicio-servicio-medico", "/farmacia/medicamentos"], //* Permisos para farmacia 
   "10": ["/inicio-servicio-medico", "/farmacia", "/catalogos/usuarios-y-proveedores"], //* Permisos para director de servicios médicos 
