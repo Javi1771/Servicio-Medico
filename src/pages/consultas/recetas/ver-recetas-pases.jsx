@@ -37,7 +37,7 @@ export default function VerRecetas() {
         {/* Contenedor de Receta Farmacia */}
         <div className="bg-gray-900 p-6 rounded-2xl border-2 border-cyan-400 shadow-lg shadow-cyan-500/50 relative">
           <h2 className="text-2xl font-semibold text-cyan-300 text-center mb-4 flex items-center gap-2">
-            📜 Receta de Farmacia
+          🩺 Receta de Doctor
           </h2>
 
           {encryptedClave ? (

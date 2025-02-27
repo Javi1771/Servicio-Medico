@@ -18,6 +18,7 @@ const AccionesConsulta = ({
   const { todosCompletos, formulariosCompletos } =
     useContext(FormularioContext);
   const [prioridad, setPrioridad] = useState("");
+  const [loading, setLoading] = useState(false);
   const [tooltipMessage, setTooltipMessage] = useState({
     title: "Formularios incompletos",
     description: "Algunos formularios no están completos.",
@@ -465,6 +466,8 @@ const AccionesConsulta = ({
             "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
         },
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -475,15 +478,16 @@ const AccionesConsulta = ({
       <div className="relative inline-block group">
         <button
           onClick={handleGuardarGlobal}
-          disabled={!todosCompletos}
+          disabled={!todosCompletos || loading}
           className={`relative px-6 py-3 text-sm font-semibold text-white rounded-xl transition-all duration-300 overflow-hidden ${
-            todosCompletos
+            todosCompletos && !loading
               ? "bg-green-600/90 hover:bg-green-700/90 focus:outline-none"
               : "bg-gray-600/90 cursor-not-allowed"
           }`}
         >
-          Guardar Todo
+          {loading ? "Cargando..." : "Guardar Todo"}
         </button>
+
         <div className="absolute invisible opacity-0 group-hover:visible group-hover:opacity-100 bottom-full left-1/2 -translate-x-1/2 mb-3 w-80 transition-all duration-300 ease-in-out transform group-hover:translate-y-0 translate-y-2">
           <div className="relative p-4 bg-gradient-to-br from-gray-900/95 to-gray-800/95 backdrop-blur-md rounded-2xl border border-white/10 shadow-[0_0_30px_rgba(34,197,94,0.3)]">
             <div className="flex items-center gap-3 mb-2">
