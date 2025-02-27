@@ -184,15 +184,14 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
                     if (!selectedMedicamento) return;
 
                     if (
-                      selectedMedicamento.piezas === 0 ||
-                      !selectedMedicamento.presentacion
+                      selectedMedicamento.piezas === 0
                     ) {
                       Swal.fire({
                         icon: "error",
                         title:
                           "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ No disponible</span>",
-                        html: "<p style='color: #fff; font-size: 1.1em;'>Este medicamento no tiene existencias o no cuenta con presentación.</p>",
-                        background: "linear-gradient(145deg, #4a0000, #220000)",
+                          html: "<p style='color: #fff; font-size: 1.1em;'>Este medicamento no tiene existencias en farmacia.</p>",
+                          background: "linear-gradient(145deg, #4a0000, #220000)",
                         confirmButtonColor: "#ff1744",
                         confirmButtonText:
                           "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
