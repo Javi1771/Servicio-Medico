@@ -28,7 +28,7 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
         piezas: medicamento.piezas || "",
         maximo: medicamento.maximo || "",
         minimo: medicamento.minimo || "",
-        medida: medicamento.medida || "", //*🔹 Asegurar que medida se establezca correctamente
+        medida: medicamento.unidadMedida || "", //*🔹 Asegurar que medida se establezca correctamente
       });
     }
   }, [medicamento]);

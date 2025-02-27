@@ -44,10 +44,13 @@ const MedicamentosTable = ({ medicamentos = [], onDelete, onEdit }) => {
   const totalPages = Math.ceil(filteredMedicamentos.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const medicamentosPaginados = filteredMedicamentos.slice(startIndex, endIndex);
+  const medicamentosPaginados = filteredMedicamentos.slice(
+    startIndex,
+    endIndex
+  );
 
   return (
-    <div className="max-w-7xl mx-auto p-8 bg-gradient-to-br from-[#040f0f] to-[#0c1e1e] rounded-3xl border border-teal-500 border-opacity-40 shadow-[0_0_30px_#0ff]">
+    <div className="w-full mx-auto p-8 bg-gradient-to-br from-[#040f0f] to-[#0c1e1e] rounded-3xl border border-teal-500 border-opacity-40 shadow-[0_0_30px_#0ff]">
       <h2
         className="text-5xl font-extrabold text-teal-300 mb-8 text-center tracking-wider uppercase"
         style={{ textShadow: "0 0 15px #0ff" }}
@@ -68,7 +71,7 @@ const MedicamentosTable = ({ medicamentos = [], onDelete, onEdit }) => {
 
       {/* Tabla de medicamentos */}
       <div className="overflow-x-auto">
-        <table className="min-w-full bg-[#0b2424] text-teal-200 rounded-xl shadow-xl border border-teal-500 border-opacity-40">
+        <table className="min-w-full text-lg bg-[#0b2424] text-teal-200 rounded-xl shadow-xl border border-teal-500 border-opacity-40">
           <thead className="bg-teal-800/60 text-teal-100 uppercase tracking-widest text-sm">
             <tr>
               {[
@@ -82,7 +85,10 @@ const MedicamentosTable = ({ medicamentos = [], onDelete, onEdit }) => {
                 "Estado",
                 "Acciones",
               ].map((header) => (
-                <th key={header} className="py-3 px-5 text-center border-b border-teal-600">
+                <th
+                  key={header}
+                  className="py-3 px-5 text-center border-b border-teal-600"
+                >
                   {header}
                 </th>
               ))}
@@ -91,24 +97,39 @@ const MedicamentosTable = ({ medicamentos = [], onDelete, onEdit }) => {
           <tbody>
             {medicamentosPaginados.length > 0 ? (
               medicamentosPaginados.map((med) => {
-                const status =
-                  stockStatusMapping[med.stockStatus.toLowerCase()] || {
-                    label: med.stockStatus,
-                    color: "bg-gray-500",
-                  };
+                const status = stockStatusMapping[
+                  med.stockStatus.toLowerCase()
+                ] || {
+                  label: med.stockStatus,
+                  color: "bg-gray-500",
+                };
                 return (
                   <tr key={med.id}>
                     <td className="py-3 px-5 text-center">{med.medicamento}</td>
                     <td className="py-3 px-5 text-center">
-                      {classificationMapping[med.clasificacion?.toLowerCase()] || med.clasificacion}
+                      {classificationMapping[
+                        med.clasificacion?.toLowerCase()
+                      ] || med.clasificacion}
                     </td>
-                    <td className="py-3 px-5 text-center">{`${med.presentacion} ${med.unidadMedida || "Sin Unidad de Medida"}`}</td>
-                    <td className="py-3 px-5 text-center">{med.ean}</td>
-                    <td className="py-3 px-5 text-center">{`(${med.piezas}) en stock`}</td>
-                    <td className="py-3 px-5 text-center">{med.maximo}</td>
-                    <td className="py-3 px-5 text-center">{med.minimo}</td>
+                    <td className="py-3 px-5 text-center">{`${
+                      med.presentacion || "Sin Presentación"
+                    } ${med.unidadMedida || "Sin Unidad de Medida"}`}</td>
                     <td className="py-3 px-5 text-center">
-                      <span className={`px-3 py-1 rounded-full text-white ${status.color} shadow-[0_0_10px_#0ff]`}>
+                      {med.ean || "Sin EAN"}
+                    </td>
+                    <td className="py-3 px-5 text-center">{`(${
+                      med.piezas || "Sin Piezas"
+                    }) en stock`}</td>
+                    <td className="py-3 px-5 text-center">
+                      {med.maximo || "Sin Máximos"}
+                    </td>
+                    <td className="py-3 px-5 text-center">
+                      {med.minimo || "Sin Mínimos"}
+                    </td>
+                    <td className="py-3 px-5 text-center">
+                      <span
+                        className={`px-3 py-1 rounded-full text-white ${status.color} shadow-[0_0_10px_#0ff]`}
+                      >
                         {status.label}
                       </span>
                     </td>
@@ -160,7 +181,9 @@ const MedicamentosTable = ({ medicamentos = [], onDelete, onEdit }) => {
             Página {currentPage} de {totalPages}
           </span>
           <button
-            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+            onClick={() =>
+              setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+            }
             disabled={currentPage === totalPages}
             className="bg-teal-900 text-teal-200 px-4 py-2 rounded-lg border border-teal-500 shadow-[0_0_10px_#0ff] hover:bg-teal-700 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
           >
