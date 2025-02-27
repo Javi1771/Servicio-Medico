@@ -10,28 +10,30 @@ export default async function handler(req, res) {
         .request()
         .query(`
           SELECT 
-            claveMedicamento AS id,
-            medicamento,
-            clasificacion,
-            presentacion,
-            ean,
-            piezas,
-            maximo,
-            minimo,
-            medida,
+            m.claveMedicamento AS id,
+            m.medicamento,
+            m.clasificacion,
+            m.presentacion,
+            m.ean,
+            m.piezas,
+            m.maximo,
+            m.minimo,
+            m.medida,
+            u.medida AS unidadMedida,
             CASE 
-              WHEN piezas <= minimo THEN 'stock bajo'
-              WHEN piezas >= maximo THEN 'stock alto'
+              WHEN m.piezas <= m.minimo THEN 'stock bajo'
+              WHEN m.piezas >= m.maximo THEN 'stock alto'
               ELSE 'stock medio'
             END AS stockStatus
-          FROM MEDICAMENTOS
-          WHERE estatus = 1
+          FROM MEDICAMENTOS AS m
+          JOIN unidades_de_medida AS u ON m.medida = u.id_medida
+          WHERE m.estatus = 1
         `);
 
       const medicamentos = result.recordset;
       res.status(200).json(medicamentos);
     } catch (error) {
-      console.error('Error al obtener los medicamentos:', error);
+      console.error('❌ Error al obtener los medicamentos:', error);
       res.status(500).json({ message: 'Error al obtener los medicamentos' });
     }
   } else {

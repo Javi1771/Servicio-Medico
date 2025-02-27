@@ -102,7 +102,7 @@ const MedicamentosTable = ({ medicamentos = [], onDelete, onEdit }) => {
                     <td className="py-3 px-5 text-center">
                       {classificationMapping[med.clasificacion?.toLowerCase()] || med.clasificacion}
                     </td>
-                    <td className="py-3 px-5 text-center">{`${med.presentacion} ${med.medida || "Sin Unidad de Medida"}`}</td>
+                    <td className="py-3 px-5 text-center">{`${med.presentacion} ${med.unidadMedida || "Sin Unidad de Medida"}`}</td>
                     <td className="py-3 px-5 text-center">{med.ean}</td>
                     <td className="py-3 px-5 text-center">{`(${med.piezas}) en stock`}</td>
                     <td className="py-3 px-5 text-center">{med.maximo}</td>
