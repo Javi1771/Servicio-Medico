@@ -101,7 +101,7 @@ export default function SignosVitalesFacial() {
     peso: "",
     glucosa: "",
   });
-
+   
   //* Control de guardado y redirección
   const [isSaving, setIsSaving] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
