@@ -19,21 +19,21 @@ const DatosAdicionales = ({
   clavepaciente,
   nombreMedico,
   claveEspecialidad,
-  pasarEspecialidad, // Añadido como prop
-  setPasarEspecialidad, // Añadido como prop
+  pasarEspecialidad, 
+  setPasarEspecialidad, 
   especialidadSeleccionada,
   setEspecialidadSeleccionada,
   observaciones,
   setObservaciones,
 }) => {
-  console.log("Prop pasarEspecialidad en DatosAdicionales:", pasarEspecialidad); // Añadir aquí
-  console.log("Prop claveConsulta en DatosAdicionales:", claveConsulta); // Adicional para depurar claveConsulta si es necesario
+  console.log("Prop pasarEspecialidad en DatosAdicionales:", pasarEspecialidad); 
+  console.log("Prop claveConsulta en DatosAdicionales:", claveConsulta); 
   const { formulariosCompletos, updateFormulario } =
     useContext(FormularioContext);
   const [diagnosticoTexto, setDiagnosticoTexto] = useState("");
   const [motivoConsultaTexto, setMotivoConsultaTexto] = useState("");
 
-  // Inicializar datos solo si están en `localStorage` (para evitar valores persistentes no deseados)
+  //* Inicializar datos solo si están en `localStorage` (para evitar valores persistentes no deseados)
   useEffect(() => {
     const diagnostico = localStorage.getItem("diagnosticoTexto") || "";
     const motivoConsulta = localStorage.getItem("motivoConsultaTexto") || "";
@@ -49,7 +49,7 @@ const DatosAdicionales = ({
     if (limpiarFormularioGlobal) limpiarFormularioGlobal();
   }, [limpiarFormularioGlobal]);
 
-  // Actualizar estado cuando cambien los textos
+  //* Actualizar estado cuando cambien los textos
   const handleDiagnosticoChange = useCallback((e) => {
     const value = e.target.value;
     setDiagnosticoTexto(value);
@@ -166,8 +166,8 @@ const DatosAdicionales = ({
       {subPantalla === "Pase a Especialidad" && (
         <PaseEspecialidad
           claveConsulta={claveConsulta}
-          pasarEspecialidad={pasarEspecialidad} // Estado correcto
-          setPasarEspecialidad={setPasarEspecialidad} // Setter correcto
+          pasarEspecialidad={pasarEspecialidad} 
+          setPasarEspecialidad={setPasarEspecialidad} 
           especialidadSeleccionada={especialidadSeleccionada}
           setEspecialidadSeleccionada={setEspecialidadSeleccionada}
           observaciones={observaciones}

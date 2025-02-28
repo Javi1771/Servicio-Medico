@@ -33,7 +33,9 @@ export default async function handler(req, res) {
 
   if (!claveusuario) {
     console.error("❌ No se encontró 'claveusuario' en las cookies.");
-    return res.status(400).json({ error: "Falta 'claveusuario' en las cookies." });
+    return res
+      .status(400)
+      .json({ error: "Falta 'claveusuario' en las cookies." });
   }
 
   console.log("📥 Datos iniciales recibidos en el body:", {
@@ -71,9 +73,9 @@ export default async function handler(req, res) {
         costo, fechacita, sindicato, clavestatus, elpacienteesempleado, parentesco, departamento, fechaconsulta, claveusuario
       ) VALUES (
         @clavenomina, @clavepaciente, @nombrepaciente, @edad, @claveespecialidad, @claveproveedor, 
-        @costo, @fechacita, @sindicato, @clavestatus, @elpacienteesempleado, @parentesco, @departamento, @fechaconsulta, @claveusuario
+        @costo, @fechacita, @sindicato, @clavestatus, @elpacienteesempleado, @parentesco, @departamento, DATEADD(MINUTE, -4, GETDATE()), @claveusuario
       )
-    `;
+    `;  
     console.log("📋 Valores enviados al query de inserción:", {
       clavenomina,
       clavepaciente,
@@ -88,7 +90,6 @@ export default async function handler(req, res) {
       elpacienteesempleado,
       parentesco,
       departamento,
-      fechaconsulta: new Date(),
       claveusuario,
     });
 
@@ -107,8 +108,7 @@ export default async function handler(req, res) {
       .input("elpacienteesempleado", sql.NVarChar, elpacienteesempleado)
       .input("parentesco", sql.NVarChar, parentesco)
       .input("departamento", sql.NVarChar, departamento)
-      .input("fechaconsulta", sql.DateTime, new Date()) 
-      .input("claveusuario", sql.Int, claveusuario) 
+      .input("claveusuario", sql.Int, claveusuario)
       .query(insertQuery);
 
     if (insertResult.rowsAffected[0] > 0) {
@@ -123,7 +123,7 @@ export default async function handler(req, res) {
     const updateQuery = `
       UPDATE detalleEspecialidad
       SET estatus = 2
-      WHERE claveconsulta = @folio AND estatus = 1
+      WHERE claveconsulta = @folio
     `;
     console.log("📋 Valores enviados al query de actualización:", { folio });
 
@@ -133,15 +133,22 @@ export default async function handler(req, res) {
       .query(updateQuery);
 
     if (updateResult.rowsAffected[0] > 0) {
-      console.log(`✅ Estatus actualizado correctamente en detalleEspecialidad (filas afectadas: ${updateResult.rowsAffected[0]})`);
+      console.log(
+        `✅ Estatus actualizado correctamente en detalleEspecialidad (filas afectadas: ${updateResult.rowsAffected[0]})`
+      );
     } else {
       console.log("⚠️ No se encontró ninguna fila con estatus = 1 para actualizar en detalleEspecialidad");
     }
 
-    res.status(200).json({ message: "Pase creado y estatus actualizado correctamente" });
+    res.status(200).json({
+      message: "Pase creado y estatus actualizado correctamente",
+    });
   } catch (error) {
     console.error("❌ Error al insertar pase o actualizar estatus:", error.message);
     console.error("⚠️ Detalles del error:", error);
-    res.status(500).json({ error: "Error al insertar el pase o actualizar el estatus", details: error.message });
+    res.status(500).json({
+      error: "Error al insertar el pase o actualizar el estatus",
+      details: error.message,
+    });
   }
 }

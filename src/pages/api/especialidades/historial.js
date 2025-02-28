@@ -54,7 +54,7 @@ export default async function handler(req, res) {
         ISNULL(e.especialidad, 'Sin asignar') AS especialidad,
         d.prioridad,
         d.observaciones,
-        d.fecha_asignacion,  -- Se obtiene la fecha sin modificar
+        d.fecha_asignacion,  
         d.clavepaciente
       FROM detalleEspecialidad d
       LEFT JOIN especialidades e ON d.claveespecialidad = e.claveespecialidad
