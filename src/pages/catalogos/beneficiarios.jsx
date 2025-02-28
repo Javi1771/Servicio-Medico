@@ -291,12 +291,14 @@ export default function RegistroBeneficiario() {
   const handleCapturePhoto = async () => {
     try {
       let isVideoReady = false;
-
+  
       const result = await Swal.fire({
         title: "Captura una foto",
         html: '<video id="video" autoplay></video>',
         showCancelButton: true,
         confirmButtonText: "Capturar",
+  
+        // Se ejecuta justo antes de que aparezca la alerta
         willOpen: () => {
           const video = document.getElementById("video");
           navigator.mediaDevices
@@ -310,59 +312,52 @@ export default function RegistroBeneficiario() {
             })
             .catch((error) => {
               console.error("Error al acceder a la cámara:", error);
-              Swal.fire(
-                "Error",
-                "No se pudo acceder a tu cámara. Verifica los permisos.",
-                "error"
-              );
+              // Evita que SweetAlert se cierre si la cámara falla
+              Swal.showValidationMessage("No se pudo acceder a la cámara.");
             });
         },
-        willClose: () => {
+  
+        // Se ejecuta cuando el usuario hace clic en "Capturar"
+        preConfirm: () => {
+          if (!isVideoReady) {
+            // Evita que SweetAlert se cierre si la cámara no está lista
+            Swal.showValidationMessage("La cámara no está lista. Intenta de nuevo.");
+            return false;
+          }
+  
+          // Capturamos la imagen del <video> en un <canvas>
+          const video = document.getElementById("video");
+          const canvas = document.createElement("canvas");
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          const context = canvas.getContext("2d");
+          context.drawImage(video, 0, 0, canvas.width, canvas.height);
+  
+          // Convertimos el contenido del canvas a base64
+          const base64Image = canvas.toDataURL("image/jpeg");
+  
+          // Detenemos la cámara aquí (después de capturar)
           if (window.localStream) {
             window.localStream.getTracks().forEach((track) => track.stop());
           }
+  
+          // Retornamos la imagen base64 para que SweetAlert la reciba en `result.value`
+          return base64Image;
+        },
+  
+        // Ya no detenemos la cámara en willClose porque la detenemos en preConfirm
+        willClose: () => {
+          // vacío
         },
       });
-
-      if (result.isConfirmed) {
-        const video = document.getElementById("video");
-        const canvas = document.createElement("canvas");
-
-        if (!isVideoReady || !video.videoWidth || !video.videoHeight) {
-          Swal.fire(
-            "Error",
-            "La cámara no estaba lista. Intenta nuevamente.",
-            "error"
-          );
-          return;
-        }
-
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        const context = canvas.getContext("2d");
-        context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-        // Convertir la imagen a Base64
-        const base64Image = canvas.toDataURL("image/jpeg");
+  
+      // Revisa si el usuario confirmó (isConfirmed) y si result.value trae la imagen base64
+      if (result.isConfirmed && result.value) {
+        const base64Image = result.value;
+        // 1. Muestra la previsualización
         setImagePreview(base64Image);
-
-        // Mostrar previsualización antes de subir
-        const confirmUpload = await Swal.fire({
-          title: "Previsualización",
-          text: "¿Quieres usar esta foto?",
-          imageUrl: base64Image,
-          imageWidth: 300,
-          imageHeight: 300,
-          showCancelButton: true,
-          confirmButtonText: "Sí, subir",
-          cancelButtonText: "Cancelar",
-        });
-
-        if (!confirmUpload.isConfirmed) {
-          return;
-        }
-
-        // Detectar el rostro (si usas face-api)
+  
+        // 2. (Opcional) Detectar rostro con face-api
         const descriptor = await computeDescriptorFromBase64(base64Image);
         if (!descriptor) {
           Swal.fire("Error", "No se detectó un rostro en la imagen.", "error");
@@ -375,8 +370,8 @@ export default function RegistroBeneficiario() {
           descriptorFacial: descriptorJSON,
         }));
         console.log("Descriptor facial calculado:", descriptorJSON);
-
-        // Subir la imagen al servidor (nuevo endpoint en lugar de Cloudinary)
+  
+        // 3. Subir la imagen a tu servidor
         await uploadImage(base64Image);
       }
     } catch (error) {
@@ -384,6 +379,7 @@ export default function RegistroBeneficiario() {
       Swal.fire("Error", "Ocurrió un problema al capturar la foto.", "error");
     }
   };
+  
 
   // Función para subir la imagen capturada
   const uploadImage = async (base64Image) => {
