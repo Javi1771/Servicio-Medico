@@ -26,8 +26,9 @@ export default async function handler(req, res) {
               ELSE 'stock medio'
             END AS stockStatus
           FROM MEDICAMENTOS AS m
-          JOIN unidades_de_medida AS u ON m.medida = u.id_medida
+          LEFT JOIN unidades_de_medida AS u ON m.medida = u.id_medida
           WHERE m.estatus = 1
+          ORDER BY m.medicamento ASC
         `);
 
       const medicamentos = result.recordset;

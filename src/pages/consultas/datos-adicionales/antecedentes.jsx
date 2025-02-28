@@ -240,20 +240,18 @@ const Antecedentes = ({ clavenomina, clavepaciente }) => {
         </label>
         <label className="block mb-4">
           <span className="text-lg font-semibold mb-2 block">
-            Fecha Inicio de Tratamiento:
+            Año de Inicio de Tratamiento:
           </span>
           <div className="relative">
             <div
               className="flex items-center bg-gradient-to-r from-blue-900 via-purple-900 to-blue-900 rounded-full p-4 shadow-md cursor-pointer"
-              onClick={() => {
-                setIsFechaInicioOpen(!isFechaInicioOpen);
-              }}
+              onClick={() => setIsFechaInicioOpen(!isFechaInicioOpen)}
             >
               <FaCalendarAlt className="text-cyan-400 mr-4" size={28} />
               <span className="text-cyan-200 font-medium">
                 {fechaInicioEnfermedad
-                  ? fechaInicioEnfermedad.toLocaleDateString()
-                  : "📅 Selecciona una fecha"}
+                  ? fechaInicioEnfermedad.getFullYear()
+                  : "📅 Selecciona un año"}
               </span>
             </div>
             {isFechaInicioOpen && (
@@ -265,15 +263,15 @@ const Antecedentes = ({ clavenomina, clavepaciente }) => {
                   }}
                   value={fechaInicioEnfermedad}
                   className="bg-gradient-to-br from-gray-900 via-black to-gray-800 rounded-lg text-cyan-300"
+                  view="decade" //* Muestra solo la vista de selección de años
+                  maxDetail="decade" //! Evita que el usuario seleccione meses o días
+                  minDetail="decade" //* Mantiene la vista en selección de años
                   tileClassName={() =>
                     "text-gray-500 bg-gray-800 border border-gray-700 rounded-md"
                   }
                   navigationLabel={({ date }) => (
                     <p className="text-lg font-bold text-cyan-400">
-                      {date.toLocaleString("default", {
-                        month: "long",
-                        year: "numeric",
-                      })}
+                      {date.getFullYear()}
                     </p>
                   )}
                   nextLabel={<span className="text-cyan-400">→</span>}

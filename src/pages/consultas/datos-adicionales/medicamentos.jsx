@@ -20,8 +20,11 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
   }, []);
 
   useEffect(() => {
-    console.log("📦 Datos recibidos de la API /api/medicamentos/listar:", listaMedicamentos);
-  }, [listaMedicamentos]);  
+    console.log(
+      "📦 Datos recibidos de la API /api/medicamentos/listar:",
+      listaMedicamentos
+    );
+  }, [listaMedicamentos]);
 
   //? 2) Cargar historial de medicamentos desde el backend
   useEffect(() => {
@@ -169,6 +172,7 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
             className="mb-6 bg-gradient-to-br from-gray-700 to-gray-800 p-6 rounded-lg shadow-lg"
           >
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+
               {/* Selección de Medicamento */}
               <div>
                 <label className="text-lg font-semibold text-gray-200">
@@ -183,15 +187,13 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
 
                     if (!selectedMedicamento) return;
 
-                    if (
-                      selectedMedicamento.piezas === 0
-                    ) {
+                    if (selectedMedicamento.piezas <= 0) {
                       Swal.fire({
                         icon: "error",
                         title:
                           "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ No disponible</span>",
-                          html: "<p style='color: #fff; font-size: 1.1em;'>Este medicamento no tiene existencias en farmacia.</p>",
-                          background: "linear-gradient(145deg, #4a0000, #220000)",
+                        html: "<p style='color: #fff; font-size: 1.1em;'>Este medicamento no tiene existencias en farmacia.</p>",
+                        background: "linear-gradient(145deg, #4a0000, #220000)",
                         confirmButtonColor: "#ff1744",
                         confirmButtonText:
                           "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
@@ -223,10 +225,9 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
                       key={m.CLAVEMEDICAMENTO}
                       value={m.CLAVEMEDICAMENTO}
                       className="text-lg py-2"
+                      disabled={m.piezas <= 0} //!🔹 Deshabilita medicamentos sin existencias
                     >
-                      {m.MEDICAMENTO} --- Presentación Por Caja:{" "}
-                      {m.presentacion || "Sin existencias"}
-                      --- Cajas Disponibles:{" "}
+                      {m.MEDICAMENTO} --- Presentación Por Caja:{" "} {m.presentacion || "Sin existencias"} --- Cajas Disponibles:{" "}
                       {m.piezas > 0 ? m.piezas : "Sin existencias"}
                     </option>
                   ))}
@@ -342,9 +343,6 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
                 <th className="py-4 px-6 text-base font-semibold">Piezas</th>
                 <th className="py-4 px-6 text-base font-semibold">Proveedor</th>
                 <th className="py-4 px-6 text-base font-semibold">
-                  Especialidad
-                </th>
-                <th className="py-4 px-6 text-base font-semibold">
                   Fecha Emisión
                 </th>
               </tr>
@@ -363,16 +361,13 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
                       {item.indicaciones}
                     </td>
                     <td className="py-4 px-6 border-t border-gray-800 text-gray-300">
-                      {item.tratamiento}
+                      {item.tratamiento || ""}
                     </td>
                     <td className="py-4 px-6 border-t border-gray-800 text-gray-300">
                       {item.piezas || ""}
                     </td>
                     <td className="py-4 px-6 border-t border-gray-800 text-gray-300">
                       {item.nombreproveedor || ""}
-                    </td>
-                    <td className="py-4 px-6 border-t border-gray-800 text-gray-300">
-                      {item.especialidad || ""}
                     </td>
                     <td className="py-4 px-6 border-t border-gray-800 text-gray-300">
                       {item.fechaEmision}
