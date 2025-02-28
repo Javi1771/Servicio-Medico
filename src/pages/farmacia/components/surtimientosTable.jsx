@@ -85,11 +85,27 @@ const SurtimientosTable = ({ data, resetSurtimiento }) => {
       return;
     }
 
-    if (item.stock < pendiente) {
+    if (item.stock === 0) {
+      MySwal.fire({
+        icon: "error",
+        title: "<span style='color: #ff1744;'>❌ Sin Stock</span>",
+        html: "<p style='color: #fff;'>No hay más unidades disponibles en stock para este medicamento.</p>",
+        background: "linear-gradient(145deg, #4a0000, #220000)",
+        confirmButtonColor: "#ff1744",
+        customClass: {
+          popup:
+            "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
+        },
+      });
+      return; //* 🔹 Bloquea la entrega si el stock es 0
+    }
+
+    if (item.delivered >= item.stock) {
       MySwal.fire({
         icon: "warning",
-        title: "<span style='color: #ff9800;'>⚠️ Stock insuficiente</span>",
-        html: `<p style='color: #fff;'>Solo se pueden entregar ${item.stock} piezas en total.</p>`,
+        title:
+          "<span style='color: #ff9800;'>⚠️ Límite de Stock Alcanzado</span>",
+        html: `<p style='color: #fff;'>Ya se han entregado todas las piezas disponibles en stock (${item.stock}).</p>`,
         background: "linear-gradient(145deg, #4a2600, #220f00)",
         confirmButtonColor: "#ff9800",
         customClass: {
@@ -97,7 +113,7 @@ const SurtimientosTable = ({ data, resetSurtimiento }) => {
             "border border-yellow-600 shadow-[0px_0px_25px_5px_rgba(255,152,0,0.9)] rounded-lg",
         },
       });
-      return;
+      return; //* 🔹 Bloquea la entrega si ya se llegó al máximo del stock
     }
 
     const { valido } = await validarEAN(eanValue, item.claveMedicamento);
@@ -120,6 +136,23 @@ const SurtimientosTable = ({ data, resetSurtimiento }) => {
 
     //* 🔹 Si todo es correcto, incrementar el número de entregados
     const newDelivered = item.delivered + 1;
+
+    if (newDelivered > item.stock) {
+      MySwal.fire({
+        icon: "warning",
+        title:
+          "<span style='color: #ff9800;'>⚠️ No puedes entregar más de lo que hay en stock</span>",
+        html: `<p style='color: #fff;'>El máximo permitido es ${item.stock} piezas.</p>`,
+        background: "linear-gradient(145deg, #4a2600, #220f00)",
+        confirmButtonColor: "#ff9800",
+        customClass: {
+          popup:
+            "border border-yellow-600 shadow-[0px_0px_25px_5px_rgba(255,152,0,0.9)] rounded-lg",
+        },
+      });
+      return; //* 🔹 Evita entregar más piezas que el stock disponible
+    }
+
     const nuevoEstatusLocal = newDelivered >= item.piezas ? 2 : 1;
 
     setDetalle((prev) =>
@@ -184,9 +217,8 @@ const SurtimientosTable = ({ data, resetSurtimiento }) => {
     ).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}:${String(
       now.getSeconds()
     ).padStart(2, "0")}`;
-    
+
     console.log("📌 Fecha Despacho Generada:", fechaDespacho);
-      
 
     try {
       console.log("📌 Enviando datos al backend:");
