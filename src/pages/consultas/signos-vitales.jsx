@@ -113,10 +113,6 @@ const SignosVitales = () => {
   const [consultasAtendidas, setConsultasAtendidas] = useState([]);
   const [consultaSeleccionada, setConsultaSeleccionada] = useState("empleado");
 
-  const isFormComplete = Object.values(signosVitales).every(
-    (value) => value.trim() !== ""
-  );
-
   const [isSaving, setIsSaving] = useState(false);
 
   const handleFaceRecognition = () => {
@@ -1085,16 +1081,12 @@ const SignosVitales = () => {
                 <div className="mt-8 flex justify-center">
                   <button
                     onClick={handleSave}
-                    disabled={!isFormComplete || isSaving}
+                    disabled={isSaving} // Solo se deshabilita mientras se está guardando
                     className={`relative px-8 py-4 text-lg font-bold uppercase rounded-lg 
-        bg-gray-900 border border-transparent 
-        shadow-[0_0_20px_4px_rgba(255,255,0,0.7)] hover:shadow-[0_0_40px_8px_rgba(255,255,0,0.9)] 
-        hover:text-white transition-all duration-300 ease-in-out group 
-        ${
-          isFormComplete && !isSaving
-            ? "text-yellow-400"
-            : "text-gray-500 cursor-not-allowed"
-        }`}
+      bg-gray-900 border border-transparent 
+      shadow-[0_0_20px_4px_rgba(255,255,0,0.7)] hover:shadow-[0_0_40px_8px_rgba(255,255,0,0.9)] 
+      hover:text-white transition-all duration-300 ease-in-out group 
+      ${!isSaving ? "text-yellow-400" : "text-gray-500 cursor-not-allowed"}`}
                   >
                     <span className="absolute inset-0 rounded-lg border-2 border-yellow-500 opacity-50 blur-lg group-hover:opacity-100 group-hover:blur-xl transition-all duration-500"></span>
                     <span className="relative z-10">

@@ -56,7 +56,8 @@ export default async function handler(req, res) {
       .input('claveespecialidad', sql.Int, claveespecialidad)
       .input('clavetipousuario', sql.Int, clavetipousuario)
       .input('usuario', sql.VarChar, usuario)             
-      .input('usuarioOriginal', sql.VarChar, usuarioOriginal);
+      .input('usuarioOriginal', sql.VarChar, usuarioOriginal)
+      .input('costo', sql.Money, costo);
 
     //* Si manejas costo:
     if (typeof costo !== 'undefined') {

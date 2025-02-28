@@ -106,11 +106,6 @@ export default function SignosVitalesFacial() {
   const [isSaving, setIsSaving] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
 
-  //* Verifica si todos los campos están llenos
-  const isFormComplete = Object.values(signosVitales).every(
-    (val) => val.trim() !== ""
-  );
-
   //* Cargar beneficiario y empleado al montar
   useEffect(() => {
     if (!router.isReady) return;
@@ -739,9 +734,9 @@ export default function SignosVitalesFacial() {
 
             <button
               onClick={handleSave}
-              disabled={!isFormComplete || isSaving}
+              disabled={isSaving}
               className={`mt-8 w-full py-3 rounded-md font-bold text-lg transition-all duration-300 transform ${
-                isFormComplete && !isSaving
+                !isSaving
                   ? "bg-yellow-500 hover:bg-yellow-400 hover:scale-105 shadow-lg shadow-yellow-500/50"
                   : "bg-gray-500 cursor-not-allowed"
               }`}

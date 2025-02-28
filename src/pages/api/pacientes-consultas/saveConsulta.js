@@ -16,18 +16,18 @@ export default async function handler(req, res) {
       const clavePaciente = (consultaData.clavepaciente ?? consultaData.clavenomina).toString();
       console.log("🔑 Valor de clavePaciente (como cadena):", clavePaciente);
 
-      //* Inserción en la base de datos
+      //* Preparación de la inserción. Para campos numéricos se valida si es cadena vacía y se asigna null.
       const request = pool.request();
       request
         .input("fechaconsulta", sql.VarChar, consultaData.fechaconsulta)
         .input("clavenomina", sql.VarChar, consultaData.clavenomina)
-        .input("presionarterialpaciente", sql.VarChar, consultaData.presionarterialpaciente)
-        .input("temperaturapaciente", sql.Decimal, consultaData.temperaturapaciente)
-        .input("pulsosxminutopaciente", sql.Int, consultaData.pulsosxminutopaciente)
-        .input("respiracionpaciente", sql.Int, consultaData.respiracionpaciente)
-        .input("estaturapaciente", sql.Decimal, consultaData.estaturapaciente)
-        .input("pesopaciente", sql.Decimal, consultaData.pesopaciente)
-        .input("glucosapaciente", sql.Int, consultaData.glucosapaciente)
+        .input("presionarterialpaciente", sql.VarChar, consultaData.presionarterialpaciente === "" ? null : consultaData.presionarterialpaciente)
+        .input("temperaturapaciente", sql.Decimal, consultaData.temperaturapaciente === "" ? null : consultaData.temperaturapaciente)
+        .input("pulsosxminutopaciente", sql.Int, consultaData.pulsosxminutopaciente === "" ? null : consultaData.pulsosxminutopaciente)
+        .input("respiracionpaciente", sql.Int, consultaData.respiracionpaciente === "" ? null : consultaData.respiracionpaciente)
+        .input("estaturapaciente", sql.Decimal, consultaData.estaturapaciente === "" ? null : consultaData.estaturapaciente)
+        .input("pesopaciente", sql.Decimal, consultaData.pesopaciente === "" ? null : consultaData.pesopaciente)
+        .input("glucosapaciente", sql.Int, consultaData.glucosapaciente === "" ? null : consultaData.glucosapaciente)
         .input("nombrepaciente", sql.VarChar, consultaData.nombrepaciente)
         .input("edad", sql.VarChar, consultaData.edad)
         .input("clavestatus", sql.Int, consultaData.clavestatus)
