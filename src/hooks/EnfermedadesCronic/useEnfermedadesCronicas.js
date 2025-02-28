@@ -12,6 +12,16 @@ export function useEnfermedadesCronicas() {
     fetchEnfermedades();
   }, []);
 
+  //* Define las rutas de los sonidos de éxito y error
+  const successSound = "/assets/applepay.mp3";
+  const errorSound = "/assets/error.mp3";
+
+  //! Reproduce un sonido de éxito/error
+  const playSound = (isSuccess) => {
+    const audio = new Audio(isSuccess ? successSound : errorSound);
+    audio.play();
+  };
+
   const fetchEnfermedades = async () => {
     try {
       const response = await fetch(
@@ -29,6 +39,7 @@ export function useEnfermedadesCronicas() {
     e.preventDefault();
 
     if (!newEnfermedad.trim()) {
+      playSound(false);
       Swal.fire({
         icon: "error",
         title: "Error",
@@ -49,12 +60,14 @@ export function useEnfermedadesCronicas() {
 
       if (!response.ok) {
         if (response.status === 409) {
+          playSound(false);
           Swal.fire({
             icon: "error",
             title: "Error",
             text: "Esta enfermedad crónica ya está registrada.",
           });
         } else {
+          playSound(false);
           Swal.fire({
             icon: "error",
             title: "Error",
@@ -64,6 +77,7 @@ export function useEnfermedadesCronicas() {
         return;
       }
 
+      playSound(true);
       Swal.fire({
         icon: "success",
         title: "Registrado",
@@ -76,6 +90,7 @@ export function useEnfermedadesCronicas() {
       fetchEnfermedades();
     } catch (err) {
       console.error("Error al registrar la enfermedad:", err);
+      playSound(false);
       Swal.fire({
         icon: "error",
         title: "Error",
@@ -88,6 +103,7 @@ export function useEnfermedadesCronicas() {
     e.preventDefault();
 
     if (!newKpi.trim()) {
+      playSound(false);
       Swal.fire({
         icon: "error",
         title: "Error",
@@ -107,6 +123,7 @@ export function useEnfermedadesCronicas() {
       });
 
       if (!response.ok) {
+        playSound(false);
         Swal.fire({
           icon: "error",
           title: "Error",
@@ -115,6 +132,7 @@ export function useEnfermedadesCronicas() {
         return;
       }
 
+      playSound(true);
       Swal.fire({
         icon: "success",
         title: "Registrado",
@@ -127,6 +145,7 @@ export function useEnfermedadesCronicas() {
       setSelectedEnfermedadId(null);
     } catch (err) {
       console.error("Error al registrar el KPI:", err);
+      playSound(false);
       Swal.fire({
         icon: "error",
         title: "Error",

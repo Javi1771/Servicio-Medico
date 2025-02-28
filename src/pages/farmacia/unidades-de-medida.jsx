@@ -7,6 +7,16 @@ import { useRouter } from "next/router";
 
 const MySwal = withReactContent(Swal);
 
+//* Define las rutas de los sonidos de éxito y error
+const successSound = "/assets/applepay.mp3";
+const errorSound = "/assets/error.mp3";
+
+//! Reproduce un sonido de éxito/error
+const playSound = (isSuccess) => {
+  const audio = new Audio(isSuccess ? successSound : errorSound);
+  audio.play();
+};
+
 const InsertarUnidadForm = () => {
   const [medida, setMedida] = useState("");
   const [loading, setLoading] = useState(false);
@@ -15,6 +25,7 @@ const InsertarUnidadForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!medida) {
+      playSound(false);
       MySwal.fire({
         icon: "error",
         title:
@@ -42,6 +53,7 @@ const InsertarUnidadForm = () => {
       if (!res.ok) {
         throw new Error(data.message || "Error al insertar");
       }
+      playSound(true);
       MySwal.fire({
         icon: "success",
         title:
@@ -58,6 +70,7 @@ const InsertarUnidadForm = () => {
       });
       setMedida("");
     } catch (error) {
+      playSound(false);
       MySwal.fire({
         icon: "error",
         title:
@@ -106,7 +119,10 @@ const InsertarUnidadForm = () => {
         </h2>
         <form onSubmit={handleSubmit} className="flex flex-col gap-6">
           <div className="flex flex-col">
-            <label htmlFor="medida" className="text-white font-bold text-lg mb-2">
+            <label
+              htmlFor="medida"
+              className="text-white font-bold text-lg mb-2"
+            >
               Unidad Abreviada:
             </label>
             <input

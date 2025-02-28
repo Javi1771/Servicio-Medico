@@ -10,8 +10,6 @@ import { FormularioContext } from "/src/context/FormularioContext";
 
 import HistorialIncapacidadesTable from "./historial-incapacidades";
 
-const MySwal = withReactContent(Swal);
-
 const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
   const { updateFormulario } = useContext(FormularioContext);
   const [autorizarIncapacidad, setAutorizarIncapacidad] = useState("no");

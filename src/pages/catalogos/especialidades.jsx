@@ -17,6 +17,16 @@ export default function EspecialidadesTable() {
   });
   const [selectedEspecialidad, setSelectedEspecialidad] = useState(null);
 
+  //* Define las rutas de los sonidos de éxito y error
+  const successSound = "/assets/applepay.mp3";
+  const errorSound = "/assets/error.mp3";
+
+  //! Reproduce un sonido de éxito/error
+  const playSound = (isSuccess) => {
+    const audio = new Audio(isSuccess ? successSound : errorSound);
+    audio.play();
+  };
+
   useEffect(() => {
     fetchEspecialidades();
   }, []);
@@ -52,28 +62,29 @@ export default function EspecialidadesTable() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     const especialidadData = {
       claveespecialidad: selectedEspecialidad?.claveespecialidad, // Solo si es edición
       especialidad: newEspecialidad.especialidad,
     };
-  
+
     console.log("Datos enviados al backend:", especialidadData);
-  
+
     try {
       const url = selectedEspecialidad
         ? "/api/editEspecialidad"
         : "/api/crearEspecialidad";
       const method = selectedEspecialidad ? "PUT" : "POST";
-  
+
       const response = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(especialidadData),
       });
-  
+
       if (response.status === 409) {
         //! Manejo del error de clave duplicada con SweetAlert
+        playSound(false);
         Swal.fire({
           icon: "error",
           title: "Error",
@@ -82,7 +93,7 @@ export default function EspecialidadesTable() {
         });
         return;
       }
-  
+
       if (!response.ok) {
         throw new Error(
           selectedEspecialidad
@@ -90,7 +101,8 @@ export default function EspecialidadesTable() {
             : "Error al agregar la especialidad"
         );
       }
-  
+
+      playSound(true);
       Swal.fire({
         icon: "success",
         title: selectedEspecialidad
@@ -99,12 +111,13 @@ export default function EspecialidadesTable() {
         showConfirmButton: false,
         timer: 2000,
       });
-  
+
       await fetchEspecialidades();
       toggleModal();
     } catch (error) {
       console.error(error);
-  
+
+      playSound(false);
       Swal.fire({
         icon: "error",
         title: "Error",
@@ -113,7 +126,7 @@ export default function EspecialidadesTable() {
           : "Ocurrió un problema al agregar la especialidad. Inténtelo de nuevo más tarde.",
         confirmButtonText: "Entendido",
       });
-  
+
       setError(
         selectedEspecialidad
           ? "Error al actualizar la especialidad"
@@ -121,7 +134,6 @@ export default function EspecialidadesTable() {
       );
     }
   };
-  
 
   const handleDeleteEspecialidad = async (claveespecialidad) => {
     console.log(
@@ -129,6 +141,7 @@ export default function EspecialidadesTable() {
       claveespecialidad
     ); // Agregamos un log para depuración
 
+    playSound(false);
     const confirmDelete = await Swal.fire({
       title: "¿Estás seguro?",
       text: "No podrás revertir esta acción",
@@ -150,6 +163,7 @@ export default function EspecialidadesTable() {
         if (!response.ok) throw new Error("Error al eliminar la especialidad");
 
         await fetchEspecialidades(); // Refrescar la lista después de eliminar
+        playSound(true);
         Swal.fire("Eliminado", "La especialidad ha sido eliminada", "success");
       } catch (error) {
         console.error("Error al intentar eliminar la especialidad:", error);
@@ -164,7 +178,7 @@ export default function EspecialidadesTable() {
 
   const router = useRouter();
   const handleBack = () => {
-    router.push('/inicio-servicio-medico'); // Redirige a /inicio-servicio-medico
+    router.push("/inicio-servicio-medico"); // Redirige a /inicio-servicio-medico
   };
 
   return (

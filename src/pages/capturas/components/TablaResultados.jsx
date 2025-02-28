@@ -10,6 +10,16 @@ export default function TablaResultados({ data, folioPase, onEstatusUpdated }) {
   const { updateEstatus, loading, error } = useUpdateEstatus();
   //const { surtimientos, loading: loadingSurtimientos, error: errorSurtimientos } = useHistorialByFolio(folioPase);
 
+  //* Define las rutas de los sonidos de éxito y error
+const successSound = "/assets/applepay.mp3";
+const errorSound = "/assets/error.mp3";
+
+//! Reproduce un sonido de éxito/error
+const playSound = (isSuccess) => {
+  const audio = new Audio(isSuccess ? successSound : errorSound);
+  audio.play();
+};
+
   const fetchMedicamentoByClave = async (claveMedicamento) => {
     try {
       const response = await fetch(
@@ -47,6 +57,7 @@ export default function TablaResultados({ data, folioPase, onEstatusUpdated }) {
   }, [loadMedicamentos]);
 
   const handleDelete = async (idDetalleReceta) => {
+    playSound(false);
     const result = await Swal.fire({
       title: "¿Estás seguro?",
       text: "Este medicamento será marcado como inactivo.",
@@ -63,6 +74,7 @@ export default function TablaResultados({ data, folioPase, onEstatusUpdated }) {
     try {
       const updateResult = await updateEstatus(idDetalleReceta, 0);
       if (updateResult.success) {
+        playSound(true);
         Swal.fire({
           title: "Eliminado",
           text: "El medicamento ha sido marcado como inactivo.",
@@ -75,6 +87,7 @@ export default function TablaResultados({ data, folioPase, onEstatusUpdated }) {
       }
     } catch (error) {
       console.error("Error al eliminar el medicamento:", error.message);
+      playSound(false);
       Swal.fire({
         title: "Error",
         text: "No se pudo actualizar el registro.",

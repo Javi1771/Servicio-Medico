@@ -19,6 +19,16 @@ export default function MedicamentosTable() {
   const [clasificaciones, setClasificaciones] = useState({});
   const [selectedClasificacion, setSelectedClasificacion] = useState("");
 
+  //* Define las rutas de los sonidos de éxito y error
+  const successSound = "/assets/applepay.mp3";
+  const errorSound = "/assets/error.mp3";
+
+  //! Reproduce un sonido de éxito/error
+  const playSound = (isSuccess) => {
+    const audio = new Audio(isSuccess ? successSound : errorSound);
+    audio.play();
+  };
+
   useEffect(() => {
     fetchMedicamentos();
     fetchClasificaciones();
@@ -30,8 +40,7 @@ export default function MedicamentosTable() {
       const data = await response.json();
       // Filtrar medicamentos activos
       const medicamentosActivos = data.filter(
-        (medicamento) =>
-          medicamento.ESTATUS == 1
+        (medicamento) => medicamento.ESTATUS == 1
       );
 
       setMedicamentos(medicamentosActivos);
@@ -86,6 +95,7 @@ export default function MedicamentosTable() {
         throw new Error("Error al agregar el medicamento");
       }
 
+      playSound(true);
       Swal.fire({
         icon: "success",
         title: "Medicamento agregado correctamente",
@@ -102,6 +112,7 @@ export default function MedicamentosTable() {
   };
 
   const handleDeleteMedicamento = async (clavemedicamento) => {
+    playSound(false);
     const confirmDelete = await Swal.fire({
       title: "¿Estás seguro?",
       text: "No podrás revertir esta acción",
@@ -123,6 +134,7 @@ export default function MedicamentosTable() {
         if (!response.ok) throw new Error("Error al eliminar el medicamento");
 
         await fetchMedicamentos();
+        playSound(true);
         Swal.fire("Eliminado", "El medicamento ha sido eliminado", "success");
       } catch (error) {
         console.error("Error al intentar eliminar el medicamento:", error);
@@ -284,7 +296,7 @@ export default function MedicamentosTable() {
             ))}
           </tbody>
         </table>
-        
+
         {showModal &&
           ReactDOM.createPortal(
             <div className={styles.modalOverlay}>

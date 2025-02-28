@@ -8,6 +8,16 @@ import MedicamentosList from "./medicamentosList";
 
 const MySwal = withReactContent(Swal);
 
+//* Define las rutas de los sonidos de éxito y error
+const successSound = "/assets/applepay.mp3";
+const errorSound = "/assets/error.mp3";
+
+//! Reproduce un sonido de éxito/error
+const playSound = (isSuccess) => {
+  const audio = new Audio(isSuccess ? successSound : errorSound);
+  audio.play();
+};
+
 //* 🔹 Función para validar el EAN
 async function validarEAN(ean, claveMedicamento) {
   try {
@@ -70,6 +80,7 @@ const SurtimientosTable = ({ data, resetSurtimiento }) => {
     console.log("📌 Stock disponible:", item.stock);
 
     if (pendiente <= 0) {
+      playSound(false);
       MySwal.fire({
         icon: "info",
         title:
@@ -86,6 +97,7 @@ const SurtimientosTable = ({ data, resetSurtimiento }) => {
     }
 
     if (item.stock === 0) {
+      playSound(false);
       MySwal.fire({
         icon: "error",
         title: "<span style='color: #ff1744;'>❌ Sin Stock</span>",
@@ -101,6 +113,7 @@ const SurtimientosTable = ({ data, resetSurtimiento }) => {
     }
 
     if (item.delivered >= item.stock) {
+      playSound(false);
       MySwal.fire({
         icon: "warning",
         title:
@@ -120,6 +133,7 @@ const SurtimientosTable = ({ data, resetSurtimiento }) => {
     console.log("📌 Resultado de validarEAN:", valido);
 
     if (!valido) {
+      playSound(false);
       MySwal.fire({
         icon: "error",
         title: "<span style='color: #ff1744;'>❌ EAN no válido</span>",
@@ -138,6 +152,7 @@ const SurtimientosTable = ({ data, resetSurtimiento }) => {
     const newDelivered = item.delivered + 1;
 
     if (newDelivered > item.stock) {
+      playSound(false);
       MySwal.fire({
         icon: "warning",
         title:
@@ -189,6 +204,7 @@ const SurtimientosTable = ({ data, resetSurtimiento }) => {
 
     //!🔹 Evitar guardar si no hay cambios
     if (detallesParaGuardar.length === 0) {
+      playSound(false);
       MySwal.fire({
         icon: "info",
         title: "<span style='color: #00bcd4;'>ℹ️ Sin cambios</span>",
@@ -239,6 +255,7 @@ const SurtimientosTable = ({ data, resetSurtimiento }) => {
         }),
       });
 
+      playSound(true);
       MySwal.fire({
         icon: "success",
         title: "<span style='color: #00e676;'>✔️ Éxito</span>",
@@ -255,6 +272,7 @@ const SurtimientosTable = ({ data, resetSurtimiento }) => {
       resetSurtimiento();
     } catch (err) {
       console.error("❌ Error al guardar:", err);
+      playSound(false);
       MySwal.fire({
         icon: "error",
         title: "<span style='color: #ff1744;'>❌ Error</span>",

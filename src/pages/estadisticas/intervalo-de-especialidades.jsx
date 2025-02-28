@@ -12,7 +12,7 @@ import Loader from "./Loaders/Loader-rosa";
 //* Importamos Pagination de MUI
 import { Pagination } from "@mui/material";
 
-/**
+/*
  * parseDateString:
  *   Convierte las cadenas que vienen del backend en objetos Date.
  *   Formatos esperados: "YYYY-MM-DD HH:00", "YYYY-MM-DD", "YYYY-MM", "YYYY".
@@ -55,12 +55,12 @@ function parseDateString(key, interval) {
   }
 }
 
-/**
+/*
  * formatExactDBDate:
  *   Recibe un string "YYYY-MM-DD HH:MM:SS" y retorna "DD/MM/YYYY, HH:MM:SS".
  */
 function formatExactDBDate(dbDateStr) {
-  const cleanStr = dbDateStr.replace(/\.\d+$/, ""); // Elimina milisegundos
+  const cleanStr = dbDateStr.replace(/\.\d+$/, ""); //! Elimina milisegundos
   const match = cleanStr.match(
     /^(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2}):(\d{2})$/
   );
@@ -71,6 +71,16 @@ function formatExactDBDate(dbDateStr) {
 
 //* SweetAlert con React
 const MySwal = withReactContent(Swal);
+
+//* Define las rutas de los sonidos de éxito y error
+const successSound = "/assets/applepay.mp3";
+const errorSound = "/assets/error.mp3";
+
+//! Reproduce un sonido de éxito/error
+const playSound = (isSuccess) => {
+  const audio = new Audio(isSuccess ? successSound : errorSound);
+  audio.play();
+};
 
 export default function IntervalosDeConsultas() {
   //* ESTADOS PRINCIPALES
@@ -122,6 +132,7 @@ export default function IntervalosDeConsultas() {
     if (date <= endDate) {
       setStartDate(date);
     } else {
+      playSound(false);
       MySwal.fire({
         icon: "error",
         title:
@@ -139,6 +150,7 @@ export default function IntervalosDeConsultas() {
     if (date >= startDate) {
       setEndDate(date);
     } else {
+      playSound(false);
       MySwal.fire({
         icon: "error",
         title:

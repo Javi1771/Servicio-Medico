@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { useRouter } from 'next/router';
+import { useRouter } from "next/router";
 import {
   FaSearch,
   FaUserMd,
@@ -25,6 +25,16 @@ import withReactContent from "sweetalert2-react-content";
 import HistorialIncapacidadesTable from "./incapacidades/historial-incapacidades-captura";
 
 const MySwal = withReactContent(Swal);
+
+//* Define las rutas de los sonidos de éxito y error
+const successSound = "/assets/applepay.mp3";
+const errorSound = "/assets/error.mp3";
+
+//! Reproduce un sonido de éxito/error
+const playSound = (isSuccess) => {
+  const audio = new Audio(isSuccess ? successSound : errorSound);
+  audio.play();
+};
 
 //* Calcula edad en años/meses/días
 const calcularEdad = (fechaNacimiento) => {
@@ -131,6 +141,7 @@ const CapturaIncapacidades = () => {
 
       if (!data.clavenomina) {
         //! Folio no encontrado
+        playSound(false);
         MySwal.fire({
           icon: "error",
           title:
@@ -167,6 +178,7 @@ const CapturaIncapacidades = () => {
 
       if (!empleadoData || !empleadoData.nombre) {
         //! Empleado no encontrado
+        playSound(false);
         MySwal.fire({
           icon: "error",
           title:
@@ -203,6 +215,7 @@ const CapturaIncapacidades = () => {
       setIsLoading(false);
     } catch (error) {
       console.error("Error en fetchEmpleado:", error);
+      playSound(false);
       MySwal.fire({
         icon: "error",
         title:
@@ -251,6 +264,7 @@ const CapturaIncapacidades = () => {
       setIncapacidadData(null);
 
       //! Alerta con 2 opciones
+      playSound(false);
       MySwal.fire({
         icon: "warning",
         title:
@@ -314,6 +328,7 @@ const CapturaIncapacidades = () => {
         throw new Error("Error al guardar la incapacidad");
       }
 
+      playSound(true);
       MySwal.fire({
         icon: "success",
         title:
@@ -331,6 +346,7 @@ const CapturaIncapacidades = () => {
       limpiarFormulario();
     } catch (error) {
       console.error("Error al guardar incapacidad:", error);
+      playSound(false);
       MySwal.fire({
         icon: "error",
         title:
@@ -390,9 +406,8 @@ const CapturaIncapacidades = () => {
   }, [nomina]);
 
   const handleRegresar = () => {
-    router.push('/inicio-servicio-medico'); // Redirige a /inicio-servicio-medico
+    router.push("/inicio-servicio-medico"); // Redirige a /inicio-servicio-medico
   };
-  
 
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-black via-gray-900 to-blue-900 text-white py-16 px-4 sm:px-20 flex flex-col items-center overflow-hidden">
@@ -409,15 +424,15 @@ const CapturaIncapacidades = () => {
           animate={{ scale: 1, opacity: 1 }}
           className="text-center mb-12 space-y-4"
         >
-                {/* Botón regresar */}
-  <div className="flex justify-start mb-12">
-    <button
-      onClick={handleRegresar}
-      className="relative px-6 py-3 text-lg font-semibold rounded-full bg-gradient-to-r from-red-600 via-pink-600 to-purple-700 shadow-[0px_0px_15px_5px_rgba(255,0,0,0.5)] hover:shadow-[0px_0px_30px_10px_rgba(255,0,0,0.7)] text-white hover:brightness-125 transition-all duration-300"
-    >
-      ← Regresar
-    </button>
-  </div>
+          {/* Botón regresar */}
+          <div className="flex justify-start mb-12">
+            <button
+              onClick={handleRegresar}
+              className="relative px-6 py-3 text-lg font-semibold rounded-full bg-gradient-to-r from-red-600 via-pink-600 to-purple-700 shadow-[0px_0px_15px_5px_rgba(255,0,0,0.5)] hover:shadow-[0px_0px_30px_10px_rgba(255,0,0,0.7)] text-white hover:brightness-125 transition-all duration-300"
+            >
+              ← Regresar
+            </button>
+          </div>
           <h1 className="text-5xl font-extrabold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent drop-shadow-[0_0_15px_rgba(34,211,238,0.8)]">
             <div className="flex items-center justify-center gap-4">
               <FaClipboardList className="text-cyan-400 text-6xl animate-pulse" />

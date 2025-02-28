@@ -57,6 +57,16 @@ export default function UsuariosTable() {
     costo: "",
   });
 
+  //* Define las rutas de los sonidos de éxito y error
+  const successSound = "/assets/applepay.mp3";
+  const errorSound = "/assets/error.mp3";
+
+  //! Reproduce un sonido de éxito/error
+  const playSound = (isSuccess) => {
+    const audio = new Audio(isSuccess ? successSound : errorSound);
+    audio.play();
+  };
+
   const [selectedUsuario, setSelectedUsuario] = useState(null); //* Estado para el usuario seleccionado
 
   useEffect(() => {
@@ -92,6 +102,7 @@ export default function UsuariosTable() {
   }, []);
 
   const handleDeleteUser = async (usuario) => {
+    playSound(false); //! Reproducir sonido de error
     const confirmDelete = await Swal.fire({
       title:
         "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>⚠️ ¿Estás seguro?</span>",
@@ -131,6 +142,7 @@ export default function UsuariosTable() {
         const usuariosData = await usuariosResponse.json();
         setUsuarios(usuariosData);
 
+        playSound(true); //* Reproducir sonido de éxito
         await Swal.fire({
           icon: "success",
           title:
@@ -147,6 +159,7 @@ export default function UsuariosTable() {
         });
       } catch (error) {
         console.error("Error al desactivar el usuario:", error);
+        playSound(false); //! Reproducir sonido de error
         await Swal.fire({
           icon: "error",
           title:
@@ -322,6 +335,7 @@ export default function UsuariosTable() {
     console.log("handleSubmit fue llamado");
 
     if (!isUsuarioValido) {
+      playSound(false); //! Reproducir sonido de error
       await Swal.fire({
         icon: "error",
         title:
@@ -340,6 +354,7 @@ export default function UsuariosTable() {
     }
 
     if (!newUsuario.password || newUsuario.password.length < 8) {
+      playSound(false); //! Reproducir sonido de error
       await Swal.fire({
         icon: "error",
         title:
@@ -390,6 +405,7 @@ export default function UsuariosTable() {
         setUsuarios(usuariosData);
 
         //* Mostrar notificación de éxito con SweetAlert2
+        playSound(true); //* Reproducir sonido de éxito
         await Swal.fire({
           icon: "success",
           title:
@@ -420,6 +436,7 @@ export default function UsuariosTable() {
           !usuarioData.usuario ||
           !usuarioData.password
         ) {
+          playSound(false); //! Reproducir sonido de error
           await Swal.fire({
             icon: "error",
             title:
@@ -461,6 +478,7 @@ export default function UsuariosTable() {
         setUsuarios(usuariosData);
 
         //* Mostrar notificación de éxito con SweetAlert2
+        playSound(true); //* Reproducir sonido de éxito
         await Swal.fire({
           icon: "success",
           title:
@@ -487,6 +505,7 @@ export default function UsuariosTable() {
       }
     } catch (error) {
       console.error(error);
+      playSound(false); //! Reproducir sonido de error
       await Swal.fire({
         icon: "error",
         title:

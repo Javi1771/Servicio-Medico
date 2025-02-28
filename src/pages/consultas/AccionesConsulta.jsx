@@ -9,6 +9,16 @@ import { FormularioContext } from "/src/context/FormularioContext";
 
 const MySwal = withReactContent(Swal);
 
+//* Define las rutas de los sonidos de éxito y error
+const successSound = "/assets/applepay.mp3";
+const errorSound = "/assets/error.mp3";
+
+//! Reproduce un sonido de éxito/error
+const playSound = (isSuccess) => {
+  const audio = new Audio(isSuccess ? successSound : errorSound);
+  audio.play();
+};
+
 const AccionesConsulta = ({
   claveConsulta,
   limpiarFormulario,
@@ -374,6 +384,7 @@ const AccionesConsulta = ({
         formulariosCompletos["PaseEspecialidad"] === false &&
         formulariosCompletos["Incapacidades"] === false
       ) {
+        playSound(false);
         const result = await MySwal.fire({
           icon: "warning",
           title: "Confirmación requerida",
@@ -427,6 +438,7 @@ const AccionesConsulta = ({
       );
 
       //* Mostrar alerta de éxito con claveConsulta en grande
+      playSound(true);
       MySwal.fire({
         icon: "success",
         title: `<span style='color: #00e676; font-weight: bold; font-size: 2em;'>✔️ Consulta Guardada</span>`,
@@ -447,6 +459,7 @@ const AccionesConsulta = ({
       console.error("❌ Error durante el guardado global:", error);
 
       //! Mostrar alerta de error estilizada
+      playSound(false);
       MySwal.fire({
         icon: "error",
         title:
@@ -514,6 +527,7 @@ const AccionesConsulta = ({
           actualizarClavestatus(0);
           limpiarFormulario();
           localStorage.clear(); //* Limpiar localStorage al cancelar la consulta
+          playSound(false);
           MySwal.fire({
             icon: "info",
             title:

@@ -12,7 +12,18 @@ import HistorialTable from "./historial-pases-nuevos";
 
 const MySwal = withReactContent(Swal);
 
+//* Define las rutas de los sonidos de éxito y error
+const successSound = "/assets/applepay.mp3";
+const errorSound = "/assets/error.mp3";
+
+//! Reproduce un sonido de éxito/error
+const playSound = (isSuccess) => {
+  const audio = new Audio(isSuccess ? successSound : errorSound);
+  audio.play();
+};
+
 const showErrorAlert = (title, message) => {
+  playSound(false);
   MySwal.fire({
     icon: "error",
     title: (
@@ -33,6 +44,7 @@ const showErrorAlert = (title, message) => {
 };
 
 const showSuccessAlert = (title, message, claveConsulta) => {
+  playSound(true);
   MySwal.fire({
     icon: "success",
     title: `<span style='color: #00e676; font-weight: bold; font-size: 2em;'>✔️ ${title}</span>`,
@@ -52,6 +64,7 @@ const showSuccessAlert = (title, message, claveConsulta) => {
 };
 
 const showInfoAlert = (title, message) => {
+  playSound(false);
   MySwal.fire({
     icon: "info",
     title: (
@@ -122,7 +135,7 @@ const CrearPaseNuevo = () => {
   const router = useRouter();
 
   const handleRegresar = () => {
-    router.replace('/capturas/pases-a-especialidades'); //* Navegar a la pantalla anterior
+    router.replace("/capturas/pases-a-especialidades"); //* Navegar a la pantalla anterior
   };
 
   const resetState = () => {
@@ -142,7 +155,7 @@ const CrearPaseNuevo = () => {
       );
       return;
     }
-  
+
     try {
       //* Buscar el empleado
       const response = await fetch("/api/empleado", {
@@ -150,9 +163,9 @@ const CrearPaseNuevo = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ num_nom: nomina }),
       });
-  
+
       if (!response.ok) throw new Error("Error al realizar la búsqueda");
-  
+
       const employee = await response.json();
       if (!employee || Object.keys(employee).length === 0) {
         showErrorAlert(
@@ -162,7 +175,7 @@ const CrearPaseNuevo = () => {
         resetState();
         return;
       }
-  
+
       const { display: employeeAge } = calcularEdad(employee.fecha_nacimiento);
       setEmployeeData({
         name: `${employee.nombre} ${employee.a_paterno} ${employee.a_materno}`,
@@ -173,7 +186,7 @@ const CrearPaseNuevo = () => {
         cuotaSindical: employee.cuotaSindical,
         photo: "/user_icon_.png",
       });
-  
+
       //* Obtener beneficiarios ya filtrados del backend
       const beneficiariesResponse = await fetch(
         "/api/beneficiarios/beneficiario",
@@ -183,10 +196,13 @@ const CrearPaseNuevo = () => {
           body: JSON.stringify({ nomina }),
         }
       );
-  
+
       const beneficiaries = await beneficiariesResponse.json();
-  
-      if (!beneficiaries.beneficiarios || beneficiaries.beneficiarios.length === 0) {
+
+      if (
+        !beneficiaries.beneficiarios ||
+        beneficiaries.beneficiarios.length === 0
+      ) {
         showInfoAlert(
           "ℹ Sin beneficiarios válidos",
           "No hay beneficiarios activos o con vigencia de estudios válida."
@@ -195,7 +211,7 @@ const CrearPaseNuevo = () => {
       } else {
         setBeneficiaryData(beneficiaries.beneficiarios);
       }
-  
+
       setHideHistorial(true);
     } catch (error) {
       console.error("Error al buscar empleado o beneficiarios:", error);
@@ -204,7 +220,7 @@ const CrearPaseNuevo = () => {
         "Hubo un problema al buscar los datos. Intenta nuevamente."
       );
     }
-  };  
+  };
 
   const fetchEspecialidades = async () => {
     try {
@@ -319,6 +335,7 @@ const CrearPaseNuevo = () => {
 
       if (vigenciaEstudios.getTime() < fechaActual.getTime()) {
         //! Mostrar alerta de constancia vencida
+        playSound(false);
         MySwal.fire({
           icon: "warning",
           title:

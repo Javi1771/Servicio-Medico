@@ -1,7 +1,13 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/router";
-import { FaCalendarAlt, FaUser, FaIdCard, FaBirthdayCake,FaUsers } from "react-icons/fa";
+import {
+  FaCalendarAlt,
+  FaUser,
+  FaIdCard,
+  FaBirthdayCake,
+  FaUsers,
+} from "react-icons/fa";
 import Calendar from "react-calendar";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
@@ -9,6 +15,16 @@ import "react-calendar/dist/Calendar.css";
 import Image from "next/image";
 
 const MySwal = withReactContent(Swal);
+
+//* Define las rutas de los sonidos de éxito y error
+const successSound = "/assets/applepay.mp3";
+const errorSound = "/assets/error.mp3";
+
+//! Reproduce un sonido de éxito/error
+const playSound = (isSuccess) => {
+  const audio = new Audio(isSuccess ? successSound : errorSound);
+  audio.play();
+};
 
 const safeDecodeBase64 = (str) => {
   try {
@@ -39,6 +55,7 @@ const CrearPase = () => {
       const result = await res.json();
       setData(result);
     } catch (error) {
+      playSound(false);
       MySwal.fire({
         icon: "error",
         title:
@@ -62,6 +79,7 @@ const CrearPase = () => {
 
   const handleGuardar = async () => {
     if (!selectedEspecialista || !fechaCita) {
+      playSound(false);
       MySwal.fire({
         icon: "warning",
         title:
@@ -78,12 +96,12 @@ const CrearPase = () => {
       });
       return;
     }
-  
+
     //* Ajustar fecha a la zona horaria local
     const adjustedFechaCita = new Date(
       fechaCita.getTime() - fechaCita.getTimezoneOffset() * 60000
     ).toISOString();
-  
+
     const body = {
       clavenomina: data.paciente?.clavenomina,
       clavepaciente: data.paciente?.clavepaciente,
@@ -93,7 +111,7 @@ const CrearPase = () => {
       especialidadinterconsulta: data.especialidad?.especialidad,
       claveproveedor: selectedEspecialista?.claveproveedor,
       costo: selectedEspecialista?.costo,
-      fechacita: adjustedFechaCita, 
+      fechacita: adjustedFechaCita,
       sindicato: data.paciente?.sindicato,
       clavestatus: 2,
       elpacienteesempleado: data.paciente?.elpacienteesempleado,
@@ -101,19 +119,20 @@ const CrearPase = () => {
       departamento: data.paciente?.departamento,
       folio,
     };
-  
+
     console.log("📤 Datos enviados al backend:", body);
-  
+
     try {
       const res = await fetch("/api/especialidades/insertarPase", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-  
+
       if (res.ok) {
         const response = await res.json();
         console.log("✅ Respuesta del servidor:", response);
+        playSound(true);
         MySwal.fire({
           icon: "success",
           title:
@@ -136,6 +155,7 @@ const CrearPase = () => {
       }
     } catch (error) {
       console.error("❌ Error al guardar el pase:", error.message);
+      playSound(false);
       MySwal.fire({
         icon: "error",
         title:
@@ -152,7 +172,7 @@ const CrearPase = () => {
       });
     }
   };
-  
+
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-black via-blue-900 to-teal-500 text-white py-10 px-12">
       {/* Encabezado */}
@@ -306,7 +326,9 @@ const CrearPase = () => {
                   }}
                   value={fechaCita}
                   className="bg-gradient-to-br from-gray-900 via-black to-gray-800 rounded-lg text-cyan-300 mx-auto mb-6 hover:shadow-xl"
-                  tileDisabled={({ date }) => date < new Date().setHours(0, 0, 0, 0)} //* Deshabilitar días pasados
+                  tileDisabled={({ date }) =>
+                    date < new Date().setHours(0, 0, 0, 0)
+                  } //* Deshabilitar días pasados
                   tileClassName={() =>
                     "text-gray-500 bg-gray-800 border border-gray-700 rounded-md hover:border-cyan-400"
                   }

@@ -14,7 +14,6 @@ import CargaMedicamentosForm from "./components2/cargaMedicamentosForm";
 import styles from "../css/SURTIMIENTOS_ESTILOS/surtimientos2.module.css";
 import { useRouter } from "next/router";
 
-
 import useFetchMedicamentosReceta from "../../hooks/hookSURTIMIENTOS2/useFetchMedicamentosReceta";
 import TablaMedicamentos from "./components2/tablaMedicamentos"; // Extensión .jsx
 import Swal from "sweetalert2";
@@ -22,9 +21,17 @@ import jsPDF from "jspdf";
 import "jspdf-autotable";
 
 const SurtimientosBanner = () => {
-
-
   const router = useRouter();
+
+  //* Define las rutas de los sonidos de éxito y error
+  const successSound = "/assets/applepay.mp3";
+  const errorSound = "/assets/error.mp3";
+
+  //! Reproduce un sonido de éxito/error
+  const playSound = (isSuccess) => {
+    const audio = new Audio(isSuccess ? successSound : errorSound);
+    audio.play();
+  };
 
   // Fecha actual en formato "dd/mm/aaaa"
   const fechaActual = new Date().toLocaleDateString("es-ES");
@@ -91,6 +98,7 @@ const SurtimientosBanner = () => {
     if (folio.trim()) {
       const folioNumero = parseInt(folio, 10);
       if (isNaN(folioNumero) || folioNumero <= 0) {
+        playSound(false);
         Swal.fire({
           title: "Error",
           text: "Folio inválido. Debe ser un número entero positivo.",
@@ -126,6 +134,7 @@ const SurtimientosBanner = () => {
         fetchMedicamentosReceta(folioNumero);
       } catch (error) {
         console.error("Error al obtener medicamentos:", error);
+        playSound(false);
         Swal.fire({
           title: "Error",
           text: "Hubo un error al obtener los medicamentos.",
@@ -153,7 +162,7 @@ const SurtimientosBanner = () => {
     if (isNaN(folioNumero)) {
       throw new Error("Folio inválido. Debe ser un número.");
     }
-  
+
     try {
       // Verificar si ya existe el surtimiento para este folio
       const response = await fetch("/api/SURTIMIENTOS2/getMedicamentosReceta", {
@@ -162,7 +171,7 @@ const SurtimientosBanner = () => {
         body: JSON.stringify({ folio: folioNumero }),
       });
       const medicamentosExistentes = await response.json();
-  
+
       if (medicamentosExistentes.length > 0) {
         // **Caso 1:** Ya existen medicamentos en `detalleSurtimientos`
         const surtimientoResponse = await fetch(
@@ -177,12 +186,13 @@ const SurtimientosBanner = () => {
             }),
           }
         );
-  
+
         if (!surtimientoResponse.ok) {
           const errorData = await surtimientoResponse.json();
           throw new Error(errorData.message || "Error al generar surtimiento");
         }
-  
+
+        playSound(true);
         Swal.fire({
           title: "Éxito",
           text: "Surtimiento generado correctamente.",
@@ -200,24 +210,26 @@ const SurtimientosBanner = () => {
             diagnostico,
           }),
         });
-  
+
         if (!recetaResponse.ok) {
           const errorData = await recetaResponse.json();
           throw new Error(errorData.message || "Error al guardar la receta.");
         }
-  
+
+        playSound(true);
         Swal.fire({
           title: "Éxito",
           text: "Receta guardada exitosamente.",
           icon: "success",
           confirmButtonText: "Aceptar",
         });
-  
+
         // ✅ En lugar de limpiar la receta, volvemos a cargar los medicamentos
         fetchMedicamentosReceta(folioNumero);
       }
     } catch (error) {
       console.error("Error al guardar la receta:", error.message);
+      playSound(false);
       Swal.fire({
         title: "Error",
         text: error.message || "No se pudo guardar la receta.",
@@ -226,7 +238,6 @@ const SurtimientosBanner = () => {
       });
     }
   };
-  
 
   // Verificar si al menos uno de los datos se obtuvo (folio válido)
   const isFolioValido = empleado || paciente || sindicato || especialista;
@@ -257,12 +268,12 @@ const SurtimientosBanner = () => {
         <div className={styles.infoContainer}>
           {/* Barra de Búsqueda */}
           <div className={styles.searchContainer}>
-          <button 
-        onClick={() => router.replace("/inicio-servicio-medico")}
-        className={styles.regresarButton}
-      >
-        Regresar
-      </button>
+            <button
+              onClick={() => router.replace("/inicio-servicio-medico")}
+              className={styles.regresarButton}
+            >
+              Regresar
+            </button>
             <input
               type="text"
               placeholder="Folio de consulta"
@@ -324,13 +335,15 @@ const SurtimientosBanner = () => {
           ) : (
             especialista && (
               <InformacionEspecialista
-              especialista={especialista}
-              onDiagnosticoChange={(value) => {
-                console.log("📝 Diagnóstico actualizado en `SurtimientosBanner`:", value);
-                setDiagnostico(value); // ✅ Permitir que el estado se actualice siempre
-              }}
-            />
-            
+                especialista={especialista}
+                onDiagnosticoChange={(value) => {
+                  console.log(
+                    "📝 Diagnóstico actualizado en `SurtimientosBanner`:",
+                    value
+                  );
+                  setDiagnostico(value); // ✅ Permitir que el estado se actualice siempre
+                }}
+              />
             )
           )}
         </div>

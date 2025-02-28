@@ -24,6 +24,16 @@ const formatearFecha = (fecha) => {
   return fechaLocal.toLocaleString("es-MX", opciones);
 };
 
+//* Define las rutas de los sonidos de éxito y error
+const successSound = "/assets/applepay.mp3";
+const errorSound = "/assets/error.mp3";
+
+//! Reproduce un sonido de éxito/error
+const playSound = (isSuccess) => {
+  const audio = new Audio(isSuccess ? successSound : errorSound);
+  audio.play();
+};
+
 const safeDecodeBase64 = (str) => {
   try {
     return atob(str);
@@ -79,6 +89,7 @@ const DetallesEspecialidad = () => {
   };
 
   const mostrarError = (mensaje) => {
+    playSound(false);
     Swal.fire({
       icon: "error",
       title: "Error",

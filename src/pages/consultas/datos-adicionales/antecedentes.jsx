@@ -7,6 +7,16 @@ import "react-calendar/dist/Calendar.css";
 
 const MySwal = withReactContent(Swal);
 
+//* Define las rutas de los sonidos de éxito y error
+const successSound = "/assets/applepay.mp3";
+const errorSound = "/assets/error.mp3";
+
+//! Reproduce un sonido de éxito/error
+const playSound = (isSuccess) => {
+  const audio = new Audio(isSuccess ? successSound : errorSound);
+  audio.play();
+};
+
 const Antecedentes = ({ clavenomina, clavepaciente }) => {
   const [descripcion, setDescripcion] = useState("");
   const [tipoAntecedente, setTipoAntecedente] = useState("");
@@ -40,6 +50,7 @@ const Antecedentes = ({ clavenomina, clavepaciente }) => {
           setAntecedentes(data);
         } else {
           const errorText = await response.text();
+          playSound(false);
           MySwal.fire({
             icon: "error",
             title:
@@ -67,6 +78,7 @@ const Antecedentes = ({ clavenomina, clavepaciente }) => {
   //* Guardar un nuevo antecedente
   const handleGuardarAntecedente = async () => {
     if (!descripcion || !tipoAntecedente || !fechaInicioEnfermedad) {
+      playSound(false);
       MySwal.fire({
         icon: "warning",
         title:
@@ -104,6 +116,7 @@ const Antecedentes = ({ clavenomina, clavepaciente }) => {
         setTipoAntecedente("");
         setFechaInicioEnfermedad(null);
 
+        playSound(true);
         MySwal.fire({
           icon: "success",
           title:
@@ -120,6 +133,7 @@ const Antecedentes = ({ clavenomina, clavepaciente }) => {
         });
       } else {
         const errorText = await response.text();
+        playSound(false);
         MySwal.fire({
           icon: "error",
           title:

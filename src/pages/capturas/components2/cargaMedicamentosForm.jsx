@@ -1,4 +1,4 @@
-// CargaMedicamentosForm.jsx 
+// CargaMedicamentosForm.jsx
 import React, { useState } from "react";
 import Swal from "sweetalert2";
 import ModalPdf from "./modalPdf";
@@ -18,8 +18,19 @@ const CargaMedicamentosForm = ({
   const [piezas, setPiezas] = useState("");
   const [showModal, setShowModal] = useState(false);
 
+  //* Define las rutas de los sonidos de éxito y error
+  const successSound = "/assets/applepay.mp3";
+  const errorSound = "/assets/error.mp3";
+
+  //! Reproduce un sonido de éxito/error
+  const playSound = (isSuccess) => {
+    const audio = new Audio(isSuccess ? successSound : errorSound);
+    audio.play();
+  };
+
   const handleAddMedicamentoLocal = () => {
     if (!selectedMedicamento) {
+      playSound(false);
       Swal.fire({
         icon: "warning",
         title: "Atención",
@@ -28,6 +39,7 @@ const CargaMedicamentosForm = ({
       return;
     }
     if (!indicaciones.trim()) {
+      playSound(false);
       Swal.fire({
         icon: "warning",
         title: "Atención",
@@ -36,6 +48,7 @@ const CargaMedicamentosForm = ({
       return;
     }
     if (!cantidad.trim()) {
+      playSound(false);
       Swal.fire({
         icon: "warning",
         title: "Atención",
@@ -44,6 +57,7 @@ const CargaMedicamentosForm = ({
       return;
     }
     if (!piezas.trim()) {
+      playSound(false);
       Swal.fire({
         icon: "warning",
         title: "Atención",
@@ -54,6 +68,7 @@ const CargaMedicamentosForm = ({
 
     // Verificar si ya existe en la receta
     if (receta.find((med) => med.claveMedicamento === selectedMedicamento)) {
+      playSound(false);
       Swal.fire({
         icon: "error",
         title: "Error",
@@ -87,6 +102,7 @@ const CargaMedicamentosForm = ({
 
   const handleSaveAndShowPdf = async () => {
     if (!folio || isNaN(folio)) {
+      playSound(false);
       Swal.fire({
         icon: "error",
         title: "Folio inválido",
@@ -174,7 +190,9 @@ const CargaMedicamentosForm = ({
         Guardar y Generar Receta
       </button>
 
-      {showModal && <ModalPdf folio={folio} onClose={() => setShowModal(false)} />}
+      {showModal && (
+        <ModalPdf folio={folio} onClose={() => setShowModal(false)} />
+      )}
     </div>
   );
 };

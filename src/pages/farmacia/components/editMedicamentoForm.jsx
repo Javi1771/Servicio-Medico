@@ -33,6 +33,16 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
     }
   }, [medicamento]);
 
+  //* Define las rutas de los sonidos de éxito y error
+  const successSound = "/assets/applepay.mp3";
+  const errorSound = "/assets/error.mp3";
+
+  //! Reproduce un sonido de éxito/error
+  const playSound = (isSuccess) => {
+    const audio = new Audio(isSuccess ? successSound : errorSound);
+    audio.play();
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -51,6 +61,7 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
       !formData.maximo ||
       !formData.minimo
     ) {
+      playSound(false);
       Swal.fire({
         icon: "error",
         title:
@@ -68,6 +79,7 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
       return;
     }
 
+    playSound(false);
     Swal.fire({
       title:
         "<span style='color: #ff9800; font-weight: bold; font-size: 1.6em;'>⚠️ ¿Estás seguro?</span>",
@@ -99,6 +111,7 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
           medida: formData.medida,
         });
 
+        playSound(true);
         Swal.fire({
           icon: "success",
           title:
@@ -191,6 +204,7 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
               }}
               onBlur={() => {
                 if (formData.ean.length !== 8 && formData.ean.length !== 13) {
+                  playSound(false);
                   Swal.fire({
                     icon: "error",
                     title:

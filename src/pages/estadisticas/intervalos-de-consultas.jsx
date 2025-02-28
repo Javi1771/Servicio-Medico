@@ -62,11 +62,11 @@ function parseDateString(key, interval) {
 }
 
 function formatExactDBDate(dbDateStr) {
-  const cleanStr = dbDateStr.replace(/\.\d+$/, ""); 
+  const cleanStr = dbDateStr.replace(/\.\d+$/, "");
   const match = cleanStr.match(
     /^(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2}):(\d{2})$/
   );
-  if (!match) return dbDateStr; 
+  if (!match) return dbDateStr;
 
   const [, yyyy, mm, dd, HH, MM, SS] = match;
   return `${dd}/${mm}/${yyyy}, ${HH}:${MM}:${SS}`;
@@ -74,6 +74,16 @@ function formatExactDBDate(dbDateStr) {
 
 //* SweetAlert + React
 const MySwal = withReactContent(Swal);
+
+//* Define las rutas de los sonidos de éxito y error
+const successSound = "/assets/applepay.mp3";
+const errorSound = "/assets/error.mp3";
+
+//! Reproduce un sonido de éxito/error
+const playSound = (isSuccess) => {
+  const audio = new Audio(isSuccess ? successSound : errorSound);
+  audio.play();
+};
 
 export default function IntervalosDeConsultas() {
   //* ESTADOS PRINCIPALES
@@ -128,6 +138,7 @@ export default function IntervalosDeConsultas() {
     if (date <= endDate) {
       setStartDate(date);
     } else {
+      playSound(false);
       MySwal.fire({
         icon: "error",
         title:
@@ -149,6 +160,7 @@ export default function IntervalosDeConsultas() {
     if (date >= startDate) {
       setEndDate(date);
     } else {
+      playSound(false);
       MySwal.fire({
         icon: "error",
         title:

@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import Link from 'next/link'
+import Link from "next/link";
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { AiOutlineUserAdd } from "react-icons/ai";
@@ -29,6 +29,16 @@ import ConsultasAtendidas from "./consultas-adicionales/consultas-atendidas";
 
 //* Inicializa SweetAlert2 con React
 const MySwal = withReactContent(Swal);
+
+//* Define las rutas de los sonidos de éxito y error
+const successSound = "/assets/applepay.mp3";
+const errorSound = "/assets/error.mp3";
+
+//! Reproduce un sonido de éxito/error
+const playSound = (isSuccess) => {
+  const audio = new Audio(isSuccess ? successSound : errorSound);
+  audio.play();
+};
 
 //* Función para calcular la edad en años, meses y días
 const calcularEdad = (fechaNacimiento) => {
@@ -123,6 +133,7 @@ const SignosVitales = () => {
       //* Compara las fechas usando getTime() para asegurarte de que se comparan correctamente
       if (vigenciaEstudios.getTime() < fechaActual.getTime()) {
         //! Mostrar alerta si la constancia está vencida
+        playSound(false);
         MySwal.fire({
           icon: "warning",
           title:
@@ -214,6 +225,7 @@ const SignosVitales = () => {
       }
 
       console.log("Clave de estatus actualizada correctamente a 2");
+      playSound(true);
       MySwal.fire({
         icon: "success",
         title:
@@ -230,6 +242,7 @@ const SignosVitales = () => {
       });
     } catch (error) {
       console.error("Error al actualizar el estatus:", error);
+      playSound(false);
       MySwal.fire({
         icon: "error",
         title:
@@ -254,6 +267,7 @@ const SignosVitales = () => {
     setIsSaving(true); //* Activar el estado de guardando
 
     if (!nomina) {
+      playSound(false);
       MySwal.fire({
         icon: "error",
         title:
@@ -332,6 +346,7 @@ const SignosVitales = () => {
 
         await actualizarEstado(responseData.claveConsulta);
 
+        playSound(true);
         MySwal.fire({
           icon: "success",
           title:
@@ -354,6 +369,7 @@ const SignosVitales = () => {
       }
     } catch (error) {
       console.error("Error al guardar la consulta:", error);
+      playSound(false);
       MySwal.fire({
         icon: "error",
         title:
@@ -427,6 +443,7 @@ const SignosVitales = () => {
         !data.nombre ||
         !data.departamento
       ) {
+        playSound(false);
         MySwal.fire({
           icon: "error",
           title:
@@ -467,6 +484,7 @@ const SignosVitales = () => {
       setEmpleadoEncontrado(true);
     } catch (error) {
       console.error("Error al obtener datos del empleado:", error);
+      playSound(false);
       MySwal.fire({
         icon: "error",
         title:
@@ -510,6 +528,7 @@ const SignosVitales = () => {
         setBeneficiaryData([]);
         setConsultaSeleccionada("empleado");
 
+        playSound(false);
         MySwal.fire({
           icon: "info",
           title:
@@ -540,7 +559,7 @@ const SignosVitales = () => {
 
   useEffect(() => {
     cargarPacientesDelDia();
-    }, []);
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-900 to-black text-white px-4 py-8 md:px-12 flex flex-col items-center pt-10">
@@ -556,14 +575,14 @@ const SignosVitales = () => {
           <h1 className="text-3xl md:text-5xl font-extrabold">
             Registro de Pacientes
           </h1>
-            {/* Botón de Regresar */}
-      <div className="w-full flex justify-start mb-4">
-        <Link href="/inicio-servicio-medico">
-          <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-full text-white font-semibold">
-            Regresar
-          </button>
-        </Link>
-      </div>
+          {/* Botón de Regresar */}
+          <div className="w-full flex justify-start mb-4">
+            <Link href="/inicio-servicio-medico">
+              <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-full text-white font-semibold">
+                Regresar
+              </button>
+            </Link>
+          </div>
         </div>
         <div className="flex space-x-4 mt-4">
           {/* Botón de Agregar Paciente - Compacto */}

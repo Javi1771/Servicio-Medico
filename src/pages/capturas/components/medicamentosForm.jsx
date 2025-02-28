@@ -25,51 +25,63 @@ const MedicamentosForm = ({
   const [setIsGuardadoHabilitado] = useState(false);
 
   const [temporalMedicamentos, setTemporalMedicamentos] = useState([]); // Temporal storage
-  // Nueva validación: deshabilitar botón si ya existe al menos un medicamento
+
+  //* Define las rutas de los sonidos de éxito y error
+  const successSound = "/assets/applepay.mp3";
+  const errorSound = "/assets/error.mp3";
+
+  //! Reproduce un sonido de éxito/error
+  const playSound = (isSuccess) => {
+    const audio = new Audio(isSuccess ? successSound : errorSound);
+    audio.play();
+  };
 
   // Función para obtener el medicamento por clave
-  const fetchMedicamentoDescripcion = useCallback(async (claveMedicamento) => {
-    if (medicamentoMap[claveMedicamento]) {
-      return medicamentoMap[claveMedicamento]; // Retorna si ya está en el mapeo
-    }
+  const fetchMedicamentoDescripcion = useCallback(
+    async (claveMedicamento) => {
+      if (medicamentoMap[claveMedicamento]) {
+        return medicamentoMap[claveMedicamento]; // Retorna si ya está en el mapeo
+      }
 
-    try {
-      const response = await fetch(
-        `/api/surtimientos/getMedicamentoByClave?claveMedicamento=${claveMedicamento}`
-      );
-      if (!response.ok) throw new Error("No se pudo obtener el medicamento.");
-      const data = await response.json();
-      setMedicamentoMap((prev) => ({
-        ...prev,
-        [claveMedicamento]: data.medicamento, // Agrega al mapeo
-      }));
-      return data.medicamento;
-    } catch (error) {
-      console.error("Error al obtener medicamento:", error.message);
-      return "Descripción no disponible";
-    }
-  }, [medicamentoMap]);
+      try {
+        const response = await fetch(
+          `/api/surtimientos/getMedicamentoByClave?claveMedicamento=${claveMedicamento}`
+        );
+        if (!response.ok) throw new Error("No se pudo obtener el medicamento.");
+        const data = await response.json();
+        setMedicamentoMap((prev) => ({
+          ...prev,
+          [claveMedicamento]: data.medicamento, // Agrega al mapeo
+        }));
+        return data.medicamento;
+      } catch (error) {
+        console.error("Error al obtener medicamento:", error.message);
+        return "Descripción no disponible";
+      }
+    },
+    [medicamentoMap]
+  );
 
-    // Al renderizar, llena el mapa de medicamentos dinámicamente
-    useEffect(() => {
-      const fetchDescripciones = async () => {
-        const clavesUnicas = [
-          ...new Set(temporalMedicamentos.map((med) => med.medicamento)),
-        ];
-        for (const clave of clavesUnicas) {
-          await fetchMedicamentoDescripcion(clave);
-        }
-      };
-      fetchDescripciones();
-    }, [temporalMedicamentos, fetchMedicamentoDescripcion]);
-  
-    useEffect(() => {
-      fetchMedicamentos();
-      validarEspecialidad();
-    }, [folioConsulta, validarEspecialidad]);
-  
-    // Nueva validación: deshabilitar botón si ya existe al menos un medicamento
-    const tieneMedicamentos = detalles?.length > 0;
+  // Al renderizar, llena el mapa de medicamentos dinámicamente
+  useEffect(() => {
+    const fetchDescripciones = async () => {
+      const clavesUnicas = [
+        ...new Set(temporalMedicamentos.map((med) => med.medicamento)),
+      ];
+      for (const clave of clavesUnicas) {
+        await fetchMedicamentoDescripcion(clave);
+      }
+    };
+    fetchDescripciones();
+  }, [temporalMedicamentos, fetchMedicamentoDescripcion]);
+
+  useEffect(() => {
+    fetchMedicamentos();
+    validarEspecialidad();
+  }, [folioConsulta, validarEspecialidad]);
+
+  // Nueva validación: deshabilitar botón si ya existe al menos un medicamento
+  const tieneMedicamentos = detalles?.length > 0;
 
   const handleRemoveFromReceta = (id, event) => {
     event.preventDefault(); // Evita el refresco de la página
@@ -167,64 +179,80 @@ const MedicamentosForm = ({
         estatus: 1,
         fechaDespacho: null,
         sindicato: consultaData.sindicato, // Obtener el sindicato directamente de la consulta
-        claveUsuario: Cookies.get("claveusuario") || "No especificado"
+        claveUsuario: Cookies.get("claveusuario") || "No especificado",
       };
-  
-      const newInsertResponse = await fetch("/api/surtimientos/addSurtimiento", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(datosSurtimiento),
-      });
-  
+
+      const newInsertResponse = await fetch(
+        "/api/surtimientos/addSurtimiento",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(datosSurtimiento),
+        }
+      );
+
       if (!newInsertResponse.ok) {
         throw new Error("Error al insertar en la tabla SURTIMIENTOS.");
       }
-  
+
       const newInsertData = await newInsertResponse.json();
       const nuevoFolio = newInsertData.nuevoFolio; // Obtener el nuevo FOLIO_SURTIMIENTO
-  
+
       // Insertar en la tabla DETALLE_SURTIMIENTOS
       for (const med of temporalMedicamentos) {
         const claveMedicamento = med.medicamento;
         const cantidad = med.cantidad;
-  
+
         if (!claveMedicamento || !cantidad) {
-          throw new Error(`El medicamento ${med.medicamento} o la cantidad ${med.cantidad} no tienen un ID válido.`);
+          throw new Error(
+            `El medicamento ${med.medicamento} o la cantidad ${med.cantidad} no tienen un ID válido.`
+          );
         }
-  
-        const response = await fetch("/api/surtimientos/addDetalleSurtimiento", {
-          method: "POST",
+
+        const response = await fetch(
+          "/api/surtimientos/addDetalleSurtimiento",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              folioSurtimiento: nuevoFolio, // Usar el nuevo FOLIO_SURTIMIENTO
+              claveMedicamento,
+              indicaciones: med.indicaciones,
+              cantidad,
+              estatus: 1,
+            }),
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(
+            `Error al insertar el medicamento: ${med.medicamento}`
+          );
+        }
+      }
+
+      // Actualizar el diagnóstico
+      const updateResponse = await fetch(
+        "/api/surtimientos/updateDiagnostico",
+        {
+          method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            folioSurtimiento: nuevoFolio, // Usar el nuevo FOLIO_SURTIMIENTO
-            claveMedicamento,
-            indicaciones: med.indicaciones,
-            cantidad,
-            estatus: 1
+            claveconsulta: folioConsulta,
+            diagnostico,
           }),
-        });
-  
-        if (!response.ok) {
-          throw new Error(`Error al insertar el medicamento: ${med.medicamento}`);
         }
-      }
-  
-      // Actualizar el diagnóstico
-      const updateResponse = await fetch("/api/surtimientos/updateDiagnostico", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          claveconsulta: folioConsulta,
-          diagnostico,
-        }),
-      });
-  
+      );
+
       if (!updateResponse.ok) {
         const errorData = await updateResponse.json();
-        throw new Error(errorData.message || "Error al actualizar el diagnóstico.");
+        throw new Error(
+          errorData.message || "Error al actualizar el diagnóstico."
+        );
       }
-  
+
       // Mostrar SweetAlert de éxito
+      playSound(true);
       Swal.fire({
         title: "¡Éxito!",
         text: "Todos los medicamentos, el diagnóstico y los nuevos datos han sido guardados exitosamente.",
@@ -232,12 +260,13 @@ const MedicamentosForm = ({
         confirmButtonColor: "#6c5ce7",
         confirmButtonText: "Aceptar",
       });
-  
+
       // Limpiar los registros temporales y refrescar los datos en el componente padre
       setTemporalMedicamentos([]);
       onFormSubmitted(); // Refrescar los datos en el componente padre
     } catch (error) {
       console.error("Error al guardar medicamentos:", error.message);
+      playSound(false);
       Swal.fire({
         title: "Error",
         text: "No se pudo guardar uno o más medicamentos.",
@@ -247,7 +276,7 @@ const MedicamentosForm = ({
       });
     }
   };
-  
+
   const handleGuardarMedicamentos = async () => {
     try {
       // Obtener datos de la consulta
@@ -258,16 +287,16 @@ const MedicamentosForm = ({
         throw new Error("Error al obtener los datos de la consulta.");
       }
       const consultaData = await consultaResponse.json();
-  
+
       // Verificar el campo seasignoaespecialidad
       const { seasignoaespecialidad } = consultaData;
-  
+
       // Si seasignoaespecialidad es 'N', permitir guardar sin validaciones
-      if (seasignoaespecialidad === 'N') {
+      if (seasignoaespecialidad === "N") {
         await guardarMedicamentos(consultaData);
         return;
       }
-  
+
       // Validar que haya al menos un medicamento en el estado temporal
       if (temporalMedicamentos.length === 0) {
         Swal.fire({
@@ -279,7 +308,7 @@ const MedicamentosForm = ({
         });
         return;
       }
-  
+
       // Validar que el diagnóstico no esté vacío
       if (!diagnostico || diagnostico.trim() === "") {
         Swal.fire({
@@ -291,7 +320,7 @@ const MedicamentosForm = ({
         });
         return;
       }
-  
+
       await guardarMedicamentos(consultaData);
     } catch (error) {
       console.error("Error al guardar medicamentos:", error.message);
@@ -304,8 +333,6 @@ const MedicamentosForm = ({
       });
     }
   };
-  
-
 
   const handleSaveMedicamento = async (nombre, tipo) => {
     console.log("Enviando datos al servidor:", { nombre, tipo });
@@ -388,13 +415,10 @@ const MedicamentosForm = ({
     }
   };
 
-
-
   return (
     <div className={styles.formContainer}>
       <div className={styles.headerContainer}>
         <h2 className={styles.title}>Seleccionar Medicamento</h2>
-      
       </div>
       <form className={styles.form}>
         <div className={styles.formGroup}>

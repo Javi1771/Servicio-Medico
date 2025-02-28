@@ -7,6 +7,16 @@ import withReactContent from "sweetalert2-react-content";
 
 const MySwal = withReactContent(Swal);
 
+//* Define las rutas de los sonidos de éxito y error
+const successSound = "/assets/applepay.mp3";
+const errorSound = "/assets/error.mp3";
+
+//! Reproduce un sonido de éxito/error
+const playSound = (isSuccess) => {
+  const audio = new Audio(isSuccess ? successSound : errorSound);
+  audio.play();
+};
+
 const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
   const [historialKPI, setHistorialKPI] = useState([]);
   const [editKPIDetails, setEditKPIDetails] = useState(null);
@@ -62,6 +72,7 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
       //* Validar que se obtuvieron datos
       if (!Array.isArray(data) || data.length === 0) {
         console.error("No se encontró detalle para el KPI seleccionado");
+        playSound(false);
         MySwal.fire({
           icon: "error",
           title: "❌ No se encontraron detalles",
@@ -77,6 +88,7 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
 
       if (!detalleSeleccionado) {
         console.error("No se encontró detalle para el KPI seleccionado");
+        playSound(false);
         MySwal.fire({
           icon: "error",
           title: "❌ No se encontraron detalles",
@@ -98,6 +110,7 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
       setMostrarVentanaKPI(true);
     } catch (error) {
       console.error("Error al cargar detalles del KPI:", error);
+      playSound(false);
       MySwal.fire({
         icon: "error",
         title: "❌ Error al cargar KPI",
@@ -159,6 +172,7 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
         setCatalogoEnfermedades(data);
       } catch (error) {
         console.error("Error al cargar las enfermedades crónicas:", error);
+        playSound(false);
         MySwal.fire({
           icon: "error",
           title:
@@ -185,6 +199,7 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
       !nuevoKPI.valorObjetivo ||
       !nuevoKPI.id_enf_cronica
     ) {
+      playSound(false);
       MySwal.fire({
         icon: "warning",
         title:
@@ -240,6 +255,7 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
         id_enf_cronica: "",
       });
 
+      playSound(true);
       MySwal.fire({
         icon: "success",
         title:
@@ -256,6 +272,7 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
       });
     } catch (error) {
       console.error("Error al guardar el KPI:", error);
+      playSound(false);
       MySwal.fire({
         icon: "error",
         title:
@@ -278,6 +295,7 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
 
     //* Validación de campos
     if (!valorAlcanzado || !calificacion || !observaciones) {
+      playSound(false);
       MySwal.fire({
         icon: "warning",
         title:
@@ -329,6 +347,7 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
       setMostrarVentanaKPI(false);
       resetFormulario();
 
+      playSound(true);
       MySwal.fire({
         icon: "success",
         title:
@@ -353,6 +372,7 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
     } catch (error) {
       console.error("Error al actualizar KPI:", error);
 
+      playSound(false);
       MySwal.fire({
         icon: "error",
         title:
@@ -380,6 +400,7 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
 
   const handleAgregarEnfermedad = () => {
     if (!enfermedad) {
+      playSound(false);
       MySwal.fire({
         icon: "warning",
         title:
@@ -415,6 +436,7 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
       setPadecimientos(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Error al cargar los padecimientos actuales:", error);
+      playSound(false);
       MySwal.fire({
         icon: "error",
         title:
@@ -444,6 +466,7 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
 
   const handleGuardarMotivo = async () => {
     if (!motivo) {
+      playSound(false);
       MySwal.fire({
         icon: "warning",
         title:
@@ -472,6 +495,7 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
     );
 
     if (!enfermedadSeleccionada) {
+      playSound(false);
       MySwal.fire({
         icon: "error",
         title:
@@ -516,6 +540,7 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
         setMostrarMotivo(false);
         setMotivo("");
 
+        playSound(true);
         MySwal.fire({
           icon: "success",
           title:
@@ -539,6 +564,7 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
       }
     } catch (error) {
       console.error("Error en la solicitud:", error);
+      playSound(false);
       MySwal.fire({
         icon: "error",
         title:

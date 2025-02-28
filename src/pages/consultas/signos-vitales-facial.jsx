@@ -17,6 +17,16 @@ import { TbTemperature } from "react-icons/tb";
 
 const MySwal = withReactContent(Swal);
 
+//* Define las rutas de los sonidos de éxito y error
+const successSound = "/assets/applepay.mp3";
+const errorSound = "/assets/error.mp3";
+
+//! Reproduce un sonido de éxito/error
+const playSound = (isSuccess) => {
+  const audio = new Audio(isSuccess ? successSound : errorSound);
+  audio.play();
+};
+
 //* Función para calcular la edad en años, meses y días
 const calcularEdad = (fechaNacimiento) => {
   if (!fechaNacimiento)
@@ -144,6 +154,7 @@ export default function SignosVitalesFacial() {
 
         //* Revisar vigencia
         if (vigenciaEstudios < fechaActual) {
+          playSound(false);
           MySwal.fire({
             icon: "warning",
             title:
@@ -172,6 +183,7 @@ export default function SignosVitalesFacial() {
       setIsLoadingBenef(false);
     } catch (error) {
       console.error("Error beneficiario:", error);
+      playSound(false);
       MySwal.fire({
         icon: "error",
         title:
@@ -207,6 +219,7 @@ export default function SignosVitalesFacial() {
 
       const data = await response.json();
       if (!data || !data.nombre || !data.departamento) {
+        playSound(false);
         MySwal.fire({
           icon: "error",
           title:
@@ -244,6 +257,7 @@ export default function SignosVitalesFacial() {
       setIsLoadingEmployee(false);
     } catch (error) {
       console.error("Error empleado:", error);
+      playSound(false);
       MySwal.fire({
         icon: "error",
         title:
@@ -276,6 +290,7 @@ export default function SignosVitalesFacial() {
       if (!response.ok) {
         throw new Error("Error al actualizar el estatus");
       }
+      playSound(true);
       MySwal.fire({
         icon: "success",
         title:
@@ -292,6 +307,7 @@ export default function SignosVitalesFacial() {
       });
     } catch (error) {
       console.error("Error al actualizar estatus:", error);
+      playSound(false);
       MySwal.fire({
         icon: "error",
         title:
@@ -312,6 +328,7 @@ export default function SignosVitalesFacial() {
   //* Guardar la consulta
   const handleSave = async () => {
     if (!isFormComplete) {
+      playSound(false);
       MySwal.fire({
         icon: "warning",
         title:
@@ -329,6 +346,7 @@ export default function SignosVitalesFacial() {
       return;
     }
     if (!beneficiario) {
+      playSound(false);
       MySwal.fire({
         icon: "error",
         title:
@@ -415,6 +433,7 @@ export default function SignosVitalesFacial() {
       await actualizarEstado(responseData.claveConsulta);
 
       //* Alerta de éxito
+      playSound(true);
       MySwal.fire({
         icon: "success",
         title:
@@ -435,6 +454,7 @@ export default function SignosVitalesFacial() {
       });
     } catch (error) {
       console.error("Error al guardar la consulta:", error);
+      playSound(false);
       MySwal.fire({
         icon: "error",
         title:

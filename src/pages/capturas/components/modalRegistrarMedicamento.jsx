@@ -9,8 +9,19 @@ export default function ModalRegistrarMedicamento({ isOpen, onClose, onSave }) {
 
   if (!isOpen) return null;
 
+  //* Define las rutas de los sonidos de éxito y error
+  const successSound = "/assets/applepay.mp3";
+  const errorSound = "/assets/error.mp3";
+
+  //! Reproduce un sonido de éxito/error
+  const playSound = (isSuccess) => {
+    const audio = new Audio(isSuccess ? successSound : errorSound);
+    audio.play();
+  };
+
   const handleSave = () => {
     if (!medicamentoNombre || !clasificacion) {
+      playSound(false);
       Swal.fire({
         title: "Error",
         text: "Por favor completa todos los campos.",

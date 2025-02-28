@@ -11,6 +11,16 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
 
   const { updateFormulario } = useContext(FormularioContext);
 
+  //* Define las rutas de los sonidos de éxito y error
+  const successSound = "/assets/applepay.mp3";
+  const errorSound = "/assets/error.mp3";
+
+  //! Reproduce un sonido de éxito/error
+  const playSound = (isSuccess) => {
+    const audio = new Audio(isSuccess ? successSound : errorSound);
+    audio.play();
+  };
+
   //? 1) Cargar lista de medicamentos desde el backend
   useEffect(() => {
     fetch("/api/medicamentos/listar")
@@ -172,7 +182,6 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
             className="mb-6 bg-gradient-to-br from-gray-700 to-gray-800 p-6 rounded-lg shadow-lg"
           >
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-
               {/* Selección de Medicamento */}
               <div>
                 <label className="text-lg font-semibold text-gray-200">
@@ -188,6 +197,7 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
                     if (!selectedMedicamento) return;
 
                     if (selectedMedicamento.piezas <= 0) {
+                      playSound(false); //!🔹 Reproducir sonido de error
                       Swal.fire({
                         icon: "error",
                         title:
@@ -227,8 +237,9 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
                       className="text-lg py-2"
                       disabled={m.piezas <= 0} //!🔹 Deshabilita medicamentos sin existencias
                     >
-                      {m.MEDICAMENTO} --- Presentación Por Caja:{" "} {m.presentacion || "Sin existencias"} --- Cajas Disponibles:{" "}
-                      {m.piezas > 0 ? m.piezas : "Sin existencias"}
+                      {m.MEDICAMENTO} --- Presentación Por Caja:{" "}
+                      {m.presentacion || "Sin existencias"} --- Cajas
+                      Disponibles: {m.piezas > 0 ? m.piezas : "Sin existencias"}
                     </option>
                   ))}
                 </select>

@@ -63,6 +63,16 @@ export default function RegistroBeneficiario() {
     descriptorFacial: "",
   });
 
+  //* Define las rutas de los sonidos de éxito y error
+  const successSound = "/assets/applepay.mp3";
+  const errorSound = "/assets/error.mp3";
+
+  //! Reproduce un sonido de éxito/error
+  const playSound = (isSuccess) => {
+    const audio = new Audio(isSuccess ? successSound : errorSound);
+    audio.play();
+  };
+
   const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -159,19 +169,22 @@ export default function RegistroBeneficiario() {
   const handleFileUploadActaConcubinatoManual = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
-  
+
     const formData = new FormData();
     formData.append("file", file);
     formData.append("numNomina", numNomina); // Enviar la nómina
-  
+
     try {
-      const response = await fetch("/api/beneficiarios/uploadActaConcubinatoManual", {
-        method: "POST",
-        body: formData,
-      });
-  
+      const response = await fetch(
+        "/api/beneficiarios/uploadActaConcubinatoManual",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
       const data = await response.json();
-  
+
       if (response.ok) {
         console.log("Acta de Concubinato subida manualmente:", data.url);
         // Actualizar el estado con la nueva URL
@@ -179,37 +192,55 @@ export default function RegistroBeneficiario() {
           ...prev,
           actaConcubinatoUrl: data.url,
         }));
-        Swal.fire("Éxito", "Acta de Concubinato subida manualmente con éxito.", "success");
+        playSound(true);
+        Swal.fire(
+          "Éxito",
+          "Acta de Concubinato subida manualmente con éxito.",
+          "success"
+        );
       } else {
-        Swal.fire("Error", "Error al subir el Acta de Concubinato manual. Intenta nuevamente.", "error");
+        playSound(false);
+        Swal.fire(
+          "Error",
+          "Error al subir el Acta de Concubinato manual. Intenta nuevamente.",
+          "error"
+        );
       }
     } catch (error) {
       console.error("Error al subir el Acta de Concubinato manual:", error);
-      Swal.fire("Error", "No se pudo subir el Acta de Concubinato manual.", "error");
+      playSound(false);
+      Swal.fire(
+        "Error",
+        "No se pudo subir el Acta de Concubinato manual.",
+        "error"
+      );
     }
   };
-  
+
   /********************************************************************* */
 
   /*****************SUBIR ACTA DE MATROMONIO MANUAL ********************/
   const handleFileUploadActaMatrimonioManual = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
-  
+
     // Preparamos FormData
     const formData = new FormData();
     formData.append("file", file);
     formData.append("numNomina", numNomina); // Enviar la nómina
-  
+
     try {
       // Llamada al nuevo endpoint que guarda el archivo en el servidor local
-      const response = await fetch("/api/beneficiarios/uploadActaMatrimonioManual", {
-        method: "POST",
-        body: formData,
-      });
-  
+      const response = await fetch(
+        "/api/beneficiarios/uploadActaMatrimonioManual",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
       const data = await response.json();
-  
+
       if (response.ok) {
         console.log("Acta de Matrimonio subida manualmente:", data.url);
         // Actualizar el estado con la nueva URL
@@ -217,50 +248,75 @@ export default function RegistroBeneficiario() {
           ...prev,
           actaMatrimonioUrl: data.url,
         }));
-        Swal.fire("Éxito", "Acta de Matrimonio subida manualmente con éxito.", "success");
+        playSound(true);
+        Swal.fire(
+          "Éxito",
+          "Acta de Matrimonio subida manualmente con éxito.",
+          "success"
+        );
       } else {
-        Swal.fire("Error", "Error al subir el Acta de Matrimonio manual.", "error");
+        playSound(false);
+        Swal.fire(
+          "Error",
+          "Error al subir el Acta de Matrimonio manual.",
+          "error"
+        );
       }
     } catch (error) {
       console.error("Error al subir el Acta de Matrimonio manual:", error);
-      Swal.fire("Error", "No se pudo subir el Acta de Matrimonio manual.", "error");
+      playSound(false);
+      Swal.fire(
+        "Error",
+        "No se pudo subir el Acta de Matrimonio manual.",
+        "error"
+      );
     }
   };
-  
+
   /********************************************************************* */
 
   const handleFileUploadIncap = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
-  
+
     const formData = new FormData();
     formData.append("file", file);
     formData.append("numNomina", numNomina); // Enviar el número de nómina
-  
+
     try {
       const response = await fetch("/api/beneficiarios/uploadIncap", {
         method: "POST",
         body: formData,
       });
-  
+
       const data = await response.json();
-  
+
       if (response.ok) {
         console.log("Acta de incapacidad subida exitosamente:", data.url);
         setFormData((prev) => ({
           ...prev,
           urlIncap: data.url, // Guardar la URL en el estado
         }));
-        Swal.fire("Éxito", "Acta de Incapacidad subida correctamente.", "success");
+        playSound(true);
+        Swal.fire(
+          "Éxito",
+          "Acta de Incapacidad subida correctamente.",
+          "success"
+        );
       } else {
-        Swal.fire("Error", "Error al subir el Acta de Incapacidad. Intenta nuevamente.", "error");
+        playSound(false);
+        Swal.fire(
+          "Error",
+          "Error al subir el Acta de Incapacidad. Intenta nuevamente.",
+          "error"
+        );
       }
     } catch (error) {
       console.error("Error al subir el Acta de Incapacidad:", error);
+      playSound(false);
       Swal.fire("Error", "No se pudo subir el Acta de Incapacidad.", "error");
     }
   };
-  
 
   /**VALIDACION SI EL BENEFICIARIO NO ES MAYOR A 16 ANOS */
   const calculateTimeUntil16 = (birthDate) => {
@@ -291,13 +347,14 @@ export default function RegistroBeneficiario() {
   const handleCapturePhoto = async () => {
     try {
       let isVideoReady = false;
-  
+
+      playSound(true);
       const result = await Swal.fire({
         title: "Captura una foto",
         html: '<video id="video" autoplay></video>',
         showCancelButton: true,
         confirmButtonText: "Capturar",
-  
+
         // Se ejecuta justo antes de que aparezca la alerta
         willOpen: () => {
           const video = document.getElementById("video");
@@ -313,18 +370,22 @@ export default function RegistroBeneficiario() {
             .catch((error) => {
               console.error("Error al acceder a la cámara:", error);
               // Evita que SweetAlert se cierre si la cámara falla
+              playSound(false);
               Swal.showValidationMessage("No se pudo acceder a la cámara.");
             });
         },
-  
+
         // Se ejecuta cuando el usuario hace clic en "Capturar"
         preConfirm: () => {
           if (!isVideoReady) {
             // Evita que SweetAlert se cierre si la cámara no está lista
-            Swal.showValidationMessage("La cámara no está lista. Intenta de nuevo.");
+            playSound(false);
+            Swal.showValidationMessage(
+              "La cámara no está lista. Intenta de nuevo."
+            );
             return false;
           }
-  
+
           // Capturamos la imagen del <video> en un <canvas>
           const video = document.getElementById("video");
           const canvas = document.createElement("canvas");
@@ -332,34 +393,35 @@ export default function RegistroBeneficiario() {
           canvas.height = video.videoHeight;
           const context = canvas.getContext("2d");
           context.drawImage(video, 0, 0, canvas.width, canvas.height);
-  
+
           // Convertimos el contenido del canvas a base64
           const base64Image = canvas.toDataURL("image/jpeg");
-  
+
           // Detenemos la cámara aquí (después de capturar)
           if (window.localStream) {
             window.localStream.getTracks().forEach((track) => track.stop());
           }
-  
+
           // Retornamos la imagen base64 para que SweetAlert la reciba en `result.value`
           return base64Image;
         },
-  
+
         // Ya no detenemos la cámara en willClose porque la detenemos en preConfirm
         willClose: () => {
           // vacío
         },
       });
-  
+
       // Revisa si el usuario confirmó (isConfirmed) y si result.value trae la imagen base64
       if (result.isConfirmed && result.value) {
         const base64Image = result.value;
         // 1. Muestra la previsualización
         setImagePreview(base64Image);
-  
+
         // 2. (Opcional) Detectar rostro con face-api
         const descriptor = await computeDescriptorFromBase64(base64Image);
         if (!descriptor) {
+          playSound(false);
           Swal.fire("Error", "No se detectó un rostro en la imagen.", "error");
           return;
         }
@@ -370,20 +432,21 @@ export default function RegistroBeneficiario() {
           descriptorFacial: descriptorJSON,
         }));
         console.log("Descriptor facial calculado:", descriptorJSON);
-  
+
         // 3. Subir la imagen a tu servidor
         await uploadImage(base64Image);
       }
     } catch (error) {
       console.error("Error al capturar/subir la foto:", error);
+      playSound(false);
       Swal.fire("Error", "Ocurrió un problema al capturar la foto.", "error");
     }
   };
-  
 
   // Función para subir la imagen capturada
   const uploadImage = async (base64Image) => {
     if (!numNomina) {
+      playSound(false);
       Swal.fire("Error", "Por favor, ingresa el número de nómina.", "error");
       return;
     }
@@ -399,8 +462,10 @@ export default function RegistroBeneficiario() {
 
       if (response.ok && data.imageUrl) {
         setFormData((prev) => ({ ...prev, imageUrl: data.imageUrl }));
+        playSound(true);
         Swal.fire("Éxito", "Imagen subida correctamente.", "success");
       } else {
+        playSound(false);
         Swal.fire(
           "Error",
           data.error || "No se pudo subir la imagen.",
@@ -409,6 +474,7 @@ export default function RegistroBeneficiario() {
       }
     } catch (error) {
       console.error("Error al subir la imagen:", error);
+      playSound(false);
       Swal.fire("Error", "Error al subir la imagen.", "error");
     }
   };
@@ -422,19 +488,19 @@ export default function RegistroBeneficiario() {
   const handleFileUploadINE = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
-  
+
     const formData = new FormData();
     formData.append("file", file);
     formData.append("numNomina", numNomina); // Enviar el número de nómina desde el estado
-  
+
     try {
       const response = await fetch("/api/beneficiarios/uploadINE", {
         method: "POST",
         body: formData,
       });
-  
+
       const data = await response.json();
-  
+
       if (response.ok) {
         console.log("INE subida exitosamente:", data.url);
         setFormData((prev) => ({
@@ -442,31 +508,39 @@ export default function RegistroBeneficiario() {
           ineUrl: data.url, // Guardar la URL correcta en el estado
         }));
       } else {
-        Swal.fire("Error", "Error al subir el INE. Intenta nuevamente.", "error");
+        playSound(false);
+        Swal.fire(
+          "Error",
+          "Error al subir el INE. Intenta nuevamente.",
+          "error"
+        );
       }
     } catch (error) {
       console.error("Error al subir el INE:", error);
+      playSound(false);
       Swal.fire("Error", "No se pudo subir el INE.", "error");
     }
   };
-  
 
   const handleFileUploadCartaNoAfiliacion = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
-  
+
     const formData = new FormData();
     formData.append("file", file);
     formData.append("numNomina", numNomina); // Enviar el número de nómina desde el estado
-  
+
     try {
-      const response = await fetch("/api/beneficiarios/uploadCartaNoAfiliacion", {
-        method: "POST",
-        body: formData,
-      });
-  
+      const response = await fetch(
+        "/api/beneficiarios/uploadCartaNoAfiliacion",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
       const data = await response.json();
-  
+
       if (response.ok) {
         console.log("Carta de No Afiliación subida exitosamente:", data.url);
         setFormData((prev) => ({
@@ -474,30 +548,40 @@ export default function RegistroBeneficiario() {
           cartaNoAfiliacionUrl: data.url, // Guardar la URL correcta
         }));
       } else {
-        Swal.fire("Error", "Error al subir la Carta de No Afiliación. Intenta nuevamente.", "error");
+        playSound(false);
+        Swal.fire(
+          "Error",
+          "Error al subir la Carta de No Afiliación. Intenta nuevamente.",
+          "error"
+        );
       }
     } catch (error) {
       console.error("Error al subir la Carta de No Afiliación:", error);
-      Swal.fire("Error", "No se pudo subir la Carta de No Afiliación.", "error");
+      playSound(false);
+      Swal.fire(
+        "Error",
+        "No se pudo subir la Carta de No Afiliación.",
+        "error"
+      );
     }
   };
-  
+
   const handleFileUploadCurp = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
-  
+
     const formData = new FormData();
     formData.append("file", file);
     formData.append("numNomina", numNomina); // Enviar el número de nómina desde el estado
-  
+
     try {
       const response = await fetch("/api/beneficiarios/uploadCurp", {
         method: "POST",
         body: formData,
       });
-  
+
       const data = await response.json();
-  
+
       if (response.ok) {
         console.log("CURP subida exitosamente:", data.url);
         setFormData((prev) => ({
@@ -505,31 +589,36 @@ export default function RegistroBeneficiario() {
           urlCurp: data.url, // Guardar la URL correcta en el estado
         }));
       } else {
-        Swal.fire("Error", "Error al subir la CURP. Intenta nuevamente.", "error");
+        playSound(false);
+        Swal.fire(
+          "Error",
+          "Error al subir la CURP. Intenta nuevamente.",
+          "error"
+        );
       }
     } catch (error) {
       console.error("Error al subir la CURP:", error);
+      playSound(false);
       Swal.fire("Error", "No se pudo subir la CURP.", "error");
     }
   };
-  
 
   const handleFileUploadActa = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
-  
+
     const formData = new FormData();
     formData.append("file", file);
     formData.append("numNomina", numNomina); // Asegúrate de enviar el número de nómina
-  
+
     try {
       const response = await fetch("/api/beneficiarios/uploadActa", {
         method: "POST",
         body: formData,
       });
-  
+
       const data = await response.json();
-  
+
       if (response.ok) {
         console.log("Acta de Nacimiento subida exitosamente:", data.url);
         setFormData((prev) => ({
@@ -537,6 +626,7 @@ export default function RegistroBeneficiario() {
           urlActaNac: data.url, // Guardar la URL del Acta de Nacimiento
         }));
       } else {
+        playSound(false);
         Swal.fire(
           "Error",
           "Error al subir el Acta de Nacimiento. Intenta nuevamente.",
@@ -545,37 +635,37 @@ export default function RegistroBeneficiario() {
       }
     } catch (error) {
       console.error("Error al subir el Acta de Nacimiento:", error);
+      playSound(false);
       Swal.fire("Error", "No se pudo subir el Acta de Nacimiento.", "error");
     }
   };
-  
-  
 
   //SUBIR DOCUMENTO DE CONSTANCIA DE ESTUDIOS//
   const handleFileUpload = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
-  
+
     const formData = new FormData();
     formData.append("file", file);
     formData.append("numNomina", numNomina); // Enviar el número de nómina desde el estado
-  
+
     try {
       const response = await fetch("/api/uploadConstancia", {
         method: "POST",
         body: formData,
       });
-  
+
       const data = await response.json();
-  
+
       if (response.ok) {
         console.log("Constancia de Estudios subida exitosamente:", data.url);
         setFormData((prev) => ({
           ...prev,
           urlConstancia: data.url, // Guardar la URL pública del archivo
-          fileName: file.name,      // Guardar también el nombre del archivo
+          fileName: file.name, // Guardar también el nombre del archivo
         }));
       } else {
+        playSound(false);
         Swal.fire(
           "Error",
           "Error al subir la Constancia de Estudios. Intenta nuevamente.",
@@ -584,10 +674,14 @@ export default function RegistroBeneficiario() {
       }
     } catch (error) {
       console.error("Error al subir la Constancia de Estudios:", error);
-      Swal.fire("Error", "No se pudo subir la Constancia de Estudios.", "error");
+      playSound(false);
+      Swal.fire(
+        "Error",
+        "No se pudo subir la Constancia de Estudios.",
+        "error"
+      );
     }
   };
-   
 
   /**VIGENCIA DE ESTUDIOS VALIDACION */
   const handleVigenciaChange = (e) => {
@@ -599,6 +693,7 @@ export default function RegistroBeneficiario() {
     if (formData.esEstudiante) {
       // Validar si la fecha es menor a la actual
       if (selectedDate < currentDate) {
+        playSound(false);
         Swal.fire({
           icon: "error",
           title: "Vigencia de estudio vencida",
@@ -661,6 +756,7 @@ export default function RegistroBeneficiario() {
 
   const handleGenerateCard = async (beneficiary) => {
     if (beneficiary.ACTIVO !== "A") {
+      playSound(false);
       Swal.fire("Error", "El beneficiario no está activo.", "error");
       return;
     }
@@ -786,6 +882,7 @@ export default function RegistroBeneficiario() {
       console.log("Carnet generado exitosamente");
     } catch (error) {
       console.error("Error al generar el carnet:", error.message);
+      playSound(false);
       Swal.fire(
         "Error",
         "No se pudo generar el carnet. Intenta nuevamente.",
@@ -798,6 +895,7 @@ export default function RegistroBeneficiario() {
     try {
       // Verificar que el beneficiario esté activo
       if (beneficiary.ACTIVO !== "A") {
+        playSound(false);
         Swal.fire("Error", "El beneficiario no está activo.", "error");
         return;
       }
@@ -998,6 +1096,7 @@ export default function RegistroBeneficiario() {
       console.log("Credencial generada exitosamente");
     } catch (error) {
       console.error("Error al generar la credencial:", error.message);
+      playSound(false);
       Swal.fire(
         "Error",
         "No se pudo generar la credencial. Intenta nuevamente.",
@@ -1079,6 +1178,7 @@ export default function RegistroBeneficiario() {
     setSelectedBeneficiary(null); // Limpia el estado anterior
     try {
       if (beneficiario.ACTIVO !== "A") {
+        playSound(false);
         Swal.fire("Error", "El beneficiario no está activo.", "error");
         return;
       }
@@ -1093,10 +1193,12 @@ export default function RegistroBeneficiario() {
         setIsViewModalOpen(true);
       } else {
         console.error("Error fetching beneficiary:", data.error);
+        playSound(false);
         Swal.fire("Error", data.error, "error");
       }
     } catch (error) {
       console.error("Error fetching beneficiary:", error);
+      playSound(false);
       Swal.fire(
         "Error",
         "No se pudo obtener la información del beneficiario.",
@@ -1128,8 +1230,10 @@ export default function RegistroBeneficiario() {
           const data = await response.json();
           if (response.ok && data.imageUrl) {
             setFormData({ ...formData, imageUrl: data.imageUrl });
+            playSound(true);
             Swal.fire("Éxito", "Imagen subida correctamente.", "success");
           } else {
+            playSound(false);
             Swal.fire(
               "Error",
               data.error || "No se pudo subir la imagen.",
@@ -1138,6 +1242,7 @@ export default function RegistroBeneficiario() {
           }
         } catch (error) {
           console.error("Error al subir la imagen:", error);
+          playSound(false);
           Swal.fire("Error", "Error al subir la imagen.", "error");
         }
       };
@@ -1156,6 +1261,7 @@ export default function RegistroBeneficiario() {
   };
 
   function showEmployeeNotFoundAlert() {
+    playSound(false);
     Swal.fire({
       title: "Empleado No Encontrado",
       text: "No se ha encontrado ningún empleado con ese número de nómina.",
@@ -1248,6 +1354,7 @@ export default function RegistroBeneficiario() {
 
   const handleSearch = async () => {
     if (!numNomina) {
+      playSound(false);
       Swal.fire("Error", "Por favor, ingresa el número de nómina.", "warning");
       return;
     }
@@ -1280,6 +1387,7 @@ export default function RegistroBeneficiario() {
 
   const handleAddBeneficiary = () => {
     if (!empleado) {
+      playSound(false);
       Swal.fire("Error", "Por favor, busca primero un empleado.", "warning");
       return;
     }
@@ -1403,6 +1511,7 @@ export default function RegistroBeneficiario() {
     // Llamamos a la función validateDocuments
     const { success, message } = validateDocuments(formData);
     if (!success) {
+      playSound(false);
       Swal.fire("Error", message, "error");
       return; // Detenemos el proceso si falta algún documento obligatorio
     }
@@ -1420,6 +1529,7 @@ export default function RegistroBeneficiario() {
       !formData.telEmergencia ||
       !formData.nombreEmergencia
     ) {
+      playSound(false);
       Swal.fire({
         icon: "error",
         title: "Error",
@@ -1436,6 +1546,7 @@ export default function RegistroBeneficiario() {
       );
 
       if (conflict) {
+        playSound(false);
         Swal.fire({
           icon: "error",
           title: "Conflicto detectado",
@@ -1444,6 +1555,8 @@ export default function RegistroBeneficiario() {
         return;
       }
     } catch (error) {
+      playSound(false);
+      playSound(false);
       Swal.fire({
         icon: "error",
         title: "Error",
@@ -1454,6 +1567,7 @@ export default function RegistroBeneficiario() {
 
     // Validar la URL de la imagen
     if (!formData.imageUrl || !formData.imageUrl.startsWith("http")) {
+      playSound(false);
       Swal.fire({
         icon: "error",
         title: "Error",
@@ -1467,6 +1581,7 @@ export default function RegistroBeneficiario() {
       formData.esEstudiante &&
       (!formData.urlConstancia || !formData.urlConstancia.startsWith("http"))
     ) {
+      playSound(false);
       Swal.fire({
         icon: "error",
         title: "Error",
@@ -1480,6 +1595,7 @@ export default function RegistroBeneficiario() {
       formData.actaConcubinatoUrl &&
       !formData.actaConcubinatoUrl.startsWith("http")
     ) {
+      playSound(false);
       Swal.fire({
         icon: "error",
         title: "Error",
@@ -1493,6 +1609,7 @@ export default function RegistroBeneficiario() {
       formData.esDiscapacitado &&
       (!formData.urlIncap || !formData.urlIncap.startsWith("http"))
     ) {
+      playSound(false);
       Swal.fire({
         icon: "error",
         title: "Error",
@@ -1524,6 +1641,7 @@ export default function RegistroBeneficiario() {
 
       // Si existe un conflicto, detener el flujo
       if (validationData.conflict) {
+        playSound(false);
         Swal.fire({
           icon: "error",
           title: "Conflicto detectado",
@@ -1536,6 +1654,7 @@ export default function RegistroBeneficiario() {
         "Error durante la validación de parentesco:",
         error.message
       );
+      playSound(false);
       Swal.fire({
         icon: "error",
         title: "Error",
@@ -1628,6 +1747,7 @@ export default function RegistroBeneficiario() {
       const responseData = await response.json();
       console.log("Respuesta del backend:", responseData);
 
+      playSound(true);
       Swal.fire({
         icon: "success",
         title: "Éxito",
@@ -1668,6 +1788,7 @@ export default function RegistroBeneficiario() {
       fetchBeneficiarios(); // Refrescar lista de beneficiarios
     } catch (error) {
       console.error("Error al enviar el formulario:", error.message);
+      playSound(false);
       Swal.fire({
         icon: "error",
         title: "Error",
@@ -1749,6 +1870,7 @@ export default function RegistroBeneficiario() {
 
   // Función para confirmar y eliminar beneficiario
   const handleDeleteBeneficiary = (idBeneficiario) => {
+    playSound(false);
     Swal.fire({
       title: "¿Estás seguro?",
       text: "Esta acción eliminará al beneficiario y su imagen asociada. No se puede deshacer.",
@@ -1776,6 +1898,7 @@ export default function RegistroBeneficiario() {
             );
           }
 
+          playSound(true);
           Swal.fire(
             "Eliminado",
             "El beneficiario y su imagen asociada han sido eliminados correctamente.",
@@ -1784,6 +1907,7 @@ export default function RegistroBeneficiario() {
 
           fetchBeneficiarios(); // Refresca la lista de beneficiarios después de eliminar
         } catch (error) {
+          playSound(false);
           Swal.fire("Error", error.message, "error");
         }
       }
@@ -2175,6 +2299,7 @@ export default function RegistroBeneficiario() {
                           if (formData.urlActaNac) {
                             window.open(formData.urlActaNac, "_blank");
                           } else {
+                            playSound(false);
                             Swal.fire(
                               "Error",
                               "No se encontró un Acta de Nacimiento válida.",
@@ -2223,6 +2348,7 @@ export default function RegistroBeneficiario() {
                           if (formData.urlCurp) {
                             window.open(formData.urlCurp, "_blank");
                           } else {
+                            playSound(false);
                             Swal.fire(
                               "Error",
                               "No se encontró un CURP válido.",
@@ -2252,6 +2378,7 @@ export default function RegistroBeneficiario() {
                                   console.error(
                                     "[ERROR] Número de nómina no ingresado."
                                   );
+                                  playSound(false);
                                   Swal.fire(
                                     "Error",
                                     "Por favor, ingresa un número de nómina válido.",
@@ -2296,6 +2423,7 @@ export default function RegistroBeneficiario() {
                                     actaMatrimonioUrl: result.url,
                                   }));
 
+                                  playSound(true);
                                   Swal.fire(
                                     "Éxito",
                                     "Acta de Matrimonio cargada correctamente.",
@@ -2306,6 +2434,7 @@ export default function RegistroBeneficiario() {
                                     "[ERROR] Error al cargar el acta de matrimonio:",
                                     error.message
                                   );
+                                  playSound(false);
                                   Swal.fire("Error", error.message, "error");
                                 }
                               }}
@@ -2396,6 +2525,7 @@ export default function RegistroBeneficiario() {
                               if (formData.ineUrl) {
                                 window.open(formData.ineUrl, "_blank");
                               } else {
+                                playSound(false);
                                 Swal.fire(
                                   "Error",
                                   "No se encontró un INE válido.",
@@ -2450,6 +2580,7 @@ export default function RegistroBeneficiario() {
                                   "_blank"
                                 );
                               } else {
+                                playSound(false);
                                 Swal.fire(
                                   "Error",
                                   "No se encontró una Carta de No Afiliación válida.",
@@ -2481,6 +2612,7 @@ export default function RegistroBeneficiario() {
                             console.error(
                               "[ERROR] Número de nómina no ingresado."
                             );
+                            playSound(false);
                             Swal.fire(
                               "Error",
                               "Por favor, ingresa un número de nómina válido.",
@@ -2521,6 +2653,7 @@ export default function RegistroBeneficiario() {
                               actaConcubinatoUrl: result.url,
                             }));
 
+                            playSound(true);
                             Swal.fire(
                               "Éxito",
                               "Acta de Concubinato cargada correctamente.",
@@ -2531,6 +2664,7 @@ export default function RegistroBeneficiario() {
                               "[ERROR] Error al cargar el acta:",
                               error.message
                             );
+                            playSound(false);
                             Swal.fire("Error", error.message, "error");
                           }
                         }}
@@ -2693,6 +2827,7 @@ export default function RegistroBeneficiario() {
                         if (formData.urlIncap) {
                           window.open(formData.urlIncap, "_blank");
                         } else {
+                          playSound(false);
                           Swal.fire(
                             "Error",
                             "No se encontró un Acta de Incapacidad válida.",
@@ -2766,6 +2901,7 @@ export default function RegistroBeneficiario() {
                         if (formData.urlConstancia) {
                           window.open(formData.urlConstancia, "_blank");
                         } else {
+                          playSound(false);
                           Swal.fire(
                             "Error",
                             "No se encontró una constancia válida.",
@@ -3023,6 +3159,7 @@ export default function RegistroBeneficiario() {
                       await handleGenerateCard(selectedBeneficiary);
                     } catch (error) {
                       console.error("Error al generar el carnet:", error);
+                      playSound(false);
                       Swal.fire(
                         "Error",
                         "No se pudo generar el carnet. Intenta nuevamente.",
