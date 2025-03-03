@@ -17,15 +17,14 @@ const SurtimientosInfo = ({ surtimiento, cost, setCost }) => {
     setEditingCost(false);
   };
 
-  // Lista de datos para iterar y crear tarjetas con colores originales,
-  // pero se aplicará un filtro para oscurecer y se añaden sombras.
+  // Lista de datos para iterar y crear tarjetas
   const infoCards = [
     {
       title: "Folio Surtimiento",
       value: surtimiento?.FOLIO_SURTIMIENTO,
       icon: "fa-file-invoice",
-      color: "#ff928b", // color base de la tarjeta
-      gradient: "#ffb199" // color para el gradiente
+      color: "#ff928b",
+      gradient: "#ffb199"
     },
     {
       title: "Folio Pase",
@@ -161,35 +160,77 @@ const SurtimientosInfo = ({ surtimiento, cost, setCost }) => {
               key={index}
               className={styles.card}
               style={{
-                // Se mantiene el gradiente original, se aplica un filtro para oscurecer y sombra
+                position: "relative",
                 background: `linear-gradient(135deg, ${card.color}, ${card.gradient})`,
-                filter: "brightness(0.85)",
+                // Ajusta el brillo/saturación a tu gusto:
+                filter: "brightness(1.02) saturate(1.05)",
                 boxShadow: "0 8px 16px rgba(0, 0, 0, 0.3)",
                 borderRadius: "8px",
-                padding: "1rem"
+                padding: "1rem",
+                overflow: "hidden"
               }}
             >
+              {/* Overlay semitransparente para dar contraste al texto */}
+              <div
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  background:
+                    "linear-gradient(135deg, rgba(0,0,0,0.15), rgba(0,0,0,0.25))",
+                  zIndex: 0
+                }}
+              ></div>
+
+              {/* Contenedor de burbujas decorativas */}
+              <div className="bubbleContainer">
+                <div className="bubble" style={{ top: "10%", left: "20%" }}></div>
+                <div className="bubble" style={{ top: "50%", left: "70%" }}></div>
+                <div className="bubble" style={{ top: "80%", left: "30%" }}></div>
+              </div>
+
               <div
                 className={styles.cardIconWrapper}
                 style={{
+                  position: "relative",
+                  zIndex: 1,
                   boxShadow: "0 4px 8px rgba(0, 0, 0, 0.4)",
                   borderRadius: "50%",
                   padding: "0.5rem",
-                  marginBottom: "0.5rem"
+                  marginBottom: "0.5rem",
+                  backgroundColor: "rgba(0,0,0,0.25)"
                 }}
               >
-                <i className={`fa-solid ${card.icon} ${styles.cardIcon}`}></i>
+                <i
+                  className={`fa-solid ${card.icon} ${styles.cardIcon}`}
+                  style={{ fontSize: "1.5rem", color: "#fff" }}
+                ></i>
               </div>
-              <div className={styles.cardContent}>
+
+              <div
+                className={styles.cardContent}
+                style={{ position: "relative", zIndex: 1 }}
+              >
                 <h3
                   className={styles.cardTitle}
-                  style={{ textShadow: "1px 1px 2px rgba(0,0,0,0.5)" }}
+                  style={{
+                    textShadow: "2px 2px 4px rgba(0,0,0,0.6)",
+                    fontWeight: "bold",
+                    color: "#fff",
+                    marginBottom: "0.3rem"
+                  }}
                 >
                   {card.title}
                 </h3>
                 <p
                   className={styles.cardValue}
-                  style={{ textShadow: "1px 1px 2px rgba(0,0,0,0.5)" }}
+                  style={{
+                    textShadow: "2px 2px 4px rgba(0,0,0,0.6)",
+                    color: "#fff",
+                    fontSize: "0.95rem"
+                  }}
                 >
                   {card.value}
                 </p>
@@ -200,6 +241,42 @@ const SurtimientosInfo = ({ surtimiento, cost, setCost }) => {
       ) : (
         <p>No se encontró información del surtimiento.</p>
       )}
+
+      {/* Estilos para efectos de burbujas */}
+      <style jsx>{`
+        .bubbleContainer {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          pointer-events: none;
+          z-index: 0;
+          overflow: hidden;
+        }
+        .bubble {
+          position: absolute;
+          width: 20px;
+          height: 20px;
+          background: rgba(255, 255, 255, 0.2);
+          border-radius: 50%;
+          animation: bubble 4s infinite ease-in-out;
+        }
+        @keyframes bubble {
+          0% {
+            transform: translateY(0) scale(1);
+            opacity: 0.8;
+          }
+          50% {
+            transform: translateY(-20px) scale(1.2);
+            opacity: 0.4;
+          }
+          100% {
+            transform: translateY(0) scale(1);
+            opacity: 0.8;
+          }
+        }
+      `}</style>
     </div>
   );
 };
