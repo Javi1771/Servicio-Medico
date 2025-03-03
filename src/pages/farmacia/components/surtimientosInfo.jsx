@@ -17,7 +17,8 @@ const SurtimientosInfo = ({ surtimiento, cost, setCost }) => {
     setEditingCost(false);
   };
 
-  // Lista de datos para iterar y crear tarjetas
+  // Lista de datos para iterar y crear tarjetas con colores originales,
+  // pero se aplicará un filtro para oscurecer y se añaden sombras.
   const infoCards = [
     {
       title: "Folio Surtimiento",
@@ -160,15 +161,38 @@ const SurtimientosInfo = ({ surtimiento, cost, setCost }) => {
               key={index}
               className={styles.card}
               style={{
-                background: `linear-gradient(135deg, ${card.color}, ${card.gradient})`
+                // Se mantiene el gradiente original, se aplica un filtro para oscurecer y sombra
+                background: `linear-gradient(135deg, ${card.color}, ${card.gradient})`,
+                filter: "brightness(0.85)",
+                boxShadow: "0 8px 16px rgba(0, 0, 0, 0.3)",
+                borderRadius: "8px",
+                padding: "1rem"
               }}
             >
-              <div className={styles.cardIconWrapper}>
+              <div
+                className={styles.cardIconWrapper}
+                style={{
+                  boxShadow: "0 4px 8px rgba(0, 0, 0, 0.4)",
+                  borderRadius: "50%",
+                  padding: "0.5rem",
+                  marginBottom: "0.5rem"
+                }}
+              >
                 <i className={`fa-solid ${card.icon} ${styles.cardIcon}`}></i>
               </div>
               <div className={styles.cardContent}>
-                <h3 className={styles.cardTitle}>{card.title}</h3>
-                <p className={styles.cardValue}>{card.value}</p>
+                <h3
+                  className={styles.cardTitle}
+                  style={{ textShadow: "1px 1px 2px rgba(0,0,0,0.5)" }}
+                >
+                  {card.title}
+                </h3>
+                <p
+                  className={styles.cardValue}
+                  style={{ textShadow: "1px 1px 2px rgba(0,0,0,0.5)" }}
+                >
+                  {card.value}
+                </p>
               </div>
             </div>
           ))}

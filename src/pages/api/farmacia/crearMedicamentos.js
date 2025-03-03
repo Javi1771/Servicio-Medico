@@ -93,6 +93,7 @@ export default async function handler(req, res) {
       .input('maximo', sql.Int, maximo)
       .input('minimo', sql.Int, minimo)
       .input('medida', sql.Int, medida)
+      .input('estatus', sql.Bit, 1)
       .query(insertQuery);
 
     console.log("✅ Medicamento registrado exitosamente:", medicamento);
