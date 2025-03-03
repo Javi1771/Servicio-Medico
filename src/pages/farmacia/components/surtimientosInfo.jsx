@@ -1,15 +1,16 @@
-// pages/farmacia/components/SurtimientosInfo.jsx
 import React, { useState } from "react";
 import styles from "../../css/EstilosFarmacia/SurtimientosTable.module.css";
 
 const SurtimientosInfo = ({ surtimiento, cost, setCost }) => {
   const [editingCost, setEditingCost] = useState(false);
-  const estatusTexto = surtimiento?.ESTATUS ? "Receta Pendiente" : "Receta Surtida";
+  const estatusTexto = surtimiento?.ESTATUS
+    ? "Receta Pendiente"
+    : "Receta Surtida";
 
   const handleCostClick = () => {
     if (surtimiento.ESTATUS) {
       setEditingCost(true);
-    }    
+    }
   };
 
   const handleCostBlur = () => {
@@ -25,10 +26,10 @@ const SurtimientosInfo = ({ surtimiento, cost, setCost }) => {
           <div className={styles.infoItem}>
             <i className={`fa-solid fa-file-invoice ${styles.infoIcon}`}></i>
             <p className={styles.infoText}>
-              <strong>Folio Surtimiento:</strong>{" "}
-              {surtimiento.FOLIO_SURTIMIENTO}
+              <strong>Folio Surtimiento:</strong> {surtimiento.FOLIO_SURTIMIENTO}
             </p>
           </div>
+
           {/* Folio Pase */}
           <div className={styles.infoItem}>
             <i className={`fa-solid fa-file-medical ${styles.infoIcon}`}></i>
@@ -36,6 +37,7 @@ const SurtimientosInfo = ({ surtimiento, cost, setCost }) => {
               <strong>Folio Pase:</strong> {surtimiento.FOLIO_PASE}
             </p>
           </div>
+
           {/* Fecha Emisión */}
           <div className={styles.infoItem}>
             <i className={`fa-solid fa-calendar-day ${styles.infoIcon}`}></i>
@@ -43,6 +45,7 @@ const SurtimientosInfo = ({ surtimiento, cost, setCost }) => {
               <strong>Fecha Emisión:</strong> {surtimiento.FECHA_EMISION}
             </p>
           </div>
+
           {/* Nómina */}
           <div className={styles.infoItem}>
             <i className={`fa-solid fa-id-card ${styles.infoIcon}`}></i>
@@ -50,6 +53,7 @@ const SurtimientosInfo = ({ surtimiento, cost, setCost }) => {
               <strong>Nómina:</strong> {surtimiento.NOMINA}
             </p>
           </div>
+
           {/* Clave Paciente */}
           <div className={styles.infoItem}>
             <i className={`fa-solid fa-user ${styles.infoIcon}`}></i>
@@ -57,6 +61,7 @@ const SurtimientosInfo = ({ surtimiento, cost, setCost }) => {
               <strong>Clave Paciente:</strong> {surtimiento.CLAVE_PACIENTE}
             </p>
           </div>
+
           {/* Nombre Paciente */}
           <div className={styles.infoItem}>
             <i className={`fa-solid fa-user-check ${styles.infoIcon}`}></i>
@@ -64,6 +69,7 @@ const SurtimientosInfo = ({ surtimiento, cost, setCost }) => {
               <strong>Nombre Paciente:</strong> {surtimiento.NOMBRE_PACIENTE}
             </p>
           </div>
+
           {/* Edad */}
           <div className={styles.infoItem}>
             <i className={`fa-solid fa-user-clock ${styles.infoIcon}`}></i>
@@ -71,6 +77,7 @@ const SurtimientosInfo = ({ surtimiento, cost, setCost }) => {
               <strong>Edad:</strong> {surtimiento.EDAD}
             </p>
           </div>
+
           {/* Empleado */}
           <div className={styles.infoItem}>
             <i className={`fa-solid fa-user-tie ${styles.infoIcon}`}></i>
@@ -78,13 +85,15 @@ const SurtimientosInfo = ({ surtimiento, cost, setCost }) => {
               <strong>Empleado:</strong> {surtimiento.ESEMPLEADO}
             </p>
           </div>
+
           {/* Clave Médico */}
           <div className={styles.infoItem}>
             <i className={`fa-solid fa-user-md ${styles.infoIcon}`}></i>
             <p className={styles.infoText}>
-              <strong>Clave Médico:</strong> {surtimiento.CLAVEMEDICO}
+              <strong>Clave Médico:</strong> {surtimiento.nombreproveedor}
             </p>
           </div>
+
           {/* Diagnóstico */}
           <div className={styles.infoItem}>
             <i className={`fa-solid fa-stethoscope ${styles.infoIcon}`}></i>
@@ -92,6 +101,7 @@ const SurtimientosInfo = ({ surtimiento, cost, setCost }) => {
               <strong>Diagnóstico:</strong> {surtimiento.DIAGNOSTICO}
             </p>
           </div>
+
           {/* Departamento */}
           <div className={styles.infoItem}>
             <i className={`fa-solid fa-building ${styles.infoIcon}`}></i>
@@ -99,6 +109,7 @@ const SurtimientosInfo = ({ surtimiento, cost, setCost }) => {
               <strong>Departamento:</strong> {surtimiento.DEPARTAMENTO}
             </p>
           </div>
+
           {/* Estatus */}
           <div className={styles.infoItem}>
             <i className={`fa-solid fa-info-circle ${styles.infoIcon}`}></i>
@@ -106,6 +117,7 @@ const SurtimientosInfo = ({ surtimiento, cost, setCost }) => {
               <strong>Estatus:</strong> {estatusTexto}
             </p>
           </div>
+
           {/* Costo */}
           <div className={styles.infoItem} onClick={handleCostClick}>
             <i className={`fa-solid fa-money-bill-wave ${styles.infoIcon}`}></i>
@@ -130,6 +142,7 @@ const SurtimientosInfo = ({ surtimiento, cost, setCost }) => {
               )}
             </p>
           </div>
+
           {/* Fecha Despacho */}
           <div className={styles.infoItem}>
             <i className={`fa-solid fa-calendar-check ${styles.infoIcon}`}></i>
@@ -137,6 +150,7 @@ const SurtimientosInfo = ({ surtimiento, cost, setCost }) => {
               <strong>Fecha Despacho:</strong> {surtimiento.FECHA_DESPACHO}
             </p>
           </div>
+
           {/* Sindicato */}
           <div className={styles.infoItem}>
             <i className={`fa-solid fa-users ${styles.infoIcon}`}></i>
@@ -144,11 +158,13 @@ const SurtimientosInfo = ({ surtimiento, cost, setCost }) => {
               <strong>Sindicato:</strong> {surtimiento.SINDICATO}
             </p>
           </div>
+
           {/* Elaboró */}
           <div className={styles.infoItem}>
             <i className={`fa-solid fa-user-shield ${styles.infoIcon}`}></i>
             <p className={styles.infoText}>
-              <strong>Elaboró:</strong> {surtimiento.nombreproveedor || "(Sin datos)"}
+              <strong>Elaboró:</strong>{" "}
+              {surtimiento.nombreproveedor || "(Sin datos)"}
             </p>
           </div>
         </div>

@@ -1,79 +1,209 @@
-/* CONTENEDOR PRINCIPAL */
-.container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 2rem;
-    min-height: 100vh;
-    background: #f0f2f5;
-  }
-  
-  /* CARD GENERAL */
-  .card {
-    background: #fff;
-    padding: 2rem;
-    border-radius: 12px;
-    width: 100%;
-    max-width: 700px;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-  }
-  
-  .card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
-  }
-  
-  /* TÍTULO */
-  .title {
-    font-size: 2rem;
-    text-align: center;
-    margin-bottom: 1.5rem;
-    color: #333;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-  }
-  
-  /* CONTENEDOR DEL INPUT */
-  .inputContainer {
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 1rem;
-  }
-  
-  /* LABEL E INPUT */
-  .label {
-    margin-bottom: 0.5rem;
-    font-weight: 600;
-    color: #555;
-  }
-  .input {
-    padding: 0.75rem 1rem;
-    border: 2px solid #ddd;
-    border-radius: 8px;
-    font-size: 1rem;
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
-  }
-  .input:focus {
-    outline: none;
-    border-color: #146aff;
-    box-shadow: 0 0 10px rgba(20, 94, 255, 0.5);
-  }
-  
-  /* BOTÓN DE BÚSQUEDA */
-  .button {
-    padding: 0.75rem 1.5rem;
-    background: #1414ff;
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    font-size: 1rem;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background 0.3s ease, transform 0.3s ease;
-  }
-  .button:hover {
-    background: #1275e0;
-    transform: scale(1.05);
-  }
-  
+/********************************
+  VARIABLES Y ESTILOS BÁSICOS
+********************************/
+.containerCentered {
+  /* Variables locales */
+  --primary: #4a90e2;
+  --secondary: #50e3c2;
+  --bg-color: #ffffff;        /* Fondo global blanco */
+  --card-bg: #ffffff;         /* Fondo de las tarjetas */
+  --text-color: #333333;
+  /* Sombra base para estados */
+  --shadow: rgba(0, 0, 0, 0.15);
+  --shadow-hover: rgba(0, 0, 0, 0.25);
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center; /* Centrado vertical */
+  min-height: 100vh;
+  background-color: var(--bg-color);
+  padding: 2rem;
+}
+
+.containerFlow {
+  /* Cuando hay datos, la disposición es en columna pero sin forzar el centrado vertical */
+  --primary: #4a90e2;
+  --secondary: #50e3c2;
+  --bg-color: #ffffff;
+  --card-bg: #ffffff;
+  --text-color: #333333;
+  --shadow: rgba(0, 0, 0, 0.15);
+  --shadow-hover: rgba(0, 0, 0, 0.25);
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: var(--bg-color);
+  padding: 2rem;
+}
+
+/********************************
+  CARD PRINCIPAL (FORMULARIO)
+********************************/
+.card {
+  background: var(--card-bg);
+  border-radius: 16px;
+  padding: 2rem;
+  width: 100%;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  margin-bottom: 2rem;
+}
+
+/* Estado sin datos: tarjeta más compacta, centrada, con sombra muy marcada */
+.cardEmpty {
+  max-width: 600px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+}
+
+/* Estado con datos: tarjeta más ancha y sombra más sutil */
+.cardWide {
+  max-width: 900px;
+  box-shadow: 0 8px 20px var(--shadow);
+}
+
+.card:hover {
+  transform: translateY(-8px);
+}
+
+/********************************
+  TÍTULOS
+********************************/
+.title {
+  font-size: 2rem;
+  text-align: center;
+  color: var(--text-color);
+  margin-bottom: 2rem;
+  letter-spacing: 1px;
+}
+
+/********************************
+  INPUTS
+********************************/
+.inputContainer {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1rem;
+}
+
+.label {
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+  color: var(--text-color);
+  font-weight: 600;
+}
+
+.input {
+  padding: 1rem 1.25rem;
+  border: 2px solid #ddd;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 10px rgba(74, 144, 226, 0.5);
+}
+
+/* Estilo para el placeholder */
+.input::placeholder {
+  color: #aaa;
+  opacity: 0.8;
+}
+
+/********************************
+  BOTONES
+********************************/
+.button {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.3s ease;
+  margin-bottom: 1rem;
+}
+
+.button-primary {
+  background: var(--primary);
+  color: #fff;
+}
+.button-primary:hover {
+  background: #3a78c2;
+  transform: scale(1.05);
+}
+
+.button-secondary {
+  background: var(--secondary);
+  color: #fff;
+}
+.button-secondary:hover {
+  background: #3ec1a6;
+  transform: scale(1.05);
+}
+
+/********************************
+  SECCIÓN DE INFORMACIÓN
+********************************/
+.section {
+  background-color: var(--card-bg);
+  border-radius: 8px;
+  box-shadow: 0 2px 6px var(--shadow);
+  padding: 1.5rem;
+  width: 100%;
+  max-width: 900px;
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.section:hover {
+  box-shadow: 0 4px 10px var(--shadow-hover);
+  transform: translateY(-2px);
+}
+
+.sectionTitle {
+  margin: 0 0 1.5rem 0;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--text-color);
+  text-align: center;
+}
+
+/********************************
+  CONTENIDO DE LA SECCIÓN (TARJETAS)
+********************************/
+.sectionContent {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.dataCard {
+  flex: 1 1 calc(33.333% - 1rem);
+  min-width: 180px;
+  background-color: #fff;
+  border-radius: 8px;
+  border: 1px solid #f0f0f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  padding: 1rem;
+  transition: box-shadow 0.3s ease;
+}
+
+.dataCard:hover {
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.08);
+}
+
+.dataCardLabel {
+  display: block;
+  font-size: 0.9rem;
+  color: #555;
+  margin-bottom: 0.25rem;
+  font-weight: 600;
+}
+
+.dataCardValue {
+  font-size: 1rem;
+  color: var(--text-color);
+}
