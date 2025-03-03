@@ -216,92 +216,68 @@ export const useMedicamentos = () => {
     }
   };
 
-  //? Editar un medicamento
-  const editMedicamento = async (medicamentoData) => {
-    const {
-      id,
-      medicamento,
-      clasificacion,
-      presentacion,
-      ean,
-      piezas,
-      maximo,
-      minimo,
-    } = medicamentoData;
-    try {
-      const response = await fetch("/api/farmacia/editarMedicamento", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id,
-          medicamento,
-          clasificacion,
-          presentacion,
-          ean,
-          piezas,
-          maximo,
-          minimo,
-        }),
-      });
+ //? Editar un medicamento
+const editMedicamento = async (medicamentoData) => {
+  const {
+    id,
+    medicamento,
+    clasificacion,
+    presentacion,
+    ean,
+    piezas,
+    maximo,
+    minimo,
+    medida,
+  } = medicamentoData;
+  try {
+    const response = await fetch("/api/farmacia/editarMedicamento", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id,
+        medicamento,
+        clasificacion,
+        presentacion,
+        ean,
+        piezas,
+        maximo,
+        minimo,
+        medida : parseInt(medida, 10),
+      }),
+    });
 
-      const data = await response.json();
-      if (response.ok) {
-        //* Alerta de éxito: fondo verde
-        playSound(true);
-        Swal.fire({
-          icon: "success",
-          title:
-            "<span style='color: #ffffff; font-weight: bold;'>Éxito</span>",
-          html: "<p style='color: #ffffff; font-size: 1.1rem;'>El medicamento fue editado exitosamente.</p>",
-          background: "linear-gradient(145deg, #004d00, #002200)",
-          confirmButtonColor: "#00c853",
-          confirmButtonText:
-            "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-          customClass: {
-            popup:
-              "border border-green-600 shadow-[0px_0px_20px_5px_rgba(76,175,80,0.9)] rounded-lg",
-          },
-          didOpen: () => {
-            const popup = Swal.getPopup();
-            popup.style.boxShadow = "0px 0px 20px 5px rgba(76,175,80,0.9)";
-            popup.style.borderRadius = "15px";
-          },
-        });
-        fetchMedicamentos();
-      } else {
-        //! Alerta de error: fondo rojo
-        playSound(false);
-        Swal.fire({
-          icon: "error",
-          title:
-            "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>Error</span>",
-          html: `<p style='color: #fff; font-size: 1.1rem;'>${
-            data.message || "No se pudo editar el medicamento."
-          }</p>`,
-          background: "linear-gradient(145deg, #4a0000, #220000)",
-          confirmButtonColor: "#ff1744",
-          confirmButtonText:
-            "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-          customClass: {
-            popup:
-              "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-          },
-          didOpen: () => {
-            const popup = Swal.getPopup();
-            popup.style.boxShadow = "0px 0px 20px 5px rgba(255,23,68,0.9)";
-            popup.style.borderRadius = "15px";
-          },
-        });
-      }
-    } catch (error) {
-      console.error("Error al editar medicamento:", error);
-      //! Alerta de error interno: fondo rojo
+    const data = await response.json();
+    if (response.ok) {
+      playSound(true);
+      Swal.fire({
+        icon: "success",
+        title:
+          "<span style='color: #ffffff; font-weight: bold;'>Éxito</span>",
+        html: "<p style='color: #ffffff; font-size: 1.1rem;'>El medicamento fue editado exitosamente.</p>",
+        background: "linear-gradient(145deg, #004d00, #002200)",
+        confirmButtonColor: "#00c853",
+        confirmButtonText:
+          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
+        customClass: {
+          popup:
+            "border border-green-600 shadow-[0px_0px_20px_5px_rgba(76,175,80,0.9)] rounded-lg",
+        },
+        didOpen: () => {
+          const popup = Swal.getPopup();
+          popup.style.boxShadow = "0px 0px 20px 5px rgba(76,175,80,0.9)";
+          popup.style.borderRadius = "15px";
+        },
+      });
+      fetchMedicamentos();
+    } else {
       playSound(false);
       Swal.fire({
         icon: "error",
         title:
           "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>Error</span>",
-        html: "<p style='color: #fff; font-size: 1.1rem;'>Error interno del servidor.</p>",
+        html: `<p style='color: #fff; font-size: 1.1rem;'>${
+          data.message || "No se pudo editar el medicamento."
+        }</p>`,
         background: "linear-gradient(145deg, #4a0000, #220000)",
         confirmButtonColor: "#ff1744",
         confirmButtonText:
@@ -317,7 +293,30 @@ export const useMedicamentos = () => {
         },
       });
     }
-  };
+  } catch (error) {
+    console.error("Error al editar medicamento:", error);
+    playSound(false);
+    Swal.fire({
+      icon: "error",
+      title:
+        "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>Error</span>",
+      html: "<p style='color: #fff; font-size: 1.1rem;'>Error interno del servidor.</p>",
+      background: "linear-gradient(145deg, #4a0000, #220000)",
+      confirmButtonColor: "#ff1744",
+      confirmButtonText:
+        "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
+      customClass: {
+        popup:
+          "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
+      },
+      didOpen: () => {
+        const popup = Swal.getPopup();
+        popup.style.boxShadow = "0px 0px 20px 5px rgba(255,23,68,0.9)";
+        popup.style.borderRadius = "15px";
+      },
+    });
+  }
+};
 
   return {
     medicamentos,

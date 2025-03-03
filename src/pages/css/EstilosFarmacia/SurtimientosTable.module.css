@@ -1,205 +1,96 @@
-/**************************************
-  ESTILO GENERAL DEL CONTENEDOR (CARD)
-***************************************/
-.card {
-  background-color: #fff;
-  padding: 2rem;
-  border-radius: 10px;
-  /* Sombra muy suave para no sobrecargar el diseño */
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.07);
-  margin: 2rem auto;
-  max-width: 1200px;
-  animation: fadeIn 0.4s ease;
-}
-
-/* Animación de entrada suave */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/**************************************
-  TÍTULOS Y SUBTÍTULOS
-***************************************/
-.subtitle {
-  font-size: 1.5rem;
-  color: #333;
-  margin-bottom: 1rem;
-  text-align: center;
-  /* Quitamos uppercase y exceso de letter-spacing para un estilo más limpio */
-  font-weight: 600;
-}
-
-/**************************************
-  SECCIÓN GENERAL
-***************************************/
 .section {
-  flex: 1 1 300px;
-  min-width: 300px;
+  padding: 20px;
+  background-color: #f7f9fc;
+  font-family: Arial, sans-serif;
 }
 
-/**************************************
-  GRID DE INFORMACIÓN DEL SURTIMIENTO
-***************************************/
-.info {
+.subtitle {
+  font-size: 1.8rem;
+  margin-bottom: 20px;
+  color: #333;
+  text-align: center;
+}
+
+/* Grid para las cards */
+.cardsGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 1rem;
-  margin-bottom: 2rem;
+  gap: 20px;
+  padding: 0 10px;
 }
 
-/* Cada campo de información */
-.infoItem {
-  background-color: #fafafa;
-  border: 1px solid #eaeaea;
-  border-radius: 8px;
-  padding: 1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  transition: background-color 0.2s ease;
-}
-
-/* Para un efecto hover muy sutil */
-.infoItem:hover {
-  background-color: #f5f5f5;
-}
-
-/**************************************
-  ICONOS EN INFORMACIÓN
-***************************************/
-.infoIcon {
-  font-size: 1.2rem;
-  color: #666; /* Un tono gris medio */
-}
-
-/**************************************
-  TEXTO DE INFORMACIÓN
-***************************************/
-.infoText {
-  color: #444;
-  font-size: 0.95rem;
-  line-height: 1.4;
-}
-
-.infoText strong {
-  color: #333;
-  font-weight: 600;
-}
-
-/**************************************
-  ESTILOS PARA INPUT DE COSTO (EDITABLE)
-***************************************/
-.infoItem input[type="number"] {
-  width: 80px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  padding: 0.3rem;
-  font-size: 0.9rem;
-  color: #333;
-}
-
-/**************************************
-  LISTA DE MEDICAMENTOS (SI APLICA)
-***************************************/
-.medicamentosContainer {
-  display: grid;
-  gap: 1rem;
-  margin-bottom: 2rem;
-}
-
-.medicamentoCard {
-  background-color: #fafafa;
-  border: 1px solid #eaeaea;
-  border-radius: 8px;
-  padding: 1rem;
-  transition: background-color 0.2s ease;
-}
-
-.medicamentoCard:hover {
-  background-color: #f5f5f5;
-}
-
-/* Filas en cada medicamento */
-.medicamentoRow {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin: 0.25rem 0;
-}
-
-.medicamentoLabel {
-  font-weight: 600;
-  color: #333;
-}
-
-.medicamentoValue {
-  color: #555;
-}
-
-/**************************************
-  BOTONES (TOGGLE, GUARDAR, ETC.)
-***************************************/
-.toggleInputButton,
-.eanButton,
-.saveButton {
-  border: none;
-  outline: none;
-  cursor: pointer;
-  border-radius: 6px;
-  transition: background-color 0.2s ease, color 0.2s ease;
-}
-
-.toggleInputButton,
-.eanButton {
-  background-color: #3498db;
+/* Card */
+.card {
+  position: relative;
+  border-radius: 12px;
   color: #fff;
-  padding: 0.5rem 1rem;
+  padding: 15px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  min-height: 120px;
+  display: flex;
+  align-items: flex-start;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Ícono dentro de la card */
+.cardIconWrapper {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  opacity: 0.3; /* Ícono en la esquina con algo de transparencia */
+  font-size: 2.5rem;
+}
+
+.cardIcon {
+  margin: 0;
+}
+
+/* Contenido de la card */
+.cardContent {
+  z-index: 2;
+}
+
+.cardTitle {
   font-size: 0.9rem;
+  margin: 0 0 5px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
-.toggleInputButton:hover,
-.eanButton:hover {
-  background-color: #2980b9;
+.cardValue {
+  font-size: 1.4rem;
+  font-weight: bold;
+  margin: 0;
 }
 
-.saveButton {
-  background-color: #2ecc71;
-  color: #fff;
-  padding: 0.75rem 1.5rem;
+/* Estilo para el input de costo */
+.inputCost {
+  padding: 4px 8px;
   font-size: 1rem;
-  margin-top: 1rem;
-  width: 100%;
-  max-width: 300px;
-  align-self: center;
-}
-
-.saveButton:hover {
-  background-color: #27ae60;
-}
-
-/* Inputs de EAN */
-.eanInput {
-  flex: 1;
-  padding: 0.5rem;
   border: 1px solid #ccc;
   border-radius: 4px;
-  font-size: 0.9rem;
-  color: #333;
+  width: 70px;
 }
 
-/**************************************
-  CONTENEDOR DUAL (PARA INFO Y LISTA)
-***************************************/
-.dualContainer {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 2rem;
-  justify-content: space-between;
+/* Texto editable para el costo */
+.editableText {
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* Ajuste para pantallas muy pequeñas */
+@media (max-width: 480px) {
+  .cardTitle {
+    font-size: 0.8rem;
+  }
+  .cardValue {
+    font-size: 1.2rem;
+  }
 }

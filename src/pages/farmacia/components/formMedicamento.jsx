@@ -12,10 +12,10 @@ const FormMedicamento = ({ onAddMedicamento, message }) => {
     medida: "",
   });
 
-  // Estado para las unidades de medida traídas de la API
+  //* Estado para las unidades de medida traídas de la API
   const [unidades, setUnidades] = useState([]);
 
-  // Fetch de las unidades de medida desde el endpoint
+  //* Fetch de las unidades de medida desde el endpoint
   useEffect(() => {
     const fetchUnidades = async () => {
       try {
@@ -134,10 +134,7 @@ const FormMedicamento = ({ onAddMedicamento, message }) => {
 
         {/* Unidad de Medida */}
         <div className="flex flex-col">
-          <label
-            htmlFor="medida"
-            className="mb-1 font-semibold text-teal-300"
-          >
+          <label htmlFor="medida" className="mb-1 font-semibold text-teal-300">
             Unidad de Medida:
           </label>
           <select
@@ -202,8 +199,6 @@ const FormMedicamento = ({ onAddMedicamento, message }) => {
             onChange={handleChange}
             placeholder="Ingresa el código de barras"
             required
-            pattern="^(\d{8}|\d{13})$"
-            title="El código EAN debe tener 8 o 13 dígitos"
             className="p-2 rounded-md border border-teal-500 bg-[#041616] text-teal-200 
                        focus:outline-none focus:ring-2 focus:ring-cyan-500 
                        placeholder:text-teal-500 transition-colors"

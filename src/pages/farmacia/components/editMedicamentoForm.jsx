@@ -11,12 +11,34 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
     piezas: "",
     maximo: "",
     minimo: "",
-    medida: "",
+    medida: "",         // Aquí se guarda el id de la unidad
+    unidadMedida: "",   // Aquí se guarda el nombre de la unidad
   });
+
+  //* Estado para las unidades de medida traídas de la API
+  const [unidades, setUnidades] = useState([]);
+
+  //* Fetch de las unidades de medida desde el endpoint
+  useEffect(() => {
+    const fetchUnidades = async () => {
+      try {
+        const res = await fetch("/api/farmacia/unidades");
+        if (!res.ok) {
+          throw new Error("Error al obtener las unidades de medida");
+        }
+        const data = await res.json();
+        setUnidades(data);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    fetchUnidades();
+  }, []);
 
   useEffect(() => {
     if (medicamento) {
-      console.log("📌 Medicamento recibido:", medicamento); //* 🔍 Verificar que el medicamento trae la medida
+      console.log("📌 Medicamento recibido:", medicamento);
       setFormData({
         id: medicamento.id || "",
         medicamento: medicamento.medicamento || "",
@@ -28,7 +50,8 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
         piezas: medicamento.piezas || "",
         maximo: medicamento.maximo || "",
         minimo: medicamento.minimo || "",
-        medida: medicamento.unidadMedida || "", //*🔹 Asegurar que medida se establezca correctamente
+        medida: medicamento.medida || "",            // ID
+        unidadMedida: medicamento.unidadMedida || "",  // Nombre
       });
     }
   }, [medicamento]);
@@ -59,7 +82,8 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
       !formData.ean ||
       !formData.piezas ||
       !formData.maximo ||
-      !formData.minimo
+      !formData.minimo ||
+      !formData.medida
     ) {
       playSound(false);
       Swal.fire({
@@ -108,6 +132,7 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
           piezas: parseInt(formData.piezas, 10),
           maximo: parseInt(formData.maximo, 10),
           minimo: parseInt(formData.minimo, 10),
+          medida: formData.medida // Aquí se envía el nuevo id de la unidad de medida
         });
 
         playSound(true);
@@ -137,26 +162,24 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
         </h2>
         <form onSubmit={handleSubmit} className="flex flex-col gap-6">
           <div>
-            <label className="block text-sm font-semibold mb-1">
-              Medicamento:
-            </label>
+            <label className="text-sm font-semibold mb-1">Medicamento:</label>
             <input
               type="text"
               name="medicamento"
               value={formData.medicamento}
-              readOnly
-              className="w-full px-4 py-2 bg-[#0b2424] border border-teal-600 rounded-lg text-gray-300 cursor-not-allowed shadow-inner"
+              onChange={handleChange}
+              required
+              className="w-full px-4 py-2 bg-[#0b2424] border border-teal-600 rounded-lg text-gray-300 shadow-inner"
             />
           </div>
           <div>
-            <label className="block text-sm font-semibold mb-1">
-              Clasificación:
-            </label>
+            <label className="text-sm font-semibold mb-1">Clasificación:</label>
             <select
               name="clasificacion"
               value={formData.clasificacion}
-              disabled
-              className="w-full px-4 py-2 bg-[#0b2424] border border-teal-600 rounded-lg text-gray-300 cursor-not-allowed shadow-inner"
+              onChange={handleChange}
+              required
+              className="w-full px-4 py-2 bg-[#041616] border border-teal-500 rounded-lg text-teal-200 shadow-inner focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-colors"
             >
               <option value="p">PATENTE</option>
               <option value="g">GENERICO</option>
@@ -164,17 +187,41 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
               <option value="e">ESPECIALIDAD</option>
             </select>
           </div>
-          <div>
-            <label className="block text-sm font-semibold mb-1">Medida:</label>
-            <input
-              type="text"
+
+          {/* Unidad de Medida */}
+          <div className="flex flex-col">
+            <label htmlFor="medida" className="mb-1 font-semibold text-teal-300">
+              Unidad de Medida:
+            </label>
+            <select
+              id="medida"
               name="medida"
-              value={formData.medida}
-              readOnly //!🔹 Evita que el usuario lo edite
-              className="w-full px-4 py-2 bg-[#0b2424] border border-teal-600 rounded-lg text-gray-300 cursor-not-allowed shadow-inner"
-              placeholder="*Unidad de medida*"
-            />
+              value={String(formData.medida)}
+              onChange={handleChange}
+              required
+              className="w-full px-4 py-2 bg-[#041616] border border-teal-500 rounded-lg text-teal-200 shadow-inner focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-colors"
+            >
+              {formData.medida === "" && (
+                <option value="">Seleccione una unidad</option>
+              )}
+
+              {formData.medida &&
+                !unidades.some(
+                  (u) => String(u.code) === String(formData.medida)
+                ) && (
+                  <option value={String(formData.medida)}>
+                    {formData.unidadMedida}
+                  </option>
+                )}
+
+              {unidades.map((unidad) => (
+                <option key={unidad.code} value={String(unidad.code)}>
+                  {unidad.label}
+                </option>
+              ))}
+            </select>
           </div>
+
           <div>
             <label className="block text-sm font-semibold mb-1">
               Presentación:
@@ -197,34 +244,12 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
               value={formData.ean || ""}
               onChange={(e) => {
                 const value = e.target.value;
-                if (/^\d{0,13}$/.test(value)) {
+                if (/^\d*$/.test(value)) {
                   setFormData({ ...formData, ean: value });
                 }
               }}
-              onBlur={() => {
-                if (formData.ean.length !== 8 && formData.ean.length !== 13) {
-                  playSound(false);
-                  Swal.fire({
-                    icon: "error",
-                    title:
-                      "<span style='color: #ff1744; font-weight: bold;'>⚠️ EAN inválido</span>",
-                    html: "<p style='color: #fff; font-size: 1.2em;'>El código EAN debe tener 8 o 13 dígitos.</p>",
-                    background: "linear-gradient(145deg, #4a0000, #220000)",
-                    confirmButtonColor: "#ff1744",
-                    confirmButtonText:
-                      "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-                    customClass: {
-                      popup:
-                        "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-                    },
-                  });
-                  setFormData({ ...formData, ean: "" });
-                }
-              }}
               required
-              placeholder="*Escanea de 8 o 13 dígitos*"
-              maxLength={13}
-              pattern="\d{8}|\d{13}"
+              placeholder="*Escanea el código (cualquier cantidad de dígitos)*"
               className="w-full px-4 py-2 bg-[#0b2424] border border-teal-500 rounded-lg shadow-inner focus:outline-none focus:ring-2 focus:ring-teal-500 transition"
             />
           </div>
