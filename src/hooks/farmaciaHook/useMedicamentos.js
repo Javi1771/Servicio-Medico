@@ -227,7 +227,6 @@ export const useMedicamentos = () => {
       piezas,
       maximo,
       minimo,
-      medida,
     } = medicamentoData;
     try {
       const response = await fetch("/api/farmacia/editarMedicamento", {
@@ -242,7 +241,6 @@ export const useMedicamentos = () => {
           piezas,
           maximo,
           minimo,
-          medida,
         }),
       });
 

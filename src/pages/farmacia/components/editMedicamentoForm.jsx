@@ -108,7 +108,6 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
           piezas: parseInt(formData.piezas, 10),
           maximo: parseInt(formData.maximo, 10),
           minimo: parseInt(formData.minimo, 10),
-          medida: formData.medida,
         });
 
         playSound(true);
