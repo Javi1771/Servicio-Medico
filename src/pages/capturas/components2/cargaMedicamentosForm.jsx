@@ -18,11 +18,11 @@ const CargaMedicamentosForm = ({
   const [piezas, setPiezas] = useState("");
   const [showModal, setShowModal] = useState(false);
 
-  //* Define las rutas de los sonidos de éxito y error
+  // Rutas de sonidos
   const successSound = "/assets/applepay.mp3";
   const errorSound = "/assets/error.mp3";
 
-  //! Reproduce un sonido de éxito/error
+  // Reproduce sonido de éxito o error
   const playSound = (isSuccess) => {
     const audio = new Audio(isSuccess ? successSound : errorSound);
     audio.play();
@@ -77,7 +77,7 @@ const CargaMedicamentosForm = ({
       return;
     }
 
-    // Obtener información del medicamento seleccionado para agregar el nombre
+    // Obtener la información del medicamento seleccionado para agregar el nombre
     const medSeleccionado = medicamentos.find(
       (med) => med.CLAVEMEDICAMENTO === selectedMedicamento
     );
@@ -90,7 +90,6 @@ const CargaMedicamentosForm = ({
       piezas,
     };
 
-    console.log("Nuevo medicamento añadido:", nuevoMedicamento);
     onAddMedicamento(nuevoMedicamento);
 
     // Limpiar campos
@@ -108,14 +107,11 @@ const CargaMedicamentosForm = ({
         title: "Folio inválido",
         text: "El folio ingresado es inválido.",
       });
-      console.error("Folio inválido en handleSaveAndShowPdf:", folio);
       return;
     }
 
-    await onSave(); // Guardar en la BD
-
+    await onSave();
     setTimeout(() => {
-      console.log("Mostrando modal con folio:", folio);
       setShowModal(true);
     }, 1000);
   };

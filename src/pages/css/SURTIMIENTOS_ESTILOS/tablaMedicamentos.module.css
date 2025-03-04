@@ -1,67 +1,149 @@
+/* Contenedor principal de la tabla */
 .tableContainer {
-  /* Fondo con gradiente sutil */
-  background: linear-gradient(to right, #242637, #1b1c2b);  /* Líneas suaves para darle realce */
-  border: 1px solid #2e2e2e;
-  border-radius: 8px;
-  padding: 1.5rem;
-  margin-top: 1.5rem;
-  /* Sombra tenue para destacar el contenedor */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  background-color: #131324; /* Fondo oscuro principal */
+  border: 1px solid #2a2a3a;
+  border-radius: 12px;
+  padding: 2rem;
+  margin-top: 2rem;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+  color: #ffffff;
+  position: relative;
+  font-family: "Poppins", sans-serif;
 }
 
-/* Título de la sección */
-.tableContainer h3 {
-  color: #e0e0e0;
-  font-size: 1.2rem;
-  margin-bottom: 1rem;
-  font-weight: 600;
+/* Encabezado grande estilo Pricing Table */
+.tableHeader {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+.tableHeader h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0;
+}
+.tableHeader p {
+  font-size: 0.95rem;
+  color: #b2b2b2;
+  margin-top: 0.5rem;
+  margin-bottom: 0;
 }
 
-/* Tabla */
+/* Tabla con gradientes en cada columna del thead */
 .medicamentosTable {
   width: 100%;
   border-collapse: collapse;
-  background-color: #2a2a2a;
-  border-radius: 6px;
-  overflow: hidden; /* Para esquinas redondeadas al contener la tabla */
+  border-radius: 12px;
+  overflow: hidden;
 }
 
-/* Encabezado de tabla */
+/* Encabezado de la tabla (columnas) */
+.medicamentosTable thead {
+  background-color: transparent;
+}
+
+/* Para tener un gradiente diferente en cada columna, 
+   puedes usar nth-child en los th */
 .medicamentosTable thead th {
-  background-color: #343434;
-  color: #ffffff;
   text-transform: uppercase;
-  font-size: 0.9rem;
-  letter-spacing: 0.8px;
-  padding: 0.75rem;
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 1rem;
+  text-align: center;
+  border-right: 1px solid #2a2a3a;
+  position: relative;
 }
 
-/* Cuerpo de tabla */
-.medicamentosTable tbody td {
-  padding: 0.75rem;
-  color: #dddddd;
-  border-bottom: 1px solid #444;
+/* Gradientes por columna (ejemplo para 5 columnas) */
+.medicamentosTable thead th:nth-child(1) {
+  background: linear-gradient(135deg, #7433ff, #4e229f);
+}
+.medicamentosTable thead th:nth-child(2) {
+  background: linear-gradient(135deg, #ff7a18, #af002d 85%);
+}
+.medicamentosTable thead th:nth-child(3) {
+  background: linear-gradient(135deg, #28a745, #006d2c);
+}
+.medicamentosTable thead th:nth-child(4) {
+  background: linear-gradient(135deg, #17a2b8, #11606b);
+}
+.medicamentosTable thead th:nth-child(5) {
+  background: linear-gradient(135deg, #f53844, #42378f);
+}
+.medicamentosTable thead th:last-child {
+  border-right: none;
 }
 
-/* Fila hover */
-.medicamentosTable tbody tr:hover {
-  background-color: #3a3a3a;
+/* Cuerpo de la tabla */
+.medicamentosTable tbody tr {
+  background-color: #1a1a2e;
+  transition: background-color 0.3s;
 }
-
-/* Alternar color de filas */
 .medicamentosTable tbody tr:nth-child(even) {
-  background-color: #2e2e2e;
+  background-color: #1f1f33;
+}
+.medicamentosTable tbody tr:hover {
+  background-color: #252540;
 }
 
-/* Mensajes de carga y de error */
+.medicamentosTable tbody td {
+  padding: 1rem;
+  text-align: center;
+  color: #e0e0e0;
+  border-bottom: 1px solid #2a2a3a;
+  transition: color 0.3s;
+}
+
+/* Última fila sin borde inferior */
+.medicamentosTable tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Botón "Historial Surtimientos" y "Quitar" con estilo “suscribir” */
+.historialButton,
+.removeButton {
+  background-color: #242846;
+  color: #ffffff;
+  border: none;
+  border-radius: 20px;
+  padding: 0.6rem 1.2rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.3s;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.historialButton:hover,
+.removeButton:hover {
+  background-color: #343a6e;
+  transform: translateY(-2px);
+}
+
+/* Contenedor para el header (Medicamentos Recetados, Historial, etc.) */
+.headerContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.headerTitle {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+/* Mensajes de carga y error */
 .loading {
-  color: #ccc;
+  color: #b0b0b0;
   font-size: 1rem;
   margin-top: 1rem;
+  text-align: center;
 }
 
 .error {
   color: #ff6181;
   font-size: 1rem;
   margin-top: 1rem;
+  text-align: center;
 }
