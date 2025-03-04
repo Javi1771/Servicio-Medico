@@ -322,24 +322,6 @@ export default function SignosVitalesFacial() {
 
   //* Guardar la consulta
   const handleSave = async () => {
-    if (!isFormComplete) {
-      playSound(false);
-      MySwal.fire({
-        icon: "warning",
-        title:
-          "<span style='color: #ff9800; font-weight: bold; font-size: 1.5em;'>Campos incompletos</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>Por favor, llena todos los campos de signos vitales antes de guardar.</p>",
-        background: "linear-gradient(145deg, #4a2600, #220f00)",
-        confirmButtonColor: "#ff9800",
-        confirmButtonText:
-          "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-yellow-600 shadow-[0_0_20px_5px_rgba(255,152,0,0.9)] rounded-lg",
-        },
-      });
-      return;
-    }
     if (!beneficiario) {
       playSound(false);
       MySwal.fire({
