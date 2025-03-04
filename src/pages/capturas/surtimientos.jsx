@@ -12,8 +12,10 @@ import InformacionSindicato from "./components2/informacionSindicato";
 import InformacionEspecialista from "./components2/informacionEspecialista";
 import CargaMedicamentosForm from "./components2/cargaMedicamentosForm";
 import styles from "../css/SURTIMIENTOS_ESTILOS/surtimientos2.module.css";
-import { useRouter } from "next/router";
+import useFetchSurtimientos from "../../hooks/hookSURTIMIENTOS2/useFetchSurtimientos";
+import useFetchDetalleSurtimiento from "../../hooks/hookSURTIMIENTOS2/useFetchDetalleSurtimiento";
 
+import { useRouter } from "next/router";
 import useFetchMedicamentosReceta from "../../hooks/hookSURTIMIENTOS2/useFetchMedicamentosReceta";
 import TablaMedicamentos from "./components2/tablaMedicamentos"; // Extensión .jsx
 import Swal from "sweetalert2";
@@ -21,6 +23,15 @@ import jsPDF from "jspdf";
 import "jspdf-autotable";
 
 const SurtimientosBanner = () => {
+  const {
+    surtimientos,
+    loadingSurtimientos,
+    errorSurtimientos,
+    fetchSurtimientos,
+  } = useFetchSurtimientos();
+  const { detalle, loadingDetalle, errorDetalle, fetchDetalleSurtimiento } =
+    useFetchDetalleSurtimiento();
+
   const router = useRouter();
 
   //* Define las rutas de los sonidos de éxito y error
@@ -374,11 +385,20 @@ const SurtimientosBanner = () => {
         {isFolioValido && (
           <div className={styles.historialContainer}>
             <TablaMedicamentos
-              medicamentos={receta} // Pasa el estado actualizado de receta aquí
+              folioPase={folio}
+              medicamentos={receta}
               loading={loadingReceta}
               error={errorReceta}
-              onSave={handleSaveReceta}
               onRemoveMedicamento={handleRemoveMedicamento}
+              // Props para historial
+              surtimientos={surtimientos}
+              loadingSurtimientos={loadingSurtimientos}
+              errorSurtimientos={errorSurtimientos}
+              onFetchSurtimientos={fetchSurtimientos}
+              detalle={detalle}
+              loadingDetalle={loadingDetalle}
+              errorDetalle={errorDetalle}
+              onFetchDetalleSurtimiento={fetchDetalleSurtimiento}
             />
           </div>
         )}
