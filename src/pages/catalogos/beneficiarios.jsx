@@ -760,7 +760,7 @@ export default function RegistroBeneficiario() {
       Swal.fire("Error", "El beneficiario no está activo.", "error");
       return;
     }
-
+  
     const {
       NO_NOMINA,
       PARENTESCO,
@@ -771,7 +771,7 @@ export default function RegistroBeneficiario() {
       VIGENCIA_ESTUDIOS,
       ESDISCAPACITADO, // Nuevo campo para verificar discapacidad
     } = beneficiary;
-
+  
     console.log("Datos recibidos del beneficiario:", {
       NO_NOMINA,
       PARENTESCO,
@@ -782,7 +782,7 @@ export default function RegistroBeneficiario() {
       VIGENCIA_ESTUDIOS,
       ESDISCAPACITADO,
     });
-
+  
     // Función para obtener la descripción del parentesco
     const getParentescoDescripcion = (parentescoId) => {
       const parentesco = parentescoOptions.find(
@@ -790,13 +790,13 @@ export default function RegistroBeneficiario() {
       );
       return parentesco ? parentesco.PARENTESCO : "Desconocido";
     };
-
+  
     const parentescoDescripcion = getParentescoDescripcion(PARENTESCO);
     const edad = calculateAge(F_NACIMIENTO); // Calcular la edad
     console.log("Edad calculada:", edad);
-
+  
     const edadConAnios = `${edad} años`; // Texto para la edad
-
+  
     // Calcular vigencia
     const vigencia = calcularVigencia(
       PARENTESCO,
@@ -813,22 +813,19 @@ export default function RegistroBeneficiario() {
       ESDISCAPACITADO,
     });
     console.log("Vigencia final:", vigencia);
-
-    console.log("Vigencia final asignada:", vigencia);
-
+  
     try {
       const response = await fetch("/api/empleado", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ num_nom: NO_NOMINA }),
       });
-
+  
       if (!response.ok) throw new Error("Empleado no encontrado");
-
+  
       const employeeData = await response.json();
-
       console.log("Datos del empleado obtenidos:", employeeData);
-
+  
       const EMPLEADO_NOMBRE = employeeData?.nombre
         ? `${employeeData.nombre} ${employeeData.a_paterno || ""} ${
             employeeData.a_materno || ""
@@ -836,47 +833,49 @@ export default function RegistroBeneficiario() {
         : "N/A";
       const NUM_NOMINA = employeeData?.num_nom || "N/A";
       const DEPARTAMENTO = employeeData?.departamento || "N/A";
-
+  
       console.log("Datos del empleado para carnet:", {
         EMPLEADO_NOMBRE,
         NUM_NOMINA,
         DEPARTAMENTO,
       });
-
+  
       // Configuración de jsPDF
       const doc = new jsPDF({
         orientation: "landscape",
         unit: "cm",
         format: "a4",
       });
-
+  
+      // Cargar imágenes
       const frontTemplate = await loadImageBase64(`/CARNET_FRONTAL.png`);
       const backTemplate = await loadImageBase64(`/CARNET_FRONTAL2.png`);
-
+      const signatureImage = await loadImageBase64(`/firma.png`); // Firma del secretario
+  
       // Página Frontal
       doc.addImage(frontTemplate, "PNG", 0, 0, 29.7, 21);
       doc.setFont("helvetica", "bold");
       doc.setTextColor("#19456a");
-
+  
       doc.setFontSize(14);
-      doc.text(
-        `${NOMBRE || ""} ${A_PATERNO || ""} ${A_MATERNO || ""}`,
-        18.5,
-        6.0
-      ); // Nombre
+      doc.text(`${NOMBRE || ""} ${A_PATERNO || ""} ${A_MATERNO || ""}`, 18.5, 6.0); // Nombre
       doc.text(parentescoDescripcion, 18.5, 7.5); // Parentesco
       doc.text(edadConAnios, 24, 7.6); // Edad
       doc.text(vigencia, 18.5, 8.8); // Vigencia
-
+  
       doc.text(EMPLEADO_NOMBRE, 18.5, 10.5); // Nombre del empleado
       doc.text(NUM_NOMINA, 18.5, 11.6); // Número de nómina
       const departamentoText = doc.splitTextToSize(DEPARTAMENTO, 10);
       doc.text(departamentoText, 18.5, 12.8); // Departamento
-
+  
+      // Aquí añadimos la firma en la sección "Secretario de Administración" **en la primera página**.
+      // Ajusta la posición (x, y) y tamaño (width, height) según tu diseño.
+      doc.addImage(signatureImage, "PNG", 20, 17.5, 5, 2);
+  
       // Página Trasera
       doc.addPage();
       doc.addImage(backTemplate, "PNG", 0, 0, 29.7, 21);
-
+  
       // Guardar el PDF
       doc.save(`Carnet_${NOMBRE}_${A_PATERNO}.pdf`);
       console.log("Carnet generado exitosamente");
@@ -890,6 +889,8 @@ export default function RegistroBeneficiario() {
       );
     }
   };
+  
+  
 
   const handlePrintCredential = async (beneficiary) => {
     try {
@@ -899,7 +900,7 @@ export default function RegistroBeneficiario() {
         Swal.fire("Error", "El beneficiario no está activo.", "error");
         return;
       }
-
+  
       const {
         NO_NOMINA,
         PARENTESCO,
@@ -915,9 +916,9 @@ export default function RegistroBeneficiario() {
         ALERGIAS,
         ESDISCAPACITADO, // Nuevo campo para verificar discapacidad
       } = beneficiary;
-
+  
       console.log("Datos recibidos del beneficiario:", beneficiary);
-
+  
       // Función para obtener la descripción del parentesco
       const getParentescoDescripcion = (parentescoId) => {
         const parentesco = parentescoOptions.find(
@@ -925,20 +926,20 @@ export default function RegistroBeneficiario() {
         );
         return parentesco ? parentesco.PARENTESCO : "Desconocido";
       };
-
+  
       const formatFechaLocal = (fecha) => {
         if (!fecha) return "";
         const dateParts = fecha.split("T")[0].split("-");
         const [year, month, day] = dateParts;
         return `${day}/${month}/${year}`;
       };
-
+  
       const parentescoDescripcion = getParentescoDescripcion(PARENTESCO);
       const edad = calculateAge(F_NACIMIENTO);
-
+  
       console.log("Descripción del parentesco:", parentescoDescripcion);
       console.log("Edad calculada:", edad);
-
+  
       // Calcular vigencia
       const vigencia = calcularVigencia(
         PARENTESCO,
@@ -947,40 +948,42 @@ export default function RegistroBeneficiario() {
         F_NACIMIENTO,
         ESDISCAPACITADO
       );
-
+  
       console.log("Vigencia final asignada:", vigencia);
-
+  
       // Consumir la API del web service para obtener datos del empleado
       const response = await fetch("/api/empleado", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ num_nom: NO_NOMINA }),
       });
-
+  
       if (!response.ok) throw new Error("Empleado no encontrado");
-
+  
       const employeeData = await response.json();
       const DEPARTAMENTO = employeeData?.departamento || "N/A";
-
+  
       console.log("Datos del empleado obtenidos:", employeeData);
-
+  
       // Configuración para jsPDF
       const doc = new jsPDF({
         orientation: "landscape",
         unit: "cm",
         format: "a4",
       });
-
+  
       // Cargar las imágenes de la credencial
       const frontTemplateUrl = `/CREDENCIAL_FRONTAL2.png`;
       const backTemplateUrl = `/CREDENCIAL_TRASERA.png`;
-
+      const signatureUrl = `/firma.png`; // Ruta de la imagen de firma en la carpeta public
+  
       const frontTemplate = await loadImageBase64(frontTemplateUrl);
       const backTemplate = await loadImageBase64(backTemplateUrl);
-
+      const signatureImage = await loadImageBase64(signatureUrl);
+  
       // Página Frontal
       doc.addImage(frontTemplate, "PNG", 0, 0, 29.7, 21);
-
+  
       // Añadir la foto y el marco redondeado
       if (FOTO_URL) {
         try {
@@ -989,10 +992,10 @@ export default function RegistroBeneficiario() {
           const photoY = 10.9;
           const photoWidth = 7.0;
           const photoHeight = 8.4;
-
+  
           // Añadir la foto
           doc.addImage(photo, "JPEG", photoX, photoY, photoWidth, photoHeight);
-
+  
           // Añadir un marco redondeado alrededor de la foto
           doc.setLineWidth(0.25);
           doc.setDrawColor(255, 255, 255);
@@ -1009,18 +1012,18 @@ export default function RegistroBeneficiario() {
           console.error("Error al cargar la foto del beneficiario:", error);
         }
       }
-
+  
       // Texto en la página frontal
       doc.setFont("helvetica", "bold");
       doc.setTextColor("#19456a");
-
+  
       doc.setFontSize(21);
       if (NO_NOMINA) {
         doc.text(NO_NOMINA.toString(), 18.3, 9.5);
       } else {
         console.error("Error: NO_NOMINA no es válido:", NO_NOMINA);
       }
-
+  
       doc.setFontSize(18);
       if (parentescoDescripcion) {
         doc.text(parentescoDescripcion, 19.8, 11.16);
@@ -1030,17 +1033,15 @@ export default function RegistroBeneficiario() {
           parentescoDescripcion
         );
       }
-
+  
       doc.setFontSize(15);
-      const nombreCompleto = `${NOMBRE || ""} ${A_PATERNO || ""} ${
-        A_MATERNO || ""
-      }`;
+      const nombreCompleto = `${NOMBRE || ""} ${A_PATERNO || ""} ${A_MATERNO || ""}`;
       if (nombreCompleto.trim()) {
         doc.text(nombreCompleto, 18.4, 12.6);
       } else {
         console.error("Error: Nombre completo no es válido:", nombreCompleto);
       }
-
+  
       doc.setFontSize(18);
       const edadTexto = `${edad} años`;
       if (edadTexto) {
@@ -1048,7 +1049,7 @@ export default function RegistroBeneficiario() {
       } else {
         console.error("Error: Edad no es válida:", edadTexto);
       }
-
+  
       doc.setFontSize(14.5);
       const departamentoText = doc.splitTextToSize(DEPARTAMENTO, 8.5);
       let departamentoY = 15.4;
@@ -1057,40 +1058,38 @@ export default function RegistroBeneficiario() {
           doc.text(line, 21.3, departamentoY);
           departamentoY += 0.6;
         } else {
-          console.error(
-            "Error: Línea del texto del departamento no es válida:",
-            line
-          );
+          console.error("Error: Línea del texto del departamento no es válida:", line);
         }
       });
-
+  
       doc.setFontSize(18);
       if (vigencia) {
         doc.text(vigencia, 18.8, 19.0);
       } else {
         console.error("Error: Vigencia no es válida:", vigencia);
       }
-
+  
       // Página Trasera
       doc.addPage();
       doc.addImage(backTemplate, "PNG", 0, 0, 29.7, 21);
-
+  
       doc.setFontSize(18);
       const fechaNacimientoTexto = formatFechaLocal(F_NACIMIENTO);
       if (fechaNacimientoTexto) {
         doc.text(fechaNacimientoTexto, 12.5, 2.8);
       } else {
-        console.error(
-          "Error: Fecha de nacimiento no es válida:",
-          fechaNacimientoTexto
-        );
+        console.error("Error: Fecha de nacimiento no es válida:", fechaNacimientoTexto);
       }
-
+  
       doc.text(SANGRE || "Sin información", 9.8, 5.2);
       doc.text(ALERGIAS || "Sin información", 7.0, 7.6);
       doc.text(TEL_EMERGENCIA || "Sin información", 14, 9.8);
       doc.text(NOMBRE_EMERGENCIA || "Sin información", 13.1, 12);
-
+  
+      // Añadir la firma en la página trasera
+      // Ajusta las coordenadas (x, y) y el tamaño (width, height) según tus necesidades.
+      doc.addImage(signatureImage, "PNG", 19, 13,7, 3);
+  
       // Guardar como PDF
       doc.save(`Credencial_${NOMBRE || ""}_${A_PATERNO || ""}.pdf`);
       console.log("Credencial generada exitosamente");
@@ -1104,6 +1103,7 @@ export default function RegistroBeneficiario() {
       );
     }
   };
+  
 
   // Función para cargar imágenes como base64
   const loadImageBase64 = async (src) => {
