@@ -43,7 +43,7 @@
     position: absolute;
     top: 15px;
     right: 15px;
-    opacity: 0.3; /* Ícono en la esquina con algo de transparencia */
+    /* Eliminamos opacity: 0.3 */
     font-size: 2.5rem;
   }
   
@@ -53,7 +53,7 @@
   
   /* Contenido de la card */
   .cardContent {
-    z-index: 2;
+    z-index: 1;
   }
   
   .cardTitle {
