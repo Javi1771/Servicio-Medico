@@ -760,7 +760,7 @@ export default function RegistroBeneficiario() {
       Swal.fire("Error", "El beneficiario no está activo.", "error");
       return;
     }
-
+  
     const {
       NO_NOMINA,
       PARENTESCO,
@@ -771,7 +771,7 @@ export default function RegistroBeneficiario() {
       VIGENCIA_ESTUDIOS,
       ESDISCAPACITADO, // Nuevo campo para verificar discapacidad
     } = beneficiary;
-
+  
     console.log("Datos recibidos del beneficiario:", {
       NO_NOMINA,
       PARENTESCO,
@@ -782,7 +782,7 @@ export default function RegistroBeneficiario() {
       VIGENCIA_ESTUDIOS,
       ESDISCAPACITADO,
     });
-
+  
     // Función para obtener la descripción del parentesco
     const getParentescoDescripcion = (parentescoId) => {
       const parentesco = parentescoOptions.find(
@@ -790,13 +790,13 @@ export default function RegistroBeneficiario() {
       );
       return parentesco ? parentesco.PARENTESCO : "Desconocido";
     };
-
+  
     const parentescoDescripcion = getParentescoDescripcion(PARENTESCO);
     const edad = calculateAge(F_NACIMIENTO); // Calcular la edad
     console.log("Edad calculada:", edad);
-
+  
     const edadConAnios = `${edad} años`; // Texto para la edad
-
+  
     // Calcular vigencia
     const vigencia = calcularVigencia(
       PARENTESCO,
@@ -813,22 +813,19 @@ export default function RegistroBeneficiario() {
       ESDISCAPACITADO,
     });
     console.log("Vigencia final:", vigencia);
-
-    console.log("Vigencia final asignada:", vigencia);
-
+  
     try {
       const response = await fetch("/api/empleado", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ num_nom: NO_NOMINA }),
       });
-
+  
       if (!response.ok) throw new Error("Empleado no encontrado");
-
+  
       const employeeData = await response.json();
-
       console.log("Datos del empleado obtenidos:", employeeData);
-
+  
       const EMPLEADO_NOMBRE = employeeData?.nombre
         ? `${employeeData.nombre} ${employeeData.a_paterno || ""} ${
             employeeData.a_materno || ""
@@ -836,47 +833,49 @@ export default function RegistroBeneficiario() {
         : "N/A";
       const NUM_NOMINA = employeeData?.num_nom || "N/A";
       const DEPARTAMENTO = employeeData?.departamento || "N/A";
-
+  
       console.log("Datos del empleado para carnet:", {
         EMPLEADO_NOMBRE,
         NUM_NOMINA,
         DEPARTAMENTO,
       });
-
+  
       // Configuración de jsPDF
       const doc = new jsPDF({
         orientation: "landscape",
         unit: "cm",
         format: "a4",
       });
-
+  
+      // Cargar imágenes
       const frontTemplate = await loadImageBase64(`/CARNET_FRONTAL.png`);
       const backTemplate = await loadImageBase64(`/CARNET_FRONTAL2.png`);
-
+      const signatureImage = await loadImageBase64(`/firma.png`); // Firma del secretario
+  
       // Página Frontal
       doc.addImage(frontTemplate, "PNG", 0, 0, 29.7, 21);
       doc.setFont("helvetica", "bold");
       doc.setTextColor("#19456a");
-
+  
       doc.setFontSize(14);
-      doc.text(
-        `${NOMBRE || ""} ${A_PATERNO || ""} ${A_MATERNO || ""}`,
-        18.5,
-        6.0
-      ); // Nombre
+      doc.text(`${NOMBRE || ""} ${A_PATERNO || ""} ${A_MATERNO || ""}`, 18.5, 6.0); // Nombre
       doc.text(parentescoDescripcion, 18.5, 7.5); // Parentesco
       doc.text(edadConAnios, 24, 7.6); // Edad
       doc.text(vigencia, 18.5, 8.8); // Vigencia
-
+  
       doc.text(EMPLEADO_NOMBRE, 18.5, 10.5); // Nombre del empleado
       doc.text(NUM_NOMINA, 18.5, 11.6); // Número de nómina
       const departamentoText = doc.splitTextToSize(DEPARTAMENTO, 10);
       doc.text(departamentoText, 18.5, 12.8); // Departamento
-
+  
+      // Aquí añadimos la firma en la sección "Secretario de Administración" **en la primera página**.
+      // Ajusta la posición (x, y) y tamaño (width, height) según tu diseño.
+      doc.addImage(signatureImage, "PNG", 20, 17.5, 5, 2);
+  
       // Página Trasera
       doc.addPage();
       doc.addImage(backTemplate, "PNG", 0, 0, 29.7, 21);
-
+  
       // Guardar el PDF
       doc.save(`Carnet_${NOMBRE}_${A_PATERNO}.pdf`);
       console.log("Carnet generado exitosamente");
@@ -890,6 +889,8 @@ export default function RegistroBeneficiario() {
       );
     }
   };
+  
+  
 
   const handlePrintCredential = async (beneficiary) => {
     try {
