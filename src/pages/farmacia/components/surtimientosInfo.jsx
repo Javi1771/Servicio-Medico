@@ -1,5 +1,40 @@
 import React, { useState } from "react";
-import styles from "../../css/EstilosFarmacia/SurtimientosTable.module.css";
+import styles from "../../css/EstilosFarmacia/SurtimientosInfo.module.css";
+// Importa los íconos necesarios desde react-icons/fa
+import {
+  FaCalendarDay,
+  FaIdCard,
+  FaUser,
+  FaUserCheck,
+  FaUserClock,
+  FaUserTie,
+  FaUserMd,
+  FaStethoscope,
+  FaBuilding,
+  FaInfoCircle,
+  FaMoneyBillWave,
+  FaCalendarCheck,
+  FaUsers,
+  FaUserShield,
+} from "react-icons/fa";
+
+// Mapeo de nombres a componentes de íconos
+const iconMapping = {
+  "fa-calendar-day": FaCalendarDay,
+  "fa-id-card": FaIdCard,
+  "fa-user": FaUser,
+  "fa-user-check": FaUserCheck,
+  "fa-user-clock": FaUserClock,
+  "fa-user-tie": FaUserTie,
+  "fa-user-md": FaUserMd,
+  "fa-stethoscope": FaStethoscope,
+  "fa-building": FaBuilding,
+  "fa-info-circle": FaInfoCircle,
+  "fa-money-bill-wave": FaMoneyBillWave,
+  "fa-calendar-check": FaCalendarCheck,
+  "fa-users": FaUsers,
+  "fa-user-shield": FaUserShield,
+};
 
 const SurtimientosInfo = ({ surtimiento, cost, setCost }) => {
   const [editingCost, setEditingCost] = useState(false);
@@ -17,91 +52,66 @@ const SurtimientosInfo = ({ surtimiento, cost, setCost }) => {
     setEditingCost(false);
   };
 
-  // Lista de datos para iterar y crear tarjetas
-  const infoCards = [
-    {
-      title: "Folio Surtimiento",
-      value: surtimiento?.FOLIO_SURTIMIENTO,
-      icon: "fa-file-invoice",
-      color: "#ff928b",
-      gradient: "#ffb199"
-    },
-    {
-      title: "Folio Pase",
-      value: surtimiento?.FOLIO_PASE,
-      icon: "fa-file-medical",
-      color: "#a18cd1",
-      gradient: "#fbc2eb"
-    },
+  // Función para reproducir el sonido de tap al hacer hover
+  const playTapSound = () => {
+    const audio = new Audio("/assets/tap.mp3");
+    audio.play();
+  };
+
+  // Colores solicitados para las cards (se usan de forma cíclica)
+  const availableColors = ["#00eaff", "#0095ff"];
+
+  // Lista de datos para crear las cards
+  const infoCardsData = [
     {
       title: "Fecha Emisión",
       value: surtimiento?.FECHA_EMISION,
       icon: "fa-calendar-day",
-      color: "#84fab0",
-      gradient: "#8fd3f4"
     },
     {
       title: "Nómina",
       value: surtimiento?.NOMINA,
       icon: "fa-id-card",
-      color: "#f5576c",
-      gradient: "#f093fb"
     },
     {
       title: "Clave Paciente",
       value: surtimiento?.CLAVE_PACIENTE,
       icon: "fa-user",
-      color: "#43e97b",
-      gradient: "#38f9d7"
     },
     {
       title: "Nombre Paciente",
       value: surtimiento?.NOMBRE_PACIENTE,
       icon: "fa-user-check",
-      color: "#f6d365",
-      gradient: "#fda085"
     },
     {
       title: "Edad",
       value: surtimiento?.EDAD,
       icon: "fa-user-clock",
-      color: "#a1c4fd",
-      gradient: "#c2e9fb"
     },
     {
       title: "Empleado",
       value: surtimiento?.ESEMPLEADO,
       icon: "fa-user-tie",
-      color: "#30cfd0",
-      gradient: "#330867"
     },
     {
-      title: "Clave Médico",
+      title: "Nombre del Médico",
       value: surtimiento?.nombreproveedor,
       icon: "fa-user-md",
-      color: "#667eea",
-      gradient: "#764ba2"
     },
     {
       title: "Diagnóstico",
       value: surtimiento?.DIAGNOSTICO,
       icon: "fa-stethoscope",
-      color: "#e0c3fc",
-      gradient: "#8ec5fc"
     },
     {
       title: "Departamento",
       value: surtimiento?.DEPARTAMENTO,
       icon: "fa-building",
-      color: "#f093fb",
-      gradient: "#f5576c"
     },
     {
       title: "Estatus",
       value: estatusTexto,
       icon: "fa-info-circle",
-      color: "#5ee7df",
-      gradient: "#b490ca"
     },
     {
       title: "Costo",
@@ -124,125 +134,163 @@ const SurtimientosInfo = ({ surtimiento, cost, setCost }) => {
         surtimiento?.COSTO || 0
       ),
       icon: "fa-money-bill-wave",
-      color: "#ff9a9e",
-      gradient: "#fad0c4"
     },
     {
       title: "Fecha Despacho",
       value: surtimiento?.FECHA_DESPACHO,
       icon: "fa-calendar-check",
-      color: "#fddb92",
-      gradient: "#d1fdff"
     },
     {
       title: "Sindicato",
       value: surtimiento?.SINDICATO,
       icon: "fa-users",
-      color: "#c2e9fb",
-      gradient: "#81fbb8"
     },
     {
       title: "Elaboró",
       value: surtimiento?.nombreproveedor || "(Sin datos)",
       icon: "fa-user-shield",
-      color: "#fccb90",
-      gradient: "#d57eeb"
-    }
+    },
   ];
 
   return (
-    <div className={styles.section}>
-      <h2 className={styles.subtitle}>Información del Surtimiento</h2>
+    <div className={styles.section} style={{ position: "relative", padding: "1rem" }}>
+      <h2 className={styles.subtitle} style={{ marginBottom: "1.5rem", color: "#333" }}>
+        Información del Surtimiento
+      </h2>
       {surtimiento ? (
-        <div className={styles.cardsGrid}>
-          {infoCards.map((card, index) => (
-            <div
-              key={index}
-              className={styles.card}
-              style={{
-                position: "relative",
-                background: `linear-gradient(135deg, ${card.color}, ${card.gradient})`,
-                // Ajusta el brillo/saturación a tu gusto:
-                filter: "brightness(1.02) saturate(1.05)",
-                boxShadow: "0 8px 16px rgba(0, 0, 0, 0.3)",
-                borderRadius: "8px",
-                padding: "1rem",
-                overflow: "hidden"
-              }}
-            >
-              {/* Overlay semitransparente para dar contraste al texto */}
-              <div
-                style={{
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  background:
-                    "linear-gradient(135deg, rgba(0,0,0,0.15), rgba(0,0,0,0.25))",
-                  zIndex: 0
-                }}
-              ></div>
+        <div
+          className={styles.cardsGrid}
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+            gap: "1rem",
+            position: "relative",
+          }}
+        >
+          {infoCardsData.map((card, index) => {
+            // Asigna colores de forma cíclica: color y siguiente para gradiente
+            const color = availableColors[index % availableColors.length];
+            const gradient = availableColors[(index + 1) % availableColors.length];
+            // Obtiene el componente de ícono correspondiente
+            const IconComponent = iconMapping[card.icon];
 
-              {/* Contenedor de burbujas decorativas */}
-              <div className="bubbleContainer">
-                <div className="bubble" style={{ top: "10%", left: "20%" }}></div>
-                <div className="bubble" style={{ top: "50%", left: "70%" }}></div>
-                <div className="bubble" style={{ top: "80%", left: "30%" }}></div>
-              </div>
-
+            return (
               <div
-                className={styles.cardIconWrapper}
+                key={index}
+                className={`${styles.card} surtimientosCard`}
+                onMouseEnter={playTapSound}
                 style={{
+                  background: `linear-gradient(135deg, ${color}, ${gradient})`,
+                  filter: "brightness(1.02) saturate(1.05)",
+                  borderRadius: "10px",
+                  padding: "1.2rem",
+                  overflow: "hidden",
+                  transition: "transform 0.3s ease, box-shadow 0.3s ease",
+                  boxShadow: "0 8px 16px rgba(0, 0, 0, 0.3)",
                   position: "relative",
-                  zIndex: 1,
-                  boxShadow: "0 4px 8px rgba(0, 0, 0, 0.4)",
-                  borderRadius: "50%",
-                  padding: "0.5rem",
-                  marginBottom: "0.5rem",
-                  backgroundColor: "rgba(0,0,0,0.25)"
                 }}
               >
-                <i
-                  className={`fa-solid ${card.icon} ${styles.cardIcon}`}
-                  style={{ fontSize: "1.5rem", color: "#fff" }}
-                ></i>
-              </div>
+                {/* Overlay oscuro para mejorar legibilidad */}
+                <div
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: "linear-gradient(135deg, rgba(0,0,0,0.35), rgba(0,0,0,0.5))",
+                    zIndex: 0,
+                  }}
+                ></div>
 
-              <div
-                className={styles.cardContent}
-                style={{ position: "relative", zIndex: 1 }}
-              >
-                <h3
-                  className={styles.cardTitle}
+                {/* Ícono decorativo de fondo (sutil, esquina superior derecha) */}
+                <div
                   style={{
-                    textShadow: "2px 2px 4px rgba(0,0,0,0.6)",
-                    fontWeight: "bold",
-                    color: "#fff",
-                    marginBottom: "0.3rem"
+                    position: "absolute",
+                    top: "5%",
+                    right: "5%",
+                    zIndex: 0,
+                    opacity: 0.2,
+                    fontSize: "4rem",
                   }}
                 >
-                  {card.title}
-                </h3>
-                <p
-                  className={styles.cardValue}
+                  {IconComponent && <IconComponent />}
+                </div>
+
+                {/* Burbujas decorativas */}
+                <div className="bubbleContainer">
+                  <div className="bubble" style={{ top: "10%", left: "20%" }}></div>
+                  <div className="bubble" style={{ top: "50%", left: "70%" }}></div>
+                  <div className="bubble" style={{ top: "80%", left: "30%" }}></div>
+                </div>
+
+                {/* Contenedor del ícono principal */}
+                <div
+                  className={styles.cardIconWrapper}
                   style={{
-                    textShadow: "2px 2px 4px rgba(0,0,0,0.6)",
-                    color: "#fff",
-                    fontSize: "0.95rem"
+                    position: "relative",
+                    zIndex: 1,
+                    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.4)",
+                    borderRadius: "50%",
+                    padding: "0.6rem",
+                    marginBottom: "0.7rem",
+                    backgroundColor: "rgba(0,0,0,0.3)",
+                    display: "inline-block",
                   }}
                 >
-                  {card.value}
-                </p>
+                  {IconComponent && (
+                    <IconComponent
+                      className={styles.cardIcon}
+                      style={{ fontSize: "1.5rem", color: "#fff" }}
+                    />
+                  )}
+                </div>
+
+                {/* Contenido principal */}
+                <div className={styles.cardContent} style={{ position: "relative", zIndex: 1 }}>
+                  <h3
+                    className={styles.cardTitle}
+                    style={{
+                      textShadow: "3px 3px 6px rgba(0,0,0,0.9)",
+                      fontWeight: "bold",
+                      color: "#fff",
+                      marginBottom: "0.4rem",
+                      fontSize: "1.1rem",
+                    }}
+                  >
+                    {card.title}
+                  </h3>
+                  <p
+                    className={styles.cardValue}
+                    style={{
+                      textShadow: "3px 3px 6px rgba(0,0,0,0.9)",
+                      color: "#fff",
+                      fontSize: "1.05rem",
+                      lineHeight: "1.4",
+                    }}
+                  >
+                    {card.value}
+                  </p>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       ) : (
-        <p>No se encontró información del surtimiento.</p>
+        <p style={{ color: "#555" }}>No se encontró información del surtimiento.</p>
       )}
 
-      {/* Estilos para efectos de burbujas */}
+      {/* Hover Neon Global para las cards */}
+      <style jsx global>{`
+        .surtimientosCard:hover {
+          transform: translateY(-12px) scale(1.08) rotate(-2deg);
+          box-shadow: 0 0 8px #fff, 0 0 20px #fff,
+            0 0 30px rgba(255, 0, 255, 0.7), 0 0 40px rgba(255, 0, 255, 0.7);
+          z-index: 2;
+        }
+      `}</style>
+
+      {/* Estilos para las burbujas */}
       <style jsx>{`
         .bubbleContainer {
           position: absolute;
@@ -256,9 +304,9 @@ const SurtimientosInfo = ({ surtimiento, cost, setCost }) => {
         }
         .bubble {
           position: absolute;
-          width: 20px;
-          height: 20px;
-          background: rgba(255, 255, 255, 0.2);
+          width: 25px;
+          height: 25px;
+          background: rgba(255, 255, 255, 0.25);
           border-radius: 50%;
           animation: bubble 4s infinite ease-in-out;
         }

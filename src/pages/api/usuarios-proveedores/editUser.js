@@ -8,8 +8,8 @@ export default async function handler(req, res) {
   }
 
   const {
-    usuarioOriginal,       
-    usuario,               
+    usuarioOriginal,
+    usuario,
     nombreproveedor,
     direccionproveedor,
     coloniaproveedor,
@@ -18,8 +18,8 @@ export default async function handler(req, res) {
     cedulaproveedor,
     claveespecialidad,
     clavetipousuario,
-    password,              
-    costo,                 
+    password,
+    costo,
   } = req.body;
 
   //* Validaciones mínimas
@@ -44,8 +44,7 @@ export default async function handler(req, res) {
     const pool = await connectToDatabase();
 
     //* Preparamos la petición
-    const request = pool
-      .request()
+    const request = pool.request()
       //* Inputs para actualizaciones genéricas
       .input('nombreproveedor', sql.VarChar, nombreproveedor)
       .input('direccionproveedor', sql.VarChar, direccionproveedor)
@@ -55,11 +54,10 @@ export default async function handler(req, res) {
       .input('cedulaproveedor', sql.VarChar, cedulaproveedor)
       .input('claveespecialidad', sql.Int, claveespecialidad)
       .input('clavetipousuario', sql.Int, clavetipousuario)
-      .input('usuario', sql.VarChar, usuario)             
-      .input('usuarioOriginal', sql.VarChar, usuarioOriginal)
-      .input('costo', sql.Money, costo);
+      .input('usuario', sql.VarChar, usuario)
+      .input('usuarioOriginal', sql.VarChar, usuarioOriginal);
 
-    //* Si manejas costo:
+    //* Si manejas costo, lo agregamos solo una vez
     if (typeof costo !== 'undefined') {
       //* Ajusta el tipo de dato a lo que uses en SQL (decimal, numeric, money, etc.)
       request.input('costo', sql.Decimal, costo);

@@ -1,0 +1,97 @@
+.section {
+    padding: 20px;
+    background-color: #f7f9fc;
+    font-family: Arial, sans-serif;
+  }
+  
+  .subtitle {
+    font-size: 1.8rem;
+    margin-bottom: 20px;
+    color: #333;
+    text-align: center;
+  }
+  
+  /* Grid para las cards */
+  .cardsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+    padding: 0 10px;
+  }
+  
+  /* Card */
+  .card {
+    position: relative;
+    border-radius: 12px;
+    color: #fff;
+    padding: 15px;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    min-height: 120px;
+    display: flex;
+    align-items: flex-start;
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+  
+  .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 20px rgba(0, 0, 0, 0.15);
+  }
+  
+  /* Ícono dentro de la card */
+  .cardIconWrapper {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    opacity: 0.3; /* Ícono en la esquina con algo de transparencia */
+    font-size: 2.5rem;
+  }
+  
+  .cardIcon {
+    margin: 0;
+  }
+  
+  /* Contenido de la card */
+  .cardContent {
+    z-index: 2;
+  }
+  
+  .cardTitle {
+    font-size: 0.9rem;
+    margin: 0 0 5px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  
+  .cardValue {
+    font-size: 1.4rem;
+    font-weight: bold;
+    margin: 0;
+  }
+  
+  /* Estilo para el input de costo */
+  .inputCost {
+    padding: 4px 8px;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 70px;
+  }
+  
+  /* Texto editable para el costo */
+  .editableText {
+    cursor: pointer;
+    text-decoration: underline;
+  }
+  
+  /* Ajuste para pantallas muy pequeñas */
+  @media (max-width: 480px) {
+    .cardTitle {
+      font-size: 0.8rem;
+    }
+    .cardValue {
+      font-size: 1.2rem;
+    }
+  }
+  
