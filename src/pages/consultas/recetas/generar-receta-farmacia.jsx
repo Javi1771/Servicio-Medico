@@ -238,7 +238,7 @@ export default function GenerarReceta() {
         }
 
         //? Bloque: DIAGNÓSTICO
-        drawMultilineText(firstPage, String(data.consulta?.motivoconsulta ?? "N/A"), 50, 510, 750, 10);
+        drawMultilineText(firstPage, String(data.consulta?.motivoconsulta ?? "N/A"), 50, 510, 550, 10);
 
         //? Bloque: TRATAMIENTO
         let recetaStartY = 357;
@@ -248,8 +248,8 @@ export default function GenerarReceta() {
             data.receta.forEach((item, index) => {
             const posY = recetaStartY - index * lineSpacing; //* Aumenta el espacio entre líneas
             drawMultilineText(firstPage, String(item.nombreMedicamento ?? "No Asignado"), 40, posY, 120, 10);
-            drawMultilineText(firstPage, String(item.indicaciones ?? "No Asignado"), 180, posY, 200, 10);
-            drawMultilineText(firstPage, String(item.cantidad ?? "No Asignado"), 380, posY, 170, 10);
+            drawMultilineText(firstPage, String(item.indicaciones ?? "No Asignado"), 180, posY, 185, 10);
+            drawMultilineText(firstPage, String(item.cantidad ?? "No Asignado"), 380, posY, 161, 10);
             drawMultilineText(firstPage, String(item.piezas ?? "No haAsignadoy"), 553, posY, 100, 10);
             });
         }

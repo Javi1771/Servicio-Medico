@@ -1,4 +1,13 @@
 import React, { useState, useRef } from "react";
+import {
+  FaClipboardList,
+  FaPills,
+  FaBoxes,
+  FaCubes,
+  FaCheck,
+  FaClock,
+  FaBarcode,
+} from "react-icons/fa";
 
 const MedicamentosList = ({
   detalle,
@@ -9,7 +18,7 @@ const MedicamentosList = ({
   const [scanTimeouts, setScanTimeouts] = useState({});
   const inputRefs = useRef({}); // Guarda referencias a los inputs para hacer focus automático
 
-  // Función para renderizar una tarjeta de medicamento
+  // Renderiza una sola tarjeta de medicamento
   const renderMedicamentoCard = (item) => {
     const pendiente = item.piezas - item.delivered;
 
@@ -17,54 +26,53 @@ const MedicamentosList = ({
       <div
         key={item.idSurtimiento}
         className="
-          relative p-4 rounded-lg overflow-hidden 
-          transition-transform 
-          hover:-translate-y-2 hover:scale-[1.04] 
-          hover:shadow-[0_0_8px_#fff,0_0_20px_#fff,0_0_30px_rgba(255,0,255,0.7),0_0_40px_rgba(255,0,255,0.7)]
-          shadow-md
+          relative flex flex-col w-full 
+          bg-white rounded-lg shadow 
+          border border-gray-200
+          transition 
+          hover:shadow-lg
+          overflow-hidden
         "
-        style={{
-          background: "linear-gradient(135deg, #00eaff, #0095ff)",
-        }}
       >
-        {/* Overlay oscuro */}
-        <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(0,0,0,0.35),rgba(0,0,0,0.5))] z-0" />
-
-        {/* Burbujas decorativas */}
-        <div className="bubbleContainer pointer-events-none absolute inset-0 z-0 overflow-hidden">
-          <div className="bubble" style={{ top: "10%", left: "20%" }} />
-          <div className="bubble" style={{ top: "50%", left: "70%" }} />
-          <div className="bubble" style={{ top: "80%", left: "30%" }} />
+        {/* Encabezado en azul */}
+        <div className="bg-blue-600 text-white px-4 py-2 flex items-center gap-2">
+          <FaClipboardList className="text-xl" />
+          <h3 className="text-lg font-bold">Medicamento</h3>
         </div>
 
         {/* Contenido principal */}
-        <div className="relative z-10 text-white space-y-3">
-          <div className="flex items-center space-x-2">
-            <i className="fa-solid fa-pills" />
+        <div className="p-4 text-gray-700 space-y-3">
+          {/* Nombre Medicamento */}
+          <div className="flex items-center gap-2">
+            <FaPills className="text-blue-600" />
             <span className="font-semibold">Medicamento:</span>
             <span>{item.nombreMedicamento || item.claveMedicamento}</span>
           </div>
 
-          <div className="flex items-center space-x-2">
-            <i className="fa-solid fa-boxes-stacked" />
+          {/* Cantidad */}
+          <div className="flex items-center gap-2">
+            <FaBoxes className="text-blue-600" />
             <span className="font-semibold">Cantidad:</span>
             <span>{item.cantidad}</span>
           </div>
 
-          <div className="flex items-center space-x-2">
-            <i className="fa-solid fa-cubes" />
+          {/* Piezas por entregar */}
+          <div className="flex items-center gap-2">
+            <FaCubes className="text-blue-600" />
             <span className="font-semibold">Piezas por entregar:</span>
             <span>{item.piezas}</span>
           </div>
 
-          <div className="flex items-center space-x-2">
-            <i className="fa-solid fa-check" />
+          {/* Entregado */}
+          <div className="flex items-center gap-2">
+            <FaCheck className="text-blue-600" />
             <span className="font-semibold">Entregado:</span>
             <span>{item.delivered}</span>
           </div>
 
-          <div className="flex items-center space-x-2">
-            <i className="fa-solid fa-clock" />
+          {/* Pendiente */}
+          <div className="flex items-center gap-2">
+            <FaClock className="text-blue-600" />
             <span className="font-semibold">Pendiente:</span>
             <span>{pendiente}</span>
           </div>
@@ -81,20 +89,22 @@ const MedicamentosList = ({
             }}
             disabled={pendiente <= 0}
             className={`
-              mt-1 px-4 py-2 rounded-md font-semibold transition-transform 
+              mt-2 px-4 py-2 rounded-md font-semibold inline-flex items-center gap-2
+              transition-transform
               ${
                 pendiente <= 0
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-blue-600 hover:bg-blue-700 hover:scale-105"
+                  ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                  : "bg-blue-600 text-white hover:bg-blue-700 hover:scale-105"
               }
             `}
           >
+            <FaBarcode />
             {item.showInput ? "Ocultar" : "Escanear EAN"}
           </button>
 
           {/* Input EAN */}
           {item.showInput && (
-            <div className="flex flex-col space-y-2 mt-2">
+            <div className="flex flex-col gap-2 mt-2">
               <input
                 ref={(el) => (inputRefs.current[item.idSurtimiento] = el)}
                 type="text"
@@ -127,10 +137,10 @@ const MedicamentosList = ({
                     [item.idSurtimiento]: newTimeout,
                   }));
                 }}
-                className="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-400 text-black"
+                className="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-400 text-gray-800"
                 autoFocus
               />
-              <small className="text-white opacity-90">
+              <small className="text-gray-600">
                 Ingresa o escanea el código EAN (8-13 dígitos).
               </small>
             </div>
@@ -140,7 +150,7 @@ const MedicamentosList = ({
     );
   };
 
-  // Caso 1: No hay detalle
+  // Si no hay detalle
   if (!detalle || detalle.length === 0) {
     return (
       <div className="p-4 mt-4 bg-white rounded-md shadow-md">
@@ -154,111 +164,41 @@ const MedicamentosList = ({
     );
   }
 
-  // Caso 2: Hay un solo medicamento
+  // Caso: Solo un medicamento
   if (detalle.length === 1) {
     return (
       <div className="p-4 mt-4">
         <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">
           Detalle de Medicamentos
         </h2>
-        {/* max-w-4xl y mx-auto para centrar */}
         <div className="max-w-4xl mx-auto">{renderMedicamentoCard(detalle[0])}</div>
       </div>
     );
   }
 
-  // Caso 3: Hay 2 medicamentos
+  // Caso: Dos medicamentos
   if (detalle.length === 2) {
     return (
       <div className="p-4 mt-4">
         <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">
           Detalle de Medicamentos
         </h2>
-        {/* 2 columnas fijas para dos medicamentos */}
-        <div className="grid gap-6 grid-cols-2">
+        <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
           {detalle.map((item) => renderMedicamentoCard(item))}
         </div>
-        <style jsx>{`
-          .bubbleContainer {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            overflow: hidden;
-          }
-          .bubble {
-            position: absolute;
-            width: 25px;
-            height: 25px;
-            background: rgba(255, 255, 255, 0.25);
-            border-radius: 50%;
-            animation: bubble 4s infinite ease-in-out;
-          }
-          @keyframes bubble {
-            0% {
-              transform: translateY(0) scale(1);
-              opacity: 0.8;
-            }
-            50% {
-              transform: translateY(-20px) scale(1.2);
-              opacity: 0.4;
-            }
-            100% {
-              transform: translateY(0) scale(1);
-              opacity: 0.8;
-            }
-          }
-        `}</style>
       </div>
     );
   }
 
-  // Caso 4: 3 o más medicamentos
+  // Caso: 3 o más medicamentos
   return (
     <div className="p-4 mt-4">
       <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">
         Detalle de Medicamentos
       </h2>
-      {/* Para 3 o más, usaremos 2 columnas en md, 3 en xl */}
       <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
         {detalle.map((item) => renderMedicamentoCard(item))}
       </div>
-
-      <style jsx>{`
-        .bubbleContainer {
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          pointer-events: none;
-          overflow: hidden;
-        }
-        .bubble {
-          position: absolute;
-          width: 25px;
-          height: 25px;
-          background: rgba(255, 255, 255, 0.25);
-          border-radius: 50%;
-          animation: bubble 4s infinite ease-in-out;
-        }
-        @keyframes bubble {
-          0% {
-            transform: translateY(0) scale(1);
-            opacity: 0.8;
-          }
-          50% {
-            transform: translateY(-20px) scale(1.2);
-            opacity: 0.4;
-          }
-          100% {
-            transform: translateY(0) scale(1);
-            opacity: 0.8;
-          }
-        }
-      `}</style>
     </div>
   );
 };

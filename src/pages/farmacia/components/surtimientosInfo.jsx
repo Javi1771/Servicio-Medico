@@ -17,7 +17,7 @@ import {
   FaUserShield,
 } from "react-icons/fa";
 
-//* Mapeo de nombres a componentes de íconos
+// Mapeo de nombres a componentes de íconos
 const iconMapping = {
   "fa-calendar-day": FaCalendarDay,
   "fa-id-card": FaIdCard,
@@ -37,29 +37,28 @@ const iconMapping = {
 
 const SurtimientosInfo = ({ surtimiento, cost, setCost }) => {
   const [editingCost, setEditingCost] = useState(false);
-  const estatusTexto = surtimiento?.ESTATUS ? "Receta Pendiente" : "Receta Surtida";
+
+  // Se asume que el dato de estatus viene en surtimiento?.mensajeEstatus
+  const estatusRaw = surtimiento?.mensajeEstatus ? surtimiento.mensajeEstatus.trim().toLowerCase() : "";
+  const estatusTexto = estatusRaw === "receta surtida" ? "Receta Surtida" : "Receta Pendiente";
 
   const handleCostClick = () => {
-    if (surtimiento?.ESTATUS) {
-      setEditingCost(true);
-    }
+    setEditingCost(true);
   };
 
   const handleCostBlur = () => {
     setEditingCost(false);
   };
 
-  // Función para reproducir el sonido al hacer hover
+  // Sonido al hacer hover
   const playTapSound = () => {
     const audio = new Audio("/assets/tap.mp3");
     audio.play();
   };
 
-  // Colores para las cards (se usan de forma cíclica)
-  const availableColors = ["#00eaff", "#0095ff"];
-  // Títulos destacados para aplicar fondo verde
+  // Campos que se mostrarán con estilos condicionales
   const highlightedTitles = ["Estatus", "Costo", "Fecha Despacho"];
-  // Los campos que deben ocupar toda la fila (por textos largos)
+  // Campos de ancho completo (por textos largos)
   const fullWidthFields = new Set([
     "Nombre Paciente",
     "Diagnóstico",
@@ -126,7 +125,7 @@ const SurtimientosInfo = ({ surtimiento, cost, setCost }) => {
       value: surtimiento?.nombreproveedor || "(Sin datos)",
       icon: "fa-user-shield",
     },
-    //* Campos destacados
+    // -- Campos destacados --
     {
       title: "Estatus",
       value: estatusTexto,
@@ -134,34 +133,31 @@ const SurtimientosInfo = ({ surtimiento, cost, setCost }) => {
     },
     {
       title: "Costo",
-      value: surtimiento?.ESTATUS ? (
-        editingCost ? (
-          <input
-            type="number"
-            value={cost}
-            onChange={(e) => setCost(e.target.value)}
-            onBlur={handleCostBlur}
-            autoFocus
-            className={styles.inputCost}
-          />
-        ) : (
-          <span className={styles.editableText} onClick={handleCostClick}>
-            {cost || "(Click para editar)"}
-          </span>
-        )
+      value: editingCost ? (
+        <input
+          type="number"
+          value={cost}
+          onChange={(e) => setCost(e.target.value)}
+          onBlur={handleCostBlur}
+          autoFocus
+          className={styles.inputCost}
+          style={{ color: "#000" }} // Texto en negro
+        />
       ) : (
-        surtimiento?.COSTO || 0
+        <span className={styles.editableText} onClick={handleCostClick}>
+          {cost || "(Click para editar)"}
+        </span>
       ),
       icon: "fa-money-bill-wave",
     },
     {
       title: "Fecha Despacho",
-      value: surtimiento?.FECHA_DESPACHO,
+      value: surtimiento?.FECHA_DESPACHO ? surtimiento.FECHA_DESPACHO.trim() : "",
       icon: "fa-calendar-check",
     },
   ];
 
-  // Separamos en secciones según títulos destacados
+  // Separamos en secciones: principal y destacada
   const mainInfo = infoCardsData.filter(
     (item) => !highlightedTitles.includes(item.title)
   );
@@ -169,23 +165,52 @@ const SurtimientosInfo = ({ surtimiento, cost, setCost }) => {
     highlightedTitles.includes(item.title)
   );
 
-  // Función para renderizar una tarjeta individual
+  // Renderiza cada card
   const renderCard = (card, index) => {
     let color, gradient;
-    if (highlightedTitles.includes(card.title)) {
-      color = "#25e956";
-      gradient = "#1ea709";
+
+    if (card.title === "Estatus") {
+      const valor = card.value.trim().toLowerCase();
+      if (valor === "receta pendiente") {
+        color = "#ff002b";
+        gradient = "#920a21";
+      } else if (valor === "receta surtida") {
+        color = "#25e956";
+        gradient = "#1ea709";
+      } else {
+        color = "#ff002b"; // Por defecto rojo
+        gradient = "#920a21";
+      }
+    } else if (card.title === "Fecha Despacho") {
+      // Si hay valor (después de trim), se pinta verde; si no, rojo.
+      if (card.value.trim()) {
+        color = "#25e956";
+        gradient = "#1ea709";
+      } else {
+        color = "#ff002b";
+        gradient = "#920a21";
+      }
+    } else if (card.title === "Costo") {
+      if (cost) {
+        color = "#25e956";
+        gradient = "#1ea709";
+      } else {
+        color = "#ff002b";
+        gradient = "#920a21";
+      }
     } else {
+      const availableColors = ["#00eaff", "#0095ff"];
       color = availableColors[index % availableColors.length];
       gradient =
-        availableColors[(index + 1) % availableColors.length] || availableColors[0];
+        availableColors[(index + 1) % availableColors.length] ||
+        availableColors[0];
     }
 
     const IconComponent = iconMapping[card.icon];
 
     return (
       <div
-        key={index}
+        key={card.title}
         className={`${styles.card} surtimientosCard`}
         onMouseEnter={playTapSound}
         style={{
@@ -200,7 +225,7 @@ const SurtimientosInfo = ({ surtimiento, cost, setCost }) => {
           gridColumn: fullWidthFields.has(card.title) ? "1 / -1" : undefined,
         }}
       >
-        {/* Overlay oscuro para mejorar legibilidad */}
+        {/* Overlay oscuro */}
         <div
           style={{
             position: "absolute",
@@ -214,7 +239,7 @@ const SurtimientosInfo = ({ surtimiento, cost, setCost }) => {
           }}
         ></div>
 
-        {/* Ícono decorativo de fondo (sutil, esquina superior derecha) */}
+        {/* Ícono decorativo de fondo */}
         <div
           style={{
             position: "absolute",
@@ -284,16 +309,14 @@ const SurtimientosInfo = ({ surtimiento, cost, setCost }) => {
   };
 
   return (
-    <div
-      className={styles.section}
-      style={{ position: "relative", padding: "1rem" }}
-    >
+    <div className={styles.section} style={{ position: "relative", padding: "1rem" }}>
       <h2 className={styles.subtitle} style={{ marginBottom: "1.5rem", color: "#333" }}>
         Información de la Receta a Surtir
       </h2>
+
       {surtimiento ? (
         <>
-          {/* Sección principal */}
+          {/* Sección principal (no destacados) */}
           <div
             style={{
               display: "grid",
@@ -329,7 +352,9 @@ const SurtimientosInfo = ({ surtimiento, cost, setCost }) => {
           </div>
         </>
       ) : (
-        <p style={{ color: "#555" }}>No se encontró información del surtimiento.</p>
+        <p style={{ color: "#555" }}>
+          No se encontró información del surtimiento.
+        </p>
       )}
 
       {/* Hover Neon Global para las cards */}

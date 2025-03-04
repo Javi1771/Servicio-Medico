@@ -79,10 +79,15 @@ const SurtimientosTable = ({ data, resetSurtimiento }) => {
       playSound(false);
       MySwal.fire({
         icon: "info",
-        title: "<span style='color: #00bcd4;'>⚠️ Todas las piezas entregadas</span>",
-        html: "<p style='color: #fff;'>Ya se han entregado todas las piezas requeridas.</p>",
+        title:
+          "<span style='color: #00bcd4; font-weight: bold; font-size: 1.5em;'>⚠️ Todas las piezas entregadas</span>",
+        html: "<p style='color: #fff; font-size: 1.1em;'>Ya se han entregado todas las piezas requeridas.</p>",
         background: "linear-gradient(145deg, #004d40, #00251a)",
         confirmButtonColor: "#00bcd4",
+        confirmButtonText: "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
+        customClass: {
+          popup: "border border-blue-600 shadow-[0px_0px_20px_5px_rgba(0,188,212,0.9)] rounded-lg",
+        },
       });
       return;
     }
@@ -91,10 +96,15 @@ const SurtimientosTable = ({ data, resetSurtimiento }) => {
       playSound(false);
       MySwal.fire({
         icon: "error",
-        title: "<span style='color: #ff1744;'>❌ Sin Stock</span>",
-        html: "<p style='color: #fff;'>No hay unidades disponibles en stock.</p>",
+        title:
+          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Sin Stock</span>",
+        html: "<p style='color: #fff; font-size: 1.1em;'>No hay unidades disponibles en stock.</p>",
         background: "linear-gradient(145deg, #4a0000, #220000)",
         confirmButtonColor: "#ff1744",
+        confirmButtonText: "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
+        customClass: {
+          popup: "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
+        },
       });
       return;
     }
@@ -103,10 +113,15 @@ const SurtimientosTable = ({ data, resetSurtimiento }) => {
       playSound(false);
       MySwal.fire({
         icon: "warning",
-        title: "<span style='color: #ff9800;'>⚠️ Límite de Stock Alcanzado</span>",
-        html: `<p style='color: #fff;'>El máximo permitido es ${item.stock} piezas.</p>`,
+        title:
+          "<span style='color: #ff9800; font-weight: bold; font-size: 1.5em;'>⚠️ Límite de Stock Alcanzado</span>",
+        html: `<p style='color: #fff; font-size: 1.1em;'>El máximo permitido es ${item.stock} piezas.</p>`,
         background: "linear-gradient(145deg, #4a2600, #220f00)",
         confirmButtonColor: "#ff9800",
+        confirmButtonText: "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
+        customClass: {
+          popup: "border border-orange-600 shadow-[0px_0px_20px_5px_rgba(255,152,0,0.9)] rounded-lg",
+        },
       });
       return;
     }
@@ -117,10 +132,15 @@ const SurtimientosTable = ({ data, resetSurtimiento }) => {
       playSound(false);
       MySwal.fire({
         icon: "error",
-        title: "<span style='color: #ff1744;'>❌ EAN no válido</span>",
-        html: "<p style='color: #fff;'>El EAN escaneado no coincide.</p>",
+        title:
+          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ EAN no válido</span>",
+        html: "<p style='color: #fff; font-size: 1.1em;'>El EAN escaneado no coincide.</p>",
         background: "linear-gradient(145deg, #4a0000, #220000)",
         confirmButtonColor: "#ff1744",
+        confirmButtonText: "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
+        customClass: {
+          popup: "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
+        },
       });
       return;
     }
@@ -130,10 +150,15 @@ const SurtimientosTable = ({ data, resetSurtimiento }) => {
       playSound(false);
       MySwal.fire({
         icon: "warning",
-        title: "<span style='color: #ff9800;'>⚠️ Stock insuficiente</span>",
-        html: `<p style='color: #fff;'>El máximo permitido es ${item.stock} piezas.</p>`,
-        background: "linear-gradient(145deg, #4a2600, #220f00)",
+        title:
+          "<span style='color: #ff9800; font-weight: bold; font-size: 1.5em;'>⚠️ Stock insuficiente</span>",
+        html: `<p style='color: #fff; font-size: 1.1em;'>El máximo permitido es ${item.stock} piezas.</p>`,
+        background: "linear-gradient(145deg, #4a2600, #220000)",
         confirmButtonColor: "#ff9800",
+        confirmButtonText: "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
+        customClass: {
+          popup: "border border-orange-600 shadow-[0px_0px_20px_5px_rgba(255,152,0,0.9)] rounded-lg",
+        },
       });
       return;
     }
@@ -175,10 +200,17 @@ const SurtimientosTable = ({ data, resetSurtimiento }) => {
       playSound(false);
       MySwal.fire({
         icon: "info",
-        title: "<span style='color: #00bcd4;'>ℹ️ Sin cambios</span>",
-        html: "<p style='color: #fff;'>No hay nuevas piezas escaneadas.</p>",
+        title:
+          "<span style='color: #00bcd4; font-weight: bold; font-size: 1.5em;'>ℹ️ Sin cambios</span>",
+        html: "<p style='color: #fff; font-size: 1.1em;'>No hay nuevas piezas escaneadas.</p>",
         background: "linear-gradient(145deg, #004d40, #00251a)",
         confirmButtonColor: "#00bcd4",
+        confirmButtonText:
+          "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
+        customClass: {
+          popup:
+            "border border-blue-600 shadow-[0px_0px_20px_5px_rgba(0,188,212,0.9)] rounded-lg",
+        },
       }).then(() => {
         resetSurtimiento();
       });
@@ -187,15 +219,14 @@ const SurtimientosTable = ({ data, resetSurtimiento }) => {
 
     const recetaCompletada = detalle.every((it) => it.delivered >= it.piezas);
     const now = new Date();
-    const fechaDespacho = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(
+    const fechaDespacho = `${now.getFullYear()}-${String(
+      now.getMonth() + 1
+    ).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")} ${String(
+      now.getHours()
+    ).padStart(2, "0")}:${String(now.getMinutes()).padStart(
       2,
       "0"
-    )}-${String(now.getDate()).padStart(2, "0")} ${String(now.getHours()).padStart(
-      2,
-      "0"
-    )}:${String(now.getMinutes()).padStart(2, "0")}:${String(
-      now.getSeconds()
-    ).padStart(2, "0")}`;
+    )}:${String(now.getSeconds()).padStart(2, "0")}`;
 
     try {
       await fetch("/api/farmacia/surtirMedicamentos", {
@@ -213,10 +244,17 @@ const SurtimientosTable = ({ data, resetSurtimiento }) => {
       playSound(true);
       MySwal.fire({
         icon: "success",
-        title: "<span style='color: #00e676;'>✔️ Éxito</span>",
-        html: "<p style='color: #fff;'>Cambios guardados correctamente.</p>",
+        title:
+          "<span style='color: #00e676; font-weight: bold; font-size: 1.5em;'>✔️ Éxito</span>",
+        html: "<p style='color: #fff; font-size: 1.1em;'>Cambios guardados correctamente.</p>",
         background: "linear-gradient(145deg, #003300, #001a00)",
         confirmButtonColor: "#00e676",
+        confirmButtonText:
+          "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
+        customClass: {
+          popup:
+            "border border-green-600 shadow-[0px_0px_20px_5px_rgba(0,230,118,0.9)] rounded-lg",
+        },
       });
 
       resetSurtimiento();
@@ -225,10 +263,17 @@ const SurtimientosTable = ({ data, resetSurtimiento }) => {
       playSound(false);
       MySwal.fire({
         icon: "error",
-        title: "<span style='color: #ff1744;'>❌ Error</span>",
-        html: "<p style='color: #fff;'>Hubo un problema al guardar los cambios. Intenta nuevamente.</p>",
+        title:
+          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error</span>",
+        html: "<p style='color: #fff; font-size: 1.1em;'>Hubo un problema al guardar los cambios. Intenta nuevamente.</p>",
         background: "linear-gradient(145deg, #4a0000, #220000)",
         confirmButtonColor: "#ff1744",
+        confirmButtonText:
+          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
+        customClass: {
+          popup:
+            "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
+        },
       });
     }
   };
@@ -236,15 +281,8 @@ const SurtimientosTable = ({ data, resetSurtimiento }) => {
   return (
     //* Contenedor principal con Tailwind: fondo degradado, pantalla completa
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-blue-700 to-cyan-400 p-8 relative">
-      {/* Contenedor interno con fondo blanco, sombra y burbujas */}
+      {/* Contenedor interno con fondo blanco, sombra */}
       <div className="relative w-full max-w-5xl p-6 bg-white rounded-lg shadow-xl z-10">
-        {/* Burbujas decorativas */}
-        <div className="bubbleContainerWhite pointer-events-none absolute inset-0 overflow-hidden -z-10">
-          <div className="bubbleWhite top-[10%] left-[20%]" />
-          <div className="bubbleWhite top-[50%] left-[70%]" />
-          <div className="bubbleWhite top-[80%] left-[30%]" />
-        </div>
-
         {/* Título (opcional) */}
         <h1 className="text-2xl font-bold text-gray-700 mb-4">
           Surtimiento de Medicamentos
@@ -267,35 +305,6 @@ const SurtimientosTable = ({ data, resetSurtimiento }) => {
           Guardar
         </button>
       </div>
-
-      {/* Estilos para las burbujas (animación custom) */}
-      <style jsx>{`
-        .bubbleContainerWhite {
-          position: absolute;
-        }
-        .bubbleWhite {
-          position: absolute;
-          width: 40px;
-          height: 40px;
-          background: rgba(255, 255, 255, 0.25);
-          border-radius: 9999px;
-          animation: bubbleWhite 6s infinite ease-in-out;
-        }
-        @keyframes bubbleWhite {
-          0% {
-            transform: translateY(0) scale(1);
-            opacity: 0.8;
-          }
-          50% {
-            transform: translateY(-20px) scale(1.2);
-            opacity: 0.5;
-          }
-          100% {
-            transform: translateY(0) scale(1);
-            opacity: 0.8;
-          }
-        }
-      `}</style>
     </div>
   );
 };
