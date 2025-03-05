@@ -234,12 +234,7 @@ const SurtimientosView = ({
                   Ver Detalle
                 </button>
 
-                <button
-                  className={styles.historialButton}
-                  onClick={() => onGenerarReceta(surt.FOLIO_SURTIMIENTO)}
-                >
-                  <FaPrint className={styles.icon} /> Generar Receta
-                </button>
+              
               </td>
             </tr>
           ))}
