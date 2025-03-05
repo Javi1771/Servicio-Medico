@@ -41,6 +41,7 @@ export default async function handler(req, res) {
           KPI.clavepaciente,
           KPI.valor_actual,
           KPI.valor_objetivo,
+          KPI.valor_alcanzado,
           KPI.calificacion,
           CONVERT(VARCHAR, KPI.fecha_registro, 23) AS fechaRegistro,
           CONVERT(VARCHAR, KPI.fecha_evaluacion, 23) AS fechaEvaluacion,

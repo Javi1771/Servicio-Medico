@@ -164,7 +164,7 @@ export default function GenerarReceta() {
       console.log("✏️ Dibujando datos en el PDF...");
 
       //? Bloque: DATOS DE LA CONSULTA
-      firstPage.drawText(data.consulta?.seasignoaespecialidad === 'N' ? "General" : "Especialidad", { x: 114, y: 665, size: 10 });
+      firstPage.drawText(data.consulta?.especialidadinterconsulta === null ? "General" : "Especialidad", { x: 114, y: 665, size: 10 });
       firstPage.drawText(String(data.consulta?.claveconsulta ?? "N/A"), { x: 152, y: 645, size: 10 });
       firstPage.drawText(String(data.consulta?.fechaconsulta ?? "N/A"), { x: 102, y: 625, size: 10 });
       firstPage.drawText(String(data.consulta?.clavenomina ?? "N/A"), { x: 404, y: 665, size: 10 });
@@ -222,7 +222,7 @@ export default function GenerarReceta() {
       firstPage.drawText(incapacidad ? incapacidad.fechaFinal : "No asignada", { x: 209, y: 72, size: 10 });
       
       const especialidadText = data.consulta?.seasignoaespecialidad === "S" ? `Sí - ${data.detalleEspecialidad[0]?.nombreEspecialidad ?? "N/A"}` : "No";
-      firstPage.drawText(especialidadText, { x: 440, y: 78, size: 10 });
+      firstPage.drawText(especialidadText, { x: 433, y: 78, size: 10 });
       
       //? Firmas
       firstPage.drawText(String(data.consulta?.nombreproveedor ?? "N/A"), { x: 120, y: 52, size: 10 });

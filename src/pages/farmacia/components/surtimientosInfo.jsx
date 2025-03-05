@@ -17,7 +17,7 @@ import {
   FaUserShield,
 } from "react-icons/fa";
 
-// Mapeo de nombres a componentes de íconos
+//* Mapeo de nombres a componentes de íconos
 const iconMapping = {
   "fa-calendar-day": FaCalendarDay,
   "fa-id-card": FaIdCard,
@@ -38,9 +38,12 @@ const iconMapping = {
 const SurtimientosInfo = ({ surtimiento, cost, setCost }) => {
   const [editingCost, setEditingCost] = useState(false);
 
-  // Se asume que el dato de estatus viene en surtimiento?.mensajeEstatus
-  const estatusRaw = surtimiento?.mensajeEstatus ? surtimiento.mensajeEstatus.trim().toLowerCase() : "";
-  const estatusTexto = estatusRaw === "receta surtida" ? "Receta Surtida" : "Receta Pendiente";
+  //* Se asume que surtimiento?.mensajeEstatus es la fuente del dato de estatus
+  const estatusRaw = surtimiento?.mensajeEstatus
+    ? surtimiento.mensajeEstatus.trim().toLowerCase()
+    : "";
+  const estatusTexto =
+    estatusRaw === "receta surtida" ? "Receta Surtida" : "Receta Pendiente";
 
   const handleCostClick = () => {
     setEditingCost(true);
@@ -50,15 +53,15 @@ const SurtimientosInfo = ({ surtimiento, cost, setCost }) => {
     setEditingCost(false);
   };
 
-  // Sonido al hacer hover
+  //* Sonido al hacer hover
   const playTapSound = () => {
     const audio = new Audio("/assets/tap.mp3");
     audio.play();
   };
 
-  // Campos que se mostrarán con estilos condicionales
+  //* Campos que se mostrarán con estilos condicionales
   const highlightedTitles = ["Estatus", "Costo", "Fecha Despacho"];
-  // Campos de ancho completo (por textos largos)
+  //* Campos de ancho completo (por textos largos)
   const fullWidthFields = new Set([
     "Nombre Paciente",
     "Diagnóstico",
@@ -66,7 +69,7 @@ const SurtimientosInfo = ({ surtimiento, cost, setCost }) => {
     "Nombre del Médico",
   ]);
 
-  // Lista completa de datos
+  //* Lista completa de datos
   const infoCardsData = [
     {
       title: "Nombre Paciente",
@@ -125,7 +128,7 @@ const SurtimientosInfo = ({ surtimiento, cost, setCost }) => {
       value: surtimiento?.nombreproveedor || "(Sin datos)",
       icon: "fa-user-shield",
     },
-    // -- Campos destacados --
+    //* -- Campos destacados --
     {
       title: "Estatus",
       value: estatusTexto,
@@ -141,7 +144,7 @@ const SurtimientosInfo = ({ surtimiento, cost, setCost }) => {
           onBlur={handleCostBlur}
           autoFocus
           className={styles.inputCost}
-          style={{ color: "#000" }} // Texto en negro
+          style={{ color: "#000" }} //* Texto en negro
         />
       ) : (
         <span className={styles.editableText} onClick={handleCostClick}>
@@ -152,12 +155,14 @@ const SurtimientosInfo = ({ surtimiento, cost, setCost }) => {
     },
     {
       title: "Fecha Despacho",
-      value: surtimiento?.FECHA_DESPACHO ? surtimiento.FECHA_DESPACHO.trim() : "",
+      value: surtimiento?.FECHA_DESPACHO
+        ? surtimiento.FECHA_DESPACHO.trim()
+        : "",
       icon: "fa-calendar-check",
     },
   ];
 
-  // Separamos en secciones: principal y destacada
+  //* Separamos en secciones: principal y destacada
   const mainInfo = infoCardsData.filter(
     (item) => !highlightedTitles.includes(item.title)
   );
@@ -165,7 +170,7 @@ const SurtimientosInfo = ({ surtimiento, cost, setCost }) => {
     highlightedTitles.includes(item.title)
   );
 
-  // Renderiza cada card
+  //* Renderiza cada card
   const renderCard = (card, index) => {
     let color, gradient;
 
@@ -178,17 +183,18 @@ const SurtimientosInfo = ({ surtimiento, cost, setCost }) => {
         color = "#25e956";
         gradient = "#1ea709";
       } else {
-        color = "#ff002b"; // Por defecto rojo
+        color = "#ff002b";
         gradient = "#920a21";
       }
     } else if (card.title === "Fecha Despacho") {
-      // Si hay valor (después de trim), se pinta verde; si no, rojo.
-      if (card.value.trim()) {
-        color = "#25e956";
-        gradient = "#1ea709";
-      } else {
+      //* Si el valor es exactamente "fecha no disponible" (sin importar mayúsculas)
+      const fechaValor = card.value.trim().toLowerCase();
+      if (fechaValor === "fecha no disponible" || !fechaValor) {
         color = "#ff002b";
         gradient = "#920a21";
+      } else {
+        color = "#25e956";
+        gradient = "#1ea709";
       }
     } else if (card.title === "Costo") {
       if (cost) {
@@ -309,8 +315,14 @@ const SurtimientosInfo = ({ surtimiento, cost, setCost }) => {
   };
 
   return (
-    <div className={styles.section} style={{ position: "relative", padding: "1rem" }}>
-      <h2 className={styles.subtitle} style={{ marginBottom: "1.5rem", color: "#333" }}>
+    <div
+      className={styles.section}
+      style={{ position: "relative", padding: "1rem" }}
+    >
+      <h2
+        className={styles.subtitle}
+        style={{ marginBottom: "1.5rem", color: "#333" }}
+      >
         Información de la Receta a Surtir
       </h2>
 

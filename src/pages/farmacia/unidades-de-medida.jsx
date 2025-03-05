@@ -1,27 +1,60 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { FaPlusCircle, FaArrowLeft } from "react-icons/fa";
+import { FaPlusCircle, FaArrowLeft, FaSearch } from "react-icons/fa";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 import { useRouter } from "next/router";
 
 const MySwal = withReactContent(Swal);
 
-//* Define las rutas de los sonidos de éxito y error
+//* Rutas de sonidos de éxito y error
 const successSound = "/assets/applepay.mp3";
 const errorSound = "/assets/error.mp3";
 
-//! Reproduce un sonido de éxito/error
+//* Función para reproducir sonido de éxito/error
 const playSound = (isSuccess) => {
   const audio = new Audio(isSuccess ? successSound : errorSound);
   audio.play();
 };
 
 const InsertarUnidadForm = () => {
-  const [medida, setMedida] = useState("");
-  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
+  //* Estado para la nueva unidad
+  const [medida, setMedida] = useState("");
+  //* Estado para la lista de unidades ya existentes
+  const [unidades, setUnidades] = useState([]);
+  //* Estado para manejar el spinner de "Insertando..."
+  const [loading, setLoading] = useState(false);
+
+  //* Campo de búsqueda para filtrar unidades
+  const [searchTerm, setSearchTerm] = useState("");
+
+  //* Al montar el componente, obtenemos las unidades existentes
+  useEffect(() => {
+    const fetchUnidades = async () => {
+      try {
+        const res = await fetch("/api/farmacia/unidades");
+        const data = await res.json();
+        console.log("Respuesta del endpoint en el cliente:", data);
+        if (res.ok && Array.isArray(data)) {
+          //* El endpoint retorna un array con { code, label }
+          setUnidades(data);
+        } else if (res.ok && data.recordset) {
+          //* O en caso de un objeto con recordset
+          setUnidades(data.recordset);
+        } else {
+          setUnidades([]);
+        }
+      } catch (err) {
+        console.error("Error fetching unidades:", err);
+        setUnidades([]);
+      }
+    };
+    fetchUnidades();
+  }, []);
+
+  //* Maneja el envío del formulario
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!medida) {
@@ -42,6 +75,31 @@ const InsertarUnidadForm = () => {
       });
       return;
     }
+
+    //* Validar duplicados localmente
+    const medidaNormalized = medida.trim().toLowerCase();
+    const duplicado = unidades.find(
+      (u) => u.label.trim().toLowerCase() === medidaNormalized
+    );
+    if (duplicado) {
+      playSound(false);
+      MySwal.fire({
+        icon: "error",
+        title:
+          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>⚠️ Unidad duplicada</span>",
+        html: "<p style='color: #fff; font-size: 1.1em;'>La unidad de medida ya existe.</p>",
+        background: "linear-gradient(145deg, #4a0000, #220000)",
+        confirmButtonColor: "#ff1744",
+        confirmButtonText:
+          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
+        customClass: {
+          popup:
+            "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
+        },
+      });
+      return;
+    }
+
     setLoading(true);
     try {
       const res = await fetch("/api/farmacia/insertarUnidad", {
@@ -49,16 +107,15 @@ const InsertarUnidadForm = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ medida }),
       });
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.message || "Error al insertar");
-      }
+      const dataResponse = await res.json();
+      if (!res.ok) throw new Error(dataResponse.message || "Error al insertar");
+
       playSound(true);
       MySwal.fire({
         icon: "success",
         title:
           "<span style='color: #00e676; font-weight: bold; font-size: 1.5em;'>✔️ Unidad insertada</span>",
-        html: `<p style='color: #fff; font-size: 1.1em;'>${data.message}</p>`,
+        html: `<p style='color: #fff; font-size: 1.1em;'>${dataResponse.message}</p>`,
         background: "linear-gradient(145deg, #003300, #001a00)",
         confirmButtonColor: "#00e676",
         confirmButtonText:
@@ -69,6 +126,17 @@ const InsertarUnidadForm = () => {
         },
       });
       setMedida("");
+
+      //* Actualiza la lista de unidades
+      const resUnidades = await fetch("/api/farmacia/unidades");
+      const unidadesData = await resUnidades.json();
+      if (resUnidades.ok && Array.isArray(unidadesData)) {
+        setUnidades(unidadesData);
+      } else if (resUnidades.ok && unidadesData.recordset) {
+        setUnidades(unidadesData.recordset);
+      } else {
+        setUnidades([]);
+      }
     } catch (error) {
       playSound(false);
       MySwal.fire({
@@ -94,10 +162,15 @@ const InsertarUnidadForm = () => {
     router.replace("/inicio-servicio-medico");
   };
 
+  //* Filtra las unidades según el searchTerm
+  const unidadesFiltradas = unidades.filter((u) =>
+    u.label.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-black">
       <motion.div
-        className="relative bg-gradient-to-br from-gray-900 to-black p-10 rounded-3xl shadow-2xl border border-white border-opacity-20 w-full max-w-lg mx-4"
+        className="relative bg-gradient-to-br from-gray-900 to-black p-10 rounded-3xl shadow-2xl border border-white border-opacity-20 w-full max-w-5xl mx-4"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
@@ -112,17 +185,17 @@ const InsertarUnidadForm = () => {
             <span className="hidden sm:inline">Regresar</span>
           </button>
           <FaPlusCircle className="text-6xl text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.8)]" />
-          <div className="w-24" /> {/* Espacio para balancear */}
+          <div className="w-24" />
         </div>
+
         <h2 className="text-4xl font-extrabold text-center mb-8 text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400 drop-shadow-lg">
           Nueva Unidad de Medida
         </h2>
+
+        {/* Formulario de inserción */}
         <form onSubmit={handleSubmit} className="flex flex-col gap-6">
           <div className="flex flex-col">
-            <label
-              htmlFor="medida"
-              className="text-white font-bold text-lg mb-2"
-            >
+            <label htmlFor="medida" className="text-white font-bold text-lg mb-2">
               Unidad Abreviada:
             </label>
             <input
@@ -144,7 +217,60 @@ const InsertarUnidadForm = () => {
             {loading ? "Insertando..." : "Insertar Unidad"}
           </button>
         </form>
+
+        {/* Sección de unidades existentes */}
+        <div className="mt-10">
+          <h3 className="text-2xl font-bold text-white mb-4">Unidades Existentes</h3>
+          {/* Input para filtrar unidades */}
+          <div className="flex items-center gap-2 mb-6 bg-gray-800 rounded-md p-2">
+            <FaSearch className="text-white ml-2" />
+            <input
+              type="text"
+              placeholder="Buscar unidad..."
+              className="flex-1 bg-transparent text-white focus:outline-none px-2"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+
+          {/* Grid de tarjetas con borde neon */}
+          {unidadesFiltradas.length > 0 ? (
+            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
+              {unidadesFiltradas.map((unidad) => (
+                <div
+                  key={unidad.code}
+                  className="
+                    neon-card
+                    p-4
+                    rounded-lg
+                    bg-gray-800
+                    text-white
+                    transition-transform
+                    hover:scale-105
+                    hover:shadow-[0_0_20px_rgba(255,255,255,0.6)]
+                    cursor-pointer
+                  "
+                >
+                  <h4 className="text-xl font-bold ">{unidad.label}</h4>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-white">No hay unidades</p>
+          )}
+        </div>
       </motion.div>
+
+      {/* Estilos extra para la animación neon de las tarjetas */}
+      <style jsx>{`
+        .neon-card {
+          border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+        .neon-card:hover {
+          border-color: #00eaff;
+          box-shadow: 0 0 15px #00eaff;
+        }
+      `}</style>
     </div>
   );
 };

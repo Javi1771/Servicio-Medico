@@ -910,6 +910,12 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
                   KPI Evaluado
                 </th>
                 <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
+                  Meta a Alcanzar
+                </th>
+                <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
+                  Valor Alcanzado
+                </th>
+                <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
                   Fecha de Evaluación
                 </th>
                 <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
@@ -954,6 +960,16 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
                     {/* Nombre KPI */}
                     <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
                       {kpi.nombreKPI || "Sin nombre"}
+                    </td>
+
+                    {/* Valor a Alcanzar */}
+                    <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
+                      {kpi.valor_objetivo || "Sin valor"}
+                    </td>
+                    
+                    {/* Valor Alcanzado */}
+                    <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
+                      {kpi.valor_alcanzado || "Sin valor"}
                     </td>
 
                     {/* Fecha de Evaluación */}
@@ -1060,7 +1076,7 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="6" className="text-center py-4 text-gray-400">
+                  <td colSpan="8" className="text-center py-4 text-gray-400">
                     No se encontraron registros para este paciente.
                   </td>
                 </tr>

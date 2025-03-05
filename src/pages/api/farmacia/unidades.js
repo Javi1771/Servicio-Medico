@@ -6,7 +6,7 @@ export default async function handler(req, res) {
       console.log("Conectando a la base de datos para obtener unidades de medida");
       const pool = await connectToDatabase();
       const query = `
-        SELECT TOP (1000) [id_medida], [medida]
+        SELECT [id_medida], [medida]
         FROM [dbo].[unidades_de_medida]
       `;
       console.log("Ejecutando query:", query);

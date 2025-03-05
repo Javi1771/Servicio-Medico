@@ -9,16 +9,23 @@ import {
   FaBarcode,
 } from "react-icons/fa";
 
-const MedicamentosList = ({
-  detalle,
-  toggleInput,
-  handleEANChange,
-  handleAceptarEAN,
-}) => {
+const MedicamentosList = ({ detalle, handleEANChange, handleAceptarEAN }) => {
   const [scanTimeouts, setScanTimeouts] = useState({});
-  const inputRefs = useRef({}); // Guarda referencias a los inputs para hacer focus automático
+  const inputRefs = useRef({});
+  //* Nuevo estado para controlar si el input ya se abrió
+  const [inputOpen, setInputOpen] = useState({});
 
-  // Renderiza una sola tarjeta de medicamento
+  //* Función para abrir el input de forma permanente para un producto
+  const openInput = (id) => {
+    setInputOpen((prev) => ({ ...prev, [id]: true }));
+    setTimeout(() => {
+      if (inputRefs.current[id]) {
+        inputRefs.current[id].focus();
+      }
+    }, 100);
+  };
+
+  //* Renderiza una tarjeta de medicamento
   const renderMedicamentoCard = (item) => {
     const pendiente = item.piezas - item.delivered;
 
@@ -42,50 +49,47 @@ const MedicamentosList = ({
 
         {/* Contenido principal */}
         <div className="p-4 text-gray-700 space-y-3">
-          {/* Nombre Medicamento */}
           <div className="flex items-center gap-2">
             <FaPills className="text-blue-600" />
             <span className="font-semibold">Medicamento:</span>
             <span>{item.nombreMedicamento || item.claveMedicamento}</span>
           </div>
 
-          {/* Cantidad */}
           <div className="flex items-center gap-2">
             <FaBoxes className="text-blue-600" />
-            <span className="font-semibold">Cantidad:</span>
+            <span className="font-semibold">Indicaciones:</span>
             <span>{item.cantidad}</span>
           </div>
 
-          {/* Piezas por entregar */}
           <div className="flex items-center gap-2">
             <FaCubes className="text-blue-600" />
             <span className="font-semibold">Piezas por entregar:</span>
             <span>{item.piezas}</span>
           </div>
 
-          {/* Entregado */}
           <div className="flex items-center gap-2">
             <FaCheck className="text-blue-600" />
             <span className="font-semibold">Entregado:</span>
             <span>{item.delivered}</span>
           </div>
 
-          {/* Pendiente */}
           <div className="flex items-center gap-2">
             <FaClock className="text-blue-600" />
             <span className="font-semibold">Pendiente:</span>
             <span>{pendiente}</span>
           </div>
 
-          {/* Botón Escanear EAN */}
+          {/* Botón para enfocar (o abrir) el input */}
           <button
             onClick={() => {
-              toggleInput(item.idSurtimiento);
-              setTimeout(() => {
+              //* Si ya está abierto, solo enfoca; si no, lo abre
+              if (inputOpen[item.idSurtimiento]) {
                 if (inputRefs.current[item.idSurtimiento]) {
                   inputRefs.current[item.idSurtimiento].focus();
                 }
-              }, 100);
+              } else {
+                openInput(item.idSurtimiento);
+              }
             }}
             disabled={pendiente <= 0}
             className={`
@@ -99,11 +103,11 @@ const MedicamentosList = ({
             `}
           >
             <FaBarcode />
-            {item.showInput ? "Ocultar" : "Escanear EAN"}
+            Escanear EAN
           </button>
 
-          {/* Input EAN */}
-          {item.showInput && (
+          {/* Input EAN, que se mantiene abierto una vez activado */}
+          {item.showInput || inputOpen[item.idSurtimiento] ? (
             <div className="flex flex-col gap-2 mt-2">
               <input
                 ref={(el) => (inputRefs.current[item.idSurtimiento] = el)}
@@ -114,21 +118,19 @@ const MedicamentosList = ({
                   const ean = e.target.value.trim();
                   handleEANChange(item.idSurtimiento, ean);
 
-                  // Cancelar timeout previo
                   if (scanTimeouts[item.idSurtimiento]) {
                     clearTimeout(scanTimeouts[item.idSurtimiento]);
                   }
 
-                  // Espera 500ms tras el último dígito
                   const newTimeout = setTimeout(() => {
-                    if (/^\d{8,13}$/.test(ean)) {
+                    //* Ahora validamos con cualquier cantidad de dígitos
+                    if (/^\d+$/.test(ean)) {
                       handleAceptarEAN(item.idSurtimiento, ean);
+                      //* Limpia el input para continuar escaneando sin cerrar
                       handleEANChange(item.idSurtimiento, "");
-                      setTimeout(() => {
-                        if (inputRefs.current[item.idSurtimiento]) {
-                          inputRefs.current[item.idSurtimiento].focus();
-                        }
-                      }, 100);
+                      if (inputRefs.current[item.idSurtimiento]) {
+                        inputRefs.current[item.idSurtimiento].focus();
+                      }
                     }
                   }, 500);
 
@@ -141,16 +143,15 @@ const MedicamentosList = ({
                 autoFocus
               />
               <small className="text-gray-600">
-                Ingresa o escanea el código EAN (8-13 dígitos).
+                Ingresa o escanea el código EAN (cualquier cantidad de dígitos).
               </small>
             </div>
-          )}
+          ) : null}
         </div>
       </div>
     );
   };
 
-  // Si no hay detalle
   if (!detalle || detalle.length === 0) {
     return (
       <div className="p-4 mt-4 bg-white rounded-md shadow-md">
@@ -164,19 +165,19 @@ const MedicamentosList = ({
     );
   }
 
-  // Caso: Solo un medicamento
   if (detalle.length === 1) {
     return (
       <div className="p-4 mt-4">
         <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">
           Detalle de Medicamentos
         </h2>
-        <div className="max-w-4xl mx-auto">{renderMedicamentoCard(detalle[0])}</div>
+        <div className="max-w-4xl mx-auto">
+          {renderMedicamentoCard(detalle[0])}
+        </div>
       </div>
     );
   }
 
-  // Caso: Dos medicamentos
   if (detalle.length === 2) {
     return (
       <div className="p-4 mt-4">
@@ -190,7 +191,6 @@ const MedicamentosList = ({
     );
   }
 
-  // Caso: 3 o más medicamentos
   return (
     <div className="p-4 mt-4">
       <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">

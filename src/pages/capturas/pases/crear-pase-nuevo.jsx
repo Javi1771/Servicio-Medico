@@ -525,10 +525,6 @@ const CrearPaseNuevo = () => {
     }
   };
 
-  const handleSalir = () => {
-    window.history.back();
-  };
-
   const openFechaCitaModal = () => {
     if (!fechaCita) {
       setFechaCita(new Date());
@@ -986,7 +982,7 @@ const CrearPaseNuevo = () => {
             {/* Botones Salir y Guardar */}
             <div className="mt-10 flex justify-center space-x-10">
               <button
-                onClick={handleSalir}
+                onClick={handleRegresar}
                 className="bg-red-600 px-8 py-3 rounded-full font-semibold text-lg text-white shadow-lg hover:shadow-2xl transition-transform transform hover:scale-110 hover:ring-2 hover:ring-red-300"
               >
                 Salir

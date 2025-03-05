@@ -143,7 +143,7 @@ export default function GenerarReceta() {
         console.log("✏️ Dibujando datos en el PDF...");
 
         //? Bloque: DATOS DE LA CONSULTA
-        firstPage.drawText(data.consulta?.seasignoaespecialidad === 'N' ? "General" : `Especialidad - ${data.consulta?.especialidadNombre}`, { x: 110, y: 645, size: 10 });
+        firstPage.drawText(data.consulta?.especialidadinterconsulta === null ? "General" : `Especialidad - ${data.consulta?.especialidadNombre}`, { x: 110, y: 645, size: 10 });
         firstPage.drawText(String(data.consulta?.claveconsulta ?? "N/A"), { x: 177, y: 663, size: 15 });
         firstPage.drawText(String(data.consulta?.fechacita ?? "N/A"), { x: 384, y: 665, size: 10 });
         drawMultilineText(firstPage, String(data.consulta?.departamento?.trim() ?? "N/A"), 414, 625, 150, 10);

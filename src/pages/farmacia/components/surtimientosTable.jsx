@@ -17,7 +17,7 @@ const playSound = (isSuccess) => {
   audio.play();
 };
 
-//* Función para validar EAN 
+//* Función para validar EAN
 async function validarEAN(ean, claveMedicamento) {
   try {
     const resp = await fetch("/api/farmacia/validarEAN", {
@@ -53,9 +53,7 @@ const SurtimientosTable = ({ data, resetSurtimiento }) => {
   const toggleInput = (idSurt) => {
     setDetalle((prev) =>
       prev.map((it) =>
-        it.idSurtimiento === idSurt
-          ? { ...it, showInput: !it.showInput }
-          : it
+        it.idSurtimiento === idSurt ? { ...it, showInput: !it.showInput } : it
       )
     );
   };
@@ -84,9 +82,11 @@ const SurtimientosTable = ({ data, resetSurtimiento }) => {
         html: "<p style='color: #fff; font-size: 1.1em;'>Ya se han entregado todas las piezas requeridas.</p>",
         background: "linear-gradient(145deg, #004d40, #00251a)",
         confirmButtonColor: "#00bcd4",
-        confirmButtonText: "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
+        confirmButtonText:
+          "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
         customClass: {
-          popup: "border border-blue-600 shadow-[0px_0px_20px_5px_rgba(0,188,212,0.9)] rounded-lg",
+          popup:
+            "border border-blue-600 shadow-[0px_0px_20px_5px_rgba(0,188,212,0.9)] rounded-lg",
         },
       });
       return;
@@ -101,9 +101,11 @@ const SurtimientosTable = ({ data, resetSurtimiento }) => {
         html: "<p style='color: #fff; font-size: 1.1em;'>No hay unidades disponibles en stock.</p>",
         background: "linear-gradient(145deg, #4a0000, #220000)",
         confirmButtonColor: "#ff1744",
-        confirmButtonText: "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
+        confirmButtonText:
+          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
         customClass: {
-          popup: "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
+          popup:
+            "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
         },
       });
       return;
@@ -118,9 +120,11 @@ const SurtimientosTable = ({ data, resetSurtimiento }) => {
         html: `<p style='color: #fff; font-size: 1.1em;'>El máximo permitido es ${item.stock} piezas.</p>`,
         background: "linear-gradient(145deg, #4a2600, #220f00)",
         confirmButtonColor: "#ff9800",
-        confirmButtonText: "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
+        confirmButtonText:
+          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
         customClass: {
-          popup: "border border-orange-600 shadow-[0px_0px_20px_5px_rgba(255,152,0,0.9)] rounded-lg",
+          popup:
+            "border border-orange-600 shadow-[0px_0px_20px_5px_rgba(255,152,0,0.9)] rounded-lg",
         },
       });
       return;
@@ -137,9 +141,11 @@ const SurtimientosTable = ({ data, resetSurtimiento }) => {
         html: "<p style='color: #fff; font-size: 1.1em;'>El EAN escaneado no coincide.</p>",
         background: "linear-gradient(145deg, #4a0000, #220000)",
         confirmButtonColor: "#ff1744",
-        confirmButtonText: "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
+        confirmButtonText:
+          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
         customClass: {
-          popup: "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
+          popup:
+            "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
         },
       });
       return;
@@ -155,9 +161,11 @@ const SurtimientosTable = ({ data, resetSurtimiento }) => {
         html: `<p style='color: #fff; font-size: 1.1em;'>El máximo permitido es ${item.stock} piezas.</p>`,
         background: "linear-gradient(145deg, #4a2600, #220000)",
         confirmButtonColor: "#ff9800",
-        confirmButtonText: "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
+        confirmButtonText:
+          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
         customClass: {
-          popup: "border border-orange-600 shadow-[0px_0px_20px_5px_rgba(255,152,0,0.9)] rounded-lg",
+          popup:
+            "border border-orange-600 shadow-[0px_0px_20px_5px_rgba(255,152,0,0.9)] rounded-lg",
         },
       });
       return;
@@ -223,10 +231,9 @@ const SurtimientosTable = ({ data, resetSurtimiento }) => {
       now.getMonth() + 1
     ).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")} ${String(
       now.getHours()
-    ).padStart(2, "0")}:${String(now.getMinutes()).padStart(
-      2,
-      "0"
-    )}:${String(now.getSeconds()).padStart(2, "0")}`;
+    ).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}:${String(
+      now.getSeconds()
+    ).padStart(2, "0")}`;
 
     try {
       await fetch("/api/farmacia/surtirMedicamentos", {
@@ -280,7 +287,7 @@ const SurtimientosTable = ({ data, resetSurtimiento }) => {
 
   return (
     //* Contenedor principal con Tailwind: fondo degradado, pantalla completa
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-blue-700 to-cyan-400 p-8 relative">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-blue-700 to-cyan-400 p-8 relative rounded-3xl border-4 border-white">
       {/* Contenedor interno con fondo blanco, sombra */}
       <div className="relative w-full max-w-5xl p-6 bg-white rounded-lg shadow-xl z-10">
         {/* Título (opcional) */}
@@ -289,7 +296,11 @@ const SurtimientosTable = ({ data, resetSurtimiento }) => {
         </h1>
 
         {/* Componentes */}
-        <SurtimientosInfo surtimiento={surtimiento} cost={cost} setCost={setCost} />
+        <SurtimientosInfo
+          surtimiento={surtimiento}
+          cost={cost}
+          setCost={setCost}
+        />
         <MedicamentosList
           detalle={detalle}
           toggleInput={toggleInput}
