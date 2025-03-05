@@ -113,7 +113,12 @@ const Home = () => {
         },
         {
           title: "Farmacia",
-          options: ["Medicamentos", "Farmacia Surtimientos", "Alertas de Stock", "Unidades de Medida"],
+          options: [
+            "Medicamentos",
+            "Farmacia Surtimientos",
+            "Alertas de Stock",
+            "Unidades de Medida",
+          ],
           icon: <FaCapsules className="inline-block mr-2" />,
         }
       );
@@ -156,11 +161,18 @@ const Home = () => {
     }
 
     if (rol === "8") {
-      menuOptions.push({
-        title: "Reportes",
-        options: ["Incapacidades"],
-        icon: <FaFeatherAlt className="inline-block mr-2" />,
-      });
+      menuOptions.push(
+        {
+          title: "Catalogos",
+          options: ["Beneficiarios"],
+          icon: <FaCapsules className="inline-block mr-2" />,
+        },
+        {
+          title: "Reportes",
+          options: ["Incapacidades"],
+          icon: <FaFeatherAlt className="inline-block mr-2" />,
+        }
+      );
     }
 
     if (rol === "9") {
@@ -175,7 +187,12 @@ const Home = () => {
       menuOptions.push(
         {
           title: "Farmacia",
-          options: ["Medicamentos", "Farmacia Surtimientos", "Alertas de Stock", "Unidades de Medida"],
+          options: [
+            "Medicamentos",
+            "Farmacia Surtimientos",
+            "Alertas de Stock",
+            "Unidades de Medida",
+          ],
           icon: <FaCapsules className="inline-block mr-2" />,
         },
         {
