@@ -1,4 +1,5 @@
 import React from "react";
+import { FaRegHandshake, FaTimesCircle } from "react-icons/fa"; // Importamos los iconos
 import styles from "../../css/SURTIMIENTOS_ESTILOS/informacionSindicato.module.css";
 
 /**
@@ -21,13 +22,19 @@ export default function InformacionSindicato({ sindicato }) {
       {/* Si NO hay sindicato */}
       {noSindicato ? (
         <>
-          <h2 className={styles.titleNo}>Información del Sindicato</h2>
+          <h2 className={styles.titleNo}>
+            <FaTimesCircle className={styles.iconNo} />
+            Información del Sindicato
+          </h2>
           <p className={styles.contentNo}>No está sindicalizado</p>
         </>
       ) : (
         /* Sí hay sindicato */
         <>
-          <h2 className={styles.titleSi}>Sindicalizado</h2>
+          <h2 className={styles.titleSi}>
+            <FaRegHandshake className={styles.iconSi} />
+            Sindicalizado
+          </h2>
           <p className={styles.contentSi}>
             Sindicato: <strong>{sindicato}</strong>
           </p>

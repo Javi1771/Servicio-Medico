@@ -1,8 +1,8 @@
-// CargaMedicamentosForm.jsx
 import React, { useState } from "react";
 import Swal from "sweetalert2";
 import ModalPdf from "./modalPdf";
 import styles from "../../css/SURTIMIENTOS_ESTILOS/cargaMedicamentos.module.css";
+import { FaPills, FaRegEdit, FaHashtag, FaBoxes, FaPlus, FaSave } from "react-icons/fa"; // Asegúrate de importar los íconos correctos
 
 const CargaMedicamentosForm = ({
   medicamentos,
@@ -121,7 +121,9 @@ const CargaMedicamentosForm = ({
       <h2 className={styles.title}>Carga de Medicamentos</h2>
 
       <div className={styles.inputGroup}>
-        <label htmlFor="medicamento">Medicamento</label>
+        <label htmlFor="medicamento" className={styles.labelWithIcon}>
+          <FaPills className={styles.icon} /> Medicamento
+        </label>
         <select
           id="medicamento"
           value={selectedMedicamento}
@@ -139,7 +141,9 @@ const CargaMedicamentosForm = ({
       </div>
 
       <div className={styles.inputGroup}>
-        <label htmlFor="indicaciones">Indicaciones</label>
+        <label htmlFor="indicaciones" className={styles.labelWithIcon}>
+          <FaRegEdit className={styles.icon} /> Indicaciones
+        </label>
         <input
           type="text"
           id="indicaciones"
@@ -151,7 +155,9 @@ const CargaMedicamentosForm = ({
       </div>
 
       <div className={styles.inputGroup}>
-        <label htmlFor="cantidad">Cantidad</label>
+        <label htmlFor="cantidad" className={styles.labelWithIcon}>
+          <FaHashtag className={styles.icon} /> Cantidad
+        </label>
         <input
           type="text"
           id="cantidad"
@@ -163,7 +169,9 @@ const CargaMedicamentosForm = ({
       </div>
 
       <div className={styles.inputGroup}>
-        <label htmlFor="piezas">Piezas</label>
+        <label htmlFor="piezas" className={styles.labelWithIcon}>
+          <FaBoxes className={styles.icon} /> Piezas
+        </label>
         <input
           type="number"
           id="piezas"
@@ -179,11 +187,11 @@ const CargaMedicamentosForm = ({
         className={styles.addButton}
         disabled={disableAdd}
       >
-        Añadir a la Receta
+        <FaPlus className={styles.icon} /> Añadir a la Receta
       </button>
 
       <button onClick={handleSaveAndShowPdf} className={styles.saveButton}>
-        Guardar y Generar Receta
+        <FaSave className={styles.icon} /> Guardar y Generar Receta
       </button>
 
       {showModal && (

@@ -1,4 +1,5 @@
 import React from "react";
+import { FaUser, FaIdCard } from "react-icons/fa"; // Importamos los iconos
 import styles from "../../css/SURTIMIENTOS_ESTILOS/datosEmpleado.module.css";
 
 const DatosEmpleado = ({ empleado }) => {
@@ -6,12 +7,15 @@ const DatosEmpleado = ({ empleado }) => {
 
   return (
     <div className={styles.empleadoCard}>
-      <h2 className={styles.empleadoTitle}>Datos del Empleado</h2>
-      <p>
-        <strong>Nombre Completo:</strong> {empleado.nombreCompleto}
+      <h2 className={styles.empleadoTitle}>Datos del Empleado: </h2>
+
+      <p className={styles.dato}>
+        <FaUser className={styles.icon} />
+        <strong>Nombre Completo: </strong> {empleado.nombreCompleto}
       </p>
-      <p>
-        <strong>Número de Nómina:</strong> {empleado.clavenomina}
+      <p className={styles.dato}>
+        <FaIdCard className={styles.icon} />
+        <strong>Número de Nómina: </strong> {empleado.clavenomina}
       </p>
     </div>
   );

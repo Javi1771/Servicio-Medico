@@ -1,8 +1,16 @@
-// components2/tablaMedicamentos.jsx
 import React, { useState } from "react";
-import styles from "../../css/SURTIMIENTOS_ESTILOS/tablaMedicamentos.module.css";
+import styles from "../../css/SURTIMIENTOS_ESTILOS/tablaMedicamentos.module.css"; // Usando import para los estilos
+import {
+  FaPills,
+  FaRegEdit,
+  FaHashtag,
+  FaBoxes,
+  FaTrashAlt,
+  FaPrint 
+} from "react-icons/fa"; // Importamos los iconos
 
 const TablaMedicamentos = ({
+  onGenerarReceta, // Asegúrate de recibir esta prop
   folioPase, // Folio pasado desde el componente padre
   medicamentos, // Medicamentos de la receta (vista por defecto)
   loading,
@@ -64,6 +72,7 @@ const TablaMedicamentos = ({
           surtimientos={surtimientos}
           onVolverAtras={handleVolverAtras}
           onVerDetalle={handleVerDetalle}
+          onGenerarReceta={onGenerarReceta} // Pasamos la función aquí
         />
       )}
 
@@ -88,9 +97,8 @@ const DefaultView = ({
   onRemoveMedicamento,
   onMostrarHistorial,
 }) => {
-  const styles = require("../../css/SURTIMIENTOS_ESTILOS/tablaMedicamentos.module.css");
-
-  if (loading) return <p className={styles.loading}>Cargando medicamentos...</p>;
+  if (loading)
+    return <p className={styles.loading}>Cargando medicamentos...</p>;
   if (error) return <p className={styles.error}>Error: {error}</p>;
   if (!medicamentos || medicamentos.length === 0)
     return <p className={styles.error}>No hay medicamentos asignados.</p>;
@@ -107,26 +115,42 @@ const DefaultView = ({
       <table className={styles.medicamentosTable}>
         <thead>
           <tr>
-            <th>Medicamento</th>
-            <th>Indicaciones</th>
-            <th>Cantidad</th>
-            <th>Piezas</th>
+            <th>
+              <FaPills className={styles.icon} /> Medicamento
+            </th>
+            <th>
+              <FaRegEdit className={styles.icon} /> Indicaciones
+            </th>
+            <th>
+              <FaHashtag className={styles.icon} /> Cantidad
+            </th>
+            <th>
+              <FaBoxes className={styles.icon} /> Piezas
+            </th>
             <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
           {medicamentos.map((med) => (
             <tr key={med.claveMedicamento}>
-              <td>{med.nombreMedicamento}</td>
-              <td>{med.indicaciones}</td>
-              <td>{med.cantidad}</td>
-              <td>{med.piezas}</td>
+              <td>
+                <FaPills className={styles.icon} /> {med.nombreMedicamento}
+              </td>
+              <td>
+                <FaRegEdit className={styles.icon} /> {med.indicaciones}
+              </td>
+              <td>
+                <FaHashtag className={styles.icon} /> {med.cantidad}
+              </td>
+              <td>
+                <FaBoxes className={styles.icon} /> {med.piezas}
+              </td>
               <td>
                 <button
                   onClick={() => onRemoveMedicamento(med)}
                   className={styles.removeButton}
                 >
-                  Quitar
+                  <FaTrashAlt className={styles.icon} /> Quitar
                 </button>
               </td>
             </tr>
@@ -145,8 +169,6 @@ const SurtimientosView = ({
   onVolverAtras,
   onVerDetalle,
 }) => {
-  const styles = require("../../css/SURTIMIENTOS_ESTILOS/tablaMedicamentos.module.css");
-
   if (loadingSurtimientos)
     return <p className={styles.loading}>Cargando surtimientos...</p>;
   if (errorSurtimientos)
@@ -176,19 +198,30 @@ const SurtimientosView = ({
       <table className={styles.medicamentosTable}>
         <thead>
           <tr>
-            <th>Folio Surtimiento</th>
-            <th>Fecha Emisión</th>
-            <th>Paciente</th>
-            <th>Diagnóstico</th>
-            <th>Medico</th>
+            <th>
+              <FaPills className={styles.icon} /> Folio Surtimiento
+            </th>
+            <th>
+              <FaRegEdit className={styles.icon} /> Fecha Emisión
+            </th>
+            <th>
+              <FaRegEdit className={styles.icon} /> Paciente
+            </th>
+            <th>
+              <FaHashtag className={styles.icon} /> Diagnóstico
+            </th>
+            <th>
+              <FaBoxes className={styles.icon} /> Médico
+            </th>
             <th>Acción</th>
           </tr>
         </thead>
         <tbody>
           {surtimientos.map((surt) => (
-            // Asegúrate de que tu API devuelva "FOLIO_SURTIMIENTO" en singular
             <tr key={surt.FOLIO_SURTIMIENTO}>
-              <td>{surt.FOLIO_SURTIMIENTO}</td>
+              <td>
+                <FaPills className={styles.icon} /> {surt.FOLIO_SURTIMIENTO}
+              </td>
               <td>{new Date(surt.FECHA_EMISION).toLocaleString()}</td>
               <td>{surt.NOMBRE_PACIENTE}</td>
               <td>{surt.DIAGNOSTICO}</td>
@@ -199,6 +232,13 @@ const SurtimientosView = ({
                   onClick={() => onVerDetalle(surt.FOLIO_SURTIMIENTO)}
                 >
                   Ver Detalle
+                </button>
+
+                <button
+                  className={styles.historialButton}
+                  onClick={() => onGenerarReceta(surt.FOLIO_SURTIMIENTO)}
+                >
+                  <FaPrint className={styles.icon} /> Generar Receta
                 </button>
               </td>
             </tr>
@@ -217,10 +257,10 @@ const DetalleView = ({
   surtSeleccionado,
   onVolverAtras,
 }) => {
-  const styles = require("../../css/SURTIMIENTOS_ESTILOS/tablaMedicamentos.module.css");
-
   if (loadingDetalle)
-    return <p className={styles.loading}>Cargando detalle del surtimiento...</p>;
+    return (
+      <p className={styles.loading}>Cargando detalle del surtimiento...</p>
+    );
   if (errorDetalle)
     return <p className={styles.error}>Error: {errorDetalle}</p>;
   if (!detalle || detalle.length === 0)
@@ -253,17 +293,27 @@ const DetalleView = ({
       <table className={styles.medicamentosTable}>
         <thead>
           <tr>
-            <th>Medicamento</th>
-            <th>Indicaciones</th>
-            <th>Cantidad</th>
-            <th>Piezas</th>
+            <th>
+              <FaPills className={styles.icon} /> Medicamento
+            </th>
+            <th>
+              <FaRegEdit className={styles.icon} /> Indicaciones
+            </th>
+            <th>
+              <FaHashtag className={styles.icon} /> Cantidad
+            </th>
+            <th>
+              <FaBoxes className={styles.icon} /> Piezas
+            </th>
             <th>Entregado</th>
           </tr>
         </thead>
         <tbody>
           {detalle.map((det, index) => (
             <tr key={index}>
-              <td>{det.NOMBRE_MEDICAMENTO}</td>
+              <td>
+                <FaPills className={styles.icon} /> {det.NOMBRE_MEDICAMENTO}
+              </td>
               <td>{det.indicaciones}</td>
               <td>{det.cantidad}</td>
               <td>{det.piezas}</td>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { FaUserMd, FaStethoscope } from "react-icons/fa"; // Importamos los iconos de react-icons
 import styles from "../../css/SURTIMIENTOS_ESTILOS/informacionEspecialista.module.css";
 
 const InformacionEspecialista = ({ especialista, onDiagnosticoChange }) => {
@@ -29,12 +30,16 @@ const InformacionEspecialista = ({ especialista, onDiagnosticoChange }) => {
 
   return (
     <div className={styles.especialistaCard}>
-      <h2 className={styles.especialistaTitle}>Información del Especialista</h2>
-      <p>
+      <h2 className={styles.especialistaTitle}>
+       Información del Especialista
+      </h2>
+      <p className={styles.infoText}>
+        <FaUserMd className={styles.icon} />
         <strong>Nombre del Médico:</strong>{" "}
         {especialista.nombreProveedor || "No disponible"}
       </p>
-      <p>
+      <p className={styles.infoText}>
+        <FaStethoscope className={styles.icon} />
         <strong>Especialidad:</strong>{" "}
         {especialista.especialidadNombre || "No registrada"}
       </p>

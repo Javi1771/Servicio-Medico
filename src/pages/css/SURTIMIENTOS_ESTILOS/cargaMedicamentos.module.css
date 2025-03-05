@@ -92,3 +92,57 @@
   background: linear-gradient(135deg, #e6670e, #a50021);
   transform: translateY(-2px);
 }
+
+
+/**ESTILOS ICONOS*/
+/* Iconos al lado del texto en el título */
+.title {
+  display: flex;
+  align-items: center; /* Centra el icono y el texto verticalmente */
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+.title i {
+  margin-right: 10px; /* Ajusta la distancia entre el icono y el texto */
+  font-size: 1.7rem; /* Ajusta el tamaño del icono */
+}
+
+/* Ajuste para los iconos en los botones */
+.addButton,
+.saveButton {
+  display: flex;
+  justify-content: center;
+  align-items: center; /* Centra el icono y el texto dentro del botón */
+}
+
+.addButton i,
+.saveButton i {
+  margin-right: 8px; /* Ajusta el espacio entre el icono y el texto */
+  font-size: 1.3rem; /* Ajusta el tamaño del icono en los botones */
+}
+
+
+
+
+
+/* Aseguramos que el ícono esté a la izquierda del texto */
+.labelWithIcon {
+  display: flex;
+  align-items: center;
+}
+
+.icon {
+  margin-right: 10px; /* Espacio entre el icono y el texto */
+}
+
+.addButton, .saveButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.addButton .icon, .saveButton .icon {
+  margin-right: 10px;
+}
