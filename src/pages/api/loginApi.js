@@ -3,7 +3,7 @@
 import sql from 'mssql';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { connectToDatabase } from './connectToDatabase';
+import { connectToDatabase } from '../connectToDatabase';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -99,7 +99,7 @@ export default async function handler(req, res) {
         .input("agenteUsuario", sql.VarChar, userAgent)
         .query(`
           INSERT INTO dbo.ActividadUsuarios (IdUsuario, Accion, FechaHora, DireccionIP, AgenteUsuario)
-          VALUES (@userId, @accion, GETDATE(), @direccionIP, @agenteUsuario)
+          VALUES (@userId, @accion, DATEADD(MINUTE, -4, GETDATE()), @direccionIP, @agenteUsuario)
         `);
       console.log("Actividad de inicio de sesión registrada.");
     } catch (errorRegistro) {
