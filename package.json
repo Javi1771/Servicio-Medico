@@ -63,6 +63,8 @@
     "react-webcam": "^7.2.0",
     "redis": "^4.7.0",
     "soap": "^1.1.5",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1",
     "styled-components": "^6.1.13",
     "sweetalert2": "^11.15.10",
     "sweetalert2-react-content": "^5.0.7",
@@ -70,7 +72,8 @@
     "tsparticles": "^3.8.1",
     "tsparticles-engine": "^2.12.0",
     "twilio": "^5.4.1",
-    "uuid": "^11.0.3"
+    "uuid": "^11.0.3",
+    "winston": "^3.17.0"
   },
   "devDependencies": {
     "@types/js-cookie": "^3.0.6",

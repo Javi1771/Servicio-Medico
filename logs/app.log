@@ -1,0 +1,231 @@
+2025-03-06T16:03:46.638Z [info]: 🚀 Servidor HTTPS corriendo en https://172.16.4.47:3005
+2025-03-06T16:03:51.648Z [info]: Evento periódico a las 10:03:51
+2025-03-06T16:03:56.643Z [info]: Evento periódico a las 10:03:56
+2025-03-06T16:04:01.652Z [info]: Evento periódico a las 10:04:01
+2025-03-06T16:04:06.661Z [info]: Evento periódico a las 10:04:06
+2025-03-06T16:04:11.675Z [info]: Evento periódico a las 10:04:11
+2025-03-06T16:04:16.683Z [info]: Evento periódico a las 10:04:16
+2025-03-06T16:04:21.686Z [info]: Evento periódico a las 10:04:21
+2025-03-06T16:04:26.701Z [info]: Evento periódico a las 10:04:26
+2025-03-06T16:04:29.586Z [info]: Nueva petición: GET /eventosLogs/dashboard
+2025-03-06T16:04:31.861Z [info]: Evento periódico a las 10:04:31
+2025-03-06T16:04:37.254Z [info]: Evento periódico a las 10:04:37
+2025-03-06T16:04:38.904Z [info]: Nueva petición: GET /_next/static/chunks/webpack.js
+2025-03-06T16:04:38.920Z [info]: Nueva petición: GET /_next/static/chunks/react-refresh.js
+2025-03-06T16:04:38.922Z [info]: Nueva petición: GET /_next/static/chunks/main.js
+2025-03-06T16:04:38.964Z [info]: Nueva petición: GET /_next/static/chunks/pages/_app.js
+2025-03-06T16:04:38.983Z [info]: Nueva petición: GET /_next/static/chunks/pages/eventosLogs/dashboard.js
+2025-03-06T16:04:39.090Z [info]: Nueva petición: GET /_next/static/development/_buildManifest.js
+2025-03-06T16:04:39.118Z [info]: Nueva petición: GET /_next/static/development/_ssgManifest.js
+2025-03-06T16:04:40.703Z [info]: Nueva petición: GET /_next/static/development/_devMiddlewareManifest.json
+2025-03-06T16:04:40.855Z [info]: Nueva petición: GET /pandora.ico
+2025-03-06T16:04:41.144Z [info]: Nueva petición: GET /_next/static/development/_devPagesManifest.json
+2025-03-06T16:04:41.164Z [info]: Nueva petición: GET /_next/static/chunks/pages/inicio-servicio-medico.js
+2025-03-06T16:04:42.366Z [info]: Evento periódico a las 10:04:42
+2025-03-06T16:04:44.162Z [info]: Nueva petición: GET /_next/static/webpack/42715d7828ae64d8.webpack.hot-update.json
+2025-03-06T16:04:44.274Z [info]: Nueva petición: GET /_next/static/webpack/webpack.42715d7828ae64d8.hot-update.js
+2025-03-06T16:04:44.574Z [info]: Nueva petición: GET /_next/image?url=%2Fbaner_sjr.png&w=3840&q=75
+2025-03-06T16:04:44.601Z [info]: Nueva petición: GET /_next/image?url=%2Flogo_sjr.png&w=3840&q=75
+2025-03-06T16:04:47.370Z [info]: Evento periódico a las 10:04:47
+2025-03-06T16:04:52.372Z [info]: Evento periódico a las 10:04:52
+2025-03-06T16:04:57.381Z [info]: Evento periódico a las 10:04:57
+2025-03-06T16:05:02.388Z [info]: Evento periódico a las 10:05:02
+2025-03-06T16:05:06.409Z [info]: Nueva petición: GET /eventosLogs/dashboard
+2025-03-06T16:05:06.727Z [info]: Nueva petición: GET /_next/static/chunks/webpack.js
+2025-03-06T16:05:06.745Z [info]: Nueva petición: GET /_next/static/chunks/react-refresh.js
+2025-03-06T16:05:06.748Z [info]: Nueva petición: GET /_next/static/chunks/main.js
+2025-03-06T16:05:06.753Z [info]: Nueva petición: GET /_next/static/chunks/pages/_app.js
+2025-03-06T16:05:06.756Z [info]: Nueva petición: GET /_next/static/chunks/pages/eventosLogs/dashboard.js
+2025-03-06T16:05:06.760Z [info]: Nueva petición: GET /_next/static/development/_buildManifest.js
+2025-03-06T16:05:06.773Z [info]: Nueva petición: GET /_next/static/development/_ssgManifest.js
+2025-03-06T16:05:07.391Z [info]: Evento periódico a las 10:05:07
+2025-03-06T16:05:07.440Z [info]: Nueva petición: GET /_next/static/development/_devMiddlewareManifest.json
+2025-03-06T16:05:07.501Z [info]: Nueva petición: GET /_next/static/development/_devPagesManifest.json
+2025-03-06T16:05:07.512Z [info]: Nueva petición: GET /_next/static/chunks/pages/inicio-servicio-medico.js
+2025-03-06T16:05:07.560Z [info]: Nueva petición: GET /_next/image?url=%2Fbaner_sjr.png&w=3840&q=75
+2025-03-06T16:05:07.567Z [info]: Nueva petición: GET /_next/image?url=%2Flogo_sjr.png&w=3840&q=75
+2025-03-06T16:05:12.404Z [info]: Evento periódico a las 10:05:12
+2025-03-06T16:05:15.980Z [info]: Nueva petición: GET /eventosLogs/dashboard
+2025-03-06T16:05:16.055Z [info]: Nueva petición: GET /_next/static/chunks/webpack.js
+2025-03-06T16:05:16.069Z [info]: Nueva petición: GET /_next/static/chunks/main.js
+2025-03-06T16:05:16.073Z [info]: Nueva petición: GET /_next/static/chunks/react-refresh.js
+2025-03-06T16:05:16.088Z [info]: Nueva petición: GET /_next/static/chunks/pages/_app.js
+2025-03-06T16:05:16.098Z [info]: Nueva petición: GET /_next/static/development/_buildManifest.js
+2025-03-06T16:05:16.100Z [info]: Nueva petición: GET /_next/static/chunks/pages/eventosLogs/dashboard.js
+2025-03-06T16:05:16.107Z [info]: Nueva petición: GET /_next/static/development/_ssgManifest.js
+2025-03-06T16:05:16.676Z [info]: Nueva petición: GET /_next/static/development/_devMiddlewareManifest.json
+2025-03-06T16:05:16.716Z [info]: Nueva petición: GET /_next/static/development/_devPagesManifest.json
+2025-03-06T16:05:16.725Z [info]: Nueva petición: GET /_next/static/chunks/pages/inicio-servicio-medico.js
+2025-03-06T16:05:16.786Z [info]: Nueva petición: GET /_next/image?url=%2Fbaner_sjr.png&w=3840&q=75
+2025-03-06T16:05:16.789Z [info]: Nueva petición: GET /_next/image?url=%2Flogo_sjr.png&w=3840&q=75
+2025-03-06T16:05:17.414Z [info]: Evento periódico a las 10:05:17
+2025-03-06T16:05:22.422Z [info]: Evento periódico a las 10:05:22
+2025-03-06T16:05:27.425Z [info]: Evento periódico a las 10:05:27
+2025-03-06T16:05:32.440Z [info]: Evento periódico a las 10:05:32
+2025-03-06T16:05:37.450Z [info]: Evento periódico a las 10:05:37
+2025-03-06T16:05:42.465Z [info]: Evento periódico a las 10:05:42
+2025-03-06T16:05:47.477Z [info]: Evento periódico a las 10:05:47
+2025-03-06T16:05:52.482Z [info]: Evento periódico a las 10:05:52
+2025-03-06T16:05:57.485Z [info]: Evento periódico a las 10:05:57
+2025-03-06T16:06:02.494Z [info]: Evento periódico a las 10:06:02
+2025-03-06T16:06:07.503Z [info]: Evento periódico a las 10:06:07
+2025-03-06T16:06:12.517Z [info]: Evento periódico a las 10:06:12
+2025-03-06T16:06:17.523Z [info]: Evento periódico a las 10:06:17
+2025-03-06T16:06:22.533Z [info]: Evento periódico a las 10:06:22
+2025-03-06T16:06:24.427Z [info]: Nueva petición: GET /_next/static/webpack/9e72b98a195a2e6d.webpack.hot-update.json
+2025-03-06T16:06:24.444Z [info]: Nueva petición: GET /_next/static/webpack/pages/_app.9e72b98a195a2e6d.hot-update.js
+2025-03-06T16:06:24.448Z [info]: Nueva petición: GET /_next/static/webpack/webpack.9e72b98a195a2e6d.hot-update.js
+2025-03-06T16:06:27.543Z [info]: Evento periódico a las 10:06:27
+2025-03-06T16:06:32.544Z [info]: Evento periódico a las 10:06:32
+2025-03-06T16:06:37.552Z [info]: Evento periódico a las 10:06:37
+2025-03-06T16:06:42.564Z [info]: Evento periódico a las 10:06:42
+2025-03-06T16:06:47.578Z [info]: Evento periódico a las 10:06:47
+2025-03-06T16:06:52.593Z [info]: Evento periódico a las 10:06:52
+2025-03-06T16:06:57.597Z [info]: Evento periódico a las 10:06:57
+2025-03-06T16:07:02.605Z [info]: Evento periódico a las 10:07:02
+2025-03-06T16:07:07.615Z [info]: Evento periódico a las 10:07:07
+2025-03-06T16:07:12.620Z [info]: Evento periódico a las 10:07:12
+2025-03-06T16:07:17.632Z [info]: Evento periódico a las 10:07:17
+2025-03-06T16:07:22.635Z [info]: Evento periódico a las 10:07:22
+2025-03-06T16:07:25.082Z [info]: Nueva petición: GET /_next/static/webpack/4799edf37bb99f2b.webpack.hot-update.json
+2025-03-06T16:07:25.105Z [info]: Nueva petición: GET /_next/static/webpack/pages/inicio-servicio-medico.4799edf37bb99f2b.hot-update.js
+2025-03-06T16:07:25.111Z [info]: Nueva petición: GET /_next/static/webpack/webpack.4799edf37bb99f2b.hot-update.js
+2025-03-06T16:07:27.645Z [info]: Evento periódico a las 10:07:27
+2025-03-06T16:07:28.619Z [info]: Nueva petición: GET /_next/static/chunks/pages/eventoslogs/dashboard.js
+2025-03-06T16:07:32.647Z [info]: Evento periódico a las 10:07:32
+2025-03-06T16:07:34.929Z [info]: Nueva petición: GET /_next/static/chunks/pages/farmacia/medicamentos.js
+2025-03-06T16:07:36.615Z [info]: Nueva petición: GET /_next/static/webpack/7cfd5daed35fb594.webpack.hot-update.json
+2025-03-06T16:07:36.716Z [info]: Nueva petición: GET /_next/static/webpack/webpack.7cfd5daed35fb594.hot-update.js
+2025-03-06T16:07:37.114Z [info]: Nueva petición: GET /foto_sllidebarjpg.jpg
+2025-03-06T16:07:37.165Z [info]: Nueva petición: GET /_next/image?url=%2FLogo_inventarioFarmacia.png&w=640&q=75
+2025-03-06T16:07:37.175Z [info]: Nueva petición: GET /api/farmacia/unidades
+2025-03-06T16:07:37.179Z [info]: Nueva petición: GET /api/farmacia/obtenerMedicamentos
+2025-03-06T16:07:37.669Z [info]: Evento periódico a las 10:07:37
+2025-03-06T16:07:42.675Z [info]: Evento periódico a las 10:07:42
+2025-03-06T16:07:47.683Z [info]: Evento periódico a las 10:07:47
+2025-03-06T16:07:52.694Z [info]: Evento periódico a las 10:07:52
+2025-03-06T16:07:57.698Z [info]: Evento periódico a las 10:07:57
+2025-03-06T16:08:02.713Z [info]: Evento periódico a las 10:08:02
+2025-03-06T16:08:07.714Z [info]: Evento periódico a las 10:08:07
+2025-03-06T16:08:12.720Z [info]: Evento periódico a las 10:08:12
+2025-03-06T16:08:17.726Z [info]: Evento periódico a las 10:08:17
+2025-03-06T16:08:22.742Z [info]: Evento periódico a las 10:08:22
+2025-03-06T16:08:27.756Z [info]: Evento periódico a las 10:08:27
+2025-03-06T16:08:32.760Z [info]: Evento periódico a las 10:08:32
+2025-03-06T16:08:37.766Z [info]: Evento periódico a las 10:08:37
+2025-03-06T16:08:42.768Z [info]: Evento periódico a las 10:08:42
+2025-03-06T16:08:47.780Z [info]: Evento periódico a las 10:08:47
+2025-03-06T16:08:52.781Z [info]: Evento periódico a las 10:08:52
+2025-03-06T16:08:57.795Z [info]: Evento periódico a las 10:08:57
+2025-03-06T16:09:02.800Z [info]: Evento periódico a las 10:09:02
+2025-03-06T16:09:07.803Z [info]: Evento periódico a las 10:09:07
+2025-03-06T16:09:12.814Z [info]: Evento periódico a las 10:09:12
+2025-03-06T16:09:17.819Z [info]: Evento periódico a las 10:09:17
+2025-03-06T16:09:22.827Z [info]: Evento periódico a las 10:09:22
+2025-03-06T16:09:27.839Z [info]: Evento periódico a las 10:09:27
+2025-03-06T16:09:32.850Z [info]: Evento periódico a las 10:09:32
+2025-03-06T16:09:37.854Z [info]: Evento periódico a las 10:09:37
+2025-03-06T16:09:42.858Z [info]: Evento periódico a las 10:09:42
+2025-03-06T16:09:45.635Z [info]: Nueva petición: GET /_next/static/webpack/99bca0b7eb430a8e.webpack.hot-update.json
+2025-03-06T16:09:45.653Z [info]: Nueva petición: GET /_next/static/webpack/webpack.99bca0b7eb430a8e.hot-update.js
+2025-03-06T16:09:47.859Z [info]: Evento periódico a las 10:09:47
+2025-03-06T16:09:52.860Z [info]: Evento periódico a las 10:09:52
+2025-03-06T16:09:56.626Z [info]: Nueva petición: GET /inicio-servicio-medico
+2025-03-06T16:09:57.017Z [info]: Nueva petición: GET /_next/static/chunks/webpack.js
+2025-03-06T16:09:57.042Z [info]: Nueva petición: GET /_next/static/chunks/react-refresh.js
+2025-03-06T16:09:57.045Z [info]: Nueva petición: GET /_next/static/chunks/main.js
+2025-03-06T16:09:57.049Z [info]: Nueva petición: GET /_next/static/chunks/pages/_app.js
+2025-03-06T16:09:57.054Z [info]: Nueva petición: GET /_next/static/chunks/pages/inicio-servicio-medico.js
+2025-03-06T16:09:57.062Z [info]: Nueva petición: GET /_next/static/development/_buildManifest.js
+2025-03-06T16:09:57.068Z [info]: Nueva petición: GET /_next/static/development/_ssgManifest.js
+2025-03-06T16:09:57.800Z [info]: Nueva petición: GET /_next/static/development/_devMiddlewareManifest.json
+2025-03-06T16:09:57.866Z [info]: Evento periódico a las 10:09:57
+2025-03-06T16:09:57.870Z [info]: Nueva petición: GET /pandora.ico
+2025-03-06T16:09:57.928Z [info]: Nueva petición: GET /_next/image?url=%2Fbaner_sjr.png&w=3840&q=75
+2025-03-06T16:09:57.939Z [info]: Nueva petición: GET /_next/image?url=%2Flogo_sjr.png&w=3840&q=75
+2025-03-06T16:10:02.870Z [info]: Evento periódico a las 10:10:02
+2025-03-06T16:10:03.240Z [info]: Nueva petición: GET /_next/static/development/_devPagesManifest.json
+2025-03-06T16:10:03.248Z [info]: Nueva petición: GET /_next/static/chunks/pages/eventoslogs/dashboard.js
+2025-03-06T16:10:07.885Z [info]: Evento periódico a las 10:10:07
+2025-03-06T16:10:12.894Z [info]: Evento periódico a las 10:10:12
+2025-03-06T16:10:17.907Z [info]: Evento periódico a las 10:10:17
+2025-03-06T16:10:24.441Z [info]: 🚀 Servidor HTTPS corriendo en https://172.16.4.47:3005
+2025-03-06T16:10:29.464Z [info]: Evento periódico a las 10:10:29
+2025-03-06T16:10:34.460Z [info]: Evento periódico a las 10:10:34
+2025-03-06T16:10:39.474Z [info]: Evento periódico a las 10:10:39
+2025-03-06T16:10:44.489Z [info]: Evento periódico a las 10:10:44
+2025-03-06T16:10:49.494Z [info]: Evento periódico a las 10:10:49
+2025-03-06T16:10:54.504Z [info]: Evento periódico a las 10:10:54
+2025-03-06T16:10:59.199Z [info]: Nueva petición: GET /inicio-servicio-medico
+2025-03-06T16:10:59.521Z [info]: Evento periódico a las 10:10:59
+2025-03-06T16:11:00.822Z [info]: Nueva petición: GET /_next/static/webpack/2e6a372d07a5e21f.webpack.hot-update.json
+2025-03-06T16:11:05.266Z [info]: Evento periódico a las 10:11:05
+2025-03-06T16:11:10.267Z [info]: Evento periódico a las 10:11:10
+2025-03-06T16:11:15.287Z [info]: Evento periódico a las 10:11:15
+2025-03-06T16:11:20.290Z [info]: Evento periódico a las 10:11:20
+2025-03-06T16:11:24.429Z [info]: Nueva petición: GET /_next/static/chunks/react-refresh.js
+2025-03-06T16:11:24.432Z [info]: Nueva petición: GET /_next/static/chunks/webpack.js
+2025-03-06T16:11:24.435Z [info]: Nueva petición: GET /_next/static/chunks/main.js
+2025-03-06T16:11:24.438Z [info]: Nueva petición: GET /_next/static/chunks/pages/_app.js
+2025-03-06T16:11:24.443Z [info]: Nueva petición: GET /_next/static/chunks/pages/inicio-servicio-medico.js
+2025-03-06T16:11:24.445Z [info]: Nueva petición: GET /_next/static/development/_buildManifest.js
+2025-03-06T16:11:24.463Z [info]: Nueva petición: GET /_next/static/development/_ssgManifest.js
+2025-03-06T16:11:25.201Z [info]: Nueva petición: GET /_next/static/development/_devMiddlewareManifest.json
+2025-03-06T16:11:25.247Z [info]: Nueva petición: GET /pandora.ico
+2025-03-06T16:11:25.299Z [info]: Evento periódico a las 10:11:25
+2025-03-06T16:11:25.314Z [info]: Nueva petición: GET /_next/image?url=%2Fbaner_sjr.png&w=3840&q=75
+2025-03-06T16:11:25.369Z [info]: Nueva petición: GET /_next/image?url=%2Flogo_sjr.png&w=3840&q=75
+2025-03-06T16:11:25.981Z [info]: Nueva petición: GET /_next/static/development/_devPagesManifest.json
+2025-03-06T16:11:25.989Z [info]: Nueva petición: GET /_next/static/chunks/pages/eventoslogs/dashboard.js
+2025-03-06T16:11:29.353Z [info]: Nueva petición: GET /eventoslogs/dashboard
+2025-03-06T16:11:29.490Z [info]: Nueva petición: GET /_next/static/css/app/layout.css?v=1741277489365
+2025-03-06T16:11:29.494Z [info]: Nueva petición: GET /_next/static/chunks/webpack.js?v=1741277489365
+2025-03-06T16:11:29.504Z [info]: Nueva petición: GET /_next/static/chunks/main-app.js?v=1741277489365
+2025-03-06T16:11:29.508Z [info]: Nueva petición: GET /_next/static/chunks/app-pages-internals.js
+2025-03-06T16:11:30.304Z [info]: Evento periódico a las 10:11:30
+2025-03-06T16:11:35.314Z [info]: Evento periódico a las 10:11:35
+2025-03-06T16:11:40.320Z [info]: Evento periódico a las 10:11:40
+2025-03-06T16:11:45.323Z [info]: Evento periódico a las 10:11:45
+2025-03-06T16:11:50.059Z [info]: Nueva petición: GET /inicio-servicio-medico
+2025-03-06T16:11:50.135Z [info]: Nueva petición: GET /_next/static/chunks/webpack.js
+2025-03-06T16:11:50.159Z [info]: Nueva petición: GET /_next/static/chunks/main.js
+2025-03-06T16:11:50.169Z [info]: Nueva petición: GET /_next/static/chunks/react-refresh.js
+2025-03-06T16:11:50.184Z [info]: Nueva petición: GET /_next/static/chunks/pages/_app.js
+2025-03-06T16:11:50.194Z [info]: Nueva petición: GET /_next/static/chunks/pages/inicio-servicio-medico.js
+2025-03-06T16:11:50.198Z [info]: Nueva petición: GET /_next/static/development/_buildManifest.js
+2025-03-06T16:11:50.201Z [info]: Nueva petición: GET /_next/static/development/_ssgManifest.js
+2025-03-06T16:11:50.324Z [info]: Evento periódico a las 10:11:50
+2025-03-06T16:11:52.067Z [info]: Nueva petición: GET /inicio-servicio-medico
+2025-03-06T16:11:52.149Z [info]: Nueva petición: GET /_next/static/chunks/webpack.js
+2025-03-06T16:11:52.151Z [info]: Nueva petición: GET /_next/static/chunks/main.js
+2025-03-06T16:11:52.154Z [info]: Nueva petición: GET /_next/static/chunks/react-refresh.js
+2025-03-06T16:11:52.156Z [info]: Nueva petición: GET /_next/static/chunks/pages/_app.js
+2025-03-06T16:11:52.158Z [info]: Nueva petición: GET /_next/static/chunks/pages/inicio-servicio-medico.js
+2025-03-06T16:11:52.160Z [info]: Nueva petición: GET /_next/static/development/_buildManifest.js
+2025-03-06T16:11:52.170Z [info]: Nueva petición: GET /_next/static/development/_ssgManifest.js
+2025-03-06T16:11:52.804Z [info]: Nueva petición: GET /_next/static/development/_devMiddlewareManifest.json
+2025-03-06T16:11:52.835Z [info]: Nueva petición: GET /pandora.ico
+2025-03-06T16:11:52.879Z [info]: Nueva petición: GET /_next/image?url=%2Fbaner_sjr.png&w=3840&q=75
+2025-03-06T16:11:52.889Z [info]: Nueva petición: GET /_next/image?url=%2Flogo_sjr.png&w=3840&q=75
+2025-03-06T16:11:54.292Z [info]: Nueva petición: GET /_next/static/development/_devPagesManifest.json
+2025-03-06T16:11:54.296Z [info]: Nueva petición: GET /_next/static/chunks/pages/eventoslogs/dashboard.js
+2025-03-06T16:11:55.335Z [info]: Evento periódico a las 10:11:55
+2025-03-06T16:11:55.582Z [info]: Nueva petición: GET /eventoslogs/dashboard
+2025-03-06T16:11:55.686Z [info]: Nueva petición: GET /_next/static/css/app/layout.css?v=1741277515595
+2025-03-06T16:11:55.688Z [info]: Nueva petición: GET /_next/static/chunks/webpack.js?v=1741277515595
+2025-03-06T16:11:55.691Z [info]: Nueva petición: GET /_next/static/chunks/main-app.js?v=1741277515595
+2025-03-06T16:11:55.693Z [info]: Nueva petición: GET /_next/static/chunks/app-pages-internals.js
+2025-03-06T16:12:00.343Z [info]: Evento periódico a las 10:12:00
+2025-03-06T16:12:05.357Z [info]: Evento periódico a las 10:12:05
+2025-03-06T16:12:10.357Z [info]: Evento periódico a las 10:12:10
+2025-03-06T16:12:15.368Z [info]: Evento periódico a las 10:12:15
+2025-03-06T16:12:20.378Z [info]: Evento periódico a las 10:12:20
+2025-03-06T16:12:25.378Z [info]: Evento periódico a las 10:12:25
+2025-03-06T16:12:30.386Z [info]: Evento periódico a las 10:12:30
+2025-03-06T16:12:35.392Z [info]: Evento periódico a las 10:12:35
+2025-03-06T16:12:40.404Z [info]: Evento periódico a las 10:12:40
+2025-03-06T16:12:45.408Z [info]: Evento periódico a las 10:12:45
+2025-03-06T16:12:50.423Z [info]: Evento periódico a las 10:12:50
+2025-03-06T16:12:55.427Z [info]: Evento periódico a las 10:12:55
+2025-03-06T16:13:00.433Z [info]: Evento periódico a las 10:13:00
+2025-03-06T16:13:05.438Z [info]: Evento periódico a las 10:13:05
