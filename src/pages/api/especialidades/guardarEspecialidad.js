@@ -1,5 +1,6 @@
 import { connectToDatabase } from "../connectToDatabase";
 import sql from "mssql";
+import cookie from "cookie"; 
 
 export default async function handler(req, res) {
   if (req.method === "POST") {
@@ -12,7 +13,6 @@ export default async function handler(req, res) {
       clavepaciente,
     } = req.body;
 
-    //* Log inicial de datos recibidos
     console.log("🟢 Datos recibidos en la solicitud:", {
       claveConsulta,
       claveEspecialidad,
@@ -35,13 +35,13 @@ export default async function handler(req, res) {
       return res.status(400).json({ message: "Datos incompletos." });
     }
 
-    //* Establecer una conexión con la base de datos
     const pool = await connectToDatabase();
-    const transaction = new sql.Transaction(pool); //* Crear una nueva transacción
+    const transaction = new sql.Transaction(pool); //* Crear una transacción
 
     try {
       await transaction.begin(); //* Iniciar la transacción
 
+      //* Obtener la fecha de registro formateada
       const now = new Date();
       const fechaRegistro = `${now.getFullYear()}-${String(
         now.getMonth() + 1
@@ -50,23 +50,24 @@ export default async function handler(req, res) {
       ).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}:${String(
         now.getSeconds()
       ).padStart(2, "0")}`;
-      //const fechaRegistro = new Date().toISOString();
+
+      //* Si claveEspecialidad es "N", se considera que no se asignó especialidad
       const claveEspecialidadFinal =
         claveEspecialidad === "N" ? null : claveEspecialidad;
 
-      //* Determinar el valor real de observaciones
+      //* Determinar las observaciones reales: si no se ingresaron, se usa el mensaje predeterminado
       const observacionesFinal =
         observaciones ||
         "Sin Observaciones, No Se Asignó Especialidad En Esta Consulta";
 
-      //* Lógica para determinar el estatus
+      //* Lógica para determinar el estatus: 0 = sin especialidad asignada, 1 = asignada
       let estatus = 1;
       if (
         !claveEspecialidadFinal &&
-        observacionesFinal ===
+        observacionesFinal.trim() ===
           "Sin Observaciones, No Se Asignó Especialidad En Esta Consulta"
       ) {
-        estatus = 0; //* Sin especialidad asignada
+        estatus = 0;
       }
 
       console.log("🟠 Insertando en la tabla detalleEspecialidad con datos:");
@@ -83,7 +84,7 @@ export default async function handler(req, res) {
         clavepaciente,
       });
 
-      //* Insertar datos en la tabla detalleEspecialidad
+      //* Inserción en detalleEspecialidad
       await transaction
         .request()
         .input("claveconsulta", sql.Int, parseInt(claveConsulta, 10))
@@ -100,9 +101,9 @@ export default async function handler(req, res) {
         .input("clavepaciente", sql.VarChar, clavepaciente)
         .query(`
           INSERT INTO detalleEspecialidad 
-          (claveconsulta, clavenomina, claveespecialidad, observaciones, prioridad, estatus, fecha_asignacion, clavepaciente)
+            (claveconsulta, clavenomina, claveespecialidad, observaciones, prioridad, estatus, fecha_asignacion, clavepaciente)
           VALUES 
-          (@claveconsulta, @clavenomina, @claveespecialidad, @observaciones, @prioridad, @estatus, @fecha_asignacion, @clavepaciente)
+            (@claveconsulta, @clavenomina, @claveespecialidad, @observaciones, @prioridad, @estatus, @fecha_asignacion, @clavepaciente)
         `);
 
       console.log("🟢 Registro insertado en la tabla detalleEspecialidad.");
@@ -130,11 +131,48 @@ export default async function handler(req, res) {
 
       console.log("🟢 Tabla consultas actualizada.");
 
-      console.log("🟠 Confirmando transacción...");
-      await transaction.commit(); //* Confirmar los cambios si todo fue exitoso
+      //* Registrar actividad solo si se asignó especialidad (es decir, si observacionesFinal NO es el mensaje predeterminado)
+      if (
+        observacionesFinal.trim() !==
+        "Sin Observaciones, No Se Asignó Especialidad En Esta Consulta"
+      ) {
+        try {
+          //* Parsear cookies para obtener la cookie 'claveusuario'
+          const allCookies = cookie.parse(req.headers.cookie || "");
+          const idUsuario =
+            allCookies.claveusuario !== undefined
+              ? Number(allCookies.claveusuario)
+              : null;
+          if (idUsuario !== null) {
+            const ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
+            const userAgent = req.headers["user-agent"] || "";
+            await pool.request()
+              .input("userId", sql.Int, idUsuario)
+              .input("accion", sql.VarChar, "Asignó especialidad")
+              .input("direccionIP", sql.VarChar, ip)
+              .input("agenteUsuario", sql.VarChar, userAgent)
+              //* Aquí se usa la claveConsulta (proveniente de la tabla consultas) para la actividad
+              .input("claveConsulta", sql.Int, parseInt(claveConsulta, 10))
+              .query(`
+                INSERT INTO dbo.ActividadUsuarios 
+                  (IdUsuario, Accion, FechaHora, DireccionIP, AgenteUsuario, ClaveConsulta)
+                VALUES 
+                  (@userId, @accion, DATEADD(MINUTE, -4, GETDATE()), @direccionIP, @agenteUsuario, @claveConsulta)
+              `);
+            console.log("Actividad de asignación de especialidad registrada.");
+          } else {
+            console.log("Cookie 'claveusuario' no encontrada; actividad no registrada.");
+          }
+        } catch (errorRegistro) {
+          console.error("Error registrando actividad de asignación:", errorRegistro);
+        }
+      }
+
+      //* Commit de la transacción
+      await transaction.commit();
       console.log("🟢 Transacción confirmada.");
 
-      console.log("🟠 Obteniendo historial actualizado...");
+      //* Obtener el historial actualizado (opcional)
       const result = await pool
         .request()
         .input("clavenomina", sql.VarChar, clavenomina)
@@ -157,18 +195,18 @@ export default async function handler(req, res) {
       const historial = result.recordset;
       console.log("🟢 Historial actualizado (último mes):", historial);
 
-      //* Respuesta final al cliente
       res.status(200).json({
         message: "Especialidad guardada correctamente.",
         historial,
       });
     } catch (error) {
       console.error("❌ Error durante la transacción:", error);
-
-      //! Revertir la transacción si ocurrió un error
-      await transaction.rollback();
-      console.log("❌ Transacción revertida debido a un error.");
-
+      try {
+        await transaction.rollback();
+        console.log("🔄 Transacción revertida debido a un error.");
+      } catch (rollbackError) {
+        console.error("❌ Error al hacer rollback:", rollbackError);
+      }
       res.status(500).json({ message: "Error al guardar la especialidad." });
     }
   } else {

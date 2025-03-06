@@ -1,6 +1,16 @@
 import { connectToDatabase } from "../connectToDatabase";
 import sql from "mssql";
 
+//* Función para parsear cookies del header
+function parseCookies(cookieHeader) {
+  if (!cookieHeader) return {};
+  return cookieHeader.split("; ").reduce((acc, cookieStr) => {
+    const [key, value] = cookieStr.split("=");
+    acc[key] = decodeURIComponent(value);
+    return acc;
+  }, {});
+}
+
 export default async function handler(req, res) {
   if (req.method === "POST") {
     const consultaData = req.body;
@@ -8,15 +18,15 @@ export default async function handler(req, res) {
     try {
       console.log("📥 Datos recibidos en el backend:", consultaData);
 
-      // Conexión a la base de datos
+      //* Conexión a la base de datos
       const pool = await connectToDatabase();
       console.log("✅ Conexión a la base de datos establecida.");
 
-      // Si clavepaciente es nulo, usa clavenomina como valor predeterminado y conviértelo a string
+      //* Si clavepaciente es nulo, usa clavenomina como valor predeterminado y conviértelo a string
       const clavePaciente = (consultaData.clavepaciente ?? consultaData.clavenomina).toString();
       console.log("🔑 Valor de clavePaciente (como cadena):", clavePaciente);
 
-      // Preparación de la inserción. Para campos numéricos se valida si es cadena vacía y se asigna null.
+      //* Preparación de la inserción. Para campos numéricos se valida si es cadena vacía y se asigna null.
       const request = pool.request();
       request
         .input("fechaconsulta", sql.VarChar, consultaData.fechaconsulta)
@@ -59,39 +69,40 @@ export default async function handler(req, res) {
       const claveConsulta = result.recordset[0].claveConsulta;
       console.log("🔑 Nueva clave de consulta generada:", claveConsulta);
 
-      // Registrar la actividad (por ejemplo, inicio de sesión o consulta guardada)
+      //* Registrar la actividad (por ejemplo, "Consulta de signos vitales guardada")
       try {
-        // Se obtiene la IP del cliente (ajusta según tu configuración)
+        const cookies = parseCookies(req.headers.cookie);
+        // Usar la cookie 'claveusuario' si existe, sino se usa el valor de clavePaciente
+        const idUsuario = cookies.claveusuario ? Number(cookies.claveusuario) : Number(clavePaciente);
         const ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
         const userAgent = req.headers["user-agent"] || "";
         await pool.request()
-          .input("userId", sql.Int, Number(clavePaciente)) // Ajusta si tienes otro campo para el ID del usuario
+          .input("userId", sql.Int, idUsuario)
           .input("accion", sql.VarChar, "Consulta de signos vitales guardada")
           .input("direccionIP", sql.VarChar, ip)
           .input("agenteUsuario", sql.VarChar, userAgent)
+          .input("claveConsulta", sql.Int, claveConsulta)
           .query(`
-            INSERT INTO dbo.ActividadUsuarios (IdUsuario, Accion, FechaHora, DireccionIP, AgenteUsuario)
-            VALUES (@userId, @accion, DATEADD(MINUTE, -4, GETDATE()), @direccionIP, @agenteUsuario)
+            INSERT INTO dbo.ActividadUsuarios (IdUsuario, Accion, FechaHora, DireccionIP, AgenteUsuario, ClaveConsulta)
+            VALUES (@userId, @accion, DATEADD(MINUTE, -4, GETDATE()), @direccionIP, @agenteUsuario, @claveConsulta)
           `);
         console.log("Actividad registrada en la base de datos.");
       } catch (errorRegistro) {
         console.error("Error registrando actividad:", errorRegistro);
       }
 
-      // Emitir un evento a través de Socket.io para notificar la actividad
+      //* Emitir un evento a través de Socket.io para notificar la actividad
       if (res.socket && res.socket.server && res.socket.server.io) {
         res.socket.server.io.emit("consulta-guardada", {
           claveConsulta,
           accion: "Consulta de signos vitales guardada",
           time: new Date().toISOString(),
-          // Puedes agregar más datos según lo necesites
         });
         console.log("Evento 'consulta-guardada' emitido.");
       } else {
         console.log("Socket.io no está disponible en res.socket.server.io");
       }
 
-      //* Respuesta al cliente
       res.status(200).json({
         message: "Consulta guardada correctamente.",
         claveConsulta,

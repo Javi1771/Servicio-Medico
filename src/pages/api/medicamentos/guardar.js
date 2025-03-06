@@ -1,5 +1,6 @@
 import { connectToDatabase } from "../connectToDatabase";
 import sql from "mssql";
+import cookie from "cookie"; //* Para parsear las cookies
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -135,11 +136,8 @@ export default async function handler(req, res) {
       .input("nomina", sql.VarChar, consultaData.clavenomina)
       .input("clavePaciente", sql.VarChar, consultaData.clavepaciente)
       .input("nombrePaciente", sql.VarChar, consultaData.nombrepaciente)
-      //* Se guarda la edad tal cual se recibe (cadena)
       .input("edad", sql.VarChar, consultaData.edad)
-      //* Se guarda el valor tal cual ("S" o "N")
       .input("epacienteEsEmpleado", sql.VarChar, consultaData.elpacienteesempleado)
-      //* Convertimos claveproveedor a cadena
       .input("claveMedico", sql.VarChar, String(consultaData.claveproveedor))
       .input("diagnostico", sql.NVarChar, consultaData.diagnostico)
       .input("departamento", sql.VarChar, consultaData.departamento)
@@ -196,6 +194,31 @@ export default async function handler(req, res) {
         .query(queryInsertDetalleSurtimientos);
     }
     console.log("✅ Inserción en detalleSurtimientos completada.");
+
+    //* Registrar la actividad de asignación de medicamentos
+    if (decisionTomada !== "no") {
+      try {
+        const allCookies = cookie.parse(req.headers.cookie || "");
+        const idUsuario = allCookies.claveusuario;
+        if (idUsuario !== null) {
+          await pool.request()
+            .input("userId", sql.Int, idUsuario)
+            .input("accion", sql.VarChar, "Asignó medicamentos")
+            .input("direccionIP", sql.VarChar, req.headers["x-forwarded-for"] || req.connection.remoteAddress)
+            .input("agenteUsuario", sql.VarChar, req.headers["user-agent"] || "")
+            .input("claveConsulta", sql.Int, folioReceta)
+            .query(`
+              INSERT INTO dbo.ActividadUsuarios (IdUsuario, Accion, FechaHora, DireccionIP, AgenteUsuario, ClaveConsulta)
+              VALUES (@userId, @accion, DATEADD(MINUTE, -4, GETDATE()), @direccionIP, @agenteUsuario, @claveConsulta)
+            `);
+          console.log("Actividad de asignación de medicamentos registrada en la base de datos.");
+        } else {
+          console.log("Cookie 'claveusuario' no encontrada; actividad de asignación no registrada.");
+        }
+      } catch (errorRegistro) {
+        console.error("Error registrando actividad de asignación:", errorRegistro);
+      }
+    }
 
     //* Commit de la transacción
     await transaction.commit();

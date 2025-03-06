@@ -1,13 +1,23 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-require-imports */
-import sql from 'mssql';
-import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
-import { connectToDatabase } from './connectToDatabase';
+import sql from "mssql";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import { connectToDatabase } from "./connectToDatabase";
+
+//* Función para parsear cookies del header
+function parseCookies(cookieHeader) {
+  if (!cookieHeader) return {};
+  return cookieHeader.split("; ").reduce((acc, cookieStr) => {
+    const [key, value] = cookieStr.split("=");
+    acc[key] = decodeURIComponent(value);
+    return acc;
+  }, {});
+}
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ message: 'Método no permitido' });
+  if (req.method !== "POST") {
+    return res.status(405).json({ message: "Método no permitido" });
   }
 
   const { usuario, password } = req.body;
@@ -17,7 +27,7 @@ export default async function handler(req, res) {
 
     //* Consulta con COLLATE para diferenciar mayúsculas y minúsculas
     const result = await pool.request()
-      .input('usuario', sql.VarChar, usuario)
+      .input("usuario", sql.VarChar, usuario)
       .query(
         `SELECT clavetipousuario, password, nombreproveedor, claveespecialidad, claveproveedor, costo, activo 
          FROM proveedores 
@@ -30,36 +40,32 @@ export default async function handler(req, res) {
     if (result.recordset.length === 0) {
       return res.status(401).json({
         success: false,
-        message: 'Usuario no encontrado o inactivo (diferenciando mayúsculas y minúsculas)',
+        message: "Usuario no encontrado o inactivo (diferenciando mayúsculas y minúsculas)",
       });
     }
 
     const user = result.recordset[0];
 
-    //? Verifica si la contraseña está encriptada (asume que los hashes bcrypt empiezan con $2b$ o $2a$)
-    const isPasswordEncrypted = user.password.startsWith('$2b$') || user.password.startsWith('$2a$');
+    //? Verifica si la contraseña está encriptada (hashes bcrypt empiezan con $2b$ o $2a$)
+    const isPasswordEncrypted = user.password.startsWith("$2b$") || user.password.startsWith("$2a$");
 
     if (isPasswordEncrypted) {
-      //* Comparar contraseña encriptada
       const isMatch = await bcrypt.compare(password, user.password);
       if (!isMatch) {
         console.log("Fallo en la autenticación: contraseña incorrecta");
         return res.status(401).json({
           success: false,
-          message: 'Contraseña incorrecta',
+          message: "Contraseña incorrecta",
         });
       }
     } else {
-      //* Primera vez: Encripta la contraseña y actualiza en la base de datos
       const hashedPassword = await bcrypt.hash(password, 10);
-
       await pool.request()
-        .input('hashedPassword', sql.VarChar, hashedPassword)
-        .input('usuario', sql.VarChar, usuario)
+        .input("hashedPassword", sql.VarChar, hashedPassword)
+        .input("usuario", sql.VarChar, usuario)
         .query(
           `UPDATE proveedores SET password = @hashedPassword WHERE usuario COLLATE Latin1_General_CS_AS = @usuario`
         );
-
       console.log("Contraseña encriptada y actualizada en la base de datos.");
     }
 
@@ -73,12 +79,12 @@ export default async function handler(req, res) {
     //* Genera el token
     const token = jwt.sign(
       { rol: user.clavetipousuario, nombreproveedor: user.nombreproveedor },
-      'clave_secreta',
-      { expiresIn: '1h' }
+      "clave_secreta",
+      { expiresIn: "1h" }
     );
 
-    //* Establece las cookies
-    res.setHeader('set-cookie', [
+    //* Establece las cookies, incluyendo "claveusuario"
+    res.setHeader("set-cookie", [
       `token=${token}; path=/; samesite=lax`,
       `rol=${user.clavetipousuario}; path=/; samesite=lax`,
       `nombreusuario=${encodeURIComponent(user.nombreproveedor)}; path=/; samesite=lax`,
@@ -87,13 +93,14 @@ export default async function handler(req, res) {
       `costo=${user.costo}; path=/; samesite=lax`,
     ]);
 
-    //* Registrar la actividad de inicio de sesión
+    //* Registrar la actividad de inicio de sesión usando la cookie "claveusuario"
     try {
-      //* Se supone que user.claveproveedor es el ID del usuario 
+      const cookies = parseCookies(req.headers.cookie);
+      const idUsuario = cookies.claveusuario;
       const ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
       const userAgent = req.headers["user-agent"] || "";
       await pool.request()
-        .input("userId", sql.Int, user.claveproveedor)
+        .input("userId", sql.Int, idUsuario)
         .input("accion", sql.VarChar, "Inicio de sesión")
         .input("direccionIP", sql.VarChar, ip)
         .input("agenteUsuario", sql.VarChar, userAgent)
@@ -104,13 +111,12 @@ export default async function handler(req, res) {
       console.log("Actividad de inicio de sesión registrada.");
     } catch (errorRegistro) {
       console.error("Error registrando actividad:", errorRegistro);
-      //! Puedes decidir si fallar o continuar aun si la inserción falla
+      //! Puedes decidir continuar aun si la inserción falla
     }
 
-    //* Devuelve la respuesta con éxito
     return res.status(200).json({
       success: true,
-      message: 'Login exitoso',
+      message: "Login exitoso",
       rol: user.clavetipousuario,
       nombreproveedor: user.nombreproveedor,
       claveespecialidad: user.claveespecialidad,
@@ -119,6 +125,6 @@ export default async function handler(req, res) {
     });
   } catch (error) {
     console.error("Error en el servidor:", error);
-    res.status(500).json({ success: false, message: 'Error en el servidor' });
+    res.status(500).json({ success: false, message: "Error en el servidor" });
   }
 }

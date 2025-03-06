@@ -1,112 +1,110 @@
 import { connectToDatabase } from "../connectToDatabase";
+import sql from "mssql";
 
 export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ message: "Método no permitido" });
-  }
+  if (req.method === "GET") {
+    const { claveConsulta, diagnostico, motivoconsulta, claveusuario, clavenomina, clavepaciente } = req.body;
 
-  //? 1) Obtener la cookie 'claveusuario' de forma manual
-  const rawCookies = req.headers.cookie || "";
-  //* Buscamos la cookie "claveusuario" en la cadena
-  const claveusuarioCookie = rawCookies
-    .split("; ")
-    .find((row) => row.startsWith("claveusuario="))
-    ?.split("=")[1];
+    try {
+      const pool = await connectToDatabase();
+      const transaction = new sql.Transaction(pool); // Crear una transacción
 
-  //* Guardamos el valor en claveusuario (o null si no existe)
-  const claveusuario = claveusuarioCookie || null;
+      // Obtener el valor de la cookie 'costo'
+      const cookies = req.headers.cookie || "";
+      const costoCookie = cookies
+        .split("; ")
+        .find((row) => row.startsWith("costo="))
+        ?.split("=")[1];
+      const costo = costoCookie ? parseFloat(costoCookie) : null;
 
-  console.log("Cookie claveusuario:", claveusuario);
+      // Validar campos obligatorios mínimos
+      if (!claveConsulta || !diagnostico || !motivoconsulta || costo === null) {
+        return res
+          .status(400)
+          .json({ message: "Datos incompletos o inválidos." });
+      }
 
-  //? 2) Revisar que tengamos claveusuario
-  if (!claveusuario) {
-    return res
-      .status(400)
-      .json({ message: "No se encontró la cookie 'claveusuario'" });
-  }
+      await transaction.begin(); // Iniciar la transacción
 
-  //* Desestructuramos los datos del body
-  const {
-    id_registro_kpi,
-    valor_alcanzado,
-    calificacion,
-    observaciones,
-    fecha_evaluacion,
-  } = req.body;
+      // Construir la lista de columnas y valores a actualizar en la tabla "consultas"
+      const sets = [
+        "diagnostico = @diagnostico",
+        "motivoconsulta = @motivoconsulta",
+        "costo = @costo"
+      ];
+      const request = transaction.request()
+        .input("claveConsulta", sql.Int, claveConsulta)
+        .input("diagnostico", sql.Text, diagnostico)
+        .input("motivoconsulta", sql.Text, motivoconsulta)
+        .input("costo", sql.Decimal(10, 2), costo);
 
-  //* Log para verificar los datos recibidos en el backend
-  console.log("Datos recibidos en el backend:", {
-    id_registro_kpi,
-    valor_alcanzado,
-    calificacion,
-    observaciones,
-    fecha_evaluacion,
-  });
+      // Agregar claveusuario y claveproveedor si se envía
+      if (claveusuario !== undefined) {
+        sets.push("claveusuario = @claveusuario", "claveproveedor = @claveusuario");
+        request.input("claveusuario", sql.Int, claveusuario);
+      }
 
-  //* Validar datos requeridos
-  if (
-    !id_registro_kpi ||
-    valor_alcanzado === undefined ||
-    calificacion === undefined ||
-    !fecha_evaluacion
-  ) {
-    return res.status(400).json({
-      message: "Faltan datos obligatorios",
-      datos_recibidos: {
-        id_registro_kpi,
-        valor_alcanzado,
-        calificacion,
-        observaciones,
-        fecha_evaluacion,
-      },
-    });
-  }
+      // Generar el query de actualización en la tabla "consultas"
+      const query = `
+        UPDATE consultas
+        SET ${sets.join(", ")}
+        WHERE claveConsulta = @claveConsulta
+      `;
+      await request.query(query);
+      await transaction.commit(); // Confirmar la transacción
 
-  try {
-    const pool = await connectToDatabase();
+      console.log("✅ Consulta ejecutada exitosamente. Se actualizó la consulta con clave:", claveConsulta);
 
-    //? 3) Incluir la columna clave_evaluo en la sentencia UPDATE
-    const query = `
-      UPDATE REGISTROS_KPIS
-      SET valor_alcanzado = @valor_alcanzado,
-          calificacion = @calificacion,
-          observaciones = @observaciones,
-          fecha_evaluacion = @fecha_evaluacion,
-          clave_evaluo = @clave_evaluo
-      WHERE id_registro_kpi = @id_registro_kpi
-    `;
+      // 5) Obtener la claveConsulta del último registro en "consultas" que coincida con clavenomina y clavepaciente
+      let fetchedClaveConsulta = null;
+      const consultaQuery = `
+        SELECT TOP 1 claveConsulta
+        FROM consultas
+        WHERE clavenomina = @clavenomina AND clavepaciente = @clavepaciente
+        ORDER BY claveConsulta DESC
+      `;
+      const consultaResult = await pool.request()
+        .input("clavenomina", sql.VarChar, clavenomina)
+        .input("clavepaciente", sql.VarChar, clavepaciente)
+        .query(consultaQuery);
+      if (consultaResult.recordset.length > 0) {
+        fetchedClaveConsulta = consultaResult.recordset[0].claveConsulta;
+        console.log("🔑 ClaveConsulta obtenida:", fetchedClaveConsulta);
+      } else {
+        console.log("No se encontró claveConsulta en consultas.");
+      }
 
-    console.log("Ejecutando consulta SQL con datos:");
-    console.log({
-      id_registro_kpi,
-      valor_alcanzado,
-      calificacion,
-      observaciones,
-      fecha_evaluacion,
-      claveusuario, 
-    });
+      // 6) Registrar la actividad con el mensaje "KPI calificado" e insertar la claveConsulta obtenida
+      try {
+        const ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
+        const userAgent = req.headers["user-agent"] || "";
+        await pool.request()
+          .input("userId", sql.Int, Number(claveusuario))
+          .input("accion", sql.VarChar, "KPI calificado")
+          .input("direccionIP", sql.VarChar, ip)
+          .input("agenteUsuario", sql.VarChar, userAgent)
+          .input("claveConsulta", sql.Int, fetchedClaveConsulta)
+          .query(`
+            INSERT INTO dbo.ActividadUsuarios 
+              (IdUsuario, Accion, FechaHora, DireccionIP, AgenteUsuario, ClaveConsulta)
+            VALUES 
+              (@userId, @accion, DATEADD(MINUTE, -4, GETDATE()), @direccionIP, @agenteUsuario, @claveConsulta)
+          `);
+        console.log("Actividad de KPI calificado registrada.");
+      } catch (errorRegistro) {
+        console.error("Error registrando actividad:", errorRegistro);
+      }
 
-    //? 4) Pasamos la nueva input "clave_evaluo" con el valor de la cookie
-    const result = await pool
-      .request()
-      .input("valor_alcanzado", valor_alcanzado)
-      .input("calificacion", calificacion)
-      .input("observaciones", observaciones)
-      .input("fecha_evaluacion", fecha_evaluacion)
-      .input("clave_evaluo", claveusuario)
-      .input("id_registro_kpi", id_registro_kpi)
-      .query(query);
-
-    //* Validar si se actualizó algún registro
-    if (result.rowsAffected[0] === 0) {
-      return res
-        .status(404)
-        .json({ message: "No se encontró el KPI especificado." });
+      res.status(200).json({
+        message: "KPI actualizado correctamente. KPI calificado.",
+        claveConsulta: fetchedClaveConsulta,
+      });
+    } catch (error) {
+      console.error("Error al actualizar KPI:", error);
+      res.status(500).json({ message: "Error interno del servidor.", error });
     }
-
-    res.status(200).json({ message: "KPI actualizado correctamente." });
-  } catch (error) {
-    console.error("Error al actualizar KPI:", error);
-    res.status(500).json({ message: "Error interno del servidor.", error });
+  } else {
+    console.log("❌ Método no permitido:", req.method);
+    res.status(405).json({ message: "Método no permitido." });
   }
 }

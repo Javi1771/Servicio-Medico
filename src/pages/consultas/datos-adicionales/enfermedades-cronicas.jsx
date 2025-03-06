@@ -326,13 +326,14 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
     console.log("Enviando datos al backend para actualizar el KPI:", kpiData);
 
     try {
+
+      const queryParams = new URLSearchParams({
+        clavenomina: clavenomina,
+        clavepaciente: clavepaciente,
+      }).toString();
+
       const response = await fetch(
-        "/api/enfermedades-kpis/actualizarKPIDetalles",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(kpiData),
-        }
+        `/api/enfermedades-kpis/actualizarKPIDetalles?${queryParams}`
       );
 
       if (!response.ok) {
