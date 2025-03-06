@@ -5,8 +5,7 @@ import {
   FaRegEdit,
   FaHashtag,
   FaBoxes,
-  FaTrashAlt,
-  FaPrint 
+  FaTrashAlt
 } from "react-icons/fa"; // Importamos los iconos
 
 const TablaMedicamentos = ({
