@@ -87,6 +87,26 @@ export default async function handler(req, res) {
       `costo=${user.costo}; path=/; samesite=lax`,
     ]);
 
+    //* Registrar la actividad de inicio de sesión
+    try {
+      //* Se supone que user.claveproveedor es el ID del usuario 
+      const ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
+      const userAgent = req.headers["user-agent"] || "";
+      await pool.request()
+        .input("userId", sql.Int, user.claveproveedor)
+        .input("accion", sql.VarChar, "Inicio de sesión")
+        .input("direccionIP", sql.VarChar, ip)
+        .input("agenteUsuario", sql.VarChar, userAgent)
+        .query(`
+          INSERT INTO dbo.ActividadUsuarios (IdUsuario, Accion, FechaHora, DireccionIP, AgenteUsuario)
+          VALUES (@userId, @accion, GETDATE(), @direccionIP, @agenteUsuario)
+        `);
+      console.log("Actividad de inicio de sesión registrada.");
+    } catch (errorRegistro) {
+      console.error("Error registrando actividad:", errorRegistro);
+      //! Puedes decidir si fallar o continuar aun si la inserción falla
+    }
+
     //* Devuelve la respuesta con éxito
     return res.status(200).json({
       success: true,

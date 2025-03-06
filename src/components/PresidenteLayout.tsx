@@ -7,12 +7,14 @@ import dynamic from "next/dynamic";
 import {
   FaUserCheck,
   FaBookMedical,
-  FaStethoscope,
-  FaBan,
+  FaStethoscope,  
   FaLaptopMedical,
   FaChartLine,
   FaMedkit,
 } from "react-icons/fa";
+import {
+  BiLogoReact 
+} from "react-icons/bi";
 import { MdLogout } from "react-icons/md";
 import Cookies from "js-cookie";
 
@@ -164,6 +166,15 @@ const PresidenteLayout: React.FC<PresidenteLayoutProps> = ({ children }) => {
         { name: "Farmacia Medicamentos", path: "/farmacia/farmacia-surtimientos" },
         { name: "Alertas de Stock", path: "/farmacia/alertas-de-stock" },
         { name: "Unidades de Medida", path: "/farmacia/unidades-de-medida" },
+      ],
+    },
+    {
+      title: "Dashboard",
+      icon: (
+        <BiLogoReact  className="text-blue-400 text-3xl group-hover:scale-110 transition-transform duration-300" />
+      ),
+      options: [
+        { name: "Actividades", path: "/dashboard/actividades" },
       ],
     },
   ]; 
