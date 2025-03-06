@@ -8,6 +8,7 @@ import Image from "next/image";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 import "../styles/globals.css";
+import io from "socket.io-client";
 
 const MySwal = withReactContent(Swal);
 
@@ -45,6 +46,16 @@ const Login = () => {
       const data = await response.json();
 
       if (data.success) {
+        // Emitir evento de actividad usando socket.io
+        const socket = io(); // Se conecta al mismo origen
+        socket.emit("user-activity", {
+          userId: data.userId,          // Asegúrate de que 'data.userId' exista
+          action: "Inició sesión",      
+          ip: data.ip || "",            // Opcional: si tu backend lo proporciona
+          userAgent: navigator.userAgent,
+          time: new Date(),
+        });
+
         showAlert(
           "success",
           "✅ Bienvenido",
@@ -52,6 +63,7 @@ const Login = () => {
           "linear-gradient(145deg, #002400, #001200)",
           "#32cd32"
         );
+        // Guarda la cookie de autenticación, según tu lógica
         document.cookie = `auth=true; path=/;`;
         router.replace("/inicio-servicio-medico");
       } else if (data.message === "Usuario no encontrado") {
@@ -105,7 +117,7 @@ const Login = () => {
       html: `<p style='color: #fff; font-size: 1.1em;'>${message}</p>`,
       background: background,
       confirmButtonColor: confirmButtonColor,
-      confirmButtonText: `<span style='color: #fff; font-weight: bold;'>Aceptar</span>`
+      confirmButtonText: `<span style='color: #fff; font-weight: bold;'>Aceptar</span>`,
     });
   };
 
@@ -140,7 +152,10 @@ const Login = () => {
                 background: "rgba(255, 255, 255, 0.2)",
               }}
             >
-              <FaUser className={styles.icon} style={{ marginLeft: "10px" }} />
+              <FaUser
+                className={styles.icon}
+                style={{ marginLeft: "10px" }}
+              />
               <input
                 type="text"
                 value={usuario}
@@ -174,7 +189,10 @@ const Login = () => {
                 background: "rgba(255, 255, 255, 0.2)",
               }}
             >
-              <FaLock className={styles.icon} style={{ marginLeft: "10px" }} />
+              <FaLock
+                className={styles.icon}
+                style={{ marginLeft: "10px" }}
+              />
               <input
                 type={showPassword ? "text" : "password"}
                 value={password}

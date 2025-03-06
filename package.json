@@ -63,6 +63,8 @@
     "react-webcam": "^7.2.0",
     "redis": "^4.7.0",
     "soap": "^1.1.5",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1",
     "styled-components": "^6.1.13",
     "sweetalert2": "^11.15.10",
     "sweetalert2-react-content": "^5.0.7",
