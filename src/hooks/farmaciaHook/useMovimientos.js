@@ -9,7 +9,7 @@ export const useMovimientos = () => {
     setLoading(true);
     setError("");
     try {
-      const response = await fetch("/api/obtenerMovimientos");
+      const response = await fetch("/api/farmacia/obtenerMovimientos");
       const data = await response.json();
       if (response.ok) {
         setMovimientos(data);

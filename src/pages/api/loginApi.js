@@ -96,7 +96,7 @@ export default async function handler(req, res) {
     //* Registrar la actividad de inicio de sesión usando la cookie "claveusuario"
     try {
       const cookies = parseCookies(req.headers.cookie);
-      const idUsuario = cookies.claveusuario;
+      const idUsuario = user.claveproveedor;
       const ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
       const userAgent = req.headers["user-agent"] || "";
       await pool.request()

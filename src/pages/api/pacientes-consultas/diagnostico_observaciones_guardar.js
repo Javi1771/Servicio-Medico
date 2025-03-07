@@ -80,7 +80,7 @@ export default async function handler(req, res) {
           const userAgent = req.headers["user-agent"] || "";
           await pool.request()
             .input("userId", sql.Int, idUsuario)
-            .input("accion", sql.VarChar, "Consulta atendida")
+            .input("accion", sql.VarChar, "Atendió una consulta")
             .input("direccionIP", sql.VarChar, ip)
             .input("agenteUsuario", sql.VarChar, userAgent)
             .input("claveConsulta", sql.Int, claveConsulta)

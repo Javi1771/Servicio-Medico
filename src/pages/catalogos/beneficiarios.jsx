@@ -650,7 +650,7 @@ export default function RegistroBeneficiario() {
     formData.append("numNomina", numNomina); // Enviar el número de nómina desde el estado
 
     try {
-      const response = await fetch("/api/uploadConstancia", {
+      const response = await fetch("/api/beneficiarios/uploadConstancia", {
         method: "POST",
         body: formData,
       });
@@ -1193,7 +1193,7 @@ export default function RegistroBeneficiario() {
       }
 
       const response = await fetch(
-        `/api/getBeneficiary?idBeneficiario=${beneficiario.ID_BENEFICIARIO}`
+        `/api/beneficiarios/getBeneficiary?idBeneficiario=${beneficiario.ID_BENEFICIARIO}`
       );
       const data = await response.json();
 
@@ -1225,7 +1225,7 @@ export default function RegistroBeneficiario() {
         const base64Image = reader.result;
 
         try {
-          const response = await fetch("/api/uploadImage", {
+          const response = await fetch("/api/beneficiarios/uploadImage", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -1292,7 +1292,7 @@ export default function RegistroBeneficiario() {
   // Función para obtener las opciones de sexo desde la API
   const fetchSexoOptions = async () => {
     try {
-      const response = await fetch("/api/sexo");
+      const response = await fetch("/api/beneficiarios/sexo");
       const data = await response.json();
       setSexoOptions(data);
     } catch (err) {
@@ -1318,7 +1318,7 @@ export default function RegistroBeneficiario() {
 
       // Obtén los beneficiarios actualizados
       const response = await fetch(
-        `/api/mostBeneficiarios?num_nom=${numNomina}`
+        `/api/beneficiarios/mostBeneficiarios?num_nom=${numNomina}`
       );
 
       const data = await response.json();
@@ -1353,7 +1353,7 @@ export default function RegistroBeneficiario() {
   // Obtener opciones de parentesco
   const fetchParentescoOptions = async () => {
     try {
-      const response = await fetch("/api/parentescos");
+      const response = await fetch("/api/beneficiarios/parentescos");
       const data = await response.json();
       setParentescoOptions(data);
     } catch (err) {
