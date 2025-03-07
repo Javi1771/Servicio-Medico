@@ -1,0 +1,174 @@
+/* 1) Contenedor general para la sección de detalle:
+   - Fondo claro, bordes redondeados, sombra suave y padding generoso
+   - Animación de fade-in para suavizar su aparición
+*/
+.detailContainer {
+    background-color: #ffffff;
+    border-radius: 0.75rem;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    padding: 1.5rem;
+    margin-top: 1rem;
+    animation: fadeIn 0.4s ease-out;
+  }
+  
+  /* 2) Encabezado dentro de la sección de detalle:
+     - Fuente más grande, color destacado, separación inferior
+  */
+  .detailHeader {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1f2937; /* Gris oscuro */
+    margin-bottom: 1rem;
+  }
+  
+  /* 3) Elementos de estadística o párrafos de información:
+     - Margen vertical para separarlos
+     - Color de texto neutro
+     - Línea base limpia
+  */
+  .detailItem {
+    margin-bottom: 0.75rem;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: #374151; /* Gris oscuro */
+  }
+  
+  /* 4) Etiquetas o labels dentro de cada detalle:
+     - Fuente seminegrita y color más intenso
+     - Espacio a la derecha para separar del contenido
+  */
+  .detailLabel {
+    font-weight: 600;
+    color: #111827; /* Gris muy oscuro */
+    margin-right: 0.5rem;
+  }
+  
+  /* 5) Botones de acción dentro del detalle (si se requiriera):
+     - Fondo azul claro, texto blanco, bordes redondeados
+     - Transición suave en hover
+  */
+  .detailButton {
+    display: inline-block;
+    background-color: #3b82f6;
+    color: #ffffff;
+    border: none;
+    border-radius: 0.5rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    margin-top: 0.5rem;
+  }
+  
+  .detailButton:hover {
+    background-color: #2563eb;
+  }
+  
+  /* 6) Sección de métricas o estadísticas, si se desea un layout en columnas:
+     - Display grid/flex
+     - Espacio entre columnas
+  */
+  .detailMetrics {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  
+  /* 7) Animación de fade in */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-5px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+
+
+
+
+
+
+
+  /* DarkOvalRecords.module.css */
+
+/* DetalleConsulta.module.css */
+
+/* 1) Contenedor principal de cada registro en forma ovalada:
+   - Fondo oscuro (#2d3748), texto claro (#f7fafc)
+   - Borde ovalado, padding y margen
+   - Sombra para dar profundidad
+   - Transición suave en hover
+*/
+.ovalRecord {
+    background-color: #2d3748; /* gris oscuro */
+    color: #f7fafc;           /* texto claro */
+    border-radius: 50px;      /* borde ovalado */
+    padding: 1rem 1.5rem;
+    margin: 1rem 0;
+    display: flex;
+    align-items: center;
+    gap: 1rem;                /* espacio entre icono y texto */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4); /* profundidad */
+    animation: fadeIn 0.4s ease-out;
+    transition: transform 0.3s ease, background-color 0.3s ease;
+  }
+  
+  /* 2) Efecto de elevación y cambio de color al hover */
+  .ovalRecord:hover {
+    transform: translateY(-5px);
+    background-color: #4a5568; /* un tono más claro */
+  }
+  
+  /* 3) Ícono a la izquierda del texto:
+     - Tamaño de fuente grande
+     - Color distintivo (azul suave)
+  */
+  .ovalIcon {
+    font-size: 24px;
+    color: #63b3ed; /* azul suave */
+  }
+  
+  /* 4) Contenedor del texto de cada campo:
+     - Se muestra en columnas (label y valor)
+     - Alineación vertical
+  */
+  .ovalText {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.4;
+  }
+  
+  /* 5) Etiqueta de campo */
+  .ovalLabel {
+    font-weight: 600;
+    color: #a0aec0; /* gris claro */
+    margin-right: 0.5rem;
+  }
+  
+  /* 6) Valor del campo */
+  .ovalValue {
+    font-size: 0.95rem;
+    color: #f7fafc;
+  }
+  
+  /* 7) Cada campo (label + valor) en una sola línea */
+  .ovalField {
+    margin-bottom: 0.25rem;
+  }
+  
+  /* 8) Animación fade in */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-5px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
