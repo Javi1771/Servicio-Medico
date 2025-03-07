@@ -72,7 +72,7 @@ export default function EspecialidadesTable() {
 
     try {
       const url = selectedEspecialidad
-        ? "/api/editEspecialidad"
+        ? "/api/especialidades/editEspecialidad"
         : "/api/crearEspecialidad";
       const method = selectedEspecialidad ? "PUT" : "POST";
 

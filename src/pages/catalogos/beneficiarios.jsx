@@ -1892,7 +1892,7 @@ export default function RegistroBeneficiario() {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          const response = await fetch(`/api/eliminarBeneficiario`, {
+          const response = await fetch(`/api/beneficiarios/eliminarBeneficiario`, {
             method: "DELETE",
             headers: {
               "Content-Type": "application/json",

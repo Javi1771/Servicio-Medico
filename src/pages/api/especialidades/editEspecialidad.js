@@ -1,5 +1,5 @@
 import sql from 'mssql';
-import { connectToDatabase } from './connectToDatabase';
+import { connectToDatabase } from '../connectToDatabase';
 
 // Endpoint para editar una especialidad
 export default async function handler(req, res) {
