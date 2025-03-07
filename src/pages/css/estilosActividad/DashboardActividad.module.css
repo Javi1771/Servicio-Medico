@@ -261,6 +261,46 @@
     border-radius: 9999px;
     font-size: 0.75rem;
   }
+
+  /* Ejemplo: Pink Badge */
+.tealBadge {
+  background-color: #fdfbe2; 
+  color: #b9941c;
+  border: 1px solid #f7fda4;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+}
+
+/* Ejemplo: Teal Badge */
+.pinkBadge {
+  background-color: #ccfbf1; /* teal claro */
+  color: #0d9488;            /* teal oscuro */
+  border: 1px solid #5eead4;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+}
+
+/* Badge para "Eliminó un beneficiario" (ejemplo de darkRedBadge) */
+.darkRedBadge {
+  background-color: #fee2e2; /* Rojo muy claro */
+  color: #991b1b;            /* Rojo oscuro */
+  border: 1px solid #f87171;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+}
+
+/* Badge para "Asignó antecedente" (indigoBadge) */
+.indigoBadge {
+  background-color: #e0e7ff; /* Indigo claro */
+  color: #3730a3;            /* Indigo oscuro */
+  border: 1px solid #818cf8;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+}
   
   
   
@@ -298,3 +338,7 @@
     height: 1.25rem;
   }
   
+  /* Asegura que la fila de detalle no tenga ningún filtro */
+.detailRow {
+  filter: none !important;
+}

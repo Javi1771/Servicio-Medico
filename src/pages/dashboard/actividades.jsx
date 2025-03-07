@@ -1,9 +1,10 @@
+// src/components/DashboardActividad.jsx
 import React, { useRef, useState } from "react";
 import { FaUserCircle } from "react-icons/fa";
 import { useActividades } from "../../hooks/hookActividades/useActividades";
 import { getBadgeClasses } from "../../helpers/getBadgeClasses";
 import { getActionIcon } from "../../helpers/getActionIcon";
-import DetalleConsulta from "./components/DetalleConsulta";
+import DetalleConsulta from "./components/DetalleConsulta"; // Asegúrate de la ruta correcta
 import styles from "../../pages/css/estilosActividad/DashboardActividad.module.css";
 
 // Diccionario para colores de usuario (caché en memoria)
@@ -53,7 +54,6 @@ export default function DashboardActividad() {
       <div className={styles.card}>
         <div className={styles.cardHeader}>
           <h2 className={styles.title}>Actividad de Usuarios</h2>
-
           {/* Barra de búsqueda */}
           <div style={{ position: "relative" }}>
             <input
@@ -96,9 +96,7 @@ export default function DashboardActividad() {
                 {actividades.map((act, index) => {
                   const bgColor = getRandomColorForUser(act.nombreproveedor);
                   const rowExpanded = expandedRow === index;
-                  // Se espera que el campo ClaveConsulta exista en el registro
                   const claveConsulta = act.ClaveConsulta;
-
                   return (
                     <React.Fragment key={index}>
                       <tr
@@ -154,22 +152,26 @@ export default function DashboardActividad() {
                             : act.AgenteUsuario}
                         </td>
                         <td>
-                          <button
-                            onClick={() => handleVerDetalle(index)}
-                            style={{
-                              padding: "0.3rem 0.6rem",
-                              cursor: "pointer",
-                              borderRadius: "0.3rem",
-                              border: "1px solid #ccc",
-                              background: rowExpanded ? "#ccc" : "#eee",
-                            }}
-                          >
-                            {rowExpanded ? "Ocultar" : "Ver detalle"}
-                          </button>
+                          {claveConsulta ? (
+                            <button
+                              onClick={() => handleVerDetalle(index)}
+                              style={{
+                                padding: "0.3rem 0.6rem",
+                                cursor: "pointer",
+                                borderRadius: "0.3rem",
+                                border: "1px solid #ccc",
+                                background: rowExpanded ? "#ccc" : "#eee",
+                              }}
+                            >
+                              {rowExpanded ? "Ocultar" : "Ver detalle"}
+                            </button>
+                          ) : (
+                            <span style={{ color: "#aaa" }}>N/A</span>
+                          )}
                         </td>
                       </tr>
                       {rowExpanded && (
-                        <tr>
+                        <tr className={styles.detailRow}>
                           <td
                             colSpan={6}
                             style={{
