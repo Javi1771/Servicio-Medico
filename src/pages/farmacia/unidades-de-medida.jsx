@@ -30,6 +30,12 @@ const InsertarUnidadForm = () => {
   //* Campo de búsqueda para filtrar unidades
   const [searchTerm, setSearchTerm] = useState("");
 
+  //* Función para reproducir sonido al pasar por la tarjeta
+  const playTapSound = () => {
+    const audio = new Audio("/assets/tap.mp3");
+    audio.play();
+  };
+
   //* Al montar el componente, obtenemos las unidades existentes
   useEffect(() => {
     const fetchUnidades = async () => {
@@ -250,6 +256,7 @@ const InsertarUnidadForm = () => {
                     hover:shadow-[0_0_20px_rgba(255,255,255,0.6)]
                     cursor-pointer
                   "
+                  onMouseEnter={playTapSound}
                 >
                   <h4 className="text-xl font-bold ">{unidad.label}</h4>
                 </div>
