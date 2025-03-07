@@ -291,9 +291,10 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
   };
 
   const handleGuardarKPIDetalles = async () => {
+    //* Obtener la fecha de evaluación en formato ISO (solo fecha)
     const fechaEvaluacion = new Date().toISOString().split("T")[0];
 
-    //* Validación de campos
+    //* Validación de campos obligatorios
     if (!valorAlcanzado || !calificacion || !observaciones) {
       playSound(false);
       MySwal.fire({
@@ -313,6 +314,7 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
       return;
     }
 
+    //* Preparar los datos del KPI a enviar en el cuerpo de la solicitud
     const kpiData = {
       id_registro_kpi: editKPIDetails.id_registro_kpi,
       valor_alcanzado: valorAlcanzado,
@@ -326,16 +328,25 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
     console.log("Enviando datos al backend para actualizar el KPI:", kpiData);
 
     try {
-
+      //* Construir los query parameters con los datos adicionales
       const queryParams = new URLSearchParams({
         clavenomina: clavenomina,
         clavepaciente: clavepaciente,
       }).toString();
 
+      //* Realizar la petición POST enviando tanto los query params como el cuerpo JSON
       const response = await fetch(
-        `/api/enfermedades-kpis/actualizarKPIDetalles?${queryParams}`
+        `/api/enfermedades-kpis/actualizarKPIDetalles?${queryParams}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(kpiData),
+        }
       );
 
+      //! Si la respuesta no es exitosa, se lanza un error con el mensaje recibido
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || "Error al actualizar el KPI.");
@@ -967,7 +978,7 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
                     <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
                       {kpi.valor_objetivo || "Sin valor"}
                     </td>
-                    
+
                     {/* Valor Alcanzado */}
                     <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
                       {kpi.valor_alcanzado || "Sin valor"}
