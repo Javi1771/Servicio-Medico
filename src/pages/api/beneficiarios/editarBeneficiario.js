@@ -38,7 +38,7 @@ export default async function handler(req, res) {
 
   console.log("Datos recibidos en el backend para actualizar:", req.body);
 
-  //* Validar datos obligatorios
+  // Validar campos obligatorios
   if (
     !idBeneficiario ||
     !noNomina ||
@@ -54,14 +54,14 @@ export default async function handler(req, res) {
       .json({ message: "Faltan campos obligatorios en la solicitud" });
   }
 
-  //* Validación de 'activo'
+  // Validación de 'activo'
   if (activo !== "A" && activo !== "I") {
     return res
       .status(400)
       .json({ message: "El valor de 'activo' debe ser 'A' o 'I'" });
   }
 
-  //* Validar formato de fechas
+  // Validar formato de fechas
   const isValidDate = (date) => !isNaN(new Date(date).getTime());
   if (
     !isValidDate(fNacimiento) ||
@@ -74,16 +74,19 @@ export default async function handler(req, res) {
     const pool = await connectToDatabase();
     console.log("Conexión a la base de datos exitosa");
 
-    //* Convertir valores booleanos
+    // Convertir valores booleanos
     const estudianteValue = esEstudiante ? 1 : 0;
     const discapacitadoValue = esDiscapacitado ? 1 : 0;
 
-    //* Realizar la consulta de actualización
+    // Forzar la conversión a string para evitar errores en la validación
+    const parentescoStr = String(parentesco);
+
+    // Realizar la consulta de actualización
     const result = await pool
       .request()
       .input("idBeneficiario", sql.Int, idBeneficiario)
       .input("noNomina", sql.VarChar, noNomina)
-      .input("parentesco", sql.VarChar, parentesco)
+      .input("parentesco", sql.VarChar, parentescoStr)
       .input("nombre", sql.VarChar, nombre)
       .input("aPaterno", sql.VarChar, aPaterno || null)
       .input("aMaterno", sql.VarChar, aMaterno || null)
@@ -108,7 +111,6 @@ export default async function handler(req, res) {
       .input("urlActaNac", sql.VarChar, urlActaNac || null)
       .input("urlIncap", sql.VarChar, urlIncap || null) 
       .input("descriptorFacial", sql.VarChar, descriptorFacial || "")
-      //* Unificamos las mismas propiedades:
       .input("actaMatrimonioUrl", sql.VarChar, actaMatrimonioUrl || null)
       .input("ineUrl", sql.VarChar, ineUrl || null)
       .input("cartaNoAfiliacionUrl", sql.VarChar, cartaNoAfiliacionUrl || null)
@@ -153,7 +155,7 @@ export default async function handler(req, res) {
         .json({ message: "Beneficiario no encontrado o sin cambios" });
     }
 
-    //* Registrar la actividad "Editó un beneficiario"
+    // Registrar la actividad "Editó un beneficiario"
     const rawCookies = req.headers.cookie || "";
     const claveusuarioCookie = rawCookies
       .split("; ")

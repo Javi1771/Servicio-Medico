@@ -37,7 +37,7 @@ export default async function handler(req, res) {
   } = req.body;
 
   try {
-    //* Truncar algunos campos para ajustarse a la longitud máxima en la BD
+    //* Truncar campos según límites de la BD
     const truncatedNombre = nombre?.substring(0, 50);
     const truncatedAPaterno = aPaterno?.substring(0, 50);
     const truncatedAMaterno = aMaterno?.substring(0, 50);
@@ -51,18 +51,14 @@ export default async function handler(req, res) {
     const truncatedUrlActaNac = urlActaNac?.substring(0, 255);
     const truncatedActaMatrimonioUrl = actaMatrimonioUrl?.substring(0, 255);
     const truncatedIneUrl = ineUrl?.substring(0, 255);
-    const truncatedCartaNoAfiliacionUrl = cartaNoAfiliacionUrl?.substring(
-      0,
-      255
-    );
+    const truncatedCartaNoAfiliacionUrl = cartaNoAfiliacionUrl?.substring(0, 255);
     const truncatedActaConcubinatoUrl = actaConcubinatoUrl?.substring(0, 255);
     const truncatedUrlIncap = urlIncap?.substring(0, 255);
 
     const pool = await connectToDatabase();
 
-    //* Inserción en BENEFICIARIO con OUTPUT para obtener el Id insertado.
-    const insertResult = await pool
-      .request()
+    //* Inserción en BENEFICIARIO con OUTPUT para obtener el ID insertado
+    const insertResult = await pool.request()
       .input("noNomina", noNomina)
       .input("parentesco", parentesco)
       .input("nombre", truncatedNombre)
@@ -88,7 +84,8 @@ export default async function handler(req, res) {
       .input("cartaNoAfiliacionUrl", truncatedCartaNoAfiliacionUrl)
       .input("actaConcubinatoUrl", truncatedActaConcubinatoUrl)
       .input("urlIncap", truncatedUrlIncap)
-      .input("descriptorFacial", descriptorFacial || "").query(`
+      .input("descriptorFacial", descriptorFacial || "")
+      .query(`
         INSERT INTO BENEFICIARIO (
           NO_NOMINA, PARENTESCO, NOMBRE, A_PATERNO, A_MATERNO, SEXO, 
           F_NACIMIENTO, ESCOLARIDAD, ACTIVO, ALERGIAS, SANGRE, 
@@ -108,8 +105,9 @@ export default async function handler(req, res) {
         )
       `);
 
-    //* Obtener el ID insertado (se asume que se devuelve en recordset[0].IdBeneficiario)
-    const insertedId = insertResult.recordset[0].IdBeneficiario;
+    console.log("Resultado de la inserción:", insertResult);
+    //* Verifica el objeto insertResult para confirmar la propiedad exacta del ID
+    const insertedId = insertResult.recordset[0].ID_BENEFICIARIO;
     console.log("Beneficiario insertado, ID:", insertedId);
 
     //* Obtener la cookie "claveusuario"
@@ -121,36 +119,32 @@ export default async function handler(req, res) {
     const claveusuario = claveusuarioCookie ? Number(claveusuarioCookie) : null;
     console.log("Cookie claveusuario:", claveusuario);
 
-    //* Registrar actividad: Guardó un beneficiario
+    //* Registrar la actividad en ActividadUsuarios incluyendo el ID del beneficiario
     if (claveusuario !== null) {
       const ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
       const userAgent = req.headers["user-agent"] || "";
-      await pool
-        .request()
+      const activityResult = await pool.request()
         .input("userId", sql.Int, claveusuario)
         .input("accion", sql.VarChar, "Guardó un beneficiario")
         .input("direccionIP", sql.VarChar, ip)
         .input("agenteUsuario", sql.VarChar, userAgent)
         .input("claveConsulta", sql.Int, null)
-        .input("idBeneficiario", sql.Int, insertedId).query(`
+        .input("idBeneficiario", sql.Int, insertedId)
+        .query(`
           INSERT INTO dbo.ActividadUsuarios 
             (IdUsuario, Accion, FechaHora, DireccionIP, AgenteUsuario, ClaveConsulta, IdBeneficiario)
           VALUES 
             (@userId, @accion, DATEADD(MINUTE, -4, GETDATE()), @direccionIP, @agenteUsuario, @claveConsulta, @idBeneficiario)
         `);
-      console.log(
-        "Actividad 'Guardó un beneficiario' registrada en ActividadUsuarios."
-      );
+      console.log("Actividad registrada:", activityResult);
     } else {
       console.log("No se pudo registrar la actividad: falta claveusuario.");
     }
 
-    res
-      .status(200)
-      .json({
-        message: "Beneficiario agregado con descriptor facial",
-        id: insertedId,
-      });
+    res.status(200).json({
+      message: "Beneficiario agregado con descriptor facial",
+      id: insertedId,
+    });
   } catch (error) {
     console.error("Error al agregar beneficiario:", error);
     res.status(500).json({ error: "Error al agregar beneficiario" });
