@@ -1028,7 +1028,7 @@ export default function RegistroBeneficiario() {
 
       doc.setFontSize(18);
       if (parentescoDescripcion) {
-        doc.text(parentescoDescripcion, 19.8, 11.16);
+        doc.text(parentescoDescripcion, 19.8, 11.42);
       } else {
         console.error(
           "Error: parentescoDescripcion no es válido:",
@@ -1041,7 +1041,7 @@ export default function RegistroBeneficiario() {
         A_MATERNO || ""
       }`;
       if (nombreCompleto.trim()) {
-        doc.text(nombreCompleto, 18.4, 12.6);
+        doc.text(nombreCompleto, 18.4, 13.4);
       } else {
         console.error("Error: Nombre completo no es válido:", nombreCompleto);
       }
@@ -1049,17 +1049,17 @@ export default function RegistroBeneficiario() {
       doc.setFontSize(18);
       const edadTexto = `${edad} años`;
       if (edadTexto) {
-        doc.text(edadTexto, 17.2, 14.3);
+        doc.text(edadTexto, 17.2, 15.5);
       } else {
         console.error("Error: Edad no es válida:", edadTexto);
       }
 
       doc.setFontSize(14.5);
       const departamentoText = doc.splitTextToSize(DEPARTAMENTO, 8.5);
-      let departamentoY = 15.4;
+      let departamentoY = 16.8;
       departamentoText.forEach((line) => {
         if (line.trim()) {
-          doc.text(line, 21.3, departamentoY);
+          doc.text(line, 20, departamentoY);
           departamentoY += 0.6;
         } else {
           console.error(
@@ -1071,7 +1071,7 @@ export default function RegistroBeneficiario() {
 
       doc.setFontSize(18);
       if (vigencia) {
-        doc.text(vigencia, 18.8, 19.0);
+        doc.text(vigencia, 18.8, 19.4);
       } else {
         console.error("Error: Vigencia no es válida:", vigencia);
       }
