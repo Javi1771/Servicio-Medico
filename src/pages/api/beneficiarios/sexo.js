@@ -1,5 +1,5 @@
 // pages/api/getAllSexos.js
-import { connectToDatabase } from './connectToDatabase'
+import { connectToDatabase } from '../connectToDatabase'
 
 export default async function handler(req, res) {
   if (req.method === 'GET') {

@@ -73,7 +73,7 @@ export default function EspecialidadesTable() {
     try {
       const url = selectedEspecialidad
         ? "/api/especialidades/editEspecialidad"
-        : "/api/crearEspecialidad";
+        : "/api/especialidades/crearEspecialidad";
       const method = selectedEspecialidad ? "PUT" : "POST";
 
       const response = await fetch(url, {
@@ -154,7 +154,7 @@ export default function EspecialidadesTable() {
 
     if (confirmDelete.isConfirmed) {
       try {
-        const response = await fetch("/api/eliminarEspecialidades", {
+        const response = await fetch("/api/especialidades/eliminarEspecialidades", {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ claveespecialidad }), // Enviamos la claveespecialidad

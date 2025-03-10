@@ -1,6 +1,18 @@
 import { connectToDatabase } from "../connectToDatabase";
 import sql from "mssql";
 
+//* Función auxiliar para obtener la cookie "claveusuario"
+function getUserIdFromCookie(req) {
+  const rawCookies = req.headers.cookie || "";
+  const cookie = rawCookies
+    .split("; ")
+    .find((c) => c.startsWith("claveusuario="));
+  if (!cookie) return null;
+
+  const claveUsuario = cookie.split("=")[1];
+  return claveUsuario ? Number(claveUsuario) : null;
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     res.setHeader("Allow", ["POST"]);
@@ -22,7 +34,7 @@ export default async function handler(req, res) {
 
   console.log("📌 Datos recibidos en la solicitud:", req.body);
 
-  // Validar que todos los campos estén presentes
+  //* Validar que todos los campos estén presentes
   if (
     !medicamento ||
     clasificacion == null ||
@@ -53,7 +65,7 @@ export default async function handler(req, res) {
     const dbPool = await connectToDatabase();
     console.log("✅ Conexión exitosa a la base de datos");
 
-    // Verificar si ya existe el medicamento por EAN o nombre
+    //* Verificar si ya existe el medicamento por EAN o nombre
     console.log("🔍 Verificando si el medicamento ya existe...");
     const checkQuery = `
       SELECT COUNT(*) AS count 
@@ -75,7 +87,7 @@ export default async function handler(req, res) {
         .json({ message: "El medicamento ya está registrado." });
     }
 
-    // Consultar el último valor de claveMedicamento convirtiéndolo a int
+    //* Consultar el último valor de claveMedicamento convirtiéndolo a int
     console.log("🔢 Obteniendo la última claveMedicamento...");
     const claveQuery = `
       SELECT TOP 1 CONVERT(int, claveMedicamento) AS claveInt
@@ -85,12 +97,12 @@ export default async function handler(req, res) {
     const claveResult = await dbPool.request().query(claveQuery);
     const newClaveMedicamentoInt =
       (claveResult.recordset[0]?.claveInt || 0) + 1;
-    // Convertir a string para almacenarlo en la BD
+    //* Convertir a string para almacenarlo en la BD
     const newClaveMedicamento = newClaveMedicamentoInt.toString();
 
     console.log("🆕 Nueva claveMedicamento asignada:", newClaveMedicamento);
 
-    // Insertar el medicamento (claveMedicamento se inserta como string)
+    //* Insertar el medicamento (claveMedicamento se inserta como string)
     console.log("📝 Insertando medicamento en la base de datos...");
     console.log("📦 Datos a insertar:", {
       claveMedicamento: newClaveMedicamento,
@@ -105,9 +117,11 @@ export default async function handler(req, res) {
     });
 
     const insertQuery = `
-    INSERT INTO MEDICAMENTOS (claveMedicamento, medicamento, clasificacion, presentacion, ean, piezas, maximo, minimo, medida, estatus)
-    VALUES (@claveMedicamento, @medicamento, @clasificacion, @presentacion, @ean, @piezas, @maximo, @minimo, @medida, @estatus)
-  `;
+      INSERT INTO MEDICAMENTOS 
+        (claveMedicamento, medicamento, clasificacion, presentacion, ean, piezas, maximo, minimo, medida, estatus)
+      VALUES 
+        (@claveMedicamento, @medicamento, @clasificacion, @presentacion, @ean, @piezas, @maximo, @minimo, @medida, @estatus);
+    `;
 
     await dbPool
       .request()
@@ -124,7 +138,50 @@ export default async function handler(req, res) {
       .query(insertQuery);
 
     console.log("✅ Medicamento registrado exitosamente:", medicamento);
-    res.status(200).json({ message: "Medicamento registrado exitosamente" });
+
+    //* =========================
+    //* Insertar la actividad en la tabla ActividadUsuarios
+    //* =========================
+    try {
+      //* Leer la claveusuario de la cookie
+      const idUsuario = getUserIdFromCookie(req);
+
+      //* Tomar IP y user-agent
+      const ip =
+        req.headers["x-forwarded-for"] || req.connection.remoteAddress;
+      const userAgent = req.headers["user-agent"] || "";
+
+      if (idUsuario) {
+        await dbPool
+          .request()
+          .input("idUsuario", sql.Int, idUsuario)
+          .input("accion", sql.VarChar, "Creó un nuevo medicamento")
+          //* Fecha/hora: si la tabla requiere un DATETIME
+          .input("direccionIP", sql.VarChar, ip)
+          .input("agenteUsuario", sql.VarChar, userAgent)
+          //* Insertamos la nueva claveMedicamento en la columna IdMedicamento
+          .input("idMedicamento", sql.VarChar, newClaveMedicamento)
+          .query(`
+            INSERT INTO ActividadUsuarios 
+              (IdUsuario, Accion, FechaHora, DireccionIP, AgenteUsuario, IdMedicamento)
+            VALUES 
+              (@idUsuario, @accion, GETDATE(), @direccionIP, @agenteUsuario, @idMedicamento)
+          `);
+
+        console.log("✅ Actividad registrada en la tabla ActividadUsuarios.");
+      } else {
+        console.log("⚠️ No se pudo registrar la actividad: falta idUsuario en la cookie.");
+      }
+    } catch (errorAct) {
+      console.error("❌ Error al registrar la actividad:", errorAct);
+      //! Puedes decidir si envías error o no
+    }
+
+    //* Respuesta final al cliente
+    res.status(200).json({
+      message: "Medicamento registrado exitosamente",
+      claveMedicamento: newClaveMedicamento,
+    });
   } catch (error) {
     console.error("❌ Error al registrar medicamento:", error);
     res.status(500).json({ message: "Error interno del servidor", error });

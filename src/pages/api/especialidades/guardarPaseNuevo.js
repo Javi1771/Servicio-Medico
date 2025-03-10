@@ -9,27 +9,31 @@ export default async function handler(req, res) {
     console.log("consultaData:", consultaData);
 
     try {
-      //* Validar la fecha de consulta
+      // 1. Validar la fecha de consulta
       if (!consultaData.fechaconsulta || isNaN(new Date(consultaData.fechaconsulta))) {
-        return res.status(400).json({ message: "La fecha de consulta no es válida." });
+        return res
+          .status(400)
+          .json({ message: "La fecha de consulta no es válida." });
       }
 
-      //* Validar que la hora esté incluida
+      // 2. Validar que la hora esté incluida
       const date = new Date(consultaData.fechaconsulta);
       const hasTime =
         date.getHours() !== 0 || date.getMinutes() !== 0 || date.getSeconds() !== 0;
 
       if (!hasTime) {
         return res.status(400).json({
-          message: "La hora debe estar incluida en la fecha de consulta (formato completo ISO 8601).",
+          message:
+            "La hora debe estar incluida en la fecha de consulta (formato completo ISO 8601).",
         });
       }
 
-      //* Conexión a la base de datos
+      // 3. Conexión a la base de datos
       const pool = await connectToDatabase();
 
       console.log("Realizando inserción en la base de datos...");
 
+      // 4. Insertar en la tabla consultas y recuperar la clave generada
       const result = await pool
         .request()
         .input(
@@ -62,7 +66,9 @@ export default async function handler(req, res) {
         .input(
           "elpacienteesempleado",
           sql.NVarChar(1),
-          consultaData.elpacienteesempleado ? String(consultaData.elpacienteesempleado) : null
+          consultaData.elpacienteesempleado
+            ? String(consultaData.elpacienteesempleado)
+            : null
         )
         .input(
           "parentesco",
@@ -94,7 +100,7 @@ export default async function handler(req, res) {
           consultaData.sindicato ? String(consultaData.sindicato) : null
         )
         .input("seasignoaespecialidad", sql.NVarChar(1), "S")
-        .query(`
+        .query(/* sql */ `
           INSERT INTO consultas (
             fechaconsulta, claveproveedor, clavenomina, clavepaciente, nombrepaciente, edad,
             clavestatus, elpacienteesempleado, parentesco, claveusuario, departamento, especialidadinterconsulta,
@@ -108,9 +114,44 @@ export default async function handler(req, res) {
           SELECT SCOPE_IDENTITY() AS claveConsulta;
         `);
 
+      // Obtenemos la clave generada
       const claveConsulta = result.recordset[0].claveConsulta;
 
-      //* Retornar respuesta exitosa
+      // 5. Registrar actividad en la tabla ActividadUsuarios
+      const rawCookies = req.headers.cookie || "";
+      const claveusuarioCookie = rawCookies
+        .split("; ")
+        .find((row) => row.startsWith("claveusuario="))
+        ?.split("=")[1];
+      const claveusuarioInt = claveusuarioCookie ? Number(claveusuarioCookie) : null;
+      console.log("Cookie claveusuario:", claveusuarioInt);
+
+      if (claveusuarioInt !== null) {
+        const ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
+        const userAgent = req.headers["user-agent"] || "";
+
+        await pool
+          .request()
+          .input("userId", sql.Int, claveusuarioInt)
+          .input("accion", sql.VarChar, "Creó un nuevo pase de especialidad")
+          .input("direccionIP", sql.VarChar, ip)
+          .input("agenteUsuario", sql.VarChar, userAgent)
+          .input("claveConsulta", sql.Int, claveConsulta)
+          .query(/* sql */ `
+            INSERT INTO dbo.ActividadUsuarios 
+              (IdUsuario, Accion, FechaHora, DireccionIP, AgenteUsuario, ClaveConsulta)
+            VALUES 
+              (@userId, @accion, DATEADD(MINUTE, -4, GETDATE()), @direccionIP, @agenteUsuario, @claveConsulta)
+          `);
+
+        console.log(
+          "Actividad 'Creó un nuevo pase de especialidad' registrada en ActividadUsuarios."
+        );
+      } else {
+        console.log("No se pudo registrar la actividad: falta claveusuario.");
+      }
+
+      // 6. Retornar respuesta exitosa
       res.status(200).json({
         message: "Consulta guardada correctamente.",
         claveConsulta,

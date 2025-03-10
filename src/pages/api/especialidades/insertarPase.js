@@ -38,7 +38,7 @@ export default async function handler(req, res) {
       .json({ error: "Falta 'claveusuario' en las cookies." });
   }
 
-  console.log("📥 Datos iniciales recibidos en el body:", {
+  console.log("📥 Datos recibidos:", {
     clavenomina,
     clavepaciente,
     nombrepaciente,
@@ -63,20 +63,21 @@ export default async function handler(req, res) {
 
   try {
     const pool = await connectToDatabase();
-    console.log("✅ Conexión a la base de datos establecida");
+    console.log("✅ Conexión establecida");
 
-    // **Inserción en la tabla consultas**
-    console.log("📄 Preparando query de inserción en consultas...");
+    //* Inserción en la tabla "consultas" con OUTPUT para obtener la claveconsulta generada.
     const insertQuery = `
       INSERT INTO consultas (
         clavenomina, clavepaciente, nombrepaciente, edad, especialidadinterconsulta, claveproveedor, 
         costo, fechacita, sindicato, clavestatus, elpacienteesempleado, parentesco, departamento, fechaconsulta, claveusuario
-      ) VALUES (
+      )
+      OUTPUT INSERTED.claveconsulta
+      VALUES (
         @clavenomina, @clavepaciente, @nombrepaciente, @edad, @claveespecialidad, @claveproveedor, 
         @costo, @fechacita, @sindicato, @clavestatus, @elpacienteesempleado, @parentesco, @departamento, DATEADD(MINUTE, -4, GETDATE()), @claveusuario
       )
-    `;  
-    console.log("📋 Valores enviados al query de inserción:", {
+    `;
+    console.log("📋 Insert Query valores:", {
       clavenomina,
       clavepaciente,
       nombrepaciente,
@@ -111,22 +112,24 @@ export default async function handler(req, res) {
       .input("claveusuario", sql.Int, claveusuario)
       .query(insertQuery);
 
-    if (insertResult.rowsAffected[0] > 0) {
-      console.log("✅ Pase insertado correctamente en la tabla consultas");
-    } else {
-      console.error("⚠️ No se insertó el pase en la tabla consultas");
+    if (insertResult.rowsAffected[0] <= 0) {
+      console.error("⚠️ No se insertó el pase en consultas");
       return res.status(500).json({ error: "Error al insertar el pase." });
     }
+    console.log("✅ Pase insertado en consultas");
 
-    // **Actualización en detalleEspecialidad**
+    //* Obtener la claveconsulta generada
+    const claveconsulta = insertResult.recordset[0].claveconsulta;
+    console.log("Claveconsulta obtenida:", claveconsulta);
+
+    //* Actualización en detalleEspecialidad (se mantiene el update usando folio)
     console.log("📄 Actualizando estatus en detalleEspecialidad...");
     const updateQuery = `
       UPDATE detalleEspecialidad
       SET estatus = 2
       WHERE claveconsulta = @folio
     `;
-    console.log("📋 Valores enviados al query de actualización:", { folio });
-
+    console.log("📋 Valores enviados para update:", { folio });
     const updateResult = await pool
       .request()
       .input("folio", sql.Int, folio)
@@ -134,10 +137,39 @@ export default async function handler(req, res) {
 
     if (updateResult.rowsAffected[0] > 0) {
       console.log(
-        `✅ Estatus actualizado correctamente en detalleEspecialidad (filas afectadas: ${updateResult.rowsAffected[0]})`
+        `✅ Estatus actualizado en detalleEspecialidad (filas afectadas: ${updateResult.rowsAffected[0]})`
       );
     } else {
-      console.log("⚠️ No se encontró ninguna fila con estatus = 1 para actualizar en detalleEspecialidad");
+      console.log("⚠️ No se encontró ninguna fila para actualizar en detalleEspecialidad");
+    }
+
+    //* Registrar la actividad "Creó un pase de especialidad" usando la claveconsulta generada
+    const rawCookies = req.headers.cookie || "";
+    const claveusuarioCookie = rawCookies
+      .split("; ")
+      .find((row) => row.startsWith("claveusuario="))
+      ?.split("=")[1];
+    const claveusuarioInt = claveusuarioCookie ? Number(claveusuarioCookie) : null;
+    console.log("Cookie claveusuario:", claveusuarioInt);
+
+    if (claveusuarioInt !== null) {
+      const ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
+      const userAgent = req.headers["user-agent"] || "";
+      await pool.request()
+        .input("userId", sql.Int, claveusuarioInt)
+        .input("accion", sql.VarChar, "Capturó un pase de especialidad")
+        .input("direccionIP", sql.VarChar, ip)
+        .input("agenteUsuario", sql.VarChar, userAgent)
+        .input("claveConsulta", sql.Int, claveconsulta)
+        .query(`
+          INSERT INTO dbo.ActividadUsuarios 
+            (IdUsuario, Accion, FechaHora, DireccionIP, AgenteUsuario, ClaveConsulta)
+          VALUES 
+            (@userId, @accion, DATEADD(MINUTE, -4, GETDATE()), @direccionIP, @agenteUsuario, @claveConsulta)
+        `);
+      console.log("Actividad 'Creó un pase de especialidad' registrada en ActividadUsuarios.");
+    } else {
+      console.log("No se pudo registrar la actividad: falta claveusuario.");
     }
 
     res.status(200).json({

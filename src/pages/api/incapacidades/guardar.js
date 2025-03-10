@@ -64,7 +64,7 @@ export default async function handler(req, res) {
         .input("diagnostico", sql.Text, diagnosticoFinal)
         .input("estatus", sql.Int, estatus)
         .input("clavepaciente", sql.VarChar, clavepaciente)
-        .input("claveMedico", sql.VarChar, clavenomina) //* O ajusta según corresponda
+        .input("claveMedico", sql.Int, claveusuario) //* O ajusta según corresponda
         .query(`
           INSERT INTO detalleIncapacidad 
             (claveConsulta, noNomina, fechaInicial, fechaFinal, diagnostico, estatus, clavepaciente, claveMedico)

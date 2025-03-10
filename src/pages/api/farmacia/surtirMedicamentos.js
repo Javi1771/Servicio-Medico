@@ -1,22 +1,37 @@
-import { connectToDatabase } from '../connectToDatabase';
-import sql from 'mssql';
+import { connectToDatabase } from "../connectToDatabase";
+import sql from "mssql";
+
+//* Función auxiliar para obtener la cookie "claveusuario"
+function getUserIdFromCookie(req) {
+  const rawCookies = req.headers.cookie || "";
+  const cookie = rawCookies
+    .split("; ")
+    .find((c) => c.startsWith("claveusuario="));
+  if (!cookie) return null;
+
+  const claveUsuario = cookie.split("=")[1];
+  return claveUsuario ? Number(claveUsuario) : null;
+}
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ message: 'Método no permitido' });
+  if (req.method !== "POST") {
+    return res.status(405).json({ message: "Método no permitido" });
   }
 
-  const { folioSurtimiento, detalle, recetaCompletada, cost, fechaDespacho } = req.body;
-  
+  const { folioSurtimiento, detalle, recetaCompletada, cost, fechaDespacho } =
+    req.body;
+
   console.log("📌 Datos recibidos en la API:");
   console.log(`   🔹 Folio: ${folioSurtimiento}`);
   console.log(`   🔹 Receta Completada: ${recetaCompletada}`);
   console.log(`   🔹 Costo: ${cost}`);
   console.log(`   🔹 Fecha Despacho Recibida: ${fechaDespacho}`);
-  console.log(`   🔹 Detalle recibido:`, detalle);
+  console.log("   🔹 Detalle recibido:", detalle);
 
   if (!folioSurtimiento || !detalle) {
-    return res.status(400).json({ message: 'folioSurtimiento y detalle son requeridos' });
+    return res
+      .status(400)
+      .json({ message: "folioSurtimiento y detalle son requeridos" });
   }
 
   try {
@@ -30,7 +45,9 @@ export default async function handler(req, res) {
         const delta = item.delta;
 
         if (delta > 0) {
-          console.log(`📌 Actualizando stock de medicamento ${item.claveMedicamento}`);
+          console.log(
+            `📌 Actualizando stock de medicamento ${item.claveMedicamento}`
+          );
           console.log(`   🔹 Descontando ${delta} piezas`);
 
           const updateMed = `
@@ -38,13 +55,16 @@ export default async function handler(req, res) {
             SET piezas = piezas - @delta
             WHERE claveMedicamento = @claveMedicamento
           `;
-          await transaction.request()
-            .input('delta', sql.Int, delta)
-            .input('claveMedicamento', sql.NVarChar(50), item.claveMedicamento)
+          await transaction
+            .request()
+            .input("delta", sql.Int, delta)
+            .input("claveMedicamento", sql.NVarChar(50), item.claveMedicamento)
             .query(updateMed);
         }
 
-        console.log(`📌 Actualizando detalleSurtimientos ID ${item.idSurtimiento}`);
+        console.log(
+          `📌 Actualizando detalleSurtimientos ID ${item.idSurtimiento}`
+        );
         console.log(`   🔹 Nuevo estatus: ${item.estatus}`);
         console.log(`   🔹 Cantidad entregada: ${item.delivered}`);
 
@@ -54,10 +74,11 @@ export default async function handler(req, res) {
               entregado = @delivered
           WHERE idSurtimiento = @idSurtimiento
         `;
-        await transaction.request()
-          .input('estatus', sql.Int, item.estatus)
-          .input('delivered', sql.Int, item.delivered)
-          .input('idSurtimiento', sql.Int, item.idSurtimiento)
+        await transaction
+          .request()
+          .input("estatus", sql.Int, item.estatus)
+          .input("delivered", sql.Int, item.delivered)
+          .input("idSurtimiento", sql.Int, item.idSurtimiento)
           .query(updateDetalle);
       }
 
@@ -75,30 +96,71 @@ export default async function handler(req, res) {
               COSTO = @cost
           WHERE FOLIO_SURTIMIENTO = @folio
         `;
-        
+
         console.log("🟢 Ejecutando UPDATE en SURTIMIENTOS...");
-        
-        const updateResult = await transaction.request()
-          .input('folio', sql.Int, folioSurtimiento)
-          .input('fechaDespacho', sql.VarChar, fechaDespacho) //* 🔹 Se asegura que la fecha es DateTime
-          .input('cost', sql.Numeric(18, 2), cost || 0)
+
+        const updateResult = await transaction
+          .request()
+          .input("folio", sql.Int, folioSurtimiento)
+          .input("fechaDespacho", sql.VarChar, fechaDespacho) //* Maneja el tipo que uses en tu DB
+          .input("cost", sql.Numeric(18, 2), cost || 0)
           .query(updateSurtimiento);
-        
+
         console.log("✅ Resultado del UPDATE en SURTIMIENTOS:", updateResult);
       } else {
         console.log("⚠️ Receta NO completada, no se actualizó SURTIMIENTOS.");
       }
 
+      // 👇 Finaliza la transacción con éxito
       await transaction.commit();
-      console.log(`✅ Transacción completada con éxito para folio ${folioSurtimiento}`);
-      return res.status(200).json({ message: 'Cambios guardados con éxito' });
+      console.log(
+        `✅ Transacción completada con éxito para folio ${folioSurtimiento}`
+      );
+
+      // ======================
+      // Registrar la actividad
+      // ======================
+      try {
+        const idUsuario = getUserIdFromCookie(req);
+        const ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
+        const userAgent = req.headers["user-agent"] || "";
+
+        if (idUsuario) {
+          // Inserta en ActividadUsuarios, usando la columna IdSurtimiento
+          // para almacenar el folioSurtimiento recién procesado
+          await db
+            .request()
+            .input("IdUsuario", sql.Int, idUsuario)
+            .input("Accion", sql.VarChar, "Surtió receta") 
+            .input("DireccionIP", sql.VarChar, ip)
+            .input("AgenteUsuario", sql.VarChar, userAgent)
+            .input("IdSurtimiento", sql.Int, folioSurtimiento)
+            .query(`
+              INSERT INTO ActividadUsuarios
+                (IdUsuario, Accion, FechaHora, DireccionIP, AgenteUsuario, IdSurtimiento)
+              VALUES
+                (@IdUsuario, @Accion, GETDATE(), @DireccionIP, @AgenteUsuario, @IdSurtimiento)
+            `);
+          console.log("✅ Actividad registrada en la tabla ActividadUsuarios.");
+        } else {
+          console.log(
+            "⚠️ No se pudo registrar la actividad: falta idUsuario (cookie)."
+          );
+        }
+      } catch (errorAct) {
+        console.error("❌ Error al registrar la actividad:", errorAct);
+      }
+
+      return res.status(200).json({ message: "Cambios guardados con éxito" });
     } catch (err) {
       await transaction.rollback();
-      console.error('❌ Error en transacción surtirMedicamentos:', err);
-      return res.status(500).json({ message: 'Error en la transacción', error: err.message });
+      console.error("❌ Error en transacción surtirMedicamentos:", err);
+      return res
+        .status(500)
+        .json({ message: "Error en la transacción", error: err.message });
     }
   } catch (error) {
-    console.error('❌ Error conectando a DB en surtirMedicamentos:', error);
+    console.error("❌ Error conectando a DB en surtirMedicamentos:", error);
     return res.status(500).json({ message: error.message });
   }
-};
+}
