@@ -28,7 +28,7 @@ export default async function handler(req, res) {
     });
 
     const query = `
-      INSERT INTO [PRESIDENCIA].[dbo].[detalleSurtimientos]
+      INSERT INTO detalleSurtimientos
         ([folioSurtimiento],
          [claveMedicamento],
          [indicaciones],

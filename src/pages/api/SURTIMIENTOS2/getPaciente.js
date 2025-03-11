@@ -22,7 +22,7 @@ export default async function handler(req, res) {
       .input("folio", sql.Int, folio)
       .query(`
         SELECT nombrepaciente, edad, departamento, parentesco
-        FROM [PRESIDENCIA].[dbo].[consultas]
+        FROM consultas
         WHERE claveconsulta = @folio
       `);
 
@@ -47,7 +47,7 @@ export default async function handler(req, res) {
           .input("idParentesco", sql.Int, parentescoNum)
           .query(`
             SELECT PARENTESCO
-            FROM [PRESIDENCIA].[dbo].[PARENTESCO]
+            FROM PARENTESCO
             WHERE ID_PARENTESCO = @idParentesco
           `);
 

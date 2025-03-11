@@ -9,16 +9,16 @@ export default async function handler(req, res) {
   const { folio, medicamentos, diagnostico } = req.body;
   console.log("📡 Recibiendo solicitud para guardar receta...");
   console.log("📌 Folio recibido:", folio);
-  console.log("📌 Diagnóstico recibido en API:", diagnostico); // ✅ Depuración clave
+  console.log("📌 Diagnóstico recibido en API:", diagnostico); //* ✅ Depuración clave
   console.log("📌 Medicamentos recibidos:", medicamentos);
 
-  // Validación de datos recibidos
+  //* Validación de datos recibidos
   if (
     !folio ||
     !Array.isArray(medicamentos) ||
     medicamentos.length === 0 ||
     !diagnostico ||
-    !medicamentos.every((med) => med.piezas !== undefined) // Asegúrate de que 'piezas' esté presente
+    !medicamentos.every((med) => med.piezas !== undefined) //* Asegúrate de que 'piezas' esté presente
   ) {
     console.error("Datos incompletos recibidos:", {
       folio,
@@ -33,20 +33,20 @@ export default async function handler(req, res) {
   try {
     const pool = await connectToDatabase();
 
-    // Obtener el último FOLIO_SURTIMIENTO
+    //* Obtener el último FOLIO_SURTIMIENTO
     const folioQuery = `
       SELECT ISNULL(MAX(FOLIO_SURTIMIENTO), 0) + 1 AS nuevoFolio
-      FROM [PRESIDENCIA].[dbo].[SURTIMIENTOS]
+      FROM SURTIMIENTOS
     `;
     const folioResult = await pool.request().query(folioQuery);
     const nuevoFolio = folioResult.recordset[0].nuevoFolio;
     console.log("Nuevo folio generado:", nuevoFolio);
 
-    // Obtener los datos del folio de consulta
+    //* Obtener los datos del folio de consulta
     const consultaQuery = `
       SELECT clavenomina, sindicato, clavepaciente, nombrepaciente, edad, elpacienteesempleado,
              claveproveedor, departamento, clavestatus, claveusuario
-      FROM [PRESIDENCIA].[dbo].[consultas]
+      FROM consultas
       WHERE claveconsulta = @folio
     `;
     const consultaResult = await pool
@@ -94,15 +94,15 @@ export default async function handler(req, res) {
     const sindicato = await getSindicato(consulta.clavenomina, pool);
     console.log("Sindicato determinado:", sindicato);
 
-    // Si sindicato es null o undefined, asigna un valor predeterminado
+    //* Si sindicato es null o undefined, asigna un valor predeterminado
     const sindicatoFinal = sindicato || "N/A"; // Valor por defecto
 
-    // Limitar el valor a 10 caracteres
+    //* Limitar el valor a 10 caracteres
     const sindicatoLimpio = sindicatoFinal.substring(0, 10);
 
     console.log("Sindicato limpio:", sindicatoLimpio);
 
-    // Normalizar el valor del campo departamento
+    //* Normalizar el valor del campo departamento
     let departamento = consulta.departamento || null;
     if (departamento && departamento.length > 100) {
       departamento = departamento.substring(0, 100);
@@ -112,9 +112,9 @@ export default async function handler(req, res) {
       departamento ? departamento.length : 0
     );
 
-    // Insertar en la tabla SURTIMIENTOS
+    //* Insertar en la tabla SURTIMIENTOS
     const insertSurtimientoQuery = `
-      INSERT INTO [PRESIDENCIA].[dbo].[SURTIMIENTOS] (
+      INSERT INTO SURTIMIENTOS (
         FOLIO_SURTIMIENTO, FOLIO_PASE, FECHA_EMISION, NOMINA, CLAVE_PACIENTE,
         NOMBRE_PACIENTE, EDAD, ESEMPLEADO, CLAVEMEDICO, DIAGNOSTICO,
         DEPARTAMENTO, ESTATUS, COSTO, FECHA_DESPACHO, SINDICATO, claveusuario
@@ -141,7 +141,7 @@ export default async function handler(req, res) {
     console.log("claveUsuario:", consulta.claveusuario);
 
     // **Mapear 'clavestatus' a BIT**
-    // Si 'clavestatus' es mayor que 0, asigna 1, de lo contrario 0
+    //* Si 'clavestatus' es mayor que 0, asigna 1, de lo contrario 0
     const estatusBIT = consulta.clavestatus > 0 ? 1 : 0;
 
     await pool
@@ -163,9 +163,9 @@ export default async function handler(req, res) {
 
     console.log("Surtimiento insertado exitosamente.");
 
-    // Insertar medicamentos en la tabla detalleSurtimientos
+    //* Insertar medicamentos en la tabla detalleSurtimientos
     const insertDetalleQuery = `
-      INSERT INTO [PRESIDENCIA].[dbo].[detalleSurtimientos] (
+      INSERT INTO detalleSurtimientos (
         folioSurtimiento, claveMedicamento, indicaciones, cantidad, piezas, estatus, entregado
       ) VALUES (
         @folioSurtimiento, @claveMedicamento, @indicaciones, @cantidad, @piezas, 1, @entregado
@@ -194,15 +194,15 @@ export default async function handler(req, res) {
         .input("indicaciones", sql.NVarChar(sql.MAX), medicamento.indicaciones)
         .input("cantidad", sql.NVarChar(70), medicamento.cantidad)
         .input("piezas", sql.Int, medicamento.piezas)
-        .input("entregado", sql.Int, 0) // Se establece en 0
+        .input("entregado", sql.Int, 0) //* Se establece en 0
         .query(insertDetalleQuery);
     }
 
     console.log("Todos los medicamentos insertados exitosamente.");
 
-    // Actualizar el diagnóstico en la tabla consultas
+    //* Actualizar el diagnóstico en la tabla consultas
     const updateConsultaQuery = `
-      UPDATE [PRESIDENCIA].[dbo].[consultas]
+      UPDATE consultas
       SET diagnostico = @diagnostico
       WHERE claveconsulta = @folio
     `;

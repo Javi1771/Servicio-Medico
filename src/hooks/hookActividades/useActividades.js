@@ -7,7 +7,7 @@ export function useActividades() {
   useEffect(() => {
     // Función auxiliar para cargar datos de la API
     const fetchActividades = () => {
-      fetch("/api/Actividad/actividades")
+      fetch("/api/actividad/actividades")
         .then((res) => res.json())
         .then((data) => {
           setActividades(data);

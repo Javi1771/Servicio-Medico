@@ -21,7 +21,7 @@ export default async function handler(req, res) {
       .input("folioReceta", sql.Int, folioReceta)
       .query(`
         SELECT idDetalleReceta, folioReceta, descMedicamento, indicaciones, estatus, cantidad
-        FROM [PRESIDENCIA].[dbo].[detalleReceta]
+        FROM detalleReceta
         WHERE folioReceta = @folioReceta
       `);
 

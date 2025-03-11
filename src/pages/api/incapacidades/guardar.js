@@ -93,7 +93,7 @@ export default async function handler(req, res) {
             const userAgent = req.headers["user-agent"] || "";
             await pool.request()
               .input("userId", sql.Int, claveusuario)
-              .input("accion", sql.VarChar, "Asignó incapacidad")
+              .input("accion", sql.VarChar, "Asignó una incapacidad")
               .input("direccionIP", sql.VarChar, ip)
               .input("agenteUsuario", sql.VarChar, userAgent)
               //* Usamos la claveConsulta (la recibida en el body) para guardar en la columna ClaveConsulta

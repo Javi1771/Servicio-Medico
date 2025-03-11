@@ -18,7 +18,7 @@ export default async function handler(req, res) {
 
     // Actualizar el campo diagnostico en la tabla CONSULTAS
     const query = `
-      UPDATE [PRESIDENCIA].[dbo].[CONSULTAS]
+      UPDATE consultas
       SET diagnostico = @diagnostico
       WHERE claveconsulta = @claveconsulta
     `;

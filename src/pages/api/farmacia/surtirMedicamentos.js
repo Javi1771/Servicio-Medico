@@ -51,7 +51,7 @@ export default async function handler(req, res) {
           console.log(`   🔹 Descontando ${delta} piezas`);
 
           const updateMed = `
-            UPDATE [PRESIDENCIA].[dbo].[medicamentos]
+            UPDATE medicamentos
             SET piezas = piezas - @delta
             WHERE claveMedicamento = @claveMedicamento
           `;
@@ -69,7 +69,7 @@ export default async function handler(req, res) {
         console.log(`   🔹 Cantidad entregada: ${item.delivered}`);
 
         const updateDetalle = `
-          UPDATE [PRESIDENCIA].[dbo].[detalleSurtimientos]
+          UPDATE detalleSurtimientos
           SET estatus = @estatus,
               entregado = @delivered
           WHERE idSurtimiento = @idSurtimiento
@@ -90,7 +90,7 @@ export default async function handler(req, res) {
         console.log(`   🔹 Costo: ${cost || 0}`);
 
         const updateSurtimiento = `
-          UPDATE [PRESIDENCIA].[dbo].[SURTIMIENTOS]
+          UPDATE SURTIMIENTOS
           SET ESTATUS = 0,
               FECHA_DESPACHO = @fechaDespacho,
               COSTO = @cost
@@ -111,27 +111,27 @@ export default async function handler(req, res) {
         console.log("⚠️ Receta NO completada, no se actualizó SURTIMIENTOS.");
       }
 
-      // 👇 Finaliza la transacción con éxito
+      //* 👇 Finaliza la transacción con éxito
       await transaction.commit();
       console.log(
         `✅ Transacción completada con éxito para folio ${folioSurtimiento}`
       );
 
-      // ======================
-      // Registrar la actividad
-      // ======================
+      //* ======================
+      //* Registrar la actividad
+      //* ======================
       try {
         const idUsuario = getUserIdFromCookie(req);
         const ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
         const userAgent = req.headers["user-agent"] || "";
 
         if (idUsuario) {
-          // Inserta en ActividadUsuarios, usando la columna IdSurtimiento
-          // para almacenar el folioSurtimiento recién procesado
+          //* Inserta en ActividadUsuarios, usando la columna IdSurtimiento
+          //* para almacenar el folioSurtimiento recién procesado
           await db
             .request()
             .input("IdUsuario", sql.Int, idUsuario)
-            .input("Accion", sql.VarChar, "Surtió receta") 
+            .input("Accion", sql.VarChar, "Surtió una receta") 
             .input("DireccionIP", sql.VarChar, ip)
             .input("AgenteUsuario", sql.VarChar, userAgent)
             .input("IdSurtimiento", sql.Int, folioSurtimiento)

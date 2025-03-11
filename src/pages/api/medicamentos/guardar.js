@@ -31,7 +31,7 @@ export default async function handler(req, res) {
 
     //? 1. Inserción en detalleReceta
     const queryInsertarReceta = `
-      INSERT INTO [PRESIDENCIA].[dbo].[detalleReceta]
+      INSERT INTO detalleReceta
       (folioReceta, descMedicamento, indicaciones, estatus, cantidad, piezas)
       VALUES (@folioReceta, @descMedicamento, @indicaciones, @estatus, @cantidad, @piezas)
     `;

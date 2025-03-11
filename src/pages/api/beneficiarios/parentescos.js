@@ -6,7 +6,7 @@ export default async function handler(req, res) {
       const pool = await connectToDatabase();
       const result = await pool.request().query(`
         SELECT ID_PARENTESCO, PARENTESCO
-        FROM [PRESIDENCIA].[dbo].[PARENTESCO]
+        FROM PARENTESCO
         WHERE VISIBLE = 1
       `);
       res.status(200).json(result.recordset);

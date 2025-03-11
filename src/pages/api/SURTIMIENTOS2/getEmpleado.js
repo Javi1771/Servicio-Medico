@@ -24,7 +24,7 @@ export default async function handler(req, res) {
       .input("folio", sql.Int, folio)
       .query(`
         SELECT clavenomina
-        FROM [PRESIDENCIA].[dbo].[consultas]
+        FROM consultas
         WHERE claveconsulta = @folio
       `);
 

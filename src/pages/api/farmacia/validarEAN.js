@@ -16,7 +16,7 @@ export default async function handler(req, res) {
     // Verifica en la tabla medicamentos
     const query = `
       SELECT TOP 1 medicamento
-      FROM [PRESIDENCIA].[dbo].[medicamentos]
+      FROM medicamentos
       WHERE ean = @EAN
         AND claveMedicamento = @CLAVE
     `;

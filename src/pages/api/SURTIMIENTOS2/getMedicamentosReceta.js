@@ -29,7 +29,7 @@ export default async function handler(req, res) {
       .input("folioReceta", sql.Int, folioReceta)
       .query(`
         SELECT TOP 1 FOLIO_SURTIMIENTO 
-        FROM [PRESIDENCIA].[dbo].[SURTIMIENTOS] 
+        FROM SURTIMIENTOS
         WHERE FOLIO_PASE = @folioReceta
         ORDER BY FOLIO_SURTIMIENTO DESC
       `);
@@ -52,8 +52,8 @@ export default async function handler(req, res) {
             ds.cantidad,
             ds.piezas, 
             m.MEDICAMENTO AS nombreMedicamento
-          FROM [PRESIDENCIA].[dbo].[detalleSurtimientos] AS ds
-          JOIN [PRESIDENCIA].[dbo].[MEDICAMENTOS] AS m 
+          FROM detalleSurtimientos AS ds
+          JOIN MEDICAMENTOS AS m 
             ON ds.claveMedicamento = m.CLAVEMEDICAMENTO
           WHERE ds.folioSurtimiento = @folioSurtimiento
             AND m.estatus = 1
@@ -80,8 +80,8 @@ export default async function handler(req, res) {
           dr.cantidad,
           dr.piezas,  -- Aquí también agregas el campo piezas
           m.MEDICAMENTO AS nombreMedicamento
-        FROM [PRESIDENCIA].[dbo].[detalleReceta] AS dr
-        JOIN [PRESIDENCIA].[dbo].[MEDICAMENTOS] AS m 
+        FROM detalleReceta AS dr
+        JOIN MEDICAMENTOS AS m 
           ON dr.descMedicamento = m.CLAVEMEDICAMENTO
         WHERE dr.folioReceta = @folioReceta
       `);

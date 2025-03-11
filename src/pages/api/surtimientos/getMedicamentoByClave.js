@@ -12,7 +12,7 @@ export default async function handler(req, res) {
     const pool = await connectToDatabase();
     const query = `
       SELECT medicamento AS MEDICAMENTO
-      FROM [PRESIDENCIA].[dbo].[MEDICAMENTOS]
+      FROM MEDICAMENTOS
       WHERE claveMedicamento = @claveMedicamento
     `;
     const result = await pool

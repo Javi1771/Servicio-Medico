@@ -17,7 +17,7 @@ export default async function handler(req, res) {
       const imageResult = await pool.request()
         .input('idBeneficiario', sql.Int, idBeneficiario)
         .query(
-          'SELECT FOTO_URL FROM PRESIDENCIA.dbo.BENEFICIARIO WHERE ID_BENEFICIARIO = @idBeneficiario'
+          'SELECT FOTO_URL FROM BENEFICIARIO WHERE ID_BENEFICIARIO = @idBeneficiario'
         );
 
       if (imageResult.recordset.length === 0) {
@@ -39,7 +39,7 @@ export default async function handler(req, res) {
       const result = await pool.request()
         .input('idBeneficiario', sql.Int, idBeneficiario)
         .query(
-          'UPDATE PRESIDENCIA.dbo.BENEFICIARIO SET ACTIVO = \'I\' WHERE ID_BENEFICIARIO = @idBeneficiario'
+          'UPDATE BENEFICIARIO SET ACTIVO = \'I\' WHERE ID_BENEFICIARIO = @idBeneficiario'
         );
 
       if (result.rowsAffected[0] === 0) {
@@ -66,7 +66,7 @@ export default async function handler(req, res) {
           .input("claveConsulta", sql.Int, null)
           .input("idBeneficiario", sql.Int, idBeneficiario)
           .query(`
-            INSERT INTO dbo.ActividadUsuarios 
+            INSERT INTO ActividadUsuarios 
               (IdUsuario, Accion, FechaHora, DireccionIP, AgenteUsuario, ClaveConsulta, IdBeneficiario)
             VALUES 
               (@userId, @accion, DATEADD(MINUTE, -4, GETDATE()), @direccionIP, @agenteUsuario, @claveConsulta, @idBeneficiario)
