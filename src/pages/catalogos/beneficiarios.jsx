@@ -860,21 +860,21 @@ export default function RegistroBeneficiario() {
       doc.setFontSize(14);
       doc.text(
         `${NOMBRE || ""} ${A_PATERNO || ""} ${A_MATERNO || ""}`,
-        18.5,
-        6.0
+        17,
+        6.3
       ); // Nombre
-      doc.text(parentescoDescripcion, 18.5, 7.5); // Parentesco
-      doc.text(edadConAnios, 24, 7.6); // Edad
-      doc.text(vigencia, 18.5, 8.8); // Vigencia
+      doc.text(parentescoDescripcion, 17, 7.9); // Parentesco
+      doc.text(edadConAnios, 24, 7.9); // Edad
+      doc.text(vigencia, 17, 9.5); // Vigencia
 
-      doc.text(EMPLEADO_NOMBRE, 18.5, 10.5); // Nombre del empleado
-      doc.text(NUM_NOMINA, 18.5, 11.6); // Número de nómina
+      doc.text(EMPLEADO_NOMBRE, 17, 11.3); // Nombre del empleado
+      doc.text(NUM_NOMINA, 17, 12.9); // Número de nómina
       const departamentoText = doc.splitTextToSize(DEPARTAMENTO, 10);
-      doc.text(departamentoText, 18.5, 12.8); // Departamento
+      doc.text(departamentoText, 17, 14.9); // Departamento
 
       // Aquí añadimos la firma en la sección "Secretario de Administración" **en la primera página**.
       // Ajusta la posición (x, y) y tamaño (width, height) según tu diseño.
-      doc.addImage(signatureImage, "PNG", 20, 17.5, 5, 2);
+      doc.addImage(signatureImage, "PNG", 20, 18, 4.5, 1.5);
 
       // Página Trasera
       doc.addPage();
@@ -1091,7 +1091,7 @@ export default function RegistroBeneficiario() {
         );
       }
 
-      doc.text(SANGRE || "Sin información", 9.8, 5.2);
+      doc.text(SANGRE || "Sin información", 9.8, 5);
       doc.text(ALERGIAS || "Sin información", 7.0, 7.6);
       doc.text(TEL_EMERGENCIA || "Sin información", 14, 9.8);
       doc.text(NOMBRE_EMERGENCIA || "Sin información", 13.1, 12);
