@@ -1,4 +1,3 @@
-// src/helpers/getActionIcon.js
 import React from "react";
 import {
   FaSignInAlt,
@@ -9,52 +8,97 @@ import {
   FaUserMd,
   FaProcedures,
   FaQuestion,
-  FaChartLine,   // Para KPI registrado
-  FaStarHalfAlt, // Para KPI calificado
-  FaBookMedical, // Para "Guardó un antecedente"
-  FaUserCheck,   // Para "Guardó un beneficiario"
-  FaUserEdit,    // Para "Editó un beneficiario"
-  FaUserMinus,   // Para "Eliminó un beneficiario"
-  FaFileAlt,     // Para "Asignó antecedente"
+  FaChartLine,   
+  FaStarHalfAlt, 
+  FaBookMedical, 
+  FaUserCheck,   
+  FaUserEdit,    
+  FaUserMinus,   
+  FaPlus,        
+  FaPrescriptionBottle, 
+  FaBalanceScale
 } from "react-icons/fa";
 
 export function getActionIcon(action) {
-  const normalized = action.toLowerCase();
+  const normalized = action.toLowerCase().trim();
 
   switch (true) {
+    //? Sesión
     case normalized === "inicio de sesión":
       return <FaSignInAlt />;
-    case normalized === "consulta atendida":
+
+    //? Antecedentes
+    case normalized === "guardó un antecedente":
+      return <FaBookMedical />;
+
+    //? Beneficiarios
+    case normalized === "guardó un beneficiario":
+      return <FaUserCheck />;
+    case normalized === "editó un beneficiario":
+      return <FaUserEdit />;
+    case normalized === "eliminó un beneficiario":
+      return <FaUserMinus />;
+
+    //? KPI
+    case normalized === "calificó un kpi":
+      return <FaStarHalfAlt />;
+    case normalized === "registró un kpi":
+    case normalized === "agregó un nuevo kpi":
+      return <FaChartLine />;
+
+    //? Enfermedad crónica
+    case normalized === "asignó enfermedad crónica":
+    case normalized === "agregó una enfermedad crónica":
+      return <FaProcedures />;
+
+    //? Especialidad y pases
+    case normalized === "agregó una especialidad":
+    case normalized === "editó una especialidad":
+    case normalized === "eliminó una especialidad":
+    case normalized === "asignó especialidad":
+    case normalized === "creó un nuevo pase de especialidad":
+    case normalized === "capturó un pase de especialidad":
+      return <FaUserMd />;
+
+    //? Medicamentos
+    case normalized === "creó un nuevo medicamento":
+    case normalized === "editó un medicamento":
+    case normalized === "eliminó un medicamento":
+      return <FaMedkit />;
+
+    //? Unidades de medida
+    case normalized === "agregó una nueva unidad de medida":
+      return <FaBalanceScale />;
+
+    //? Surtimientos / recetas
+    case normalized === "surtió una receta":
+      return <FaPrescriptionBottle />;
+
+    //? Incapacidades
+    case normalized === "asignó una incapacidad":
+    case normalized === "capturó una incapacidad":
+      return <FaUserInjured />;
+
+    //? Consulta / Signos vitales
+    case normalized === "atendió una consulta":
       return <FaStethoscope />;
     case normalized === "consulta de signos vitales guardada":
       return <FaHeartbeat />;
-    case normalized.includes("incapacidad"):
-      return <FaUserInjured />;
-    case normalized.includes("medicament"):
-      return <FaMedkit />;
-    case normalized.includes("especialidad"):
-      return <FaUserMd />;
-    case normalized.includes("enfermedad crónica"):
-      return <FaProcedures />;
-    case normalized === "guardó un antecedente":
-      return <FaBookMedical />;
-    case normalized.includes("guardó un beneficiario"):
-      return <FaUserCheck />;
-    case normalized.includes("editó un beneficiario"):
+
+    //? Proveedores
+    case normalized === "agregó un nuevo proveedor":
+      return <FaPlus />;
+    case normalized === "editó un proveedor":
       return <FaUserEdit />;
-    case normalized.includes("eliminó un beneficiario"):
+    case normalized === "eliminó un proveedor":
       return <FaUserMinus />;
-    case normalized.includes("asignó antecedente"):
-      return <FaFileAlt />;
-    case [
-      "registró un kpi",
-      "registrò un kpi",
-      "kpi registrado",
-    ].includes(normalized):
-      return <FaChartLine />;
-    case ["kpi calificado", "calificò un kpi"].includes(normalized):
-      return <FaStarHalfAlt />;
+
+    //? Asignar medicamentos
+    case normalized === "asignó medicamentos":
+      return <FaMedkit />;
+
     default:
+      //! Por si no coincide con ninguna de las anteriores
       return <FaQuestion />;
   }
 }

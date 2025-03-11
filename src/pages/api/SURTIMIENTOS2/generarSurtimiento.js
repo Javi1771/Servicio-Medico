@@ -41,7 +41,7 @@ export default async function handler(req, res) {
     const verificaRequest = new sql.Request(transaction);
     const verificaQuery = `
       SELECT COUNT(*) AS count
-      FROM [PRESIDENCIA].[dbo].[SURTIMIENTOS]
+      FROM  SURTIMIENTOS
       WHERE FOLIO_PASE = @folioReceta
     `;
     const verificaResult = await verificaRequest
@@ -65,7 +65,7 @@ export default async function handler(req, res) {
     const folioRequest = new sql.Request(transaction);
     const folioQuery = `
       SELECT ISNULL(MAX(FOLIO_SURTIMIENTO), 0) + 1 AS nuevoFolio
-      FROM [PRESIDENCIA].[dbo].[SURTIMIENTOS]
+      FROM SURTIMIENTOS 
     `;
     const folioResult = await folioRequest.query(folioQuery);
     const nuevoFolio = folioResult.recordset[0].nuevoFolio;
@@ -76,7 +76,7 @@ export default async function handler(req, res) {
     const consultaQuery = `
       SELECT clavenomina, sindicato, clavepaciente, nombrepaciente, edad, elpacienteesempleado,
              claveproveedor, departamento, clavestatus, claveusuario
-      FROM [PRESIDENCIA].[dbo].[consultas]
+      FROM consultas 
       WHERE claveconsulta = @folioReceta
     `;
     const consultaResult = await consultaRequest
@@ -178,7 +178,7 @@ export default async function handler(req, res) {
     // 7. Insertar en la tabla SURTIMIENTOS
     const insertSurtimientoRequest = new sql.Request(transaction);
     const insertSurtimientoQuery = `
-      INSERT INTO [PRESIDENCIA].[dbo].[SURTIMIENTOS] (
+      INSERT INTO SURTIMIENTOS  (
         FOLIO_SURTIMIENTO, FOLIO_PASE, FECHA_EMISION, NOMINA, CLAVE_PACIENTE,
         NOMBRE_PACIENTE, EDAD, ESEMPLEADO, CLAVEMEDICO, DIAGNOSTICO,
         DEPARTAMENTO, ESTATUS, COSTO, FECHA_DESPACHO, SINDICATO, claveusuario
@@ -229,7 +229,7 @@ export default async function handler(req, res) {
     // 8. Insertar medicamentos en la tabla detalleSurtimientos
     // Se agregó el campo "entregado" que se guardará en 0
     const insertDetalleQuery = `
-      INSERT INTO [PRESIDENCIA].[dbo].[detalleSurtimientos] (
+      INSERT INTO detalleSurtimientos  (
         folioSurtimiento, claveMedicamento, indicaciones, cantidad, estatus, entregado
       ) VALUES (
         @folioSurtimiento, @claveMedicamento, @indicaciones, @cantidad, 1, @entregado
@@ -259,7 +259,7 @@ export default async function handler(req, res) {
     // 9. Actualizar el diagnóstico en la tabla consultas
     const updateConsultaRequest = new sql.Request(transaction);
     const updateConsultaQuery = `
-      UPDATE [PRESIDENCIA].[dbo].[consultas]
+      UPDATE consultas
       SET diagnostico = @diagnostico
       WHERE claveconsulta = @folioReceta
     `;

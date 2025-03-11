@@ -13,7 +13,7 @@ export default function DetalleConsulta({ claveConsulta }) {
       try {
         setLoading(true);
         setError(null);
-        const resp = await fetch(`/api/Actividad/detalleConsulta?clave=${claveConsulta}`);
+        const resp = await fetch(`/api/actividad/detalleConsulta?clave=${claveConsulta}`);
         if (!resp.ok) {
           throw new Error(`Error de servidor: ${resp.status}`);
         }

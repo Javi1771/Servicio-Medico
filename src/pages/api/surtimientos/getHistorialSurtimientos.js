@@ -31,7 +31,7 @@ export default async function handler(req, res) {
         FECHA_EMISION,
         NOMBRE_PACIENTE,
         DIAGNOSTICO
-      FROM [PRESIDENCIA].[dbo].[SURTIMIENTOS]
+      FROM SURTIMIENTOS
       WHERE FOLIO_PASE = @folioPase AND ESTATUS = 1
     `;
 

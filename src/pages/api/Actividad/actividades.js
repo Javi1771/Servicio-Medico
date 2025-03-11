@@ -1,5 +1,4 @@
 import { connectToDatabase } from "../connectToDatabase";
-import sql from "mssql";
 
 // Función para formatear la fecha con día de la semana en español
 function formatFecha(fecha) {
@@ -35,14 +34,14 @@ export default async function handler(req, res) {
       SELECT
         A.IdActividad,
         A.IdUsuario,
-        A.ClaveConsulta,  -- Se incluye la clave de consulta
+        A.ClaveConsulta,
         P.nombreproveedor,
         A.Accion,
         A.FechaHora,
         A.DireccionIP,
         A.AgenteUsuario
-      FROM [PRESIDENCIA].[dbo].[ActividadUsuarios] AS A
-      LEFT JOIN [PRESIDENCIA].[dbo].[proveedores] AS P
+      FROM ActividadUsuarios AS A
+      LEFT JOIN proveedores AS P
         ON A.IdUsuario = P.claveproveedor
       ORDER BY A.FechaHora DESC;
     `);

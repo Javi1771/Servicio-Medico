@@ -9,7 +9,7 @@ export default async function handler(req, res) {
         SELECT 
           claveMedicamento AS CLAVEMEDICAMENTO, 
           medicamento AS MEDICAMENTO 
-        FROM [PRESIDENCIA].[dbo].[MEDICAMENTOS] 
+        FROM MEDICAMENTOS
         WHERE CLAVEMEDICAMENTO > 0
       `;
 

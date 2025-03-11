@@ -80,8 +80,8 @@ export default async function handler(req, res) {
         s.[SINDICATO],
         s.[claveusuario],
         p.nombreproveedor
-      FROM [PRESIDENCIA].[dbo].[SURTIMIENTOS] as s
-      INNER JOIN [PRESIDENCIA].[dbo].[PROVEEDORES] as p
+      FROM SURTIMIENTOS as s
+      INNER JOIN PROVEEDORES as p
         ON s.claveusuario = p.claveproveedor
       WHERE s.NOMINA = @NOMINA
         AND s.CLAVEMEDICO = @CLAVEMEDICO
@@ -124,8 +124,8 @@ export default async function handler(req, res) {
         ds.entregado,             
         m.medicamento AS nombreMedicamento,
         m.piezas AS stock
-      FROM [PRESIDENCIA].[dbo].[detalleSurtimientos] ds
-      LEFT JOIN [PRESIDENCIA].[dbo].[medicamentos] m
+      FROM detalleSurtimientos ds
+      LEFT JOIN medicamentos m
         ON ds.claveMedicamento = m.claveMedicamento
       WHERE ds.folioSurtimiento = @FOLIO_SURTIMIENTO
     `;

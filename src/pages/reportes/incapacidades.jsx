@@ -38,7 +38,7 @@ const IncapacidadesDashboard = () => {
     fetchIncapacidades();
   }, []);
 
-  // Función para filtrar por nómina o nombre del paciente
+  //* Función para filtrar por nómina o nombre del paciente
   useEffect(() => {
     const lowerSearch = searchTerm.toLowerCase();
     const filtered = incapacidades.filter((item) =>

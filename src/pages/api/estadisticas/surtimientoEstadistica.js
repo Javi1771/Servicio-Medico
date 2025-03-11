@@ -53,7 +53,7 @@ export default async function handler(req, res) {
           NOMBRE_PACIENTE,
           FECHA_EMISION,
           SUM(CAST(COSTO AS FLOAT)) AS TOTAL_COSTO
-        FROM [PRESIDENCIA].[dbo].[SURTIMIENTOS]
+        FROM SURTIMIENTOS
         WHERE 
           COSTO IS NOT NULL 
           AND FECHA_DESPACHO IS NOT NULL 

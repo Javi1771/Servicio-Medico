@@ -5,7 +5,7 @@ export default async function handler(req, res) {
   if (req.method === 'GET') {
     try {
       const pool = await connectToDatabase();
-      const result = await pool.request().query('SELECT idSexo, sexo FROM PRESIDENCIA.dbo.SEXO');
+      const result = await pool.request().query('SELECT idSexo, sexo FROM SEXO');
       
       res.status(200).json(result.recordset); // Devuelve todos los sexos
     } catch (error) {

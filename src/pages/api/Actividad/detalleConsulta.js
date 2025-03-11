@@ -1,5 +1,5 @@
 import sql from "mssql";
-import { connectToDatabase } from "../../api/connectToDatabase";
+import { connectToDatabase } from "../connectToDatabase";
 
 export default async function handler(req, res) {
   if (req.method !== "GET") {
@@ -26,7 +26,7 @@ export default async function handler(req, res) {
           motivoconsulta,
           diagnostico,
           clavenomina
-        FROM [PRESIDENCIA].[dbo].[consultas]
+        FROM consultas
         WHERE claveconsulta = @clave
       `);
 

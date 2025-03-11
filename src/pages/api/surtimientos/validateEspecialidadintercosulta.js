@@ -19,7 +19,7 @@ export default async function handler(req, res) {
     // Consulta SQL para verificar el campo especialidadinterconsulta
     const query = `
       SELECT especialidadinterconsulta
-      FROM [PRESIDENCIA].[dbo].[CONSULTAS]
+      FROM consultas
       WHERE claveconsulta = @claveconsulta
     `;
 

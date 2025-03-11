@@ -19,7 +19,7 @@ export default async function handler(req, res) {
     // 1️⃣ Obtener el FOLIO_SURTIMIENTO, NOMINA, CLAVEMEDICO y CLAVEUSUARIO
     const querySurtimientos = `
       SELECT TOP 1 FOLIO_SURTIMIENTO, NOMINA, CLAVEMEDICO, CLAVEUSUARIO
-      FROM [PRESIDENCIA].[dbo].[SURTIMIENTOS]
+      FROM SURTIMIENTOS
       WHERE FOLIO_PASE = @folio
       ORDER BY FOLIO_SURTIMIENTO DESC
     `;
@@ -49,8 +49,8 @@ export default async function handler(req, res) {
         ds.indicaciones, 
         ds.cantidad, 
         ds.piezas
-      FROM [PRESIDENCIA].[dbo].[detalleSurtimientos] ds
-      LEFT JOIN [PRESIDENCIA].[dbo].[MEDICAMENTOS] mn ON ds.claveMedicamento = mn.claveMedicamento
+      FROM detalleSurtimientos ds
+      LEFT JOIN MEDICAMENTOS mn ON ds.claveMedicamento = mn.claveMedicamento
       WHERE ds.folioSurtimiento = @folioSurtimiento
     `;
 
@@ -72,7 +72,7 @@ export default async function handler(req, res) {
         DEPARTAMENTO,
         FECHA_DESPACHO,
         SINDICATO
-      FROM [PRESIDENCIA].[dbo].[SURTIMIENTOS]
+      FROM SURTIMIENTOS
       WHERE FOLIO_SURTIMIENTO = @folioSurtimiento
     `;
 
@@ -94,7 +94,7 @@ export default async function handler(req, res) {
       console.log("🔍 Buscando datos del doctor en proveedores...");
       const queryDoctor = `
         SELECT nombreproveedor, cedulaproveedor
-        FROM [PRESIDENCIA].[dbo].[proveedores]
+        FROM proveedores
         WHERE claveproveedor = @CLAVEMEDICO
       `;
 
@@ -118,7 +118,7 @@ export default async function handler(req, res) {
       console.log("🔍 Buscando quién elaboró en proveedores...");
       const queryElaboro = `
         SELECT nombreproveedor
-        FROM [PRESIDENCIA].[dbo].[proveedores]
+        FROM proveedores
         WHERE claveproveedor = @CLAVEUSUARIO
       `;
 

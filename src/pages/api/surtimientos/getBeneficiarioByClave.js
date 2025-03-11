@@ -16,7 +16,7 @@ export default async function handler(req, res) {
     const pool = await connectToDatabase();
     const query = `
       SELECT [F_NACIMIENTO]
-      FROM [PRESIDENCIA].[dbo].[BENEFICIARIO]
+      FROM BENEFICIARIO
       WHERE NO_NOMINA = @clavePaciente
     `;
 

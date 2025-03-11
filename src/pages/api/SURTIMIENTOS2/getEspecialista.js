@@ -22,7 +22,7 @@ export default async function handler(req, res) {
       .input("folioConsulta", sql.Int, folioConsulta)
       .query(`
         SELECT claveproveedor, especialidadinterconsulta, diagnostico
-        FROM [PRESIDENCIA].[dbo].[consultas]
+        FROM consultas
         WHERE claveconsulta = @folioConsulta
       `);
 
@@ -38,7 +38,7 @@ export default async function handler(req, res) {
       .input("claveproveedor", sql.Int, claveproveedor)
       .query(`
         SELECT nombreproveedor, claveespecialidad
-        FROM [PRESIDENCIA].[dbo].[proveedores]
+        FROM proveedores
         WHERE claveproveedor = @claveproveedor
       `);
 
@@ -53,7 +53,7 @@ export default async function handler(req, res) {
         .input("claveespecialidad", sql.Int, claveespecialidad)
         .query(`
           SELECT especialidad
-          FROM [PRESIDENCIA].[dbo].[especialidades]
+          FROM especialidades
           WHERE claveespecialidad = @claveespecialidad
         `);
 

@@ -14,7 +14,7 @@ export default async function handler(req, res) {
         medicamento AS MEDICAMENTO,
         presentacion AS PRESENTACION,
         piezas AS PIEZAS
-      FROM [PRESIDENCIA].[dbo].[MEDICAMENTOS] 
+      FROM MEDICAMENTOS
       WHERE estatus = 1
     `);
 

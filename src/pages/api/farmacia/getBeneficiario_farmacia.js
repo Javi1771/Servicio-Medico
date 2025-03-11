@@ -37,7 +37,7 @@ export default async function handler(req, res) {
             [enfermedades_cronicas], 
             [tratamientos], 
             [observaciones]
-          FROM [PRESIDENCIA].[dbo].[BENEFICIARIO]
+          FROM BENEFICIARIO
           WHERE [NO_NOMINA] = @num_nomina
         `);
 

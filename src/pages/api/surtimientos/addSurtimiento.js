@@ -29,7 +29,7 @@ export default async function handler(req, res) {
     // Obtener el último valor de FOLIO_SURTIMIENTO y sumar 1
     const folioQuery = `
       SELECT ISNULL(MAX(FOLIO_SURTIMIENTO), 0) + 1 AS nuevoFolio
-      FROM [PRESIDENCIA].[dbo].[SURTIMIENTOS]
+      FROM SURTIMIENTOS
     `;
     const folioResult = await pool.request().query(folioQuery);
     const nuevoFolio = folioResult.recordset[0].nuevoFolio;
@@ -58,7 +58,7 @@ export default async function handler(req, res) {
     console.log("Longitud del campo departamento:", departamento.length);
 
     const query = `
-      INSERT INTO [PRESIDENCIA].[dbo].[SURTIMIENTOS]
+      INSERT INTO SURTIMIENTOS
         ([FOLIO_SURTIMIENTO]
         ,[FOLIO_PASE]
         ,[FECHA_EMISION]

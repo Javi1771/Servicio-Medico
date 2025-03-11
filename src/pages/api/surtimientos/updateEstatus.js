@@ -15,7 +15,7 @@ export default async function handler(req, res) {
     const pool = await connectToDatabase();
 
     const query = `
-      UPDATE [PRESIDENCIA].[dbo].[detalleReceta]
+      UPDATE detalleReceta
       SET estatus = @estatus
       WHERE idDetalleReceta = @idDetalleReceta
     `;
