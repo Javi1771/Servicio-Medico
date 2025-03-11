@@ -8,7 +8,6 @@ import Image from "next/image";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 import "../styles/globals.css";
-import io from "socket.io-client";
 
 const MySwal = withReactContent(Swal);
 
@@ -46,16 +45,6 @@ const Login = () => {
       const data = await response.json();
 
       if (data.success) {
-        // Emitir evento de actividad usando socket.io
-        const socket = io(); // Se conecta al mismo origen
-        socket.emit("user-activity", {
-          userId: data.userId,          // Asegúrate de que 'data.userId' exista
-          action: "Inició sesión",      
-          ip: data.ip || "",            // Opcional: si tu backend lo proporciona
-          userAgent: navigator.userAgent,
-          time: new Date(),
-        });
-
         showAlert(
           "success",
           "✅ Bienvenido",
