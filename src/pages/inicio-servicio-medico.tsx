@@ -179,7 +179,7 @@ const Home = () => {
     if (rol === "9") {
       menuOptions.push({
         title: "Farmacia",
-        options: ["Medicamentos", "Farmacia Surtimientos", "Alertas de Stock", "Unidades de Medida",],
+        options: ["Medicamentos", "Farmacia Surtimientos", "Alertas de Stock", "Unidades de Medida", "Recetas Pendientes"],
         icon: <FaCapsules className="inline-block mr-2" />,
       });
     }
@@ -193,6 +193,7 @@ const Home = () => {
             "Farmacia Surtimientos",
             "Alertas de Stock",
             "Unidades de Medida",
+            "Recetas Pendientes",
           ],
           icon: <FaCapsules className="inline-block mr-2" />,
         },
