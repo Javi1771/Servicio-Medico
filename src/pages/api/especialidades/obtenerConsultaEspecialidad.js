@@ -49,14 +49,14 @@ export default async function handler(req, res) {
     //* Validamos que el campo parentesco sea un valor único
     if (Array.isArray(consulta.parentesco)) {
       console.warn("⚠️ El campo 'parentesco' se recibió como un arreglo. Corrigiendo...");
-      consulta.parentesco = consulta.parentesco[0]; // Tomar el primer valor del arreglo
+      consulta.parentesco = consulta.parentesco[0]; //* Tomar el primer valor del arreglo
     }
 
     console.log("📋 Consulta después de procesar el parentesco:", consulta);
 
     //? 2. Obtener parentesco (nombre o etiqueta)
     console.log("🔍 Determinando parentesco");
-    let parentescoNombre = "EMPLEADO"; // Valor por defecto si es empleado
+    let parentescoNombre = "EMPLEADO"; //* Valor por defecto si es empleado
 
     if (consulta.parentesco === 0 || consulta.parentesco === "Empleado") {
       console.log("ℹ️ Parentesco identificado directamente como EMPLEADO");

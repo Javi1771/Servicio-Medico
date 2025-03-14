@@ -89,8 +89,10 @@ export default async function handler(req, res) {
       if (seAsignoIncapacidad === 1) {
         try {
           if (claveusuario !== null) {
-            const ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
-            const userAgent = req.headers["user-agent"] || "";
+            let ip = req.headers["x-forwarded-for"] ||
+            req.connection?.remoteAddress ||
+            req.socket?.remoteAddress ||
+            (req.connection?.socket ? req.connection.socket.remoteAddress : null);            const userAgent = req.headers["user-agent"] || "";
             await pool.request()
               .input("userId", sql.Int, claveusuario)
               .input("accion", sql.VarChar, "Asignó una incapacidad")

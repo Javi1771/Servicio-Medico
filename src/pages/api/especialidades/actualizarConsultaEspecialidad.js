@@ -15,7 +15,7 @@ export default async function handler(req, res) {
   try {
     const pool = await connectToDatabase();
 
-    // Actualizar `seasignoaespecialidad` en la tabla `consultas`
+    //* Actualizar `seasignoaespecialidad` en la tabla `consultas`
     await pool.request()
       .input('claveconsulta', sql.Int, claveConsulta)
       .input('seasignoaespecialidad', sql.VarChar, seasignoaespecialidad)

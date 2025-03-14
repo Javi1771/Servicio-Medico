@@ -124,8 +124,10 @@ export default async function handler(req, res) {
 
       //? 6) Registrar la actividad con el mensaje "KPI calificado" e insertar la claveConsulta obtenida
       try {
-        const ip =
-          req.headers["x-forwarded-for"] || req.connection.remoteAddress;
+        let ip = req.headers["x-forwarded-for"] ||
+        req.connection?.remoteAddress ||
+        req.socket?.remoteAddress ||
+        (req.connection?.socket ? req.connection.socket.remoteAddress : null);
         const userAgent = req.headers["user-agent"] || "";
         await pool
           .request()

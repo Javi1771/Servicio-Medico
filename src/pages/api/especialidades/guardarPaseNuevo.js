@@ -127,8 +127,10 @@ export default async function handler(req, res) {
       console.log("Cookie claveusuario:", claveusuarioInt);
 
       if (claveusuarioInt !== null) {
-        const ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
-        const userAgent = req.headers["user-agent"] || "";
+        let ip = req.headers["x-forwarded-for"] ||
+        req.connection?.remoteAddress ||
+        req.socket?.remoteAddress ||
+        (req.connection?.socket ? req.connection.socket.remoteAddress : null);        const userAgent = req.headers["user-agent"] || "";
 
         await pool
           .request()

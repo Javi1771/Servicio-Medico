@@ -131,8 +131,10 @@ export default async function handler(req, res) {
     //* Insertar el registro de actividad en la tabla ActividadUsuarios,
     //* almacenando la claveIncapacidad en la columna IdCapIncapacidad
     //* (ajusta esta parte a tus columnas y valores reales)
-    const ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
-    const userAgent = req.headers["user-agent"] || "";
+    let ip = req.headers["x-forwarded-for"] ||
+             req.connection?.remoteAddress ||
+             req.socket?.remoteAddress ||
+             (req.connection?.socket ? req.connection.socket.remoteAddress : null);    const userAgent = req.headers["user-agent"] || "";
 
     await request
       .input("idUsuario", sql.Int, parseInt(quienCapturo, 10))

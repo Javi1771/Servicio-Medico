@@ -238,7 +238,7 @@ export default function GenerarReceta() {
         }
 
         //? Bloque: DIAGNÓSTICO
-        drawMultilineText(firstPage, String(data.consulta?.motivoconsulta ?? "N/A"), 50, 510, 550, 10);
+        drawMultilineText(firstPage, String(data.consulta?.motivoconsulta ?? "N/A"), 50, 510, 680, 10);
 
         //? Bloque: TRATAMIENTO
         let recetaStartY = 357;

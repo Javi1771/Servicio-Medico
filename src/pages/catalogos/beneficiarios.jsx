@@ -452,7 +452,7 @@ export default function RegistroBeneficiario() {
     }
 
     try {
-      const response = await fetch("/api/uploadImage", {
+      const response = await fetch("/api/beneficiarios/uploadImage", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ image: base64Image, numNomina }),

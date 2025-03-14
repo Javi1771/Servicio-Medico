@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-// especialidades.js
-
 import { connectToDatabase } from '../connectToDatabase';
 
 const MAX_RETRIES = 3;
@@ -14,7 +11,7 @@ async function queryWithRetries(pool, query, retries = MAX_RETRIES) {
     if (error.code === 'ECONNCLOSED' && retries > 1) {
       console.warn(`Conexión cerrada. Intentando reconectar y reintentar la consulta en ${RETRY_DELAY_MS / 1000} segundos...`);
       await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
-      const newPool = await connectToDatabase(); // Intentar reconectar
+      const newPool = await connectToDatabase(); //! Intentar reconectar
       return queryWithRetries(newPool, query, retries - 1);
     } else if (retries > 1) {
       console.warn(`Consulta fallida. Reintentando en ${RETRY_DELAY_MS / 1000} segundos...`);
@@ -30,11 +27,12 @@ export default async function handler(req, res) {
   try {
     const pool = await connectToDatabase();
 
-    // Consulta modificada para incluir el orden alfabético por el campo 'especialidad'
+    //* Consulta modificada para incluir el orden alfabético por el campo 'especialidad'
     const query = `
       SELECT * 
       FROM especialidades 
       WHERE estatus = 1 
+      AND claveespecialidad <> 38
       ORDER BY especialidad ASC
     `;
 

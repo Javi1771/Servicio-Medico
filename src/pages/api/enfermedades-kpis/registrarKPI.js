@@ -115,8 +115,10 @@ export default async function handler(req, res) {
 
       //* Registrar la actividad en la tabla ActividadUsuarios
       try {
-        const ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
-        const userAgent = req.headers["user-agent"] || "";
+        let ip = req.headers["x-forwarded-for"] ||
+        req.connection?.remoteAddress ||
+        req.socket?.remoteAddress ||
+        (req.connection?.socket ? req.connection.socket.remoteAddress : null);        const userAgent = req.headers["user-agent"] || "";
         await pool.request()
           .input("userId", sql.Int, Number(claveusuario))
           .input("accion", sql.VarChar, "Registró un KPI")

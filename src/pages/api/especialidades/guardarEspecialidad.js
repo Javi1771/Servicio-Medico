@@ -144,8 +144,10 @@ export default async function handler(req, res) {
               ? Number(allCookies.claveusuario)
               : null;
           if (idUsuario !== null) {
-            const ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
-            const userAgent = req.headers["user-agent"] || "";
+            let ip = req.headers["x-forwarded-for"] ||
+            req.connection?.remoteAddress ||
+            req.socket?.remoteAddress ||
+            (req.connection?.socket ? req.connection.socket.remoteAddress : null);            const userAgent = req.headers["user-agent"] || "";
             await pool.request()
               .input("userId", sql.Int, idUsuario)
               .input("accion", sql.VarChar, "Asignó especialidad")

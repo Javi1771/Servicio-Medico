@@ -3,7 +3,6 @@
 import Link from "next/link";
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import { AiOutlineUserAdd } from "react-icons/ai";
 import {
   FaHeartbeat,
   FaTemperatureHigh,
@@ -1081,7 +1080,7 @@ const SignosVitales = () => {
                 <div className="mt-8 flex justify-center">
                   <button
                     onClick={handleSave}
-                    disabled={isSaving} // Solo se deshabilita mientras se está guardando
+                    disabled={isSaving} //* Solo se deshabilita mientras se está guardando
                     className={`relative px-8 py-4 text-lg font-bold uppercase rounded-lg 
       bg-gray-900 border border-transparent 
       shadow-[0_0_20px_4px_rgba(255,255,0,0.7)] hover:shadow-[0_0_40px_8px_rgba(255,255,0,0.9)] 

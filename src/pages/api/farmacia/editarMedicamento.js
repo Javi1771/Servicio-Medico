@@ -106,8 +106,10 @@ export default async function handler(req, res) {
         try {
           //* Obtenemos el usuario de la cookie
           const idUsuario = getUserIdFromCookie(req);
-          const ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
-          const userAgent = req.headers["user-agent"] || "";
+          let ip = req.headers["x-forwarded-for"] ||
+          req.connection?.remoteAddress ||
+          req.socket?.remoteAddress ||
+          (req.connection?.socket ? req.connection.socket.remoteAddress : null);          const userAgent = req.headers["user-agent"] || "";
 
           //* Solo si realmente tenemos un ID de usuario
           if (idUsuario) {

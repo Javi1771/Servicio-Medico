@@ -13,7 +13,8 @@ function parseCookies(cookieHeader) {
 
 export default async function handler(req, res) {
   if (req.method === "POST") {
-    const { claveConsulta, diagnostico, motivoconsulta, claveusuario } = req.body;
+    const { claveConsulta, diagnostico, motivoconsulta, claveusuario } =
+      req.body;
     let transaction; //* Declarar la transacción fuera del try
 
     try {
@@ -30,7 +31,9 @@ export default async function handler(req, res) {
 
       //* Validar campos obligatorios mínimos
       if (!claveConsulta || !diagnostico || !motivoconsulta || costo === null) {
-        return res.status(400).json({ message: "Datos incompletos o inválidos." });
+        return res
+          .status(400)
+          .json({ message: "Datos incompletos o inválidos." });
       }
 
       await transaction.begin(); //* Iniciar la transacción
@@ -39,9 +42,10 @@ export default async function handler(req, res) {
       const sets = [
         "diagnostico = @diagnostico",
         "motivoconsulta = @motivoconsulta",
-        "costo = @costo"
+        "costo = @costo",
       ];
-      const request = transaction.request()
+      const request = transaction
+        .request()
         .input("claveConsulta", sql.Int, claveConsulta)
         .input("diagnostico", sql.Text, diagnostico)
         .input("motivoconsulta", sql.Text, motivoconsulta)
@@ -49,7 +53,10 @@ export default async function handler(req, res) {
 
       //* Agregar claveusuario y claveproveedor si se envía
       if (claveusuario !== undefined) {
-        sets.push("claveusuario = @claveusuario", "claveproveedor = @claveusuario");
+        sets.push(
+          "claveusuario = @claveusuario",
+          "claveproveedor = @claveusuario"
+        );
         request.input("claveusuario", sql.Int, claveusuario);
       }
 
@@ -62,7 +69,10 @@ export default async function handler(req, res) {
       await request.query(query);
       await transaction.commit(); //* Confirmar la transacción
 
-      console.log("✅ Consulta actualizada exitosamente. ClaveConsulta:", claveConsulta);
+      console.log(
+        "✅ Consulta actualizada exitosamente. ClaveConsulta:",
+        claveConsulta
+      );
 
       //* Registrar la actividad: se extrae la cookie "claveusuario" y se usa para IdUsuario.
       try {
@@ -74,17 +84,25 @@ export default async function handler(req, res) {
           ? Number(claveusuario)
           : null;
         if (idUsuario === null) {
-          console.log("❌ No se encontró valor para IdUsuario; actividad no registrada.");
+          console.log(
+            "❌ No se encontró valor para IdUsuario; actividad no registrada."
+          );
         } else {
-          const ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
+          let ip =
+            req.headers["x-forwarded-for"] ||
+            req.connection?.remoteAddress ||
+            req.socket?.remoteAddress ||
+            (req.connection?.socket
+              ? req.connection.socket.remoteAddress
+              : null);
           const userAgent = req.headers["user-agent"] || "";
-          await pool.request()
+          await pool
+            .request()
             .input("userId", sql.Int, idUsuario)
             .input("accion", sql.VarChar, "Atendió una consulta")
             .input("direccionIP", sql.VarChar, ip)
             .input("agenteUsuario", sql.VarChar, userAgent)
-            .input("claveConsulta", sql.Int, claveConsulta)
-            .query(`
+            .input("claveConsulta", sql.Int, claveConsulta).query(`
               INSERT INTO dbo.ActividadUsuarios (IdUsuario, Accion, FechaHora, DireccionIP, AgenteUsuario, ClaveConsulta)
               VALUES (@userId, @accion, DATEADD(MINUTE, -4, GETDATE()), @direccionIP, @agenteUsuario, @claveConsulta)
             `);

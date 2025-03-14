@@ -44,8 +44,10 @@ export default async function handler(req, res) {
       //* Registrar la actividad en la tabla ActividadUsuarios
       try {
         const idUsuario = getUserIdFromCookie(req);
-        const ip =
-          req.headers["x-forwarded-for"] || req.connection.remoteAddress;
+        let ip = req.headers["x-forwarded-for"] ||
+        req.connection?.remoteAddress ||
+        req.socket?.remoteAddress ||
+        (req.connection?.socket ? req.connection.socket.remoteAddress : null);
         const userAgent = req.headers["user-agent"] || "";
 
         if (idUsuario) {

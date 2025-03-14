@@ -74,8 +74,10 @@ export default async function handler(req, res) {
         const cookies = parseCookies(req.headers.cookie);
         // Usar la cookie 'claveusuario' si existe, sino se usa el valor de clavePaciente
         const idUsuario = cookies.claveusuario ? Number(cookies.claveusuario) : Number(clavePaciente);
-        const ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
-        const userAgent = req.headers["user-agent"] || "";
+        let ip = req.headers["x-forwarded-for"] ||
+        req.connection?.remoteAddress ||
+        req.socket?.remoteAddress ||
+        (req.connection?.socket ? req.connection.socket.remoteAddress : null);        const userAgent = req.headers["user-agent"] || "";
         await pool.request()
           .input("userId", sql.Int, idUsuario)
           .input("accion", sql.VarChar, "Consulta de signos vitales guardada")

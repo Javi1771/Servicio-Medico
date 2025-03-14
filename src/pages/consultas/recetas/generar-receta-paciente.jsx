@@ -196,7 +196,7 @@ export default function GenerarReceta() {
       }
 
       //? Bloque: DIAGNÓSTICO
-      drawMultilineText(firstPage, String(data.consulta?.motivoconsulta ?? "N/A"), 50, 460, 550, 10);
+      drawMultilineText(firstPage, String(data.consulta?.motivoconsulta ?? "N/A"), 50, 460, 680, 10);
 
       //? Bloque: TRATAMIENTO
       let recetaStartY = 357;
@@ -213,7 +213,7 @@ export default function GenerarReceta() {
       }
 
       //? Bloque: OBSERVACIONES
-      drawMultilineText(firstPage, String(data.consulta?.diagnostico ?? "N/A"), 50, 160, 550, 10);
+      drawMultilineText(firstPage, String(data.consulta?.diagnostico ?? "N/A"), 50, 160, 680, 10);
 
       //? Bloque: EXTRAS
       const incapacidad = data.incapacidades?.[0]; //* Obtiene el primer elemento del array de incapacidades

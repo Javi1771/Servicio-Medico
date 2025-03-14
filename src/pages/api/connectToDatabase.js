@@ -8,11 +8,12 @@ const dbConfig = {
   options: {
     encrypt: process.env.DB_ENCRYPT === 'true',
     trustServerCertificate: process.env.DB_TRUST_SERVER_CERTIFICATE === 'true',
+    requestTimeout: 0, // Deshabilita el timeout global
   },
   pool: {
-    max: 100, // Máximo de conexiones en el pool
-    min: 0,  // Mínimo de conexiones
-    idleTimeoutMillis: 30000, // Tiempo máximo de inactividad
+    max: 100,
+    min: 0,
+    idleTimeoutMillis: 300000,
   },
 };
 

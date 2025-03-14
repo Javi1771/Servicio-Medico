@@ -522,7 +522,7 @@ const AccionesConsulta = ({
         </div>
       </div>
 
-      <button
+      {/* <button
         onClick={() => {
           actualizarClavestatus(0);
           limpiarFormulario();
@@ -546,7 +546,7 @@ const AccionesConsulta = ({
         className="px-6 py-3 text-sm font-semibold text-white rounded-xl bg-red-600 hover:bg-red-700 transition-all duration-300"
       >
         Cancelar Consulta
-      </button>
+      </button> */}
     </div>
   );
 };

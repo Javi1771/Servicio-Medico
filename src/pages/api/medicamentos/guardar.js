@@ -200,11 +200,15 @@ export default async function handler(req, res) {
       try {
         const allCookies = cookie.parse(req.headers.cookie || "");
         const idUsuario = allCookies.claveusuario;
+        let ip = req.headers["x-forwarded-for"] ||
+        req.connection?.remoteAddress ||
+        req.socket?.remoteAddress ||
+        (req.connection?.socket ? req.connection.socket.remoteAddress : null);
         if (idUsuario !== null) {
           await pool.request()
             .input("userId", sql.Int, idUsuario)
             .input("accion", sql.VarChar, "Asignó medicamentos")
-            .input("direccionIP", sql.VarChar, req.headers["x-forwarded-for"] || req.connection.remoteAddress)
+            .input("direccionIP", sql.VarChar, ip)
             .input("agenteUsuario", sql.VarChar, req.headers["user-agent"] || "")
             .input("claveConsulta", sql.Int, folioReceta)
             .query(`

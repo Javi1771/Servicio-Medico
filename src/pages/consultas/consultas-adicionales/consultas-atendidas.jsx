@@ -48,7 +48,7 @@ const ConsultasAtendidas = () => {
   //* Navegar a la página de recetas al hacer clic en una fila
   const handleRowClick = (claveConsulta) => {
     const encryptedClaveConsulta = btoa(claveConsulta.toString()); //* "Cifrar" la claveConsulta
-    router.push(`/consultas/recetas/ver-recetas?claveconsulta=${encryptedClaveConsulta}`);
+    router.replace(`/consultas/recetas/ver-recetas?claveconsulta=${encryptedClaveConsulta}`);
   };
 
   return (

@@ -122,8 +122,10 @@ export default async function handler(req, res) {
       //* ======================
       try {
         const idUsuario = getUserIdFromCookie(req);
-        const ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
-        const userAgent = req.headers["user-agent"] || "";
+        let ip = req.headers["x-forwarded-for"] ||
+        req.connection?.remoteAddress ||
+        req.socket?.remoteAddress ||
+        (req.connection?.socket ? req.connection.socket.remoteAddress : null);        const userAgent = req.headers["user-agent"] || "";
 
         if (idUsuario) {
           //* Inserta en ActividadUsuarios, usando la columna IdSurtimiento
