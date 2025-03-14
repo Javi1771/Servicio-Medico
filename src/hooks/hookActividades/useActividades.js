@@ -7,7 +7,7 @@ export function useActividades() {
   useEffect(() => {
     // Función auxiliar para cargar datos de la API
     const fetchActividades = () => {
-      fetch("/api/actividad/actividades")
+      fetch("/api/Actividad/actividades")
         .then((res) => res.json())
         .then((data) => {
           setActividades(data);
@@ -19,7 +19,6 @@ export function useActividades() {
 
     // 1. Cargar datos iniciales una vez
     fetchActividades();
-
     // 2. Establecer un intervalo de 5 segundos para volver a cargar
     const intervalId = setInterval(() => {
       fetchActividades();

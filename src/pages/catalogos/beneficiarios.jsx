@@ -1098,7 +1098,7 @@ export default function RegistroBeneficiario() {
 
       // Añadir la firma en la página trasera
       // Ajusta las coordenadas (x, y) y el tamaño (width, height) según tus necesidades.
-      doc.addImage(signatureImage, "PNG", 19, 13, 7, 3);
+      doc.addImage(signatureImage, "PNG", 18, 13, 7, 3);
 
       // Guardar como PDF
       doc.save(`Credencial_${NOMBRE || ""}_${A_PATERNO || ""}.pdf`);
