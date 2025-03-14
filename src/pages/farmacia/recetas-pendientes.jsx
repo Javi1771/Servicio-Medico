@@ -1,17 +1,14 @@
 // components/RecetasPendientes.jsx
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import styles from '../css/EstilosFarmacia/RecetasPendientes.module.css';
 import { 
   FaCalendarAlt, 
-  FaFileAlt, 
-  FaIdBadge, 
-  FaUser, 
   FaExclamationCircle, 
-  FaChevronDown, 
-  FaBoxOpen, 
   FaClipboardList, 
   FaTimes,
-  FaPills 
+  FaChevronDown,
+  FaPills
 } from 'react-icons/fa';
 
 const RecetasPendientes = () => {
@@ -91,6 +88,13 @@ const RecetasPendientes = () => {
 
   return (
     <div className={styles.container}>
+      {/* Botón de regresar */}
+      <div className={styles.backButtonContainer}>
+        <Link href="/inicio-servicio-medico" className={styles.backButton}>
+          Regresar
+        </Link>
+      </div>
+
       {/* Contenedor para título y descripción */}
       <div className={styles.titleContainer}>
         <h1 className={styles.title}>

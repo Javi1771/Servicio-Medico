@@ -305,3 +305,25 @@
 }
 
 /* Puedes reutilizar .medicationCard e .infoRow del resto de estilos */
+
+
+/* Botón de regresar */
+.backButtonContainer {
+  text-align: left;
+  margin-bottom: 16px;
+}
+
+.backButton {
+  display: inline-block;
+  padding: 8px 16px;
+  background-color: rgb(0 0 0 / 62%);
+  color: #fff;
+  text-decoration: none;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  transition: background-color 0.2s;
+}
+
+.backButton:hover {
+  background-color: rgba(255, 255, 255, 0.5);
+}
