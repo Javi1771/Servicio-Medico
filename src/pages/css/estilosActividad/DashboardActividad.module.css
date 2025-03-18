@@ -4,267 +4,268 @@
    - Fondo gris claro, padding generoso y fuente moderna
 */
 .container {
-    min-height: 100vh;
-    background-color: #f3f4f6; /* Gris claro */
-    padding: 2rem;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  }
-  
-  /* 2) Encabezado principal:
+  min-height: 100vh;
+  background-color: #f3f4f6; /* Gris claro */
+  padding: 2rem;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* 2) Encabezado principal:
      - Distribuye el título y el botón en una fila con espacio entre ellos
   */
-  .header {
-    margin-bottom: 1.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  
-  .title {
-    font-size: 2rem;
-    font-weight: 700;
-    color: #1f2937; /* Gris oscuro */
-    margin-bottom: 0.5rem;
-  }
-  
-  .subtitle {
-    font-size: 1rem;
-    color: #6b7280; /* Gris medio */
-  }
-  
-  /* Botón "Add New" con bordes redondeados y efecto de escala */
-  .addNewButton {
-    background-color: #2563eb;
-    color: #ffffff;
-    padding: 0.75rem 1.5rem;
-    border-radius: 1rem;
-    border: none;
-    cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.3s ease;
-  }
-  
-  .addNewButton:hover {
-    background-color: #3b82f6;
-    transform: scale(1.05);
-  }
-  
-  /* 3) Tarjeta contenedora:
+.header {
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1f2937; /* Gris oscuro */
+  margin-bottom: 0.5rem;
+}
+
+.subtitle {
+  font-size: 1rem;
+  color: #6b7280; /* Gris medio */
+}
+
+/* Botón "Add New" con bordes redondeados y efecto de escala */
+.addNewButton {
+  background-color: #2563eb;
+  color: #ffffff;
+  padding: 0.75rem 1.5rem;
+  border-radius: 1rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.addNewButton:hover {
+  background-color: #3b82f6;
+  transform: scale(1.05);
+}
+
+/* 3) Tarjeta contenedora:
      - Fondo blanco, bordes redondeados y sombra profunda para dar profundidad
   */
-  .card {
-    background-color: #ffffff;
-    border-radius: 1rem;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    padding: 2rem;
-  }
-  
-  /* Encabezado interno de la tarjeta */
-  .cardHeader {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 1.5rem;
-  }
-  
-  /* 4) Contenedor de la tabla (scroll horizontal) */
-  .tableContainer {
-    overflow-x: auto;
-  }
-  
-  /* 5) Estructura de la tabla:
+.card {
+  background-color: #ffffff;
+  border-radius: 1rem;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+}
+
+/* Encabezado interno de la tarjeta */
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+/* 4) Contenedor de la tabla (scroll horizontal) */
+.tableContainer {
+  overflow-x: auto;
+}
+
+/* 5) Estructura de la tabla:
      - Usamos display: block en .table y .tbody
      - Usamos display: table en thead y cada tr para fijar columnas
   */
-  .table {
-    display: block;
-    width: 100%;
-    border-collapse: collapse;
-    text-align: left;
-  }
-  
-  .table thead {
-    display: table;
-    width: 100%;
-    table-layout: fixed;
-    background-color: #f9fafb;
-  }
-  
-  .table thead th {
-    padding: 0.75rem 1.5rem;
-    font-size: 0.95rem;
-    font-weight: 600;
-    color: #4b5563;
-    border-bottom: 2px solid #e5e7eb;
-  }
-  
-  /* tbody se muestra como contenedor en bloque */
-  .table tbody {
-    display: block;
-  }
-  
-  /* 6) Cada tr es una "mini-tabla" con efecto ovalado:
+.table {
+  display: block;
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.table thead {
+  display: table;
+  width: 100%;
+  table-layout: fixed;
+  background-color: #f9fafb;
+}
+
+.table thead th {
+  padding: 0.75rem 1.5rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #4b5563;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+/* tbody se muestra como contenedor en bloque */
+.table tbody {
+  display: block;
+}
+
+/* 6) Cada tr es una "mini-tabla" con efecto ovalado:
      - Se aplica border-radius, sombra inicial y margen para separación
      - Se agregan transiciones smooth en transform, box-shadow, background, color y filter
   */
-  .table tbody tr {
-    display: table;
-    width: 100%;
-    table-layout: fixed;
-    margin: 0.5rem 0;
-    border-radius: 1rem;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-    transition: transform 0.4s ease, box-shadow 0.4s ease, background 0.4s ease, color 0.4s ease, filter 0.4s ease;
-  }
-  
-  /* Hover sobre la fila: se eleva, cambia a degradado azul y el texto se vuelve blanco */
-  .table tbody tr:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.2);
-    background: linear-gradient(90deg, #666666 0%, #4b4b4b 100%);
-    color: #ffffff;
-  }
-  
-  /* Forzamos a que las celdas de la fila en hover sean blancas */
-  .table tbody tr:hover td {
-    color: #ffffff;
-  }
-  
-  /* 7) Efecto blur en la fila inmediatamente superior al hovered:
+.table tbody tr {
+  display: table;
+  width: 100%;
+  table-layout: fixed;
+  margin: 0.5rem 0;
+  border-radius: 1rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  transition: transform 0.4s ease, box-shadow 0.4s ease, background 0.4s ease,
+    color 0.4s ease, filter 0.4s ease;
+}
+
+/* Hover sobre la fila: se eleva, cambia a degradado azul y el texto se vuelve blanco */
+.table tbody tr:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.2);
+  background: linear-gradient(90deg, #666666 0%, #4b4b4b 100%);
+  color: #ffffff;
+}
+
+/* Forzamos a que las celdas de la fila en hover sean blancas */
+.table tbody tr:hover td {
+  color: #ffffff;
+}
+
+/* 7) Efecto blur en la fila inmediatamente superior al hovered:
      - Usando el selector :has() para seleccionar el tr que tiene un hermano siguiente hover
   */
-  .table tbody tr:has(+ tr:hover) {
-    filter: blur(2px);
-  }
-  
-  /* Efecto blur en la fila inmediatamente inferior al hovered */
-  .table tbody tr:hover + tr {
-    filter: blur(2px);
-  }
-  
-  /* 8) Estilos de las celdas (td) */
-  .table td {
-    padding: 0.75rem 1.5rem;
-    font-size: 0.95rem;
-    color: #374151;
-    border-bottom: none;
-  }
-  
-  /* 9) Estilos de los badges para cada acción (bordes redondeados tipo píldora) */
+.table tbody tr:has(+ tr:hover) {
+  filter: blur(2px);
+}
+
+/* Efecto blur en la fila inmediatamente inferior al hovered */
+.table tbody tr:hover + tr {
+  filter: blur(2px);
+}
+
+/* 8) Estilos de las celdas (td) */
+.table td {
+  padding: 0.75rem 1.5rem;
+  font-size: 0.95rem;
+  color: #374151;
+  border-bottom: none;
+}
+
+/* 9) Estilos de los badges para cada acción (bordes redondeados tipo píldora) */
 
 /* Ejemplo de badge rojo */
 /* Badge para "Inicio de sesión" (verde) */
 .greenBadge {
-    background-color: #d1fae5;
-    color: #065f46;
-    border: 1px solid #10b981;
-    padding: 0.25rem 0.5rem;
-    border-radius: 9999px;
-    font-size: 0.75rem;
-  }
-  
-  /* Badge para "Consulta atendida" (amarillo) */
-  .yellowBadge {
-    background-color: #fef9c3;
-    color: #92400e;
-    border: 1px solid #facc15;
-    padding: 0.25rem 0.5rem;
-    border-radius: 9999px;
-    font-size: 0.75rem;
-  }
-  
-  /* Badge para "Consulta de signos vitales guardada" (naranja) */
-  .orangeBadge {
-    background-color: #ffedd5;
-    color: #9a3412;
-    border: 1px solid #fdba74;
-    padding: 0.25rem 0.5rem;
-    border-radius: 9999px;
-    font-size: 0.75rem;
-  }
-  
-  /* Badge para incapacidad (rojo) */
-  .redBadge {
-    background-color: #fee2e2;
-    color: #b91c1c;
-    border: 1px solid #ef4444;
-    padding: 0.25rem 0.5rem;
-    border-radius: 9999px;
-    font-size: 0.75rem;
-  }
-  
-  /* Badge para "Asignó medicamentos" (púrpura) */
-  .purpleBadge {
-    background-color: #e9d5ff;
-    color: #6b21a8;
-    border: 1px solid #8b5cf6;
-    padding: 0.25rem 0.5rem;
-    border-radius: 9999px;
-    font-size: 0.75rem;
-  }
-  
-  /* Badge para "Asignó especialidad" (azul) */
-  .blueBadge {
-    background-color: #dbf4ff;
-    color: #0369a1;
-    border: 1px solid #0ea5e9;
-    padding: 0.25rem 0.5rem;
-    border-radius: 9999px;
-    font-size: 0.75rem;
-  }
-  
-  /* Badge para "Asignó enfermedad crónica" (marrón) */
-  .brownBadge {
-    background-color: #fce7d2;
-    color: #9a3412;
-    border: 1px solid #fb923c;
-    padding: 0.25rem 0.5rem;
-    border-radius: 9999px;
-    font-size: 0.75rem;
-  }
-  
-  /* Badge por defecto (gris) */
-  .grayBadge {
-    background-color: #f3f4f6;
-    color: #4b5563;
-    border: 1px solid #d1d5db;
-    padding: 0.25rem 0.5rem;
-    border-radius: 9999px;
-    font-size: 0.75rem;
-  }
+  background-color: #d1fae5;
+  color: #065f46;
+  border: 1px solid #10b981;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+}
 
-  /* Badge para "Registró un KPI" (rosa) */
+/* Badge para "Consulta atendida" (amarillo) */
+.yellowBadge {
+  background-color: #fef9c3;
+  color: #92400e;
+  border: 1px solid #facc15;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+}
+
+/* Badge para "Consulta de signos vitales guardada" (naranja) */
+.orangeBadge {
+  background-color: #ffedd5;
+  color: #9a3412;
+  border: 1px solid #fdba74;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+}
+
+/* Badge para incapacidad (rojo) */
+.redBadge {
+  background-color: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #ef4444;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+}
+
+/* Badge para "Asignó medicamentos" (púrpura) */
+.purpleBadge {
+  background-color: #e9d5ff;
+  color: #6b21a8;
+  border: 1px solid #8b5cf6;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+}
+
+/* Badge para "Asignó especialidad" (azul) */
+.blueBadge {
+  background-color: #dbf4ff;
+  color: #0369a1;
+  border: 1px solid #0ea5e9;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+}
+
+/* Badge para "Asignó enfermedad crónica" (marrón) */
+.brownBadge {
+  background-color: #fce7d2;
+  color: #9a3412;
+  border: 1px solid #fb923c;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+}
+
+/* Badge por defecto (gris) */
+.grayBadge {
+  background-color: #f3f4f6;
+  color: #4b5563;
+  border: 1px solid #d1d5db;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+}
+
+/* Badge para "Registró un KPI" (rosa) */
 .pinkBadge {
-    background-color: #fde2e4; /* rosa claro */
-    color: #b91c1c;            /* rojo oscuro */
-    border: 1px solid #fda4af;
-    padding: 0.25rem 0.5rem;
-    border-radius: 9999px;
-    font-size: 0.75rem;
-  }
-  
-  /* Badge para "Calificó un KPI" (cyan) */
-  .cyanBadge {
-    background-color: #cffafe; /* cyan claro */
-    color: #155e75;            /* cian oscuro */
-    border: 1px solid #22d3ee;
-    padding: 0.25rem 0.5rem;
-    border-radius: 9999px;
-    font-size: 0.75rem;
-  }
-  
-  /* Badge para "Guardó un antecedente" (lavanda) */
-  .lavenderBadge {
-    background-color: #f9e9fe; /* lavanda claro */
-    color: #951d59;            /* morado oscuro */
-    border: 1px solid #e08bfa;
-    padding: 0.25rem 0.5rem;
-    border-radius: 9999px;
-    font-size: 0.75rem;
-  }
+  background-color: #fde2e4; /* rosa claro */
+  color: #b91c1c; /* rojo oscuro */
+  border: 1px solid #fda4af;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+}
 
-  /* Ejemplo: Pink Badge */
+/* Badge para "Calificó un KPI" (cyan) */
+.cyanBadge {
+  background-color: #cffafe; /* cyan claro */
+  color: #155e75; /* cian oscuro */
+  border: 1px solid #22d3ee;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+}
+
+/* Badge para "Guardó un antecedente" (lavanda) */
+.lavenderBadge {
+  background-color: #f9e9fe; /* lavanda claro */
+  color: #951d59; /* morado oscuro */
+  border: 1px solid #e08bfa;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+}
+
+/* Ejemplo: Pink Badge */
 .tealBadge {
-  background-color: #fdfbe2; 
+  background-color: #fdfbe2;
   color: #b9941c;
   border: 1px solid #f7fda4;
   padding: 0.25rem 0.5rem;
@@ -275,7 +276,7 @@
 /* Ejemplo: Teal Badge */
 .pinkBadge {
   background-color: #ccfbf1; /* teal claro */
-  color: #0d9488;            /* teal oscuro */
+  color: #0d9488; /* teal oscuro */
   border: 1px solid #5eead4;
   padding: 0.25rem 0.5rem;
   border-radius: 9999px;
@@ -285,7 +286,7 @@
 /* Badge para "Eliminó un beneficiario" (ejemplo de darkRedBadge) */
 .darkRedBadge {
   background-color: #fee2e2; /* Rojo muy claro */
-  color: #991b1b;            /* Rojo oscuro */
+  color: #991b1b; /* Rojo oscuro */
   border: 1px solid #f87171;
   padding: 0.25rem 0.5rem;
   border-radius: 9999px;
@@ -295,50 +296,58 @@
 /* Badge para "Asignó antecedente" (indigoBadge) */
 .indigoBadge {
   background-color: #e0e7ff; /* Indigo claro */
-  color: #3730a3;            /* Indigo oscuro */
+  color: #3730a3; /* Indigo oscuro */
   border: 1px solid #818cf8;
   padding: 0.25rem 0.5rem;
   border-radius: 9999px;
   font-size: 0.75rem;
 }
-  
-  
-  
-  /* 10) Animación de hover en los badges: transición en opacidad y escalado */
-  .badgeHover {
-    transition: opacity 0.3s ease, transform 0.3s ease;
-  }
-  
-  .badgeHover:hover {
-    opacity: 0.85;
-    transform: scale(1.05);
-  }
-  
-  /* 11) Estilos del campo de búsqueda:
+
+/* Badge para "Capturó una orden de estudio de laboratorio" (violetBadge) */
+.violetBadge {
+  background-color: #ede7f6; /* Violeta claro */
+  color: #5e35b1; /* Violeta oscuro */
+  border: 1px solid #7e57c2;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+}
+
+/* 10) Animación de hover en los badges: transición en opacidad y escalado */
+.badgeHover {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.badgeHover:hover {
+  opacity: 0.85;
+  transform: scale(1.05);
+}
+
+/* 11) Estilos del campo de búsqueda:
       - Fondo gris claro, bordes redondeados y padding
   */
-  .searchInput {
-    background-color: #f3f4f6;
-    height: 2.5rem;
-    padding: 0 2.5rem 0 1rem;
-    border-radius: 0.75rem;
-    font-size: 1rem;
-    outline: none;
-    border: 1px solid #e5e7eb;
-    color: #374151;
-  }
-  
-  /* 12) Icono de búsqueda: posición y tamaño */
-  .searchIcon {
-    position: absolute;
-    right: 1rem;
-    top: 0.75rem;
-    color: #9ca3af;
-    width: 1.25rem;
-    height: 1.25rem;
-  }
-  
-  /* Asegura que la fila de detalle no tenga ningún filtro */
+.searchInput {
+  background-color: #f3f4f6;
+  height: 2.5rem;
+  padding: 0 2.5rem 0 1rem;
+  border-radius: 0.75rem;
+  font-size: 1rem;
+  outline: none;
+  border: 1px solid #e5e7eb;
+  color: #374151;
+}
+
+/* 12) Icono de búsqueda: posición y tamaño */
+.searchIcon {
+  position: absolute;
+  right: 1rem;
+  top: 0.75rem;
+  color: #9ca3af;
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+/* Asegura que la fila de detalle no tenga ningún filtro */
 .detailRow {
   filter: none !important;
 }

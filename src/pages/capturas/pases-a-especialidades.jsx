@@ -39,10 +39,18 @@ const PasesAEspecialidad = () => {
   const handleBusqueda = (e) => {
     const value = e.target.value.toLowerCase();
     setBusqueda(value);
-    const filtered = datos.filter(
-      (item) =>
-        item.nomina && item.nomina.toString().toLowerCase().includes(value)
-    );
+
+    const filtered = datos.filter((item) => {
+      const nominaMatches =
+        item.nomina && item.nomina.toString().toLowerCase().includes(value);
+
+      const folioMatches =
+        item.folio && item.folio.toString().toLowerCase().includes(value);
+
+      //* Retorna true si coincide con nómina o con folio
+      return nominaMatches || folioMatches;
+    });
+
     setFilteredData(filtered);
   };
 
@@ -96,7 +104,7 @@ const PasesAEspecialidad = () => {
           </div>
           <input
             type="text"
-            placeholder="Buscar por Nómina"
+            placeholder="Buscar por Nómina o por Folio de Consulta"
             value={busqueda}
             onChange={handleBusqueda}
             className="pl-14 py-3 w-full rounded-full bg-gray-800 text-white placeholder-gray-500 shadow-lg focus:outline-none focus:ring-4 focus:ring-teal-500 transition-all"
@@ -109,6 +117,7 @@ const PasesAEspecialidad = () => {
         <table className="w-full text-left border-collapse bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl shadow-2xl">
           <thead className="bg-gradient-to-r from-gray-700 to-gray-800 text-teal-300">
             <tr>
+              <th className="p-4">Folio de la Consulta</th>
               <th className="p-4">Especialidad</th>
               <th className="p-4">Paciente</th>
               <th className="p-4">Fecha</th>
@@ -151,6 +160,7 @@ const PasesAEspecialidad = () => {
                     handleRowClick(item.folio, item.estatus)
                   }
                 >
+                  <td className="p-4 border-b border-gray-700">{item.folio}</td>
                   <td className="p-4 border-b border-gray-700">
                     {item.especialidad}
                   </td>

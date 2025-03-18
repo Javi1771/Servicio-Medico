@@ -16,7 +16,8 @@ import {
   FaUserMinus,   
   FaPlus,        
   FaPrescriptionBottle, 
-  FaBalanceScale
+  FaBalanceScale,
+  FaVial
 } from "react-icons/fa";
 
 export function getActionIcon(action) {
@@ -96,6 +97,10 @@ export function getActionIcon(action) {
     //? Asignar medicamentos
     case normalized === "asignó medicamentos":
       return <FaMedkit />;
+
+    //? Orden de estudio de laboratorio
+    case normalized === "capturó una orden de estudio de laboratorio":
+      return <FaVial />;
 
     default:
       //! Por si no coincide con ninguna de las anteriores

@@ -75,6 +75,10 @@ export function getBadgeClasses(action) {
     case normalized === "eliminó un proveedor":
       return styles.darkRedBadge;
 
+    //? Orden de estudio de laboratorio
+    case normalized === "capturó una orden de estudio de laboratorio":
+      return styles.violetBadge;
+
     //! Acción no definida en la lista
     default:
       return styles.grayBadge;
