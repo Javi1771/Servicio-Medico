@@ -83,7 +83,8 @@ export default async function handler(req, res) {
           @calificacion
         )
       `;
-      await pool.request()
+      await pool
+        .request()
         .input("id_kpi", sql.Int, id_kpi)
         .input("id_enf_cronica", sql.Int, id_enf_cronica)
         .input("clavenomina", sql.VarChar, clavenomina)
@@ -102,30 +103,37 @@ export default async function handler(req, res) {
         WHERE clavenomina = @clavenomina AND clavepaciente = @clavepaciente
         ORDER BY claveConsulta DESC
       `;
-      const consultaResult = await pool.request()
+      const consultaResult = await pool
+        .request()
         .input("clavenomina", sql.VarChar, clavenomina)
         .input("clavepaciente", sql.VarChar, clavepaciente)
         .query(consultaSelectQuery);
 
       if (consultaResult.recordset.length === 0) {
-        return res.status(404).json({ message: "No se encontró consulta asociada" });
+        return res
+          .status(404)
+          .json({ message: "No se encontró consulta asociada" });
       }
       const fetchedClaveConsulta = consultaResult.recordset[0].claveConsulta;
       console.log("🔑 ClaveConsulta obtenida:", fetchedClaveConsulta);
 
       //* Registrar la actividad en la tabla ActividadUsuarios
       try {
-        let ip = req.headers["x-forwarded-for"] ||
-        req.connection?.remoteAddress ||
-        req.socket?.remoteAddress ||
-        (req.connection?.socket ? req.connection.socket.remoteAddress : null);        const userAgent = req.headers["user-agent"] || "";
-        await pool.request()
+        let ip =
+          (req.headers["x-forwarded-for"] &&
+            req.headers["x-forwarded-for"].split(",")[0].trim()) ||
+          req.connection?.remoteAddress ||
+          req.socket?.remoteAddress ||
+          (req.connection?.socket ? req.connection.socket.remoteAddress : null);
+
+        const userAgent = req.headers["user-agent"] || "";
+        await pool
+          .request()
           .input("userId", sql.Int, Number(claveusuario))
           .input("accion", sql.VarChar, "Registró un KPI")
           .input("direccionIP", sql.VarChar, ip)
           .input("agenteUsuario", sql.VarChar, userAgent)
-          .input("claveConsulta", sql.Int, fetchedClaveConsulta)
-          .query(`
+          .input("claveConsulta", sql.Int, fetchedClaveConsulta).query(`
             INSERT INTO dbo.ActividadUsuarios (IdUsuario, Accion, FechaHora, DireccionIP, AgenteUsuario, ClaveConsulta)
             VALUES (@userId, @accion, DATEADD(MINUTE, -4, GETDATE()), @direccionIP, @agenteUsuario, @claveConsulta)
           `);

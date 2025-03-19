@@ -8,16 +8,17 @@ import {
   FaUserMd,
   FaProcedures,
   FaQuestion,
-  FaChartLine,   
-  FaStarHalfAlt, 
-  FaBookMedical, 
-  FaUserCheck,   
-  FaUserEdit,    
-  FaUserMinus,   
-  FaPlus,        
-  FaPrescriptionBottle, 
+  FaChartLine,
+  FaStarHalfAlt,
+  FaBookMedical,
+  FaUserCheck,
+  FaUserEdit,
+  FaUserMinus,
+  FaPlus,
+  FaPrescriptionBottle,
   FaBalanceScale,
-  FaVial
+  FaVial,
+  FaFileInvoiceDollar // <--- Icono para "capturó un gasto y factura"
 } from "react-icons/fa";
 
 export function getActionIcon(action) {
@@ -101,6 +102,10 @@ export function getActionIcon(action) {
     //? Orden de estudio de laboratorio
     case normalized === "capturó una orden de estudio de laboratorio":
       return <FaVial />;
+
+    //? Gastos
+    case normalized === "capturó un gasto y factura":
+      return <FaFileInvoiceDollar />;
 
     default:
       //! Por si no coincide con ninguna de las anteriores

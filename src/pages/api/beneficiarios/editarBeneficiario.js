@@ -28,8 +28,8 @@ export default async function handler(req, res) {
     urlConstancia,
     urlCurp,
     urlActaNac,
-    urlIncap,          
-    descriptorFacial,   
+    urlIncap,
+    descriptorFacial,
     actaMatrimonioUrl,
     ineUrl,
     cartaNoAfiliacionUrl,
@@ -109,7 +109,7 @@ export default async function handler(req, res) {
       .input("urlConstancia", sql.VarChar, urlConstancia || null)
       .input("urlCurp", sql.VarChar, urlCurp || null)
       .input("urlActaNac", sql.VarChar, urlActaNac || null)
-      .input("urlIncap", sql.VarChar, urlIncap || null) 
+      .input("urlIncap", sql.VarChar, urlIncap || null)
       .input("descriptorFacial", sql.VarChar, descriptorFacial || "")
       .input("actaMatrimonioUrl", sql.VarChar, actaMatrimonioUrl || null)
       .input("ineUrl", sql.VarChar, ineUrl || null)
@@ -165,24 +165,30 @@ export default async function handler(req, res) {
     console.log("Cookie claveusuario:", claveusuario);
 
     if (claveusuario !== null) {
-      let ip = req.headers["x-forwarded-for"] ||
-      req.connection?.remoteAddress ||
-      req.socket?.remoteAddress ||
-      (req.connection?.socket ? req.connection.socket.remoteAddress : null);      const userAgent = req.headers["user-agent"] || "";
-      await pool.request()
+      let ip =
+        (req.headers["x-forwarded-for"] &&
+          req.headers["x-forwarded-for"].split(",")[0].trim()) ||
+        req.connection?.remoteAddress ||
+        req.socket?.remoteAddress ||
+        (req.connection?.socket ? req.connection.socket.remoteAddress : null);
+
+      const userAgent = req.headers["user-agent"] || "";
+      await pool
+        .request()
         .input("userId", sql.Int, claveusuario)
         .input("accion", sql.VarChar, "Editó un beneficiario")
         .input("direccionIP", sql.VarChar, ip)
         .input("agenteUsuario", sql.VarChar, userAgent)
         .input("claveConsulta", sql.Int, null)
-        .input("idBeneficiario", sql.Int, idBeneficiario)
-        .query(`
+        .input("idBeneficiario", sql.Int, idBeneficiario).query(`
           INSERT INTO dbo.ActividadUsuarios 
             (IdUsuario, Accion, FechaHora, DireccionIP, AgenteUsuario, ClaveConsulta, IdBeneficiario)
           VALUES 
             (@userId, @accion, DATEADD(MINUTE, -4, GETDATE()), @direccionIP, @agenteUsuario, @claveConsulta, @idBeneficiario)
         `);
-      console.log("Actividad 'Editó un beneficiario' registrada en ActividadUsuarios.");
+      console.log(
+        "Actividad 'Editó un beneficiario' registrada en ActividadUsuarios."
+      );
     } else {
       console.log("No se pudo registrar la actividad: falta claveusuario.");
     }

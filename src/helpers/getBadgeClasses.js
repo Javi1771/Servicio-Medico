@@ -79,6 +79,10 @@ export function getBadgeClasses(action) {
     case normalized === "capturó una orden de estudio de laboratorio":
       return styles.violetBadge;
 
+    //? Gastos
+    case normalized === "capturó un gasto y factura":
+      return styles.moneyBadge;
+
     //! Acción no definida en la lista
     default:
       return styles.grayBadge;

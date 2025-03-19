@@ -84,7 +84,9 @@ export default async function handler(req, res) {
 
       //* 🔹 Si la receta está completada, actualizar el estatus del surtimiento
       if (recetaCompletada) {
-        console.log(`📌 Actualizando SURTIMIENTOS - Folio: ${folioSurtimiento}`);
+        console.log(
+          `📌 Actualizando SURTIMIENTOS - Folio: ${folioSurtimiento}`
+        );
         console.log(`   🔹 Nuevo estatus: 0`);
         console.log(`   🔹 Fecha despacho a guardar: ${fechaDespacho}`);
         console.log(`   🔹 Costo: ${cost || 0}`);
@@ -122,10 +124,14 @@ export default async function handler(req, res) {
       //* ======================
       try {
         const idUsuario = getUserIdFromCookie(req);
-        let ip = req.headers["x-forwarded-for"] ||
-        req.connection?.remoteAddress ||
-        req.socket?.remoteAddress ||
-        (req.connection?.socket ? req.connection.socket.remoteAddress : null);        const userAgent = req.headers["user-agent"] || "";
+        let ip =
+          (req.headers["x-forwarded-for"] &&
+            req.headers["x-forwarded-for"].split(",")[0].trim()) ||
+          req.connection?.remoteAddress ||
+          req.socket?.remoteAddress ||
+          (req.connection?.socket ? req.connection.socket.remoteAddress : null);
+
+        const userAgent = req.headers["user-agent"] || "";
 
         if (idUsuario) {
           //* Inserta en ActividadUsuarios, usando la columna IdSurtimiento
@@ -133,11 +139,10 @@ export default async function handler(req, res) {
           await db
             .request()
             .input("IdUsuario", sql.Int, idUsuario)
-            .input("Accion", sql.VarChar, "Surtió una receta") 
+            .input("Accion", sql.VarChar, "Surtió una receta")
             .input("DireccionIP", sql.VarChar, ip)
             .input("AgenteUsuario", sql.VarChar, userAgent)
-            .input("IdSurtimiento", sql.Int, folioSurtimiento)
-            .query(`
+            .input("IdSurtimiento", sql.Int, folioSurtimiento).query(`
               INSERT INTO ActividadUsuarios
                 (IdUsuario, Accion, FechaHora, DireccionIP, AgenteUsuario, IdSurtimiento)
               VALUES

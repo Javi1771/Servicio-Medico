@@ -65,7 +65,7 @@ export default async function handler(req, res) {
     const pool = await connectToDatabase();
     console.log("✅ Conexión establecida");
 
-    //* Inserción en la tabla "consultas" con OUTPUT para obtener la claveconsulta generada.
+    //* 1. Inserción en la tabla "consultas" con OUTPUT para obtener la claveconsulta generada.
     const insertQuery = `
       INSERT INTO consultas (
         clavenomina, clavepaciente, nombrepaciente, edad, especialidadinterconsulta, claveproveedor, 
@@ -118,11 +118,59 @@ export default async function handler(req, res) {
     }
     console.log("✅ Pase insertado en consultas");
 
-    //* Obtener la claveconsulta generada
+    //* 2. Obtener la claveconsulta generada
     const claveconsulta = insertResult.recordset[0].claveconsulta;
     console.log("Claveconsulta obtenida:", claveconsulta);
 
-    //* Actualización en detalleEspecialidad (se mantiene el update usando folio)
+    //* 3. INSERT EN LA TABLA "costos"
+    await pool
+      .request()
+      .input("claveproveedor", sql.Int, claveproveedor || null)
+      .input(
+        "clavenomina",
+        sql.NVarChar(15),
+        clavenomina ? String(clavenomina) : null
+      )
+      .input(
+        "clavepaciente",
+        sql.NVarChar(15),
+        clavepaciente ? String(clavepaciente) : null
+      )
+      .input(
+        "elpacienteesempleado",
+        sql.NVarChar(1),
+        elpacienteesempleado ? String(elpacienteesempleado) : null
+      )
+      .input(
+        "departamento",
+        sql.NChar(200),
+        departamento ? String(departamento) : null
+      )
+      .input("especialidadinterconsulta", sql.Int, claveespecialidad || null)
+      .input("claveConsulta", sql.Int, claveconsulta).query(`
+          INSERT INTO costos (
+            claveproveedor,
+            clavenomina,
+            clavepaciente,
+            elpacienteesempleado,
+            estatus,
+            departamento,
+            especialidadinterconsulta,
+            claveconsulta
+          ) VALUES (
+            @claveproveedor,
+            @clavenomina,
+            @clavepaciente,
+            @elpacienteesempleado,
+            1,
+            @departamento,
+            @especialidadinterconsulta,
+            @claveConsulta
+          );
+        `);
+    console.log("✅ Registro insertado en la tabla 'costos'");
+
+    //* 4. Actualización en detalleEspecialidad (se mantiene el update usando folio)
     console.log("📄 Actualizando estatus en detalleEspecialidad...");
     const updateQuery = `
       UPDATE detalleEspecialidad
@@ -140,45 +188,59 @@ export default async function handler(req, res) {
         `✅ Estatus actualizado en detalleEspecialidad (filas afectadas: ${updateResult.rowsAffected[0]})`
       );
     } else {
-      console.log("⚠️ No se encontró ninguna fila para actualizar en detalleEspecialidad");
+      console.log(
+        "⚠️ No se encontró ninguna fila para actualizar en detalleEspecialidad"
+      );
     }
 
-    //* Registrar la actividad "Creó un pase de especialidad" usando la claveconsulta generada
+    //* 5. Registrar la actividad "Creó un pase de especialidad" usando la claveconsulta generada
     const rawCookies = req.headers.cookie || "";
     const claveusuarioCookie = rawCookies
       .split("; ")
       .find((row) => row.startsWith("claveusuario="))
       ?.split("=")[1];
-    const claveusuarioInt = claveusuarioCookie ? Number(claveusuarioCookie) : null;
+    const claveusuarioInt = claveusuarioCookie
+      ? Number(claveusuarioCookie)
+      : null;
     console.log("Cookie claveusuario:", claveusuarioInt);
 
     if (claveusuarioInt !== null) {
-      let ip = req.headers["x-forwarded-for"] ||
-      req.connection?.remoteAddress ||
-      req.socket?.remoteAddress ||
-      (req.connection?.socket ? req.connection.socket.remoteAddress : null);      const userAgent = req.headers["user-agent"] || "";
-      await pool.request()
+      let ip =
+        (req.headers["x-forwarded-for"] &&
+          req.headers["x-forwarded-for"].split(",")[0].trim()) ||
+        req.connection?.remoteAddress ||
+        req.socket?.remoteAddress ||
+        (req.connection?.socket ? req.connection.socket.remoteAddress : null);
+
+      const userAgent = req.headers["user-agent"] || "";
+      await pool
+        .request()
         .input("userId", sql.Int, claveusuarioInt)
         .input("accion", sql.VarChar, "Capturó un pase de especialidad")
         .input("direccionIP", sql.VarChar, ip)
         .input("agenteUsuario", sql.VarChar, userAgent)
-        .input("claveConsulta", sql.Int, claveconsulta)
-        .query(`
+        .input("claveConsulta", sql.Int, claveconsulta).query(`
           INSERT INTO dbo.ActividadUsuarios 
             (IdUsuario, Accion, FechaHora, DireccionIP, AgenteUsuario, ClaveConsulta)
           VALUES 
             (@userId, @accion, DATEADD(MINUTE, -4, GETDATE()), @direccionIP, @agenteUsuario, @claveConsulta)
         `);
-      console.log("Actividad 'Creó un pase de especialidad' registrada en ActividadUsuarios.");
+      console.log(
+        "Actividad 'Creó un pase de especialidad' registrada en ActividadUsuarios."
+      );
     } else {
       console.log("No se pudo registrar la actividad: falta claveusuario.");
     }
 
     res.status(200).json({
       message: "Pase creado y estatus actualizado correctamente",
+      claveconsulta,
     });
   } catch (error) {
-    console.error("❌ Error al insertar pase o actualizar estatus:", error.message);
+    console.error(
+      "❌ Error al insertar pase o actualizar estatus:",
+      error.message
+    );
     console.error("⚠️ Detalles del error:", error);
     res.status(500).json({
       error: "Error al insertar el pase o actualizar el estatus",

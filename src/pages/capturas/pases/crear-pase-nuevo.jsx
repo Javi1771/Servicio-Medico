@@ -517,7 +517,7 @@ const CrearPaseNuevo = () => {
 
       //* Navegar a la otra pantalla enviando la claveConsulta cifrada
       router.replace(
-        `/consultas/recetas/ver-recetas-pases?claveconsulta=${encryptedClaveConsulta}`
+        `/capturas/recetas/ver-recetas-pases?claveconsulta=${encryptedClaveConsulta}`
       );
     } catch (error) {
       console.error("Error al guardar:", error);

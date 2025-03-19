@@ -42,9 +42,7 @@ export default async function handler(req, res) {
     //* Validar fechas antes de insertar
     if (!fechaInicio || !fechaFin) {
       console.error("Error: Las fechas no pueden ser nulas");
-      return res
-        .status(400)
-        .json({ error: "Las fechas no pueden ser nulas" });
+      return res.status(400).json({ error: "Las fechas no pueden ser nulas" });
     }
 
     //* Obtener la fecha actual en formato compatible con SQL Server
@@ -53,12 +51,9 @@ export default async function handler(req, res) {
       now.getMonth() + 1
     ).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")} ${String(
       now.getHours()
-    ).padStart(2, "0")}:${String(now.getMinutes()).padStart(
-      2,
-      "0"
-    )}:${String(now.getSeconds()).padStart(2, "0")}.${String(
-      now.getMilliseconds()
-    ).padStart(3, "0")}`;
+    ).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}:${String(
+      now.getSeconds()
+    ).padStart(2, "0")}.${String(now.getMilliseconds()).padStart(3, "0")}`;
 
     console.log("Datos a insertar en la base de datos:", {
       fecha: fechaActual,
@@ -90,8 +85,7 @@ export default async function handler(req, res) {
       .input("claveMedico", claveMedico)
       .input("estatus", 1)
       .input("cancelo", null)
-      .input("quiencapturo", quienCapturo)
-      .query(`
+      .input("quiencapturo", quienCapturo).query(`
         INSERT INTO incapacidades (
           fecha, fechainicio, fechafin, nomina, nombrepaciente, departamento, 
           observaciones, edad, claveconsulta, claveMedico, estatus, cancelo, quiencapturo
@@ -111,8 +105,7 @@ export default async function handler(req, res) {
     //* Actualizar el estatus en la tabla detalleIncapacidad
     const updateResult = await request
       .input("noNomina", sql.NVarChar, nomina)
-      .input("folioConsulta", sql.Int, claveConsulta)
-      .query(`
+      .input("folioConsulta", sql.Int, claveConsulta).query(`
         UPDATE detalleIncapacidad
         SET estatus = 2
         WHERE noNomina = @noNomina
@@ -131,10 +124,14 @@ export default async function handler(req, res) {
     //* Insertar el registro de actividad en la tabla ActividadUsuarios,
     //* almacenando la claveIncapacidad en la columna IdCapIncapacidad
     //* (ajusta esta parte a tus columnas y valores reales)
-    let ip = req.headers["x-forwarded-for"] ||
-             req.connection?.remoteAddress ||
-             req.socket?.remoteAddress ||
-             (req.connection?.socket ? req.connection.socket.remoteAddress : null);    const userAgent = req.headers["user-agent"] || "";
+    let ip =
+    (req.headers["x-forwarded-for"] &&
+      req.headers["x-forwarded-for"].split(",")[0].trim()) ||
+    req.connection?.remoteAddress ||
+    req.socket?.remoteAddress ||
+    (req.connection?.socket ? req.connection.socket.remoteAddress : null);
+  
+    const userAgent = req.headers["user-agent"] || "";
 
     await request
       .input("idUsuario", sql.Int, parseInt(quienCapturo, 10))
@@ -142,8 +139,7 @@ export default async function handler(req, res) {
       .input("fechaHora", fechaActual)
       .input("direccionIP", sql.VarChar, ip)
       .input("agenteUsuario", sql.VarChar, userAgent)
-      .input("idCapIncapacidad", sql.Int, claveIncapacidad)
-      .query(`
+      .input("idCapIncapacidad", sql.Int, claveIncapacidad).query(`
         INSERT INTO ActividadUsuarios
           (IdUsuario, Accion, FechaHora, DireccionIP, AgenteUsuario, IdCapIncapacidad)
         VALUES

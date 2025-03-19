@@ -23,7 +23,9 @@ export default async function handler(req, res) {
       console.log("✅ Conexión a la base de datos establecida.");
 
       //* Si clavepaciente es nulo, usa clavenomina como valor predeterminado y conviértelo a string
-      const clavePaciente = (consultaData.clavepaciente ?? consultaData.clavenomina).toString();
+      const clavePaciente = (
+        consultaData.clavepaciente ?? consultaData.clavenomina
+      ).toString();
       console.log("🔑 Valor de clavePaciente (como cadena):", clavePaciente);
 
       //* Preparación de la inserción. Para campos numéricos se valida si es cadena vacía y se asigna null.
@@ -31,23 +33,70 @@ export default async function handler(req, res) {
       request
         .input("fechaconsulta", sql.VarChar, consultaData.fechaconsulta)
         .input("clavenomina", sql.VarChar, consultaData.clavenomina)
-        .input("presionarterialpaciente", sql.VarChar, consultaData.presionarterialpaciente === "" ? null : consultaData.presionarterialpaciente)
-        .input("temperaturapaciente", sql.Decimal, consultaData.temperaturapaciente === "" ? null : consultaData.temperaturapaciente)
-        .input("pulsosxminutopaciente", sql.Int, consultaData.pulsosxminutopaciente === "" ? null : consultaData.pulsosxminutopaciente)
-        .input("respiracionpaciente", sql.Int, consultaData.respiracionpaciente === "" ? null : consultaData.respiracionpaciente)
-        .input("estaturapaciente", sql.Decimal, consultaData.estaturapaciente === "" ? null : consultaData.estaturapaciente)
-        .input("pesopaciente", sql.Decimal, consultaData.pesopaciente === "" ? null : consultaData.pesopaciente)
-        .input("glucosapaciente", sql.Int, consultaData.glucosapaciente === "" ? null : consultaData.glucosapaciente)
+        .input(
+          "presionarterialpaciente",
+          sql.VarChar,
+          consultaData.presionarterialpaciente === ""
+            ? null
+            : consultaData.presionarterialpaciente
+        )
+        .input(
+          "temperaturapaciente",
+          sql.Decimal,
+          consultaData.temperaturapaciente === ""
+            ? null
+            : consultaData.temperaturapaciente
+        )
+        .input(
+          "pulsosxminutopaciente",
+          sql.Int,
+          consultaData.pulsosxminutopaciente === ""
+            ? null
+            : consultaData.pulsosxminutopaciente
+        )
+        .input(
+          "respiracionpaciente",
+          sql.Int,
+          consultaData.respiracionpaciente === ""
+            ? null
+            : consultaData.respiracionpaciente
+        )
+        .input(
+          "estaturapaciente",
+          sql.Decimal,
+          consultaData.estaturapaciente === ""
+            ? null
+            : consultaData.estaturapaciente
+        )
+        .input(
+          "pesopaciente",
+          sql.Decimal,
+          consultaData.pesopaciente === "" ? null : consultaData.pesopaciente
+        )
+        .input(
+          "glucosapaciente",
+          sql.Int,
+          consultaData.glucosapaciente === ""
+            ? null
+            : consultaData.glucosapaciente
+        )
         .input("nombrepaciente", sql.VarChar, consultaData.nombrepaciente)
         .input("edad", sql.VarChar, consultaData.edad)
         .input("clavestatus", sql.Int, consultaData.clavestatus)
-        .input("elpacienteesempleado", sql.VarChar, consultaData.elpacienteesempleado)
+        .input(
+          "elpacienteesempleado",
+          sql.VarChar,
+          consultaData.elpacienteesempleado
+        )
         .input("parentesco", sql.Int, consultaData.parentesco)
         .input("clavepaciente", sql.VarChar, clavePaciente)
         .input("departamento", sql.VarChar, consultaData.departamento)
         .input("sindicato", sql.VarChar, consultaData.sindicato);
 
-      console.log("📤 Datos preparados para la consulta SQL:", request.parameters);
+      console.log(
+        "📤 Datos preparados para la consulta SQL:",
+        request.parameters
+      );
 
       const result = await request.query(`
         INSERT INTO consultas (
@@ -72,19 +121,25 @@ export default async function handler(req, res) {
       //* Registrar la actividad (por ejemplo, "Consulta de signos vitales guardada")
       try {
         const cookies = parseCookies(req.headers.cookie);
-        // Usar la cookie 'claveusuario' si existe, sino se usa el valor de clavePaciente
-        const idUsuario = cookies.claveusuario ? Number(cookies.claveusuario) : Number(clavePaciente);
-        let ip = req.headers["x-forwarded-for"] ||
-        req.connection?.remoteAddress ||
-        req.socket?.remoteAddress ||
-        (req.connection?.socket ? req.connection.socket.remoteAddress : null);        const userAgent = req.headers["user-agent"] || "";
-        await pool.request()
+        //* Usar la cookie 'claveusuario' si existe, sino se usa el valor de clavePaciente
+        const idUsuario = cookies.claveusuario
+          ? Number(cookies.claveusuario)
+          : Number(clavePaciente);
+        let ip =
+          (req.headers["x-forwarded-for"] &&
+            req.headers["x-forwarded-for"].split(",")[0].trim()) ||
+          req.connection?.remoteAddress ||
+          req.socket?.remoteAddress ||
+          (req.connection?.socket ? req.connection.socket.remoteAddress : null);
+
+        const userAgent = req.headers["user-agent"] || "";
+        await pool
+          .request()
           .input("userId", sql.Int, idUsuario)
           .input("accion", sql.VarChar, "Consulta de signos vitales guardada")
           .input("direccionIP", sql.VarChar, ip)
           .input("agenteUsuario", sql.VarChar, userAgent)
-          .input("claveConsulta", sql.Int, claveConsulta)
-          .query(`
+          .input("claveConsulta", sql.Int, claveConsulta).query(`
             INSERT INTO dbo.ActividadUsuarios (IdUsuario, Accion, FechaHora, DireccionIP, AgenteUsuario, ClaveConsulta)
             VALUES (@userId, @accion, DATEADD(MINUTE, -4, GETDATE()), @direccionIP, @agenteUsuario, @claveConsulta)
           `);

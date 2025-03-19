@@ -313,6 +313,16 @@
   font-size: 0.75rem;
 }
 
+/* Badge para "Capturó un gasto y factura" (goldBadge) */
+.moneyBadge {
+  background-color: #a8ff9e; /* Amarillo claro */
+  color: #157500; /* Amarillo oscuro */
+  border: 1px solid #105500;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+}
+
 /* 10) Animación de hover en los badges: transición en opacidad y escalado */
 .badgeHover {
   transition: opacity 0.3s ease, transform 0.3s ease;

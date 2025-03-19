@@ -51,14 +51,18 @@ export default async function handler(req, res) {
     const truncatedUrlActaNac = urlActaNac?.substring(0, 255);
     const truncatedActaMatrimonioUrl = actaMatrimonioUrl?.substring(0, 255);
     const truncatedIneUrl = ineUrl?.substring(0, 255);
-    const truncatedCartaNoAfiliacionUrl = cartaNoAfiliacionUrl?.substring(0, 255);
+    const truncatedCartaNoAfiliacionUrl = cartaNoAfiliacionUrl?.substring(
+      0,
+      255
+    );
     const truncatedActaConcubinatoUrl = actaConcubinatoUrl?.substring(0, 255);
     const truncatedUrlIncap = urlIncap?.substring(0, 255);
 
     const pool = await connectToDatabase();
 
     //* Inserción en BENEFICIARIO con OUTPUT para obtener el ID insertado
-    const insertResult = await pool.request()
+    const insertResult = await pool
+      .request()
       .input("noNomina", noNomina)
       .input("parentesco", parentesco)
       .input("nombre", truncatedNombre)
@@ -84,8 +88,7 @@ export default async function handler(req, res) {
       .input("cartaNoAfiliacionUrl", truncatedCartaNoAfiliacionUrl)
       .input("actaConcubinatoUrl", truncatedActaConcubinatoUrl)
       .input("urlIncap", truncatedUrlIncap)
-      .input("descriptorFacial", descriptorFacial || "")
-      .query(`
+      .input("descriptorFacial", descriptorFacial || "").query(`
         INSERT INTO BENEFICIARIO (
           NO_NOMINA, PARENTESCO, NOMBRE, A_PATERNO, A_MATERNO, SEXO, 
           F_NACIMIENTO, ESCOLARIDAD, ACTIVO, ALERGIAS, SANGRE, 
@@ -121,18 +124,22 @@ export default async function handler(req, res) {
 
     //* Registrar la actividad en ActividadUsuarios incluyendo el ID del beneficiario
     if (claveusuario !== null) {
-      let ip = req.headers["x-forwarded-for"] ||
-      req.connection?.remoteAddress ||
-      req.socket?.remoteAddress ||
-      (req.connection?.socket ? req.connection.socket.remoteAddress : null);      const userAgent = req.headers["user-agent"] || "";
-      const activityResult = await pool.request()
+      let ip =
+        (req.headers["x-forwarded-for"] &&
+          req.headers["x-forwarded-for"].split(",")[0].trim()) ||
+        req.connection?.remoteAddress ||
+        req.socket?.remoteAddress ||
+        (req.connection?.socket ? req.connection.socket.remoteAddress : null);
+
+      const userAgent = req.headers["user-agent"] || "";
+      const activityResult = await pool
+        .request()
         .input("userId", sql.Int, claveusuario)
         .input("accion", sql.VarChar, "Guardó un beneficiario")
         .input("direccionIP", sql.VarChar, ip)
         .input("agenteUsuario", sql.VarChar, userAgent)
         .input("claveConsulta", sql.Int, null)
-        .input("idBeneficiario", sql.Int, insertedId)
-        .query(`
+        .input("idBeneficiario", sql.Int, insertedId).query(`
           INSERT INTO dbo.ActividadUsuarios 
             (IdUsuario, Accion, FechaHora, DireccionIP, AgenteUsuario, ClaveConsulta, IdBeneficiario)
           VALUES 

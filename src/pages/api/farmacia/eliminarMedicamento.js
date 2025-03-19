@@ -35,38 +35,49 @@ export default async function handler(req, res) {
 
       //* Verificamos si se afectó al menos un registro
       if (result.rowsAffected[0] > 0) {
-        console.log("✅ Medicamento marcado como inactivo (borrado lógico), ID:", id);
+        console.log(
+          "✅ Medicamento marcado como inactivo (borrado lógico), ID:",
+          id
+        );
 
         //* ===========================
         //* Registrar la actividad
         //* ===========================
         try {
           const idUsuario = getUserIdFromCookie(req);
-          let ip = req.headers["x-forwarded-for"] ||
-          req.connection?.remoteAddress ||
-          req.socket?.remoteAddress ||
-          (req.connection?.socket ? req.connection.socket.remoteAddress : null);
+          let ip =
+            (req.headers["x-forwarded-for"] &&
+              req.headers["x-forwarded-for"].split(",")[0].trim()) ||
+            req.connection?.remoteAddress ||
+            req.socket?.remoteAddress ||
+            (req.connection?.socket
+              ? req.connection.socket.remoteAddress
+              : null);
+
           const userAgent = req.headers["user-agent"] || "";
 
           if (idUsuario) {
             await pool
               .request()
               .input("idUsuario", sql.Int, idUsuario)
-              .input("accion", sql.VarChar, "Eliminó un medicamento") 
+              .input("accion", sql.VarChar, "Eliminó un medicamento")
               //* Puedes usar GETDATE() en SQL para la fecha/hora
               .input("direccionIP", sql.VarChar, ip)
               .input("agenteUsuario", sql.VarChar, userAgent)
-              .input("idMedicamento", sql.VarChar, id.toString())
-              .query(`
+              .input("idMedicamento", sql.VarChar, id.toString()).query(`
                 INSERT INTO ActividadUsuarios 
                   (IdUsuario, Accion, FechaHora, DireccionIP, AgenteUsuario, IdMedicamento)
                 VALUES 
                   (@idUsuario, @accion, GETDATE(), @direccionIP, @agenteUsuario, @idMedicamento)
               `);
 
-            console.log("✅ Actividad de ‘Eliminó un medicamento’ registrada en ActividadUsuarios.");
+            console.log(
+              "✅ Actividad de ‘Eliminó un medicamento’ registrada en ActividadUsuarios."
+            );
           } else {
-            console.log("⚠️ No se pudo registrar la actividad: falta idUsuario (cookie).");
+            console.log(
+              "⚠️ No se pudo registrar la actividad: falta idUsuario (cookie)."
+            );
           }
         } catch (errorAct) {
           console.error("❌ Error registrando actividad:", errorAct);

@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useContext } from "react";
 import withReactContent from "sweetalert2-react-content";
 import { FormularioContext } from "/src/context/FormularioContext";
+import EspecialidadDropdown from "../components/EspecialidadDropdown";
 
 const PaseEspecialidad = ({
   claveConsulta,
@@ -42,9 +43,7 @@ const PaseEspecialidad = ({
 
   //* Restaurar datos desde localStorage al montar el componente
   useEffect(() => {
-    const cachedData = localStorage.getItem(
-      `PaseEspecialidad:${claveConsulta}`
-    );
+    const cachedData = localStorage.getItem(`PaseEspecialidad:${claveConsulta}`);
     if (cachedData) {
       const parsedData = JSON.parse(cachedData);
       console.log("Restaurando datos desde localStorage:", parsedData);
@@ -202,23 +201,11 @@ const PaseEspecialidad = ({
             >
               Especialidad:
             </label>
-            <select
-              id="selectEspecialidad"
+            <EspecialidadDropdown
+              especialidades={especialidades}
               value={especialidadSeleccionada}
-              onChange={(e) => setEspecialidadSeleccionada(e.target.value)}
-              className="block w-full rounded-lg bg-gray-600 border-gray-500 text-white p-2 md:p-3 focus:ring-2 focus:ring-green-500"
-              aria-label="Seleccionar especialidad"
-            >
-              <option value="">Seleccionar Especialidad</option>
-              {especialidades.map((especialidad) => (
-                <option
-                  key={especialidad.claveespecialidad}
-                  value={especialidad.claveespecialidad}
-                >
-                  {especialidad.especialidad}
-                </option>
-              ))}
-            </select>
+              onChange={setEspecialidadSeleccionada}
+            />
           </div>
 
           <div className="mb-6">
@@ -297,8 +284,7 @@ const PaseEspecialidad = ({
                 onClick={() => {
                   setPrioridad("ROJO");
                   const cachedData = JSON.parse(
-                    localStorage.getItem(`PaseEspecialidad:${claveConsulta}`) ||
-                      "{}"
+                    localStorage.getItem(`PaseEspecialidad:${claveConsulta}`) || "{}"
                   );
                   cachedData.prioridad = "ROJO";
                   localStorage.setItem(
@@ -327,8 +313,7 @@ const PaseEspecialidad = ({
                 onClick={() => {
                   setPrioridad("NARANJA");
                   const cachedData = JSON.parse(
-                    localStorage.getItem(`PaseEspecialidad:${claveConsulta}`) ||
-                      "{}"
+                    localStorage.getItem(`PaseEspecialidad:${claveConsulta}`) || "{}"
                   );
                   cachedData.prioridad = "NARANJA";
                   localStorage.setItem(
@@ -357,8 +342,7 @@ const PaseEspecialidad = ({
                 onClick={() => {
                   setPrioridad("AMARILLO");
                   const cachedData = JSON.parse(
-                    localStorage.getItem(`PaseEspecialidad:${claveConsulta}`) ||
-                      "{}"
+                    localStorage.getItem(`PaseEspecialidad:${claveConsulta}`) || "{}"
                   );
                   cachedData.prioridad = "AMARILLO";
                   localStorage.setItem(
@@ -387,8 +371,7 @@ const PaseEspecialidad = ({
                 onClick={() => {
                   setPrioridad("VERDE");
                   const cachedData = JSON.parse(
-                    localStorage.getItem(`PaseEspecialidad:${claveConsulta}`) ||
-                      "{}"
+                    localStorage.getItem(`PaseEspecialidad:${claveConsulta}`) || "{}"
                   );
                   cachedData.prioridad = "VERDE";
                   localStorage.setItem(
@@ -417,8 +400,7 @@ const PaseEspecialidad = ({
                 onClick={() => {
                   setPrioridad("AZUL");
                   const cachedData = JSON.parse(
-                    localStorage.getItem(`PaseEspecialidad:${claveConsulta}`) ||
-                      "{}"
+                    localStorage.getItem(`PaseEspecialidad:${claveConsulta}`) || "{}"
                   );
                   cachedData.prioridad = "AZUL";
                   localStorage.setItem(
@@ -478,9 +460,9 @@ const PaseEspecialidad = ({
                   </td>
                 </tr>
               ) : historialEspecialidades.length > 0 ? (
-                historialEspecialidades.map((item) => (
+                historialEspecialidades.map((item, i) => (
                   <tr
-                    key={item.claveconsulta}
+                    key={i}
                     className="hover:bg-purple-600 hover:bg-opacity-50 transition-colors duration-300"
                   >
                     <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
@@ -500,8 +482,7 @@ const PaseEspecialidad = ({
               ) : (
                 <tr>
                   <td colSpan="6" className="text-center py-6 text-gray-400">
-                    No hay especialidades registradas para el paciente
-                    seleccionado.
+                    No hay especialidades registradas para el paciente seleccionado.
                   </td>
                 </tr>
               )}

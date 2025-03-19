@@ -38,7 +38,7 @@ const HistorialTable = () => {
   const handleRowClick = (claveconsulta) => {
     const encryptedConsulta = btoa(claveconsulta.toString());
     router.replace(
-      `/consultas/recetas/ver-recetas-pases?claveconsulta=${encryptedConsulta}`
+      `/capturas/recetas/ver-recetas-pases?claveconsulta=${encryptedConsulta}`
     );
   };
 

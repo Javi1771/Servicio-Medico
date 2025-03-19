@@ -26,7 +26,8 @@ export default async function handler(req, res) {
     const pool = await connectToDatabase();
 
     //* Consulta con COLLATE para diferenciar mayúsculas y minúsculas
-    const result = await pool.request()
+    const result = await pool
+      .request()
       .input("usuario", sql.VarChar, usuario)
       .query(
         `SELECT clavetipousuario, password, nombreproveedor, claveespecialidad, claveproveedor, costo, activo 
@@ -34,20 +35,25 @@ export default async function handler(req, res) {
          WHERE usuario COLLATE Latin1_General_CS_AS = @usuario AND activo = 'S'`
       );
 
-    console.log("Resultado de la consulta de usuarios activos:", result.recordset);
+    console.log(
+      "Resultado de la consulta de usuarios activos:",
+      result.recordset
+    );
 
     //! Valida si el usuario existe
     if (result.recordset.length === 0) {
       return res.status(401).json({
         success: false,
-        message: "Usuario no encontrado o inactivo (diferenciando mayúsculas y minúsculas)",
+        message:
+          "Usuario no encontrado o inactivo (diferenciando mayúsculas y minúsculas)",
       });
     }
 
     const user = result.recordset[0];
 
     //? Verifica si la contraseña está encriptada (hashes bcrypt empiezan con $2b$ o $2a$)
-    const isPasswordEncrypted = user.password.startsWith("$2b$") || user.password.startsWith("$2a$");
+    const isPasswordEncrypted =
+      user.password.startsWith("$2b$") || user.password.startsWith("$2a$");
 
     if (isPasswordEncrypted) {
       const isMatch = await bcrypt.compare(password, user.password);
@@ -60,7 +66,8 @@ export default async function handler(req, res) {
       }
     } else {
       const hashedPassword = await bcrypt.hash(password, 10);
-      await pool.request()
+      await pool
+        .request()
         .input("hashedPassword", sql.VarChar, hashedPassword)
         .input("usuario", sql.VarChar, usuario)
         .query(
@@ -87,7 +94,9 @@ export default async function handler(req, res) {
     res.setHeader("set-cookie", [
       `token=${token}; path=/; samesite=lax`,
       `rol=${user.clavetipousuario}; path=/; samesite=lax`,
-      `nombreusuario=${encodeURIComponent(user.nombreproveedor)}; path=/; samesite=lax`,
+      `nombreusuario=${encodeURIComponent(
+        user.nombreproveedor
+      )}; path=/; samesite=lax`,
       `claveespecialidad=${user.claveespecialidad}; path=/; samesite=lax`,
       `claveusuario=${user.claveproveedor}; path=/; samesite=lax`,
       `costo=${user.costo}; path=/; samesite=lax`,
@@ -97,16 +106,20 @@ export default async function handler(req, res) {
     try {
       const cookies = parseCookies(req.headers.cookie);
       const idUsuario = user.claveproveedor;
-      let ip = req.headers["x-forwarded-for"] ||
-      req.connection?.remoteAddress ||
-      req.socket?.remoteAddress ||
-      (req.connection?.socket ? req.connection.socket.remoteAddress : null);      const userAgent = req.headers["user-agent"] || "";
-      await pool.request()
+      let ip =
+        (req.headers["x-forwarded-for"] &&
+          req.headers["x-forwarded-for"].split(",")[0].trim()) ||
+        req.connection?.remoteAddress ||
+        req.socket?.remoteAddress ||
+        (req.connection?.socket ? req.connection.socket.remoteAddress : null);
+
+      const userAgent = req.headers["user-agent"] || "";
+      await pool
+        .request()
         .input("userId", sql.Int, idUsuario)
         .input("accion", sql.VarChar, "Inicio de sesión")
         .input("direccionIP", sql.VarChar, ip)
-        .input("agenteUsuario", sql.VarChar, userAgent)
-        .query(`
+        .input("agenteUsuario", sql.VarChar, userAgent).query(`
           INSERT INTO dbo.ActividadUsuarios (IdUsuario, Accion, FechaHora, DireccionIP, AgenteUsuario)
           VALUES (@userId, @accion, DATEADD(MINUTE, -4, GETDATE()), @direccionIP, @agenteUsuario)
         `);

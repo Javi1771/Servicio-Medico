@@ -106,10 +106,16 @@ export default async function handler(req, res) {
         try {
           //* Obtenemos el usuario de la cookie
           const idUsuario = getUserIdFromCookie(req);
-          let ip = req.headers["x-forwarded-for"] ||
-          req.connection?.remoteAddress ||
-          req.socket?.remoteAddress ||
-          (req.connection?.socket ? req.connection.socket.remoteAddress : null);          const userAgent = req.headers["user-agent"] || "";
+          let ip =
+            (req.headers["x-forwarded-for"] &&
+              req.headers["x-forwarded-for"].split(",")[0].trim()) ||
+            req.connection?.remoteAddress ||
+            req.socket?.remoteAddress ||
+            (req.connection?.socket
+              ? req.connection.socket.remoteAddress
+              : null);
+
+          const userAgent = req.headers["user-agent"] || "";
 
           //* Solo si realmente tenemos un ID de usuario
           if (idUsuario) {
@@ -120,24 +126,29 @@ export default async function handler(req, res) {
               //* Si tu tabla requiere un DATETIME
               .input("direccionIP", sql.VarChar, ip)
               .input("agenteUsuario", sql.VarChar, userAgent)
-              .input("idMedicamento", sql.VarChar, id.toString())
-              .query(`
+              .input("idMedicamento", sql.VarChar, id.toString()).query(`
                 INSERT INTO ActividadUsuarios 
                   (IdUsuario, Accion, FechaHora, DireccionIP, AgenteUsuario, IdMedicamento)
                 VALUES 
                   (@idUsuario, @accion, GETDATE(), @direccionIP, @agenteUsuario, @idMedicamento)
               `);
 
-            console.log("✅ Actividad registrada en la tabla ActividadUsuarios.");
+            console.log(
+              "✅ Actividad registrada en la tabla ActividadUsuarios."
+            );
           } else {
-            console.log("⚠️ No se pudo registrar la actividad: falta idUsuario (cookie).");
+            console.log(
+              "⚠️ No se pudo registrar la actividad: falta idUsuario (cookie)."
+            );
           }
         } catch (errorAct) {
           console.error("❌ Error al registrar la actividad:", errorAct);
           //! Puedes decidir si envías un error o no
         }
 
-        return res.status(200).json({ message: "Medicamento editado correctamente." });
+        return res
+          .status(200)
+          .json({ message: "Medicamento editado correctamente." });
       } else {
         console.warn("⚠️ No se encontró medicamento con el ID:", id);
         return res.status(404).json({ message: "Medicamento no encontrado." });

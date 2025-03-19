@@ -30,8 +30,7 @@ export default async function handler(req, res) {
       //* Realizar el INSERT y capturar el id_medida generado con SCOPE_IDENTITY()
       const insertResult = await pool
         .request()
-        .input("medida", sql.NVarChar, medida)
-        .query(`
+        .input("medida", sql.NVarChar, medida).query(`
           INSERT INTO unidades_de_medida (medida)
           OUTPUT INSERTED.id_medida AS newIdMedida
           VALUES (@medida);
@@ -44,10 +43,13 @@ export default async function handler(req, res) {
       //* Registrar la actividad en la tabla ActividadUsuarios
       try {
         const idUsuario = getUserIdFromCookie(req);
-        let ip = req.headers["x-forwarded-for"] ||
-        req.connection?.remoteAddress ||
-        req.socket?.remoteAddress ||
-        (req.connection?.socket ? req.connection.socket.remoteAddress : null);
+        let ip =
+          (req.headers["x-forwarded-for"] &&
+            req.headers["x-forwarded-for"].split(",")[0].trim()) ||
+          req.connection?.remoteAddress ||
+          req.socket?.remoteAddress ||
+          (req.connection?.socket ? req.connection.socket.remoteAddress : null);
+
         const userAgent = req.headers["user-agent"] || "";
 
         if (idUsuario) {
@@ -57,8 +59,7 @@ export default async function handler(req, res) {
             .input("Accion", sql.VarChar, "Agregó una nueva unidad de medida")
             .input("DireccionIP", sql.VarChar, ip)
             .input("AgenteUsuario", sql.VarChar, userAgent)
-            .input("IdMedida", sql.Int, newIdMedida)
-            .query(`
+            .input("IdMedida", sql.Int, newIdMedida).query(`
               INSERT INTO ActividadUsuarios
                 (IdUsuario, Accion, FechaHora, DireccionIP, AgenteUsuario, IdMedida)
               VALUES
@@ -66,7 +67,7 @@ export default async function handler(req, res) {
             `);
 
           console.log(
-            "✅ Actividad registrada en la tabla ActividadUsuarios con el IdMedida:", 
+            "✅ Actividad registrada en la tabla ActividadUsuarios con el IdMedida:",
             newIdMedida
           );
         } else {

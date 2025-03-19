@@ -125,11 +125,13 @@ export default async function handler(req, res) {
         ? Number(claveusuarioCookie)
         : null;
 
-      let ip =
-        req.headers["x-forwarded-for"] ||
+        let ip =
+        (req.headers["x-forwarded-for"] &&
+          req.headers["x-forwarded-for"].split(",")[0].trim()) ||
         req.connection?.remoteAddress ||
         req.socket?.remoteAddress ||
         (req.connection?.socket ? req.connection.socket.remoteAddress : null);
+      
       const userAgent = req.headers["user-agent"] || "";
 
       if (claveusuarioInt !== null) {

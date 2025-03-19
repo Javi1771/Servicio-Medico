@@ -1,27 +1,28 @@
-import { connectToDatabase } from '../connectToDatabase';
-import cloudinary from '../../../lib/cloudinaryServer';
-import sql from 'mssql';
+import { connectToDatabase } from "../connectToDatabase";
+import cloudinary from "../../../lib/cloudinaryServer";
+import sql from "mssql";
 
 export default async function handler(req, res) {
-  if (req.method === 'DELETE') {
+  if (req.method === "DELETE") {
     const { idBeneficiario } = req.body;
 
     if (!idBeneficiario) {
-      return res.status(400).json({ error: 'Falta el ID del beneficiario' });
+      return res.status(400).json({ error: "Falta el ID del beneficiario" });
     }
 
     try {
       const pool = await connectToDatabase();
 
       //* Obtener la URL de la imagen del beneficiario
-      const imageResult = await pool.request()
-        .input('idBeneficiario', sql.Int, idBeneficiario)
+      const imageResult = await pool
+        .request()
+        .input("idBeneficiario", sql.Int, idBeneficiario)
         .query(
-          'SELECT FOTO_URL FROM BENEFICIARIO WHERE ID_BENEFICIARIO = @idBeneficiario'
+          "SELECT FOTO_URL FROM BENEFICIARIO WHERE ID_BENEFICIARIO = @idBeneficiario"
         );
 
       if (imageResult.recordset.length === 0) {
-        return res.status(404).json({ error: 'Beneficiario no encontrado' });
+        return res.status(404).json({ error: "Beneficiario no encontrado" });
       }
 
       const { FOTO_URL } = imageResult.recordset[0];
@@ -36,14 +37,15 @@ export default async function handler(req, res) {
       }
 
       //* Actualizar el campo ACTIVO a 'I' (inactivo) en la tabla BENEFICIARIO
-      const result = await pool.request()
-        .input('idBeneficiario', sql.Int, idBeneficiario)
+      const result = await pool
+        .request()
+        .input("idBeneficiario", sql.Int, idBeneficiario)
         .query(
-          'UPDATE BENEFICIARIO SET ACTIVO = \'I\' WHERE ID_BENEFICIARIO = @idBeneficiario'
+          "UPDATE BENEFICIARIO SET ACTIVO = 'I' WHERE ID_BENEFICIARIO = @idBeneficiario"
         );
 
       if (result.rowsAffected[0] === 0) {
-        return res.status(404).json({ error: 'Beneficiario no encontrado' });
+        return res.status(404).json({ error: "Beneficiario no encontrado" });
       }
 
       //* Registrar la actividad "Eliminó un beneficiario"
@@ -52,39 +54,55 @@ export default async function handler(req, res) {
         .split("; ")
         .find((row) => row.startsWith("claveusuario="))
         ?.split("=")[1];
-      const claveusuario = claveusuarioCookie ? Number(claveusuarioCookie) : null;
+      const claveusuario = claveusuarioCookie
+        ? Number(claveusuarioCookie)
+        : null;
       console.log("Cookie claveusuario:", claveusuario);
 
       if (claveusuario !== null) {
-        let ip = req.headers["x-forwarded-for"] ||
-        req.connection?.remoteAddress ||
-        req.socket?.remoteAddress ||
-        (req.connection?.socket ? req.connection.socket.remoteAddress : null);        const userAgent = req.headers["user-agent"] || "";
-        await pool.request()
+        let ip =
+          (req.headers["x-forwarded-for"] &&
+            req.headers["x-forwarded-for"].split(",")[0].trim()) ||
+          req.connection?.remoteAddress ||
+          req.socket?.remoteAddress ||
+          (req.connection?.socket ? req.connection.socket.remoteAddress : null);
+
+        const userAgent = req.headers["user-agent"] || "";
+        await pool
+          .request()
           .input("userId", sql.Int, claveusuario)
           .input("accion", sql.VarChar, "Eliminó un beneficiario")
           .input("direccionIP", sql.VarChar, ip)
           .input("agenteUsuario", sql.VarChar, userAgent)
           .input("claveConsulta", sql.Int, null)
-          .input("idBeneficiario", sql.Int, idBeneficiario)
-          .query(`
+          .input("idBeneficiario", sql.Int, idBeneficiario).query(`
             INSERT INTO ActividadUsuarios 
               (IdUsuario, Accion, FechaHora, DireccionIP, AgenteUsuario, ClaveConsulta, IdBeneficiario)
             VALUES 
               (@userId, @accion, DATEADD(MINUTE, -4, GETDATE()), @direccionIP, @agenteUsuario, @claveConsulta, @idBeneficiario)
           `);
-        console.log("Actividad 'Eliminó un beneficiario' registrada en ActividadUsuarios.");
+        console.log(
+          "Actividad 'Eliminó un beneficiario' registrada en ActividadUsuarios."
+        );
       } else {
         console.log("No se pudo registrar la actividad: falta claveusuario.");
       }
 
-      return res.status(200).json({ message: 'Beneficiario marcado como inactivo, su imagen eliminada y actividad registrada correctamente' });
+      return res.status(200).json({
+        message:
+          "Beneficiario marcado como inactivo, su imagen eliminada y actividad registrada correctamente",
+      });
     } catch (error) {
-      console.error('Error al realizar el borrado lógico del beneficiario:', error);
-      return res.status(500).json({ error: 'Error al realizar el borrado lógico del beneficiario' });
+      console.error(
+        "Error al realizar el borrado lógico del beneficiario:",
+        error
+      );
+      return res.status(500).json({
+        error: "Error al realizar el borrado lógico del beneficiario",
+      });
     }
   } else {
-    return res.status(405).json({ message: 'Método no permitido' });
+    return res.status(405).json({ message: "Método no permitido" });
   }
 }
 

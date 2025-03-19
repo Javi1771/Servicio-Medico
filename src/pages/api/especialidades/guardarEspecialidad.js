@@ -1,6 +1,6 @@
 import { connectToDatabase } from "../connectToDatabase";
 import sql from "mssql";
-import cookie from "cookie"; 
+import cookie from "cookie";
 
 export default async function handler(req, res) {
   if (req.method === "POST") {
@@ -98,8 +98,7 @@ export default async function handler(req, res) {
         .input("prioridad", sql.VarChar, prioridad || "N/A")
         .input("estatus", sql.Int, estatus)
         .input("fecha_asignacion", sql.DateTime, fechaRegistro)
-        .input("clavepaciente", sql.VarChar, clavepaciente)
-        .query(`
+        .input("clavepaciente", sql.VarChar, clavepaciente).query(`
           INSERT INTO detalleEspecialidad 
             (claveconsulta, clavenomina, claveespecialidad, observaciones, prioridad, estatus, fecha_asignacion, clavepaciente)
           VALUES 
@@ -121,8 +120,7 @@ export default async function handler(req, res) {
           "seasignoaespecialidad",
           sql.VarChar,
           claveEspecialidadFinal ? "S" : "N"
-        )
-        .query(`
+        ).query(`
           UPDATE consultas
           SET 
             seasignoaespecialidad = @seasignoaespecialidad
@@ -144,11 +142,18 @@ export default async function handler(req, res) {
               ? Number(allCookies.claveusuario)
               : null;
           if (idUsuario !== null) {
-            let ip = req.headers["x-forwarded-for"] ||
-            req.connection?.remoteAddress ||
-            req.socket?.remoteAddress ||
-            (req.connection?.socket ? req.connection.socket.remoteAddress : null);            const userAgent = req.headers["user-agent"] || "";
-            await pool.request()
+            let ip =
+              (req.headers["x-forwarded-for"] &&
+                req.headers["x-forwarded-for"].split(",")[0].trim()) ||
+              req.connection?.remoteAddress ||
+              req.socket?.remoteAddress ||
+              (req.connection?.socket
+                ? req.connection.socket.remoteAddress
+                : null);
+
+            const userAgent = req.headers["user-agent"] || "";
+            await pool
+              .request()
               .input("userId", sql.Int, idUsuario)
               .input("accion", sql.VarChar, "Asignó especialidad")
               .input("direccionIP", sql.VarChar, ip)
@@ -163,10 +168,15 @@ export default async function handler(req, res) {
               `);
             console.log("Actividad de asignación de especialidad registrada.");
           } else {
-            console.log("Cookie 'claveusuario' no encontrada; actividad no registrada.");
+            console.log(
+              "Cookie 'claveusuario' no encontrada; actividad no registrada."
+            );
           }
         } catch (errorRegistro) {
-          console.error("Error registrando actividad de asignación:", errorRegistro);
+          console.error(
+            "Error registrando actividad de asignación:",
+            errorRegistro
+          );
         }
       }
 
@@ -177,8 +187,7 @@ export default async function handler(req, res) {
       //* Obtener el historial actualizado (opcional)
       const result = await pool
         .request()
-        .input("clavenomina", sql.VarChar, clavenomina)
-        .query(`
+        .input("clavenomina", sql.VarChar, clavenomina).query(`
           SELECT 
             d.claveconsulta,
             ISNULL(e.especialidad, 'Sin asignar') AS especialidad,

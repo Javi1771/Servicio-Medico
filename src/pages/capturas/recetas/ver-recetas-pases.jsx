@@ -42,7 +42,7 @@ export default function VerRecetas() {
 
           {encryptedClave ? (
             <iframe
-              src={`/consultas/recetas/generar-receta-farmacia-pase?claveconsulta=${encryptedClave}`}
+              src={`/capturas/recetas/generar-receta-farmacia-pase?claveconsulta=${encryptedClave}`}
               className="w-full h-[85vh] rounded-lg border-none shadow-lg shadow-cyan-500/30"
               style={{ overflow: "hidden", backgroundColor: "transparent" }}
               scrolling="no"
@@ -60,7 +60,7 @@ export default function VerRecetas() {
 
           {encryptedClave ? (
             <iframe
-              src={`/consultas/recetas/generar-receta-paciente-pase?claveconsulta=${encryptedClave}`}
+              src={`/capturas/recetas/generar-receta-paciente-pase?claveconsulta=${encryptedClave}`}
               className="w-full h-[85vh] rounded-lg border-none shadow-lg shadow-cyan-500/30"
               style={{ overflow: "hidden", backgroundColor: "transparent" }}
               scrolling="no"

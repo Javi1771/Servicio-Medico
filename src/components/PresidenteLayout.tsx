@@ -42,8 +42,8 @@ const PresidenteLayout: React.FC<PresidenteLayoutProps> = ({ children }) => {
   const noLayoutRoutes = [
     "/consultas/recetas/generar-receta-farmacia",
     "/consultas/recetas/generar-receta-paciente",
-    "/consultas/recetas/generar-receta-farmacia-pase",
-    "/consultas/recetas/generar-receta-paciente-pase",
+    "/capturas/recetas/generar-receta-paciente-pase",
+    "/capturas/recetas/generar-receta-farmacia-pase",
     "/capturas/laboratorio/generar-ordenes",
   ];
   
@@ -146,6 +146,7 @@ const PresidenteLayout: React.FC<PresidenteLayoutProps> = ({ children }) => {
           path: "/capturas/orden-de-estudio-de-laboratorio",
         },
         { name: "Incapacidades", path: "/capturas/incapacidades" },
+        { name: "Costos", path: "/capturas/costos" },
       ],
     },
     {

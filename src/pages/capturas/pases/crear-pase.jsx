@@ -147,7 +147,14 @@ const CrearPase = () => {
               "border border-green-500 shadow-[0px_0px_20px_5px_rgba(0,230,118,0.7)] rounded-lg",
           },
         });
-        router.replace("/capturas/pases-a-especialidades");
+
+        //* Extraer y cifrar la claveconsulta recibida desde el backend
+        const encryptedClaveConsulta = btoa(response.claveconsulta.toString());
+
+        //* Navegar a la otra pantalla enviando la claveconsulta cifrada
+        router.replace(
+          `/capturas/recetas/ver-recetas-pases?claveconsulta=${encryptedClaveConsulta}`
+        );
       } else {
         const errorResponse = await res.json();
         console.error("❌ Error en la respuesta del servidor:", errorResponse);

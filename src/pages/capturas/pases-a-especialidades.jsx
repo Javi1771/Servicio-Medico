@@ -56,16 +56,20 @@ const PasesAEspecialidad = () => {
 
   const handleRowClick = (folio, estatus) => {
     if (estatus === "LISTA PARA PASAR CON EL ESPECIALISTA") {
-      return;
+      //* Extraer y cifrar el folio (claveconsulta)
+      const encryptedFolio = btoa(folio.toString());
+      //* Navegar a la pantalla para reimprimir la receta usando el folio encriptado
+      router.replace(
+        `/capturas/recetas/ver-recetas-pases?claveconsulta=${encryptedFolio}`
+      );
+    } else {
+      //* Cifrar el folio con Base64
+      const encryptedFolio = btoa(folio.toString());
+      //* Redirigir a la pantalla para crear el pase con el folio encriptado
+      router.replace(
+        `/capturas/pases/crear-pase?claveconsulta=${encryptedFolio}`
+      );
     }
-
-    //* Cifrar el folio con Base64
-    const encryptedFolio = btoa(folio.toString());
-
-    //* Redirigir con el folio cifrado
-    router.replace(
-      `/capturas/pases/crear-pase?claveconsulta=${encryptedFolio}`
-    );
   };
 
   const handleRegresar = () => {
@@ -155,10 +159,7 @@ const PasesAEspecialidad = () => {
                       ? "bg-gray-700 bg-opacity-50 text-gray-400 cursor-default"
                       : "hover:bg-gray-700 cursor-pointer"
                   } transition-all`}
-                  onClick={() =>
-                    item.estatus !== "LISTA PARA PASAR CON EL ESPECIALISTA" &&
-                    handleRowClick(item.folio, item.estatus)
-                  }
+                  onClick={() => handleRowClick(item.folio, item.estatus)}
                 >
                   <td className="p-4 border-b border-gray-700">{item.folio}</td>
                   <td className="p-4 border-b border-gray-700">

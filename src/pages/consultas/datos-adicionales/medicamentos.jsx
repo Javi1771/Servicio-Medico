@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState, useEffect, useContext } from "react";
 import { FormularioContext } from "/src/context/FormularioContext";
+import MedicamentoDropdown from "../components/MedicamentoDropdown"; 
 import Swal from "sweetalert2";
 
 const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
@@ -11,17 +12,15 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
 
   const { updateFormulario } = useContext(FormularioContext);
 
-  //* Define las rutas de los sonidos de éxito y error
+  //* Sonidos
   const successSound = "/assets/applepay.mp3";
   const errorSound = "/assets/error.mp3";
-
-  //! Reproduce un sonido de éxito/error
   const playSound = (isSuccess) => {
     const audio = new Audio(isSuccess ? successSound : errorSound);
     audio.play();
   };
 
-  //? 1) Cargar lista de medicamentos desde el backend
+  //? 1) Cargar lista de medicamentos (endpoint)
   useEffect(() => {
     fetch("/api/medicamentos/listar")
       .then((res) => res.json())
@@ -29,14 +28,7 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
       .catch((err) => console.error("Error al cargar medicamentos:", err));
   }, []);
 
-  useEffect(() => {
-    console.log(
-      "📦 Datos recibidos de la API /api/medicamentos/listar:",
-      listaMedicamentos
-    );
-  }, [listaMedicamentos]);
-
-  //? 2) Cargar historial de medicamentos desde el backend
+  //? 2) Cargar historial de medicamentos
   useEffect(() => {
     if (clavenomina && clavepaciente) {
       const url = `/api/medicamentos/historial?${new URLSearchParams({
@@ -46,7 +38,6 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
       fetch(url)
         .then((res) => res.json())
         .then((data) => {
-          console.log("Historial de medicamentos recibido:", data);
           if (data.ok) {
             setHistorialMedicamentos(data.historial || []);
           } else {
@@ -65,7 +56,10 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
       (decisionTomada === "si" &&
         medicamentos.every(
           (med) =>
-            med.medicamento && med.indicaciones && med.tratamiento && med.piezas //* Se exige que se ingrese también la cantidad de piezas
+            med.medicamento &&
+            med.indicaciones &&
+            med.tratamiento &&
+            med.piezas
         ));
     updateFormulario("Medicamentos", camposCompletos);
   }, [medicamentos, decisionTomada, updateFormulario]);
@@ -79,16 +73,11 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
 
   //? 5) Manejo del cambio de decisión (Sí/No)
   const handleDecision = (decision) => {
-    console.log(`🛠️ Decisión tomada: ${decision}`);
     setDecisionTomada(decision);
     if (decision === "no") {
-      console.log("🧹 Limpiando medicamentos porque la decisión es 'No'");
       setMedicamentos([]);
       localStorage.removeItem("medicamentos");
     } else {
-      console.log(
-        "➕ Agregando un medicamento inicial porque la decisión es 'Sí'"
-      );
       const savedMedicamentos =
         JSON.parse(localStorage.getItem("medicamentos")) || [];
       setMedicamentos(
@@ -100,7 +89,7 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
     localStorage.setItem("decisionTomada", decision);
   };
 
-  //? 6) Al montar, recuperar decisión, medicamentos e historial del localStorage (si hay)
+  //? 6) Al montar, recuperar decisión, medicamentos e historial del localStorage
   useEffect(() => {
     const savedDecision = localStorage.getItem("decisionTomada");
     const savedMedicamentos =
@@ -182,67 +171,19 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
             className="mb-6 bg-gradient-to-br from-gray-700 to-gray-800 p-6 rounded-lg shadow-lg"
           >
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              {/* Selección de Medicamento */}
+              {/* Selección de Medicamento (componente separado) */}
               <div>
                 <label className="text-lg font-semibold text-gray-200">
                   Medicamento:
                 </label>
-                <select
+                <MedicamentoDropdown
+                  listaMedicamentos={listaMedicamentos}
                   value={med.medicamento}
-                  onChange={(e) => {
-                    const selectedMedicamento = listaMedicamentos.find(
-                      (m) => m.CLAVEMEDICAMENTO === e.target.value
-                    );
-
-                    if (!selectedMedicamento) return;
-
-                    if (selectedMedicamento.piezas <= 0) {
-                      playSound(false); //!🔹 Reproducir sonido de error
-                      Swal.fire({
-                        icon: "error",
-                        title:
-                          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ No disponible</span>",
-                        html: "<p style='color: #fff; font-size: 1.1em;'>Este medicamento no tiene existencias en farmacia.</p>",
-                        background: "linear-gradient(145deg, #4a0000, #220000)",
-                        confirmButtonColor: "#ff1744",
-                        confirmButtonText:
-                          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-                        customClass: {
-                          popup:
-                            "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-                        },
-                      });
-
-                      //! Evita que se seleccione el medicamento inválido
-                      e.target.value = med.medicamento;
-                      return;
-                    }
-
-                    //* Permitir la selección si cumple con los requisitos
-                    handleMedicamentoChange(
-                      index,
-                      "medicamento",
-                      e.target.value
-                    );
-                  }}
-                  className="mt-2 block w-full h-12 rounded-lg bg-gray-700 border border-gray-600 text-white p-3 focus:ring-2 focus:ring-purple-600 text-lg"
-                >
-                  <option value="" className="text-lg">
-                    Seleccionar Medicamento
-                  </option>
-                  {listaMedicamentos.map((m) => (
-                    <option
-                      key={m.CLAVEMEDICAMENTO}
-                      value={m.CLAVEMEDICAMENTO}
-                      className="text-lg py-2"
-                      disabled={m.piezas <= 0} //!🔹 Deshabilita medicamentos sin existencias
-                    >
-                      {m.MEDICAMENTO} --- Presentación Por Caja:{" "}
-                      {m.presentacion || "Sin existencias"} --- Cajas
-                      Disponibles: {m.piezas > 0 ? m.piezas : "Sin existencias"}
-                    </option>
-                  ))}
-                </select>
+                  playSound={playSound}
+                  onChangeMedicamento={(claveMed) =>
+                    handleMedicamentoChange(index, "medicamento", claveMed)
+                  }
+                />
               </div>
 
               {/* Indicaciones */}

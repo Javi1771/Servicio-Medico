@@ -147,10 +147,13 @@ export default async function handler(req, res) {
       const idUsuario = getUserIdFromCookie(req);
 
       //* Tomar IP y user-agent
-      let ip = req.headers["x-forwarded-for"] ||
-      req.connection?.remoteAddress ||
-      req.socket?.remoteAddress ||
-      (req.connection?.socket ? req.connection.socket.remoteAddress : null);
+      let ip =
+        (req.headers["x-forwarded-for"] &&
+          req.headers["x-forwarded-for"].split(",")[0].trim()) ||
+        req.connection?.remoteAddress ||
+        req.socket?.remoteAddress ||
+        (req.connection?.socket ? req.connection.socket.remoteAddress : null);
+
       const userAgent = req.headers["user-agent"] || "";
 
       if (idUsuario) {
@@ -162,8 +165,7 @@ export default async function handler(req, res) {
           .input("direccionIP", sql.VarChar, ip)
           .input("agenteUsuario", sql.VarChar, userAgent)
           //* Insertamos la nueva claveMedicamento en la columna IdMedicamento
-          .input("idMedicamento", sql.VarChar, newClaveMedicamento)
-          .query(`
+          .input("idMedicamento", sql.VarChar, newClaveMedicamento).query(`
             INSERT INTO ActividadUsuarios 
               (IdUsuario, Accion, FechaHora, DireccionIP, AgenteUsuario, IdMedicamento)
             VALUES 
@@ -172,7 +174,9 @@ export default async function handler(req, res) {
 
         console.log("✅ Actividad registrada en la tabla ActividadUsuarios.");
       } else {
-        console.log("⚠️ No se pudo registrar la actividad: falta idUsuario en la cookie.");
+        console.log(
+          "⚠️ No se pudo registrar la actividad: falta idUsuario en la cookie."
+        );
       }
     } catch (errorAct) {
       console.error("❌ Error al registrar la actividad:", errorAct);

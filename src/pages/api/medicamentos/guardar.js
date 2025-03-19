@@ -8,7 +8,10 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Método no permitido" });
   }
 
-  console.log("📨 Datos recibidos en el backend:", JSON.stringify(req.body, null, 2));
+  console.log(
+    "📨 Datos recibidos en el backend:",
+    JSON.stringify(req.body, null, 2)
+  );
   const { medicamentos = [], folioReceta, decisionTomada } = req.body;
 
   if (!folioReceta || decisionTomada === undefined) {
@@ -37,13 +40,24 @@ export default async function handler(req, res) {
     `;
     const resultados = [];
     if (decisionTomada === "no") {
-      console.log("⚠️ Decisión tomada: NO. Insertando registro predeterminado en detalleReceta.");
-      await transaction.request()
+      console.log(
+        "⚠️ Decisión tomada: NO. Insertando registro predeterminado en detalleReceta."
+      );
+      await transaction
+        .request()
         .input("folioReceta", sql.Int, parseInt(folioReceta, 10))
         .input("descMedicamento", sql.Int, 0)
-        .input("indicaciones", sql.NVarChar, "Sin indicaciones ya que no se asignaron medicamentos.")
+        .input(
+          "indicaciones",
+          sql.NVarChar,
+          "Sin indicaciones ya que no se asignaron medicamentos."
+        )
         .input("estatus", sql.Int, 1)
-        .input("cantidad", sql.NVarChar, "Sin tiempo de toma estimado, sin medicamentos.")
+        .input(
+          "cantidad",
+          sql.NVarChar,
+          "Sin tiempo de toma estimado, sin medicamentos."
+        )
         .input("piezas", sql.Int, 0)
         .query(queryInsertarReceta);
 
@@ -53,7 +67,9 @@ export default async function handler(req, res) {
         message: "Registro predeterminado insertado en detalleReceta.",
       });
     } else {
-      console.log(`💊 Insertando ${medicamentos.length} medicamento(s) en detalleReceta...`);
+      console.log(
+        `💊 Insertando ${medicamentos.length} medicamento(s) en detalleReceta...`
+      );
       for (const med of medicamentos) {
         console.log("📦 Medicamento a insertar:", med);
         const { descMedicamento, indicaciones, cantidad, piezas } = med;
@@ -64,7 +80,8 @@ export default async function handler(req, res) {
             message: "Error: Medicamento tiene campos faltantes.",
           });
         }
-        await transaction.request()
+        await transaction
+          .request()
           .input("folioReceta", sql.Int, parseInt(folioReceta, 10))
           .input("descMedicamento", sql.Int, parseInt(descMedicamento, 10))
           .input("indicaciones", sql.NVarChar, indicaciones.trim())
@@ -90,7 +107,8 @@ export default async function handler(req, res) {
       FROM consultas
       WHERE claveconsulta = @folioReceta
     `;
-    const consultaResult = await transaction.request()
+    const consultaResult = await transaction
+      .request()
       .input("folioReceta", sql.Int, parseInt(folioReceta, 10))
       .query(consultaQuery);
 
@@ -98,9 +116,14 @@ export default async function handler(req, res) {
     if (!consultaData) {
       console.error("❌ No se encontró consulta con la clave proporcionada.");
       await transaction.rollback();
-      return res.status(404).json({ error: "No se encontró consulta asociada al folioReceta." });
+      return res
+        .status(404)
+        .json({ error: "No se encontró consulta asociada al folioReceta." });
     }
-    console.log("✅ Consulta encontrada:", JSON.stringify(consultaData, null, 2));
+    console.log(
+      "✅ Consulta encontrada:",
+      JSON.stringify(consultaData, null, 2)
+    );
 
     //? 3. Calcular el nuevo FOLIO_SURTIMIENTO
     const queryNuevoFolio = `SELECT ISNULL(MAX(FOLIO_SURTIMIENTO), 0) + 1 AS newFolio FROM SURTIMIENTOS`;
@@ -129,7 +152,8 @@ export default async function handler(req, res) {
         @sindicato, @claveUsuario
       )
     `;
-    await transaction.request()
+    await transaction
+      .request()
       .input("folioSurtimiento", sql.Int, newFolioSurtimiento)
       .input("folioPase", sql.Int, parseInt(folioReceta, 10))
       .input("fechaEmision", sql.DateTime, consultaData.fechaconsulta)
@@ -137,7 +161,11 @@ export default async function handler(req, res) {
       .input("clavePaciente", sql.VarChar, consultaData.clavepaciente)
       .input("nombrePaciente", sql.VarChar, consultaData.nombrepaciente)
       .input("edad", sql.VarChar, consultaData.edad)
-      .input("epacienteEsEmpleado", sql.VarChar, consultaData.elpacienteesempleado)
+      .input(
+        "epacienteEsEmpleado",
+        sql.VarChar,
+        consultaData.elpacienteesempleado
+      )
       .input("claveMedico", sql.VarChar, String(consultaData.claveproveedor))
       .input("diagnostico", sql.NVarChar, consultaData.diagnostico)
       .input("departamento", sql.VarChar, consultaData.departamento)
@@ -176,14 +204,15 @@ export default async function handler(req, res) {
         indicaciones: "Sin indicaciones ya que no se asignaron medicamentos.",
         cantidad: "Sin tiempo de toma estimado, sin medicamentos.",
         piezas: 0,
-        entregado: 0
+        entregado: 0,
       });
     } else {
       medsForDetalle = medicamentos;
     }
     for (const med of medsForDetalle) {
       console.log("📝 Insertando detalleSurtimiento:", med);
-      await transaction.request()
+      await transaction
+        .request()
         .input("folioSurtimiento", sql.Int, newFolioSurtimiento)
         .input("claveMedicamento", sql.Int, parseInt(med.descMedicamento, 10))
         .input("indicaciones", sql.NVarChar, med.indicaciones.trim())
@@ -200,33 +229,49 @@ export default async function handler(req, res) {
       try {
         const allCookies = cookie.parse(req.headers.cookie || "");
         const idUsuario = allCookies.claveusuario;
-        let ip = req.headers["x-forwarded-for"] ||
-        req.connection?.remoteAddress ||
-        req.socket?.remoteAddress ||
-        (req.connection?.socket ? req.connection.socket.remoteAddress : null);
+        let ip =
+          (req.headers["x-forwarded-for"] &&
+            req.headers["x-forwarded-for"].split(",")[0].trim()) ||
+          req.connection?.remoteAddress ||
+          req.socket?.remoteAddress ||
+          (req.connection?.socket ? req.connection.socket.remoteAddress : null);
+
         if (idUsuario !== null) {
-          await pool.request()
+          await pool
+            .request()
             .input("userId", sql.Int, idUsuario)
             .input("accion", sql.VarChar, "Asignó medicamentos")
             .input("direccionIP", sql.VarChar, ip)
-            .input("agenteUsuario", sql.VarChar, req.headers["user-agent"] || "")
-            .input("claveConsulta", sql.Int, folioReceta)
-            .query(`
+            .input(
+              "agenteUsuario",
+              sql.VarChar,
+              req.headers["user-agent"] || ""
+            )
+            .input("claveConsulta", sql.Int, folioReceta).query(`
               INSERT INTO dbo.ActividadUsuarios (IdUsuario, Accion, FechaHora, DireccionIP, AgenteUsuario, ClaveConsulta)
               VALUES (@userId, @accion, DATEADD(MINUTE, -4, GETDATE()), @direccionIP, @agenteUsuario, @claveConsulta)
             `);
-          console.log("Actividad de asignación de medicamentos registrada en la base de datos.");
+          console.log(
+            "Actividad de asignación de medicamentos registrada en la base de datos."
+          );
         } else {
-          console.log("Cookie 'claveusuario' no encontrada; actividad de asignación no registrada.");
+          console.log(
+            "Cookie 'claveusuario' no encontrada; actividad de asignación no registrada."
+          );
         }
       } catch (errorRegistro) {
-        console.error("Error registrando actividad de asignación:", errorRegistro);
+        console.error(
+          "Error registrando actividad de asignación:",
+          errorRegistro
+        );
       }
     }
 
     //* Commit de la transacción
     await transaction.commit();
-    console.log("🎉 Transacción COMPLETA. Todos los datos guardados correctamente.");
+    console.log(
+      "🎉 Transacción COMPLETA. Todos los datos guardados correctamente."
+    );
     res.status(200).json({
       message: "Datos guardados correctamente.",
       resultados,
