@@ -557,9 +557,33 @@ const SignosVitales = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-900 to-black text-white px-4 py-8 md:px-12 flex flex-col items-center pt-10">
-      <div className="flex flex-col md:flex-row items-center justify-between w-full mb-6">
-        <div className="flex items-center space-x-4">
+    <div className="min-h-screen bg-gradient-to-b from-blue-900 to-black text-white">
+      {/* Encabezado con botón "Regresar" */}
+      <header className="px-4 py-4 md:px-12 flex items-center">
+        <Link href="/inicio-servicio-medico">
+          <button className="flex items-center px-4 py-2 bg-gradient-to-r from-[#00ffee] to-[#ec0dea] hover:from-[#00d9c1] hover:to-[#e600b8] rounded-full text-white font-semibold shadow-lg shadow-teal-500/50 transition-all duration-300 transform hover:scale-105 hover:rotate-1 active:scale-95 focus:outline-none focus:ring-2 focus:ring-teal-400">
+            <svg
+              className="w-5 h-5 mr-2"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M15 19l-7-7 7-7"
+              />
+            </svg>
+            Regresar
+          </button>
+        </Link>
+      </header>
+
+      {/* Contenido Principal */}
+      <main className="px-4 py-8 md:px-12 flex flex-col items-center">
+        <div className="flex flex-col items-center">
           <Image
             src="/estetoscopio.png"
             alt="Estetoscopio"
@@ -567,76 +591,56 @@ const SignosVitales = () => {
             height={160}
             className="h-24 w-24 md:h-40 md:w-40 object-cover rounded-full bg-gray-600"
           />
-          <h1 className="text-3xl md:text-5xl font-extrabold">
+          <h1 className="mt-4 text-3xl md:text-5xl font-extrabold text-center">
             Registro de Pacientes
           </h1>
-          {/* Botón de Regresar */}
-          <div className="w-full flex justify-start mb-4">
-            <Link href="/inicio-servicio-medico">
-              <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-full text-white font-semibold">
-                Regresar
-              </button>
-            </Link>
-          </div>
         </div>
-        <div className="flex space-x-4 mt-4">
-          {/* Botón de Agregar Paciente - Compacto */}
+
+        {/* Botones de acción */}
+        <div className="mt-8 flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-6">
+          {/* Agregar Paciente Por Nómina */}
           <button
             onClick={handleAdd}
-            className="relative flex items-center justify-center px-6 py-3 md:px-8 md:py-4 rounded-full text-white font-bold text-sm md:text-lg uppercase 
-      bg-gradient-to-r from-[#6b00ff] via-[#b400ff] to-[#ff00ff] shadow-[0px_0px_15px_5px_rgba(180,0,255,0.6)] 
-      transition-all duration-300 hover:scale-105 hover:shadow-[0px_0px_30px_10px_rgba(255,0,255,1)]"
+            className="flex items-center justify-center px-6 py-3 md:px-8 md:py-4 rounded-full text-white font-bold text-sm md:text-lg uppercase bg-gradient-to-r from-[#6b00ff] via-[#b400ff] to-[#ff00ff] shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:outline-none"
           >
-            <span className="relative z-10 flex items-center space-x-2">
-              {/* Icono - Usuario agregado */}
-              <svg
-                className="w-6 h-6 text-white animate-pulse"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M16 11c2.485 0 4.5-2.015 4.5-4.5S18.485 2 16 2s-4.5 2.015-4.5 4.5S13.515 11 16 11zM6 20h16a1 1 0 001-1v-1c0-2.5-3-5-8-5s-8 2.5-8 5v1a1 1 0 001 1z"
-                />
-              </svg>
-              <span className="drop-shadow-md glow-text">
-                Agregar Paciente Por Nómina
-              </span>
-            </span>
+            <svg
+              className="w-6 h-6 text-white animate-pulse mr-2"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M16 11c2.485 0 4.5-2.015 4.5-4.5S18.485 2 16 2s-4.5 2.015-4.5 4.5S13.515 11 16 11zM6 20h16a1 1 0 001-1v-1c0-2.5-3-5-8-5s-8 2.5-8 5v1a1 1 0 001 1z"
+              />
+            </svg>
+            Agregar Paciente Por Nómina
           </button>
 
-          {/* Botón de Reconocimiento Facial - Compacto */}
+          {/* Agregar Paciente Por Escaneo Facial */}
           <button
             onClick={handleFaceRecognition}
-            className="relative flex items-center justify-center px-6 py-3 md:px-8 md:py-4 rounded-full text-white font-bold text-sm md:text-lg uppercase 
-      bg-gradient-to-r from-[#00ff87] via-[#00d4ff] to-[#0095ff] shadow-[0px_0px_15px_5px_rgba(0,212,255,0.6)] 
-      transition-all duration-300 hover:scale-105 hover:shadow-[0px_0px_30px_10px_rgba(0,149,255,1)]"
+            className="flex items-center justify-center px-6 py-3 md:px-8 md:py-4 rounded-full text-white font-bold text-sm md:text-lg uppercase bg-gradient-to-r from-[#00ff87] via-[#00d4ff] to-[#0095ff] shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:outline-none"
           >
-            <span className="relative z-10 flex items-center space-x-2">
-              {/* Icono - Escaneo facial */}
-              <svg
-                className="w-6 h-6 text-white animate-spin-slow"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M3 3h6v6H3zM15 3h6v6h-6zM3 15h6v6H3zM15 15h6v6h-6zM9 9h6v6H9z"
-                />
-              </svg>
-              <span className="drop-shadow-md glow-text">
-                Agregar Paciente Por Escaneo Facial
-              </span>
-            </span>
+            <svg
+              className="w-6 h-6 text-white animate-spin-slow mr-2"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M3 3h6v6H3zM15 3h6v6h-6zM3 15h6v6H3zM15 15h6v6h-6zM9 9h6v6H9z"
+              />
+            </svg>
+            Agregar Paciente Por Escaneo Facial
           </button>
         </div>
-      </div>
+      </main>
 
       <div className="w-full space-y-8">
         {/* Tabla de registros */}

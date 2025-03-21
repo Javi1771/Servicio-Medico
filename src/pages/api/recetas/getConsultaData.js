@@ -82,13 +82,17 @@ export async function getConsultaData(claveConsulta) {
 
     //? Consulta a la tabla "detalleReceta"
     const recetaQuery = `
-      SELECT 
-        dr.indicaciones, dr.cantidad, dr.descMedicamento AS idMedicamento, dr.piezas,
-        m.medicamento AS nombreMedicamento
-      FROM detalleReceta dr
-      LEFT JOIN MEDICAMENTOS m ON dr.descMedicamento = m.claveMedicamento
-      WHERE dr.folioReceta = @claveConsulta
-    `;
+    SELECT 
+      dr.indicaciones, 
+      dr.cantidad, 
+      dr.descMedicamento AS idMedicamento, 
+      dr.piezas,
+      REPLACE(REPLACE(m.medicamento, ', ', ','), ',', ', ') AS nombreMedicamento,
+      m.clasificacion
+    FROM detalleReceta dr
+    LEFT JOIN MEDICAMENTOS m ON dr.descMedicamento = m.claveMedicamento
+    WHERE dr.folioReceta = @claveConsulta
+  `;  
 
     const recetaResult = await db
       .request()

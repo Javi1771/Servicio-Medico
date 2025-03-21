@@ -56,12 +56,6 @@ const PasesAEspecialidad = () => {
 
   const handleRowClick = (folio, estatus) => {
     if (estatus === "LISTA PARA PASAR CON EL ESPECIALISTA") {
-      //* Extraer y cifrar el folio (claveconsulta)
-      const encryptedFolio = btoa(folio.toString());
-      //* Navegar a la pantalla para reimprimir la receta usando el folio encriptado
-      router.replace(
-        `/capturas/recetas/ver-recetas-pases?claveconsulta=${encryptedFolio}`
-      );
     } else {
       //* Cifrar el folio con Base64
       const encryptedFolio = btoa(folio.toString());
@@ -76,6 +70,10 @@ const PasesAEspecialidad = () => {
     router.replace("/inicio-servicio-medico"); //* Navegar a la pantalla anterior
   };
 
+  const handleHistorial = () => {
+    router.replace("/capturas/pases/pases-creados"); //* Navegar a la pantalla anterior
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-blue-900 to-teal-700 text-white py-8 px-6">
       {/* Header */}
@@ -86,6 +84,12 @@ const PasesAEspecialidad = () => {
           className="absolute left-4 top-1/2 transform -translate-y-1/2 px-6 py-3 text-lg font-semibold rounded-full bg-gradient-to-r from-red-600 via-pink-600 to-purple-700 shadow-[0px_0px_15px_5px_rgba(255,0,0,0.5)] hover:shadow-[0px_0px_30px_10px_rgba(255,0,0,0.7)] text-white hover:brightness-125 transition-all duration-300"
         >
           ← Regresar
+        </button>
+        <button
+          onClick={handleHistorial}
+          className="absolute right-4 top-1/2 transform -translate-y-1/2 px-6 py-3 text-lg font-semibold rounded-full bg-gradient-to-r from-red-600 via-pink-600 to-purple-700 shadow-[0px_0px_15px_5px_rgba(255,0,0,0.5)] hover:shadow-[0px_0px_30px_10px_rgba(255,0,0,0.7)] text-white hover:brightness-125 transition-all duration-300"
+        >
+          Ver Historial de Pases De Consultas Generales
         </button>
 
         <h1 className="text-5xl font-extrabold tracking-wide flex items-center justify-center gap-4 text-teal-300">

@@ -156,6 +156,7 @@ const Home = () => {
           "Surtimientos",
           "Orden de Estudio de Laboratorio",
           "Incapacidades",
+          "Costos"
         ],
         icon: <FaHeartbeat className="inline-block mr-2" />,
       });

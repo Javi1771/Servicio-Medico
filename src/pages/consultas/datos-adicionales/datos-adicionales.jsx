@@ -19,15 +19,15 @@ const DatosAdicionales = ({
   clavepaciente,
   nombreMedico,
   claveEspecialidad,
-  pasarEspecialidad, 
-  setPasarEspecialidad, 
+  pasarEspecialidad,
+  setPasarEspecialidad,
   especialidadSeleccionada,
   setEspecialidadSeleccionada,
   observaciones,
   setObservaciones,
 }) => {
-  console.log("Prop pasarEspecialidad en DatosAdicionales:", pasarEspecialidad); 
-  console.log("Prop claveConsulta en DatosAdicionales:", claveConsulta); 
+  console.log("Prop pasarEspecialidad en DatosAdicionales:", pasarEspecialidad);
+  console.log("Prop claveConsulta en DatosAdicionales:", claveConsulta);
   const { formulariosCompletos, updateFormulario } =
     useContext(FormularioContext);
   const [diagnosticoTexto, setDiagnosticoTexto] = useState("");
@@ -104,32 +104,6 @@ const DatosAdicionales = ({
 
       {subPantalla === "Diagnóstico" && (
         <div className="bg-gray-800 p-4 md:p-8 rounded-lg shadow-lg">
-          {/* Motivo de Consulta */}
-          <h3 className="text-2xl md:text-3xl font-bold mb-4 md:mb-6 text-white">
-            Motivo de Consulta
-          </h3>
-          <textarea
-            className="mt-2 md:mt-3 block w-full h-32 md:h-40 rounded-lg bg-gray-700 border-gray-600 text-white p-3"
-            placeholder="Escribe aquí las observaciones..."
-            value={motivoConsultaTexto}
-            onChange={(e) =>
-              e.target.value.length <= 245
-                ? handleMotivoConsultaChange(e)
-                : null
-            }
-          />
-          <p
-            className={`text-sm mt-1 text-right ${
-              motivoConsultaTexto.length >= 245
-                ? "text-red-400"
-                : "text-gray-400"
-            }`}
-          >
-            {motivoConsultaTexto.length}/245
-          </p>
-
-          <br />
-
           {/* Diagnóstico */}
           <h3 className="text-2xl md:text-3xl font-bold mb-4 md:mb-6 text-white">
             Diagnóstico
@@ -139,16 +113,42 @@ const DatosAdicionales = ({
             placeholder="Escribe aquí el diagnóstico..."
             value={diagnosticoTexto}
             onChange={(e) =>
-              e.target.value.length <= 245 ? handleDiagnosticoChange(e) : null
+              e.target.value.length <= 380 ? handleDiagnosticoChange(e) : null
             }
           />
           <p
             className={`text-sm mt-1 text-right ${
-              diagnosticoTexto.length >= 245 ? "text-red-400" : "text-gray-400"
+              diagnosticoTexto.length >= 380 ? "text-red-400" : "text-gray-400"
             }`}
           >
-            {diagnosticoTexto.length}/245
+            {diagnosticoTexto.length}/380
           </p>
+
+          {/* Motivo de Consulta */}
+          <h3 className="text-2xl md:text-3xl font-bold mb-4 md:mb-6 text-white">
+            Observaciones
+          </h3>
+          <textarea
+            className="mt-2 md:mt-3 block w-full h-32 md:h-40 rounded-lg bg-gray-700 border-gray-600 text-white p-3"
+            placeholder="Escribe aquí las observaciones..."
+            value={motivoConsultaTexto}
+            onChange={(e) =>
+              e.target.value.length <= 345
+                ? handleMotivoConsultaChange(e)
+                : null
+            }
+          />
+          <p
+            className={`text-sm mt-1 text-right ${
+              motivoConsultaTexto.length >= 345
+                ? "text-red-400"
+                : "text-gray-400"
+            }`}
+          >
+            {motivoConsultaTexto.length}/345
+          </p>
+
+          <br />
         </div>
       )}
 
@@ -166,8 +166,8 @@ const DatosAdicionales = ({
       {subPantalla === "Pase a Especialidad" && (
         <PaseEspecialidad
           claveConsulta={claveConsulta}
-          pasarEspecialidad={pasarEspecialidad} 
-          setPasarEspecialidad={setPasarEspecialidad} 
+          pasarEspecialidad={pasarEspecialidad}
+          setPasarEspecialidad={setPasarEspecialidad}
           especialidadSeleccionada={especialidadSeleccionada}
           setEspecialidadSeleccionada={setEspecialidadSeleccionada}
           observaciones={observaciones}

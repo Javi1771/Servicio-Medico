@@ -199,7 +199,7 @@ const PresidenteLayout: React.FC<PresidenteLayoutProps> = ({ children }) => {
             className="text-4xl font-extrabold text-blue-500 glow cursor-pointer"
             onClick={() => router.replace("/inicio-presidente")}
           >
-            S.M. Dashboard
+            PANDORA Dashboard
           </h1>
           <p className="text-gray-400 text-sm mt-2">Servicio Médico</p>
         </div>

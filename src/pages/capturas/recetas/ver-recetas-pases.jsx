@@ -7,7 +7,7 @@ export default function VerRecetas() {
   const [encryptedClave, setEncryptedClave] = useState("");
 
   const handleRegresar = () => {
-    router.replace("/inicio-servicio-medico"); //* Navegar a la pantalla anterior
+    router.replace("/capturas/pases-a-especialidades"); //* Navegar a la pantalla anterior
   };
 
   useEffect(() => {
