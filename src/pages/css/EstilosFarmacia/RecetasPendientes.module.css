@@ -1,4 +1,9 @@
-/* RecetasPendientes.module.css */
+/* Fondo para el contenedor global (simula el body) */
+.pageWrapper {
+  background: azure;
+  min-height: 100vh;
+  padding: 20px;
+}
 
 /* Contenedor principal con Glassmorphism */
 .container {
@@ -15,37 +20,59 @@
 
 /* Contenedor para título y descripción */
 .titleContainer {
-  text-align: center;
-  margin-bottom: 24px;
-  padding: 16px;
+  position: relative;
+  max-width: 1070px;
+  margin: 0 auto 24px auto;
+  padding: 24px 32px;
+  background-color: #f8f8f8;
   border-radius: 20px;
-  background-color: rgb(0 0 0 / 61%);
-  box-shadow: 0 2px 10px rgb(0 0 0);
-  transition: transform 0.3s;
+  box-shadow: 0 8px 20px rgb(0 0 0 / 30%);
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 
-.titleContainer:hover {
-  transform: scale(1.02);
+.titleContainer::before {
+  content: "";
+  position: absolute;
+  top: -30px;
+  left: -30px;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ff6f91, #ff9671);
+  z-index: -1;
+  opacity: 0.8;
 }
 
-/* Título */
+/* Imagen a la izquierda */
+.containerImage {
+  width: 80px;
+  height: 80px;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+/* Título principal */
 .title {
-  font-size: 2rem;
-  color: #fff;
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: #333;
   margin: 0;
 }
 
 /* Descripción */
 .description {
   font-size: 1rem;
-  color: #eee;
-  margin-top: 8px;
+  color: #555;
+  line-height: 1.4;
+  margin: 8px 0 0 0;
 }
 
-/* Icono a la izquierda (para algunos textos) */
+/* Icono a la izquierda */
 .iconLeft {
   margin-right: 6px;
-  font-size: 1rem;
+  font-size: 1.2rem;
   vertical-align: middle;
 }
 
@@ -76,58 +103,45 @@
   padding: 16px;
 }
 
-/* Efecto hover */
 .card:hover {
   transform: translateY(-6px);
 }
 
-/* Asignación de colores por tarjeta, con menos rosa */
+/* Asignación de colores por tarjeta */
 .card:nth-child(1) {
-  /* Verde suave */
   background: linear-gradient(135deg, #A5FFD6, #F3FFE2);
 }
 .card:nth-child(2) {
-  /* Naranja claro a amarillo */
   background: linear-gradient(135deg, #FFD3B5, #FDFFB6);
 }
 .card:nth-child(3) {
-  /* Verde menta a lila */
   background: linear-gradient(135deg, #B5EAD7, #C7CEEA);
 }
 .card:nth-child(4) {
-  /* Rojo claro a durazno */
   background: linear-gradient(135deg, #FF9C9C, #FFD1A1);
 }
 .card:nth-child(5) {
-  /* Azul a morado */
   background: linear-gradient(135deg, #AFCBFF, #E7A1FF);
 }
 .card:nth-child(6) {
-  /* Morado pastel a naranja claro */
   background: linear-gradient(135deg, #DAB4FF, #FFD3B5);
 }
 .card:nth-child(7) {
-  /* Lila claro a amarillo pastel */
   background: linear-gradient(135deg, #F8C3FF, #FFF4C3);
 }
 .card:nth-child(8) {
-  /* Naranja suave a verde claro */
   background: linear-gradient(135deg, #FFDAC1, #E2F0CB);
 }
 .card:nth-child(9) {
-  /* Repetición de verde menta a lila */
   background: linear-gradient(135deg, #B5EAD7, #C7CEEA);
 }
 .card:nth-child(10) {
-  /* Rosa suave a naranja pastel */
   background: linear-gradient(135deg, #FBA6A6, #FFD3B5);
 }
 .card:nth-child(11) {
-  /* Repetición de azul a morado */
   background: linear-gradient(135deg, #AFCBFF, #E7A1FF);
 }
 .card:nth-child(12) {
-  /* Rosa pastel a lila claro */
   background: linear-gradient(135deg, #ff9a9a, #ff9ce0);
 }
 
@@ -146,7 +160,7 @@
   margin-bottom: 8px;
 }
 
-/* Texto principal (ej: Nómina, Paciente, etc.) */
+/* Texto principal */
 .cardTitle {
   font-size: 1rem;
   font-weight: 600;
@@ -177,7 +191,6 @@
   margin-top: 8px;
 }
 
-/* Botón "Ver medicamentos pendientes" */
 .viewMoreBtn {
   padding: 6px 12px;
   background-color: rgba(255,255,255,0.3);
@@ -192,33 +205,6 @@
 
 .viewMoreBtn:hover {
   background-color: rgba(255,255,255,0.5);
-}
-
-/* Contenedor de medicamentos */
-.medicationsContainer {
-  width: 100%;
-  background-color: #fff;
-  color: #333;
-  border-radius: 12px;
-  margin-top: 8px;
-  padding: 12px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-}
-
-/* Cada medicamento */
-.medicationCard {
-  margin-bottom: 12px;
-  border-radius: 8px;
-  border: 1px solid #eee;
-  padding: 8px;
-}
-
-/* Filas de información en los medicamentos */
-.infoRow {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin: 4px 0;
 }
 
 /* Paginación */
@@ -252,8 +238,6 @@
   font-weight: bold;
 }
 
-
-
 /* Modal Overlay */
 .modalOverlay {
   position: fixed;
@@ -270,42 +254,117 @@
 
 /* Modal Content */
 .modalContent {
-  background-color: #fff;
-  width: 90%;
-  max-width: 600px;
-  border-radius: 12px;
-  padding: 20px;
+  background-color: #f9fafb;
+  width: 100%;
+  max-width: 736px;
+  border-radius: 45px;
+  padding: 20px 24px;
   position: relative;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 20px rgb(0 0 0 / 83%);
+  animation: RecetasPendientes_fadeInUp__sS_0E 0.3s ease forwards;
+}
+
+/* Animación de entrada */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Modal Close Button */
 .modalCloseBtn {
   position: absolute;
-  top: 12px;
-  right: 12px;
+  top: 16px;
+  right: 16px;
   background: none;
   border: none;
-  font-size: 1.2rem;
+  font-size: 1.3rem;
   cursor: pointer;
+  color: #555;
+}
+
+.modalCloseBtn:hover {
+  color: #000;
 }
 
 /* Modal Title */
 .modalTitle {
-  margin-top: 0;
+  margin: 0;
   text-align: center;
   color: #333;
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin-bottom: 16px;
 }
 
 /* Modal Body */
 .modalBody {
   max-height: 400px;
   overflow-y: auto;
-  margin-top: 16px;
+  margin-top: 8px;
+  padding-right: 8px;
 }
 
-/* Puedes reutilizar .medicationCard e .infoRow del resto de estilos */
+/* Tarjeta de medicamento en el modal */
+.medicationCard {
+  background: #fff;
+  margin-bottom: 16px;
+  border-radius: 10px;
+  border: 1px solid #eee;
+  padding: 16px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
 
+.medicationCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* Encabezado del medicamento */
+.medicationHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #444;
+  margin-bottom: 12px;
+}
+
+.medHeaderIcon {
+  font-size: 1.4rem;
+  color: #555;
+}
+
+/* Contenedor de información del medicamento */
+.medInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Filas de información */
+.infoRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.95rem;
+  color: #555;
+}
+
+.infoRow strong {
+  font-weight: 600;
+}
+
+.value {
+  margin-left: auto;
+  color: #333;
+}
 
 /* Botón de regresar */
 .backButtonContainer {
@@ -326,4 +385,22 @@
 
 .backButton:hover {
   background-color: rgba(255, 255, 255, 0.5);
+}
+
+
+
+/* Al final de RecetasPendientes.module.css */
+
+/* Contenedor que envuelve RecetasPendientes y TopMedicamentos */
+.mainWrapper {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+/* (Si aún no tienes definido .pageWrapper, lo agregamos para simular el fondo del body) */
+.pageWrapper {
+  background: azure;
+  min-height: 100vh;
+  padding: 20px;
 }

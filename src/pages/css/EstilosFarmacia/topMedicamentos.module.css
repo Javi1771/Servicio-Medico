@@ -1,0 +1,53 @@
+/* css/EstilosFarmacia/topMedicamentos.module.css */
+.topContainer {
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    padding: 16px;
+    max-width: 300px;
+    margin-left: 20px;
+    height: fit-content;
+  }
+  
+  .topTitle {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #333;
+    text-align: center;
+    margin-bottom: 12px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 8px;
+  }
+  
+  .topList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .topItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 4px;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 0.95rem;
+    color: #555;
+  }
+  
+  .topItem:last-child {
+    border-bottom: none;
+  }
+  
+  .medKey {
+    font-weight: 500;
+  }
+  
+  .medCount {
+    background-color: #ff9671;
+    color: #fff;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+  }
+  

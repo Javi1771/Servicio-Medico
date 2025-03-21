@@ -902,7 +902,7 @@ export default function RegistroBeneficiario() {
         Swal.fire("Error", "El beneficiario no está activo.", "error");
         return;
       }
-
+  
       const {
         NO_NOMINA,
         PARENTESCO,
@@ -918,9 +918,9 @@ export default function RegistroBeneficiario() {
         ALERGIAS,
         ESDISCAPACITADO, // Nuevo campo para verificar discapacidad
       } = beneficiary;
-
+  
       console.log("Datos recibidos del beneficiario:", beneficiary);
-
+  
       // Función para obtener la descripción del parentesco
       const getParentescoDescripcion = (parentescoId) => {
         const parentesco = parentescoOptions.find(
@@ -928,20 +928,20 @@ export default function RegistroBeneficiario() {
         );
         return parentesco ? parentesco.PARENTESCO : "Desconocido";
       };
-
+  
       const formatFechaLocal = (fecha) => {
         if (!fecha) return "";
         const dateParts = fecha.split("T")[0].split("-");
         const [year, month, day] = dateParts;
         return `${day}/${month}/${year}`;
       };
-
+  
       const parentescoDescripcion = getParentescoDescripcion(PARENTESCO);
       const edad = calculateAge(F_NACIMIENTO);
-
+  
       console.log("Descripción del parentesco:", parentescoDescripcion);
       console.log("Edad calculada:", edad);
-
+  
       // Calcular vigencia
       const vigencia = calcularVigencia(
         PARENTESCO,
@@ -950,169 +950,172 @@ export default function RegistroBeneficiario() {
         F_NACIMIENTO,
         ESDISCAPACITADO
       );
-
+  
       console.log("Vigencia final asignada:", vigencia);
-
+  
       // Consumir la API del web service para obtener datos del empleado
       const response = await fetch("/api/empleado", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ num_nom: NO_NOMINA }),
       });
-
+  
       if (!response.ok) throw new Error("Empleado no encontrado");
-
+  
       const employeeData = await response.json();
       const DEPARTAMENTO = employeeData?.departamento || "N/A";
-
+  
       console.log("Datos del empleado obtenidos:", employeeData);
-
+  
+      // Definir el tamaño físico correcto: 8.3"x5.3" -> 21.08 x 13.46 cm
+      const newWidth = 21.08;
+      const newHeight = 13.46;
+      // Tamaño original usado en la configuración (A4 en landscape): 29.7 x 21 cm
+      const origWidth = 29.7;
+      const origHeight = 21;
+  
+      // Calcular factores de escala para X e Y
+      const factorX = newWidth / origWidth; // ≈ 0.71
+      const factorY = newHeight / origHeight; // ≈ 0.64
+  
       // Configuración para jsPDF
       const doc = new jsPDF({
         orientation: "landscape",
         unit: "cm",
-        format: "a4",
+        format: [newWidth, newHeight],
       });
-
+  
       // Cargar las imágenes de la credencial
       const frontTemplateUrl = `/CREDENCIAL_FRONTAL2.png`;
       const backTemplateUrl = `/CREDENCIAL_TRASERA.png`;
-      const signatureUrl = `/firma.png`; // Ruta de la imagen de firma en la carpeta public
-
+      const signatureUrl = `/firma.png`; // Ruta de la imagen de firma
+  
       const frontTemplate = await loadImageBase64(frontTemplateUrl);
       const backTemplate = await loadImageBase64(backTemplateUrl);
       const signatureImage = await loadImageBase64(signatureUrl);
-
-      // Página Frontal
-      doc.addImage(frontTemplate, "PNG", 0, 0, 29.7, 21);
-
-      // Añadir la foto y el marco redondeado
+  
+      // Página Frontal: Se ajusta la imagen de fondo al nuevo tamaño
+      doc.addImage(frontTemplate, "PNG", 0, 0, newWidth, newHeight);
+  
+      // Foto del beneficiario y marco redondeado
       if (FOTO_URL) {
         try {
           const photo = await loadImageBase64(FOTO_URL);
-          const photoX = 4.5;
-          const photoY = 10.9;
-          const photoWidth = 7.0;
-          const photoHeight = 8.4;
-
+          // Coordenadas originales: x=4.5, y=10.9, width=7.0, height=8.4
+          const photoX = 4.5 * factorX;
+          const photoY = 10.9 * factorY;
+          const photoWidth = 7.0 * factorX;
+          const photoHeight = 8.4 * factorY;
+  
           // Añadir la foto
           doc.addImage(photo, "JPEG", photoX, photoY, photoWidth, photoHeight);
-
+  
           // Añadir un marco redondeado alrededor de la foto
           doc.setLineWidth(0.25);
           doc.setDrawColor(255, 255, 255);
-          doc.roundedRect(
-            photoX,
-            photoY,
-            photoWidth,
-            photoHeight,
-            0.3,
-            0.3,
-            "S"
-          );
+          doc.roundedRect(photoX, photoY, photoWidth, photoHeight, 0.3, 0.3, "S");
         } catch (error) {
           console.error("Error al cargar la foto del beneficiario:", error);
         }
       }
-
+  
       // Texto en la página frontal
       doc.setFont("helvetica", "bold");
       doc.setTextColor("#19456a");
-
+  
+      // NO_NOMINA: coordenadas originales (18.3, 9.5)
       doc.setFontSize(21);
       if (NO_NOMINA) {
-        doc.text(NO_NOMINA.toString(), 18.3, 9.5);
+        doc.text(NO_NOMINA.toString(), 18.3 * factorX, 9.5 * factorY);
       } else {
         console.error("Error: NO_NOMINA no es válido:", NO_NOMINA);
       }
-
+  
+      // Parentesco: coordenadas originales (19.8, 11.42)
       doc.setFontSize(18);
       if (parentescoDescripcion) {
-        doc.text(parentescoDescripcion, 19.8, 11.42);
+        doc.text(parentescoDescripcion, 19.8 * factorX, 11.42 * factorY);
       } else {
-        console.error(
-          "Error: parentescoDescripcion no es válido:",
-          parentescoDescripcion
-        );
+        console.error("Error: parentescoDescripcion no es válido:", parentescoDescripcion);
       }
-
+  
+      // Nombre completo: coordenadas originales (18.4, 13.4)
       doc.setFontSize(15);
-      const nombreCompleto = `${NOMBRE || ""} ${A_PATERNO || ""} ${
-        A_MATERNO || ""
-      }`;
+      const nombreCompleto = `${NOMBRE || ""} ${A_PATERNO || ""} ${A_MATERNO || ""}`;
       if (nombreCompleto.trim()) {
-        doc.text(nombreCompleto, 18.4, 13.4);
+        doc.text(nombreCompleto, 18.4 * factorX, 13.4 * factorY);
       } else {
         console.error("Error: Nombre completo no es válido:", nombreCompleto);
       }
-
+  
+      // Edad: coordenadas originales (17.2, 15.5)
       doc.setFontSize(18);
       const edadTexto = `${edad} años`;
       if (edadTexto) {
-        doc.text(edadTexto, 17.2, 15.5);
+        doc.text(edadTexto, 17.2 * factorX, 15.5 * factorY);
       } else {
         console.error("Error: Edad no es válida:", edadTexto);
       }
-
+  
+      // Departamento: coordenada original (20, 16.8) y línea con incremento de 0.6
       doc.setFontSize(14.5);
-      const departamentoText = doc.splitTextToSize(DEPARTAMENTO, 8.5);
-      let departamentoY = 16.8;
+      const departamentoText = doc.splitTextToSize(DEPARTAMENTO, 8.5 * factorX);
+      let departamentoY = 16.8 * factorY;
       departamentoText.forEach((line) => {
         if (line.trim()) {
-          doc.text(line, 20, departamentoY);
-          departamentoY += 0.6;
+          doc.text(line, 20 * factorX, departamentoY);
+          departamentoY += 0.6 * factorY;
         } else {
-          console.error(
-            "Error: Línea del texto del departamento no es válida:",
-            line
-          );
+          console.error("Error: Línea del texto del departamento no es válida:", line);
         }
       });
-
+  
+      // Vigencia: coordenadas originales (18.8, 19.4)
       doc.setFontSize(18);
       if (vigencia) {
-        doc.text(vigencia, 18.8, 19.4);
+        doc.text(vigencia, 18.8 * factorX, 19.4 * factorY);
       } else {
         console.error("Error: Vigencia no es válida:", vigencia);
       }
-
+  
       // Página Trasera
       doc.addPage();
-      doc.addImage(backTemplate, "PNG", 0, 0, 29.7, 21);
-
+      doc.addImage(backTemplate, "PNG", 0, 0, newWidth, newHeight);
+  
+      // Fecha de nacimiento: coordenadas originales (12.5, 2.8)
       doc.setFontSize(18);
       const fechaNacimientoTexto = formatFechaLocal(F_NACIMIENTO);
       if (fechaNacimientoTexto) {
-        doc.text(fechaNacimientoTexto, 12.5, 2.8);
+        doc.text(fechaNacimientoTexto, 12.5 * factorX, 2.8 * factorY);
       } else {
-        console.error(
-          "Error: Fecha de nacimiento no es válida:",
-          fechaNacimientoTexto
-        );
+        console.error("Error: Fecha de nacimiento no es válida:", fechaNacimientoTexto);
       }
-
-      doc.text(SANGRE || "Sin información", 9.8, 5);
-      doc.text(ALERGIAS || "Sin información", 7.0, 7.6);
-      doc.text(TEL_EMERGENCIA || "Sin información", 14, 9.8);
-      doc.text(NOMBRE_EMERGENCIA || "Sin información", 13.1, 12);
-
-      // Añadir la firma en la página trasera
-      // Ajusta las coordenadas (x, y) y el tamaño (width, height) según tus necesidades.
-      doc.addImage(signatureImage, "PNG", 18, 13, 7, 3);
-
+  
+      // Sangre: coordenadas originales (9.8, 5)
+      doc.text(SANGRE || "Sin información", 9.8 * factorX, 5 * factorY);
+  
+      // Alergias: coordenadas originales (7.0, 7.6)
+      doc.text(ALERGIAS || "Sin información", 7.0 * factorX, 7.6 * factorY);
+  
+      // Teléfono de emergencia: coordenadas originales (14, 9.8)
+      doc.text(TEL_EMERGENCIA || "Sin información", 14 * factorX, 9.8 * factorY);
+  
+      // Nombre de emergencia: coordenadas originales (13.1, 12)
+      doc.text(NOMBRE_EMERGENCIA || "Sin información", 13.1 * factorX, 12 * factorY);
+  
+      // Firma: coordenadas originales (18, 13) y tamaño (7, 3)
+      doc.addImage(signatureImage, "PNG", 18 * factorX, 13 * factorY, 7 * factorX, 3 * factorY);
+  
       // Guardar como PDF
       doc.save(`Credencial_${NOMBRE || ""}_${A_PATERNO || ""}.pdf`);
       console.log("Credencial generada exitosamente");
     } catch (error) {
       console.error("Error al generar la credencial:", error.message);
       playSound(false);
-      Swal.fire(
-        "Error",
-        "No se pudo generar la credencial. Intenta nuevamente.",
-        "error"
-      );
+      Swal.fire("Error", "No se pudo generar la credencial. Intenta nuevamente.", "error");
     }
   };
+  
 
   // Función para cargar imágenes como base64
   const loadImageBase64 = async (src) => {
