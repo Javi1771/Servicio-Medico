@@ -1043,7 +1043,12 @@ export default function RegistroBeneficiario() {
       doc.setFontSize(15);
       const nombreCompleto = `${NOMBRE || ""} ${A_PATERNO || ""} ${A_MATERNO || ""}`;
       if (nombreCompleto.trim()) {
-        doc.text(nombreCompleto, 18.4 * factorX, 13.4 * factorY);
+        // Define el ancho máximo para el nombre (en cm)
+        const maxWidth = 10 * factorX; // Ajusta el valor según tus necesidades
+        // Divide el nombre en líneas que se ajusten a maxWidth
+        const splittedName = doc.splitTextToSize(nombreCompleto, maxWidth);
+        // Escribe cada línea. doc.text acepta un array de líneas y las posiciona en forma vertical
+        doc.text(splittedName, 18.3 * factorX, 12.5 * factorY);
       } else {
         console.error("Error: Nombre completo no es válido:", nombreCompleto);
       }
@@ -1138,7 +1143,7 @@ export default function RegistroBeneficiario() {
     const { name, value } = e.target;
 
     setFormData((prevData) => {
-      const updatedData = { ...prevData, [name]: value.trim() };
+      const updatedData = { ...prevData, [name]: value }; // Elimina el trim()
 
       // Si cambia la fecha de nacimiento, calcular edad y vigencia
       if (name === "fNacimiento") {
