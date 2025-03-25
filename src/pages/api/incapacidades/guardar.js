@@ -12,12 +12,12 @@ export default async function handler(req, res) {
       clavepaciente,
     } = req.body;
 
-    // Obtener la cookie 'claveusuario' del header
+    //* Obtener la cookie 'claveusuario' del header
     const cookies = req.headers.cookie || "";
     const claveusuarioMatch = cookies.match(/claveusuario=([^;]+)/);
     const claveusuario = claveusuarioMatch ? Number(claveusuarioMatch[1]) : null;
 
-    // Validar datos obligatorios
+    // *Validar datos obligatorios
     if (!clavenomina || !clavepaciente) {
       const datosFaltantes = [];
       if (!clavenomina) datosFaltantes.push("clavenomina");
@@ -28,21 +28,21 @@ export default async function handler(req, res) {
         .json({ message: "Faltan datos obligatorios.", datosFaltantes });
     }
 
-    // Convertir las fechas a formato ISO (para que SQL Server las entienda)
+    //* Convertir las fechas a formato ISO (para que SQL Server las entienda)
     const fechaInicialISO = fechaInicial ? fechaInicial.replace(" ", "T") : null;
     const fechaFinalISO = fechaFinal ? fechaFinal.replace(" ", "T") : null;
 
-    // Si no se envía un diagnóstico, se usa el mensaje predeterminado
+    //* Si no se envía un diagnóstico, se usa el mensaje predeterminado
     const diagnosticoFinal =
       diagnostico ||
       "Sin Observaciones, No Se Asignó Incapacidad En Esta Consulta";
 
-    // Se asigna incapacidad si el diagnóstico es distinto del mensaje predeterminado
+    //* Se asigna incapacidad si el diagnóstico es distinto del mensaje predeterminado
     const seAsignoIncapacidad =
       diagnosticoFinal === "Sin Observaciones, No Se Asignó Incapacidad En Esta Consulta"
         ? 0
         : 1;
-    // Definir el estatus: por ejemplo, 2 si no se asignó, 1 si se asignó
+    //* Definir el estatus: por ejemplo, 2 si no se asignó, 1 si se asignó
     const estatus =
       diagnosticoFinal === "Sin Observaciones, No Se Asignó Incapacidad En Esta Consulta"
         ? 2
@@ -55,7 +55,7 @@ export default async function handler(req, res) {
       await transaction.begin();
       console.log("Transacción iniciada.");
 
-      // 1. Inserción en detalleIncapacidad
+      //? 1. Inserción en detalleIncapacidad
       await transaction
         .request()
         .input("claveConsulta", sql.Int, claveConsulta)
@@ -65,7 +65,7 @@ export default async function handler(req, res) {
         .input("diagnostico", sql.Text, diagnosticoFinal)
         .input("estatus", sql.Int, estatus)
         .input("clavepaciente", sql.VarChar, clavepaciente)
-        .input("claveMedico", sql.Int, claveusuario) // Se usa la cookie para la actividad
+        .input("claveMedico", sql.Int, claveusuario)
         .query(`
           INSERT INTO detalleIncapacidad 
             (claveConsulta, noNomina, fechaInicial, fechaFinal, diagnostico, estatus, clavepaciente, claveMedico)
@@ -74,7 +74,7 @@ export default async function handler(req, res) {
         `);
       console.log(`Incapacidad guardada exitosamente en la base de datos con estatus: ${estatus}`);
 
-      // 2. Actualización en la tabla consultas
+      //? 2. Actualización en la tabla consultas
       await transaction
         .request()
         .input("claveConsulta", sql.Int, claveConsulta)
@@ -86,7 +86,7 @@ export default async function handler(req, res) {
         `);
       console.log(`Columna seAsignoIncapacidad actualizada con valor: ${seAsignoIncapacidad}`);
 
-      // 3. Registro de actividad (solo si se asignó incapacidad)
+      //? 3. Registro de actividad (solo si se asignó incapacidad)
       if (seAsignoIncapacidad === 1) {
         try {
           if (claveusuario !== null) {
@@ -121,11 +121,11 @@ export default async function handler(req, res) {
         }
       }
 
-      // Confirmar la transacción
+      //* Confirmar la transacción
       await transaction.commit();
       console.log("Transacción confirmada.");
 
-      // (Opcional) Consulta para obtener el historial actualizado
+      //* (Opcional) Consulta para obtener el historial actualizado
       const result = await pool
         .request()
         .input("clavenomina", sql.VarChar, clavenomina)

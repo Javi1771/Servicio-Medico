@@ -87,12 +87,21 @@ export async function getConsultaData(claveConsulta) {
       dr.cantidad, 
       dr.descMedicamento AS idMedicamento, 
       dr.piezas,
-      REPLACE(REPLACE(m.medicamento, ', ', ','), ',', ', ') AS nombreMedicamento,
+      REPLACE(
+        REPLACE(
+          REPLACE(
+            REPLACE(m.medicamento, ', ', ','), 
+            ',', ', '
+          ),
+          ' / ', '/'
+        ),
+        '/', ' / '
+      ) AS nombreMedicamento,
       m.clasificacion
     FROM detalleReceta dr
     LEFT JOIN MEDICAMENTOS m ON dr.descMedicamento = m.claveMedicamento
     WHERE dr.folioReceta = @claveConsulta
-  `;  
+  `;
 
     const recetaResult = await db
       .request()

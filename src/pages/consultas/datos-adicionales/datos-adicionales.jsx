@@ -33,12 +33,36 @@ const DatosAdicionales = ({
   const [diagnosticoTexto, setDiagnosticoTexto] = useState("");
   const [motivoConsultaTexto, setMotivoConsultaTexto] = useState("");
 
-  //* Inicializar datos solo si están en `localStorage` (para evitar valores persistentes no deseados)
+  //* Función para procesar el texto:
+  //* - Convierte a mayúsculas.
+  //* - Separa en líneas y divide cada línea en fragmentos de 145 caracteres.
+  //* - Limita el total a máximo 7 líneas.
+  const processText = (text) => {
+    let upperText = text.toUpperCase();
+    //* Separa por saltos de línea
+    let lines = upperText.split("\n");
+    let processedLines = [];
+    for (let line of lines) {
+      //* Divide en fragmentos de 145 caracteres si es muy larga la línea
+      while (line.length > 145) {
+        processedLines.push(line.slice(0, 145));
+        line = line.slice(145);
+      }
+      processedLines.push(line);
+    }
+    //* Limitar a máximo 7 líneas
+    if (processedLines.length > 7) {
+      processedLines = processedLines.slice(0, 7);
+    }
+    return processedLines.join("\n");
+  };
+
+  //* Inicializar datos solo si están en `localStorage`
   useEffect(() => {
     const diagnostico = localStorage.getItem("diagnosticoTexto") || "";
     const motivoConsulta = localStorage.getItem("motivoConsultaTexto") || "";
-    setDiagnosticoTexto(diagnostico);
-    setMotivoConsultaTexto(motivoConsulta);
+    setDiagnosticoTexto(processText(diagnostico));
+    setMotivoConsultaTexto(processText(motivoConsulta));
   }, [claveConsulta]);
 
   const limpiarFormulario = useCallback(() => {
@@ -49,18 +73,25 @@ const DatosAdicionales = ({
     if (limpiarFormularioGlobal) limpiarFormularioGlobal();
   }, [limpiarFormularioGlobal]);
 
-  //* Actualizar estado cuando cambien los textos
+  //* Actualizar estado cuando cambien los textos, procesando el contenido
   const handleDiagnosticoChange = useCallback((e) => {
-    const value = e.target.value;
-    setDiagnosticoTexto(value);
-    localStorage.setItem("diagnosticoTexto", value);
+    const newValue = processText(e.target.value);
+    setDiagnosticoTexto(newValue);
+    localStorage.setItem("diagnosticoTexto", newValue);
   }, []);
 
   const handleMotivoConsultaChange = useCallback((e) => {
-    const value = e.target.value;
-    setMotivoConsultaTexto(value);
-    localStorage.setItem("motivoConsultaTexto", value);
+    const newValue = processText(e.target.value);
+    setMotivoConsultaTexto(newValue);
+    localStorage.setItem("motivoConsultaTexto", newValue);
   }, []);
+
+  //* Se calcula dinámicamente el máximo permitido:
+  //* Cada línea permite 145 caracteres, con un máximo de 7 líneas.
+  const diagLines = diagnosticoTexto.split("\n").length;
+  const diagMaxAllowed = diagLines < 7 ? diagLines * 145 : 7 * 145;
+  const motivoLines = motivoConsultaTexto.split("\n").length;
+  const motivoMaxAllowed = motivoLines < 7 ? motivoLines * 145 : 7 * 145;
 
   useEffect(() => {
     const esCompleto =
@@ -110,42 +141,46 @@ const DatosAdicionales = ({
           </h3>
           <textarea
             className="mt-2 md:mt-3 block w-full h-32 md:h-40 rounded-lg bg-gray-700 border-gray-600 text-white p-3"
-            placeholder="Escribe aquí el diagnóstico..."
+            placeholder="ESCRIBE AQUÍ EL DIAGNÓSTICO..."
             value={diagnosticoTexto}
             onChange={(e) =>
-              e.target.value.length <= 380 ? handleDiagnosticoChange(e) : null
+              diagnosticoTexto.length <= diagMaxAllowed
+                ? handleDiagnosticoChange(e)
+                : null
             }
           />
           <p
             className={`text-sm mt-1 text-right ${
-              diagnosticoTexto.length >= 380 ? "text-red-400" : "text-gray-400"
+              diagnosticoTexto.length >= diagMaxAllowed
+                ? "text-red-400"
+                : "text-gray-400"
             }`}
           >
-            {diagnosticoTexto.length}/380
+            {diagnosticoTexto.length}/{diagMaxAllowed}
           </p>
 
-          {/* Motivo de Consulta */}
+          {/* Observaciones */}
           <h3 className="text-2xl md:text-3xl font-bold mb-4 md:mb-6 text-white">
             Observaciones
           </h3>
           <textarea
             className="mt-2 md:mt-3 block w-full h-32 md:h-40 rounded-lg bg-gray-700 border-gray-600 text-white p-3"
-            placeholder="Escribe aquí las observaciones..."
+            placeholder="ESCRIBE AQUÍ LAS OBSERVACIONES..."
             value={motivoConsultaTexto}
             onChange={(e) =>
-              e.target.value.length <= 345
+              motivoConsultaTexto.length <= motivoMaxAllowed
                 ? handleMotivoConsultaChange(e)
                 : null
             }
           />
           <p
             className={`text-sm mt-1 text-right ${
-              motivoConsultaTexto.length >= 345
+              motivoConsultaTexto.length >= motivoMaxAllowed
                 ? "text-red-400"
                 : "text-gray-400"
             }`}
           >
-            {motivoConsultaTexto.length}/345
+            {motivoConsultaTexto.length}/{motivoMaxAllowed}
           </p>
 
           <br />
@@ -194,6 +229,7 @@ const DatosAdicionales = ({
           clavenomina={numeroDeNomina}
           clavepaciente={clavepaciente}
           nombrePaciente={nombrePaciente}
+          claveConsulta={claveConsulta}
         />
       )}
 

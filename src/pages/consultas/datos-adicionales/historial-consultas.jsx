@@ -1,7 +1,9 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/router";
 
 const HistorialConsultas = ({ clavepaciente, clavenomina }) => {
+  const router = useRouter();
   const [consultas, setConsultas] = useState([]);
   const [hasFetched, setHasFetched] = useState(false);
 
@@ -44,6 +46,20 @@ const HistorialConsultas = ({ clavepaciente, clavenomina }) => {
     }
   }, [clavepaciente, clavenomina, hasFetched]);
 
+  // Función para redirigir usando la propiedad "claveconsulta" de cada registro
+  const handleRowClick = (consulta) => {
+    console.log("Fila clickeada:", consulta);
+    if (!consulta.claveconsulta) {
+      console.error("La consulta no tiene 'claveconsulta' definida:", consulta);
+      return;
+    }
+    const encryptedClaveConsulta = btoa(consulta.claveconsulta.toString());
+    console.log("Clave encriptada:", encryptedClaveConsulta);
+    router.push(
+      `/consultas/recetas/ver-recetas?claveconsulta=${encryptedClaveConsulta}`
+    );
+  };
+
   if (!clavepaciente && !clavenomina) {
     return (
       <div className="text-center text-gray-400">
@@ -80,18 +96,16 @@ const HistorialConsultas = ({ clavepaciente, clavenomina }) => {
               consultas.map((consulta, index) => (
                 <tr
                   key={index}
-                  className="hover:bg-purple-600 hover:bg-opacity-50 transition-colors duration-300"
+                  className="hover:bg-purple-600 hover:bg-opacity-50 transition-colors duration-300 cursor-pointer"
+                  onClick={() => handleRowClick(consulta)}
                 >
                   <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
                     {consulta.fechaconsulta
-                      ? new Date(consulta.fechaconsulta).toLocaleDateString(
-                          "es-MX",
-                          {
-                            day: "2-digit",
-                            month: "2-digit",
-                            year: "numeric",
-                          }
-                        )
+                      ? new Date(consulta.fechaconsulta).toLocaleDateString("es-MX", {
+                          day: "2-digit",
+                          month: "2-digit",
+                          year: "numeric",
+                        })
                       : "N/A"}
                   </td>
                   <td className="py-3 px-4 border-t border-gray-800 text-gray-300">

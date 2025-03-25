@@ -177,19 +177,18 @@ const AccionesConsulta = ({
       }
 
       let medicamentosPayload;
-
-      if (decisionTomada === "no") {
+      if (decisionTomada === "no" || !medicamentos.length) {
         medicamentosPayload = {
           folioReceta: claveConsulta,
-          decisionTomada,
-          medicamentos: [], //! Array vacío porque no se asignaron medicamentos
+          decisionTomada: "no",
+          medicamentos: [], //! Array vacío
           piezas: 0,
         };
       } else {
+        //* Si la decisión es "si", se valida que existan medicamentos y se arma el payload
         if (!Array.isArray(medicamentos) || medicamentos.length === 0) {
           throw new Error("❌ No hay medicamentos para guardar.");
         }
-
         medicamentosPayload = {
           folioReceta: claveConsulta,
           decisionTomada,
@@ -212,9 +211,7 @@ const AccionesConsulta = ({
 
       console.log("🔄 Respuesta recibida:", response);
 
-      //* ✅ Verificar si la respuesta es JSON o HTML antes de parsear**
       const contentType = response.headers.get("content-type");
-
       if (!contentType || !contentType.includes("application/json")) {
         const errorText = await response.text();
         console.error(

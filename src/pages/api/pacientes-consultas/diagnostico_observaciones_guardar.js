@@ -19,9 +19,9 @@ export default async function handler(req, res) {
     try {
       const pool = await connectToDatabase();
       transaction = new sql.Transaction(pool);
-      await transaction.begin(); // Inicia la transacción
+      await transaction.begin(); //* Inicia la transacción
 
-      // Obtener el valor de la cookie 'costo'
+      //? Obtener el valor de la cookie 'costo'
       const cookies = req.headers.cookie || "";
       const costoCookie = cookies
         .split("; ")
@@ -29,12 +29,12 @@ export default async function handler(req, res) {
         ?.split("=")[1];
       const costo = costoCookie ? parseFloat(costoCookie) : null;
 
-      // Validar campos obligatorios mínimos
+      //* Validar campos obligatorios mínimos
       if (!claveConsulta || !diagnostico || !motivoconsulta || costo === null) {
         throw new Error("Datos incompletos o inválidos.");
       }
 
-      // Construir la lista de columnas y valores dinámicos para el UPDATE
+      //? Construir la lista de columnas y valores dinámicos para el UPDATE
       const sets = [
         "diagnostico = @diagnostico",
         "motivoconsulta = @motivoconsulta",
@@ -47,13 +47,13 @@ export default async function handler(req, res) {
       request.input("motivoconsulta", sql.Text, motivoconsulta);
       request.input("costo", sql.Decimal(10, 2), costo);
 
-      // Agregar claveusuario y claveproveedor si se envía
+      //? Agregar claveusuario y claveproveedor si se envía
       if (claveusuario !== undefined) {
         sets.push("claveusuario = @claveusuario", "claveproveedor = @claveusuario");
         request.input("claveusuario", sql.Int, claveusuario);
       }
 
-      // Ejecutar el UPDATE en la tabla "consultas"
+      //? Ejecutar el UPDATE en la tabla "consultas"
       const query = `
         UPDATE consultas
         SET ${sets.join(", ")}
@@ -61,7 +61,7 @@ export default async function handler(req, res) {
       `;
       await request.query(query);
 
-      // Registrar la actividad en la misma transacción
+      //? Registrar la actividad en la misma transacción
       const allCookies = parseCookies(req.headers.cookie);
       const idUsuario = allCookies.claveusuario
         ? Number(allCookies.claveusuario)
@@ -93,10 +93,10 @@ export default async function handler(req, res) {
         `);
       }
 
-      await transaction.commit(); // Si todo sale bien, se confirma la transacción
+      await transaction.commit(); //* Si todo sale bien, se confirma la transacción
       console.log("✅ Consulta actualizada y actividad registrada exitosamente. ClaveConsulta:", claveConsulta);
 
-      // Emitir el evento de Socket.io (esta parte no afecta la transacción)
+      //* Emitir el evento de Socket.io (esta parte no afecta la transacción)
       if (res.socket && res.socket.server && res.socket.server.io) {
         res.socket.server.io.emit("consulta-guardada", {
           claveConsulta,

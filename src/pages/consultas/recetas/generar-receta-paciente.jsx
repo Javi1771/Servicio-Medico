@@ -168,7 +168,7 @@ export default function GenerarReceta() {
       }
 
       //? Bloque: DIAGNÓSTICO
-      drawMultilineText(firstPage, String(data.consulta?.diagnostico ?? "N/A"), 50, 462, 730, 8);
+      drawMultilineText(firstPage, String(data.consulta?.diagnostico ?? "N/A"), 50, 470, 560, 6);
 
       //? Bloque: TRATAMIENTO en la primera hoja (primeros 4 medicamentos)
       let currentMedicationY = 357;
@@ -183,7 +183,7 @@ export default function GenerarReceta() {
       });
 
       //? Bloque: OBSERVACIONES en la primera hoja
-      drawMultilineText(firstPage, String(data.consulta?.motivoconsulta ?? "N/A"), 50, 162, 730, 8);
+      drawMultilineText(firstPage, String(data.consulta?.motivoconsulta ?? "N/A"), 50, 170, 560, 6);
 
       //? Datos extra (incapacidad, especialidad y firmas) en la primera hoja
       firstPage.drawText(data.consulta?.seAsignoIncapacidad === 1 ? "Sí" : "No", { x: 150, y: 78, size: 10 });
@@ -208,7 +208,7 @@ export default function GenerarReceta() {
         const secondPage = medPageTemplate;
 
         //? En la segunda hoja se reimprime también el bloque de OBSERVACIONES
-        drawMultilineText(secondPage, String(data.consulta?.motivoconsulta ?? "N/A"), 50, 162, 730, 8);
+        drawMultilineText(secondPage, String(data.consulta?.motivoconsulta ?? "N/A"), 50, 162, 560, 6);
 
         //? Lista de medicamentos adicionales empezando en Y=640
         let currentMedY = 640;

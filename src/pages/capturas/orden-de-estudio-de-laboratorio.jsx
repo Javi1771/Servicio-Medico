@@ -2,6 +2,7 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useRef, useEffect } from "react";
 import StudySelector from "./components/EstudiosDropdown";
+import HistorialOrdenes from "./components/HistorialOrdenes"; // <-- Componente de historial
 import { useRouter } from "next/router";
 import {
   FaSearch,
@@ -388,7 +389,6 @@ const EstudioLaboratorio = () => {
                 <FaSpinner className="animate-spin text-[#0084A9] text-2xl" />
               )}
             </div>
-
             {/* Título */}
             <h2 className="text-4xl font-extrabold text-center text-[#00576A] mb-4 uppercase tracking-wide drop-shadow-lg animate-slideDown">
               Órdenes de Estudio
@@ -397,7 +397,6 @@ const EstudioLaboratorio = () => {
               Ingresa el folio de consulta{" "}
               <FaRegSmileBeam className="inline-block" />
             </p>
-
             {/* Input para folio */}
             <input
               type="number"
@@ -406,7 +405,6 @@ const EstudioLaboratorio = () => {
               value={folioConsulta}
               onChange={(e) => setFolioConsulta(e.target.value)}
             />
-
             {/* Botón de búsqueda */}
             <button
               onClick={handleSearch}
@@ -416,6 +414,17 @@ const EstudioLaboratorio = () => {
               <FaSearch />
               <span>{loading ? "Buscando..." : "Buscar"}</span>
             </button>
+            {/* Espacio adicional para separar el historial */}
+            <div className="mt-8">
+              {/* Historial de Órdenes de Estudio */}
+              <div
+                className={`transition-all duration-500 ${
+                  consultaData ? "opacity-0 h-0 overflow-hidden" : "opacity-100"
+                } mb-6`}
+              >
+                <HistorialOrdenes />
+              </div>
+            </div>
           </>
         ) : (
           <div className="animate-fadeIn">

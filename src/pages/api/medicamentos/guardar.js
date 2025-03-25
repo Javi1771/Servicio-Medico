@@ -27,12 +27,12 @@ export default async function handler(req, res) {
     const pool = await connectToDatabase();
     console.log("✅ Conexión establecida con éxito.");
 
-    // Iniciamos una transacción para todas las operaciones
+    //* Iniciamos una transacción para todas las operaciones
     transaction = new sql.Transaction(pool);
     await transaction.begin();
     console.log("🔄 Transacción iniciada.");
 
-    // 1. Inserción en detalleReceta
+    //? 1. Inserción en detalleReceta
     const queryInsertarReceta = `
       INSERT INTO detalleReceta
       (folioReceta, descMedicamento, indicaciones, estatus, cantidad, piezas)
@@ -98,7 +98,7 @@ export default async function handler(req, res) {
     }
     console.log("✅ Inserción en detalleReceta completada.");
 
-    // 2. Consulta en la tabla "consultas"
+    //? 2. Consulta en la tabla "consultas"
     console.log(`🔎 Buscando consulta con folioReceta: ${folioReceta}...`);
     const consultaQuery = `
       SELECT 
@@ -126,13 +126,13 @@ export default async function handler(req, res) {
       JSON.stringify(consultaData, null, 2)
     );
 
-    // 3. Calcular el nuevo FOLIO_SURTIMIENTO
+    //? 3. Calcular el nuevo FOLIO_SURTIMIENTO
     const queryNuevoFolio = `SELECT ISNULL(MAX(FOLIO_SURTIMIENTO), 0) + 1 AS newFolio FROM SURTIMIENTOS`;
     const nuevoFolioResult = await transaction.request().query(queryNuevoFolio);
     const newFolioSurtimiento = nuevoFolioResult.recordset[0].newFolio;
     console.log("✅ Nuevo FOLIO_SURTIMIENTO calculado:", newFolioSurtimiento);
 
-    // 4. Inserción en SURTIMIENTOS
+    //? 4. Inserción en SURTIMIENTOS
     console.log("📦 Insertando en SURTIMIENTOS...");
     const queryInsertSurtimientos = `
       INSERT INTO SURTIMIENTOS (
@@ -172,7 +172,7 @@ export default async function handler(req, res) {
       .query(queryInsertSurtimientos);
     console.log("✅ Inserción en SURTIMIENTOS completada.");
 
-    // 5. Inserción en detalleSurtimientos
+    //? 5. Inserción en detalleSurtimientos
     console.log("📦 Insertando en detalleSurtimientos...");
     const queryInsertDetalleSurtimientos = `
       INSERT INTO detalleSurtimientos (
@@ -221,7 +221,7 @@ export default async function handler(req, res) {
     }
     console.log("✅ Inserción en detalleSurtimientos completada.");
 
-    // Registrar la actividad de asignación de medicamentos (si aplica)
+    //? Registrar la actividad de asignación de medicamentos (si aplica)
     if (decisionTomada !== "no") {
       try {
         const allCookies = cookie.parse(req.headers.cookie || "");
@@ -255,7 +255,7 @@ export default async function handler(req, res) {
       }
     }
 
-    // Commit de la transacción: si todo se ejecutó sin errores, se confirman todos los cambios
+    //* Commit de la transacción: si todo se ejecutó sin errores, se confirman todos los cambios
     await transaction.commit();
     console.log("🎉 Transacción COMPLETA. Todos los datos guardados correctamente.");
     res.status(200).json({

@@ -39,7 +39,7 @@ const Diagnostico = () => {
   const router = useRouter();
 
   const handleRegresar = () => {
-    router.push("/inicio-servicio-medico"); // Redirige a /inicio-servicio-medico
+    router.push("/inicio-servicio-medico"); //* Redirige a /inicio-servicio-medico
   };
 
   const { formCompleto } = useContext(FormularioContext);

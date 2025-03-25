@@ -22,7 +22,7 @@ export default async function handler(req, res) {
       clavepaciente,
     });
 
-    // Validación de datos obligatorios
+    //* Validación de datos obligatorios
     if (!claveConsulta || !clavenomina || !clavepaciente) {
       console.error("❌ Datos incompletos:", {
         claveConsulta,
@@ -39,10 +39,10 @@ export default async function handler(req, res) {
     const transaction = new sql.Transaction(pool);
 
     try {
-      // Inicia la transacción
+      //* Inicia la transacción
       await transaction.begin();
 
-      // Se obtiene la fecha de registro en formato deseado
+      //* Se obtiene la fecha de registro en formato deseado
       const now = new Date();
       const fechaRegistro = `${now.getFullYear()}-${String(
         now.getMonth() + 1
@@ -52,17 +52,17 @@ export default async function handler(req, res) {
         now.getSeconds()
       ).padStart(2, "0")}`;
 
-      // Si claveEspecialidad es "N", se considera que no se asignó especialidad
+      //? Si claveEspecialidad es "N", se considera que no se asignó especialidad
       const claveEspecialidadFinal =
         claveEspecialidad === "N" ? null : claveEspecialidad;
 
-      // Se determina el valor de observaciones, usando un mensaje predeterminado en caso de que no se haya ingresado
+      //? Se determina el valor de observaciones, usando un mensaje predeterminado en caso de que no se haya ingresado
       const observacionesFinal =
         observaciones ||
         "Sin Observaciones, No Se Asignó Especialidad En Esta Consulta";
 
-      // Se determina el estatus:
-      // 1 = asignada, 0 = sin asignar, en función de si se asignó claveEspecialidad y observaciones distintas al mensaje predeterminado
+      //? Se determina el estatus:
+      //? 1 = asignada, 0 = sin asignar, en función de si se asignó claveEspecialidad y observaciones distintas al mensaje predeterminado
       let estatus = 1;
       if (
         !claveEspecialidadFinal &&
@@ -85,7 +85,7 @@ export default async function handler(req, res) {
         clavepaciente,
       });
 
-      // Inserción en la tabla detalleEspecialidad
+      //? Inserción en la tabla detalleEspecialidad
       await transaction
         .request()
         .input("claveconsulta", sql.Int, parseInt(claveConsulta, 10))
@@ -109,7 +109,7 @@ export default async function handler(req, res) {
 
       console.log("🟢 Registro insertado en la tabla detalleEspecialidad.");
 
-      // Actualización en la tabla consultas
+      //? Actualización en la tabla consultas
       console.log("🟠 Actualizando la tabla consultas...");
       await transaction
         .request()
@@ -133,7 +133,7 @@ export default async function handler(req, res) {
 
       console.log("🟢 Tabla consultas actualizada.");
 
-      // Registrar la actividad de asignación de especialidad solo si se asignó (es decir, observacionesFinal es distinto al mensaje predeterminado)
+      //? Registrar la actividad de asignación de especialidad solo si se asignó (es decir, observacionesFinal es distinto al mensaje predeterminado)
       if (
         observacionesFinal.trim() !==
         "Sin Observaciones, No Se Asignó Especialidad En Esta Consulta"
@@ -182,11 +182,11 @@ export default async function handler(req, res) {
         }
       }
 
-      // Confirmación de la transacción
+      //* Confirmación de la transacción
       await transaction.commit();
       console.log("🟢 Transacción confirmada.");
 
-      // (Opcional) Consulta para obtener el historial actualizado
+      //? (Opcional) Consulta para obtener el historial actualizado
       const result = await pool
         .request()
         .input("clavenomina", sql.VarChar, clavenomina)

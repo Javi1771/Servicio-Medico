@@ -20,12 +20,14 @@ export default async function handler(req, res) {
   try {
     const pool = await connectToDatabase();
 
+    //TODO: Modificar la consulta SQL para obtener el historial de consultas (con especialidad de interconsulta)
     const query = `
       SELECT 
         c.fechaconsulta,
         c.nombrepaciente,
         c.motivoconsulta,
         c.diagnostico,
+        c.claveconsulta,
         c.seasignoaespecialidad,
         e.especialidad AS especialidadinterconsulta,
         c.clavepaciente
@@ -35,6 +37,9 @@ export default async function handler(req, res) {
       WHERE c.clavenomina = @clavenomina
         AND c.clavepaciente = @clavepaciente
         AND c.clavestatus = 2
+        AND c.diagnostico IS NOT NULL
+        AND c.motivoconsulta IS NOT NULL
+        AND c.especialidadinterconsulta IS NOT NULL
       ORDER BY c.fechaconsulta DESC
     `;
 
@@ -48,7 +53,7 @@ export default async function handler(req, res) {
 
     const consultas = result.recordset;
 
-    // Formatear fechas para el frontend
+    //* Formatear fechas para el frontend
     const consultasFormateadas = consultas.map((consulta) => ({
       ...consulta,
       fechaconsulta: consulta.fechaconsulta

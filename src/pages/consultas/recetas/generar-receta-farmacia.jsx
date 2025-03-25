@@ -202,9 +202,9 @@ export default function GenerarReceta() {
       const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
       page.drawText(`*${infoCodigoBarras}*`, {x: 330, y: 720, size: 8, font: helveticaBold});
     }
-    drawMultilineText(page, String(data.consulta?.diagnostico ?? "N/A"), 50, 510, 730, 8);
+    drawMultilineText(page, String(data.consulta?.diagnostico ?? "N/A"), 50, 518, 560, 6);
     page.drawText(String(data.consulta?.nombreproveedor ?? "N/A"), {x: 108, y: 96, size: 10});
-    page.drawText(String(data.consulta?.cedulaproveedor ?? "N/A"), {x: 60, y: 78, size: 10});
+    page.drawText(String(data.consulta?.cedulaproveedor ?? "N/A"), {x: 55, y: 78, size: 10});
     page.drawText(String(data.consulta?.nombrepaciente ?? "N/A"), {x: 370, y: 78, size: 10});
     page.drawText(`${nombreUsuario}`, { x: 396, y: 17, size: 8 });
   };
