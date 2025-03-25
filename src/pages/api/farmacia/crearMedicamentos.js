@@ -74,7 +74,7 @@ export default async function handler(req, res) {
     `;
     const checkResult = await dbPool
       .request()
-      .input("ean", sql.BigInt, ean)
+      .input("ean", sql.VarChar, ean)
       .input("medicamento", sql.VarChar, medicamento)
       .query(checkQuery);
 
@@ -129,7 +129,7 @@ export default async function handler(req, res) {
       .input("medicamento", sql.VarChar, medicamento)
       .input("clasificacion", sql.NVarChar(1), clasificacion)
       .input("presentacion", sql.Int, presentacion)
-      .input("ean", sql.BigInt, ean)
+      .input("ean", sql.VarChar, ean)
       .input("piezas", sql.Int, piezas)
       .input("maximo", sql.Int, maximo)
       .input("minimo", sql.Int, minimo)

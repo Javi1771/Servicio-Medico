@@ -12,15 +12,12 @@ export default async function handler(req, res) {
       clavepaciente,
     } = req.body;
 
-    //* Obtener la cookie 'claveusuario'
+    // Obtener la cookie 'claveusuario' del header
     const cookies = req.headers.cookie || "";
     const claveusuarioMatch = cookies.match(/claveusuario=([^;]+)/);
-    const claveusuario = claveusuarioMatch
-      ? Number(claveusuarioMatch[1])
-      : null;
-    //? Nota: Se usará el valor de 'claveusuario' de la cookie en la actividad
+    const claveusuario = claveusuarioMatch ? Number(claveusuarioMatch[1]) : null;
 
-    //* Validar datos obligatorios
+    // Validar datos obligatorios
     if (!clavenomina || !clavepaciente) {
       const datosFaltantes = [];
       if (!clavenomina) datosFaltantes.push("clavenomina");
@@ -31,26 +28,23 @@ export default async function handler(req, res) {
         .json({ message: "Faltan datos obligatorios.", datosFaltantes });
     }
 
-    //* Convertir fechas a ISO (para que SQL Server las entienda)
-    const fechaInicialISO = fechaInicial
-      ? fechaInicial.replace(" ", "T")
-      : null;
+    // Convertir las fechas a formato ISO (para que SQL Server las entienda)
+    const fechaInicialISO = fechaInicial ? fechaInicial.replace(" ", "T") : null;
     const fechaFinalISO = fechaFinal ? fechaFinal.replace(" ", "T") : null;
 
+    // Si no se envía un diagnóstico, se usa el mensaje predeterminado
     const diagnosticoFinal =
       diagnostico ||
       "Sin Observaciones, No Se Asignó Incapacidad En Esta Consulta";
 
-    //* Se asigna incapacidad si el diagnóstico es distinto del mensaje predeterminado
+    // Se asigna incapacidad si el diagnóstico es distinto del mensaje predeterminado
     const seAsignoIncapacidad =
-      diagnosticoFinal ===
-      "Sin Observaciones, No Se Asignó Incapacidad En Esta Consulta"
+      diagnosticoFinal === "Sin Observaciones, No Se Asignó Incapacidad En Esta Consulta"
         ? 0
         : 1;
-    //* Definir el estatus (por ejemplo, 2 si no se asignó, 1 si se asignó)
+    // Definir el estatus: por ejemplo, 2 si no se asignó, 1 si se asignó
     const estatus =
-      diagnosticoFinal ===
-      "Sin Observaciones, No Se Asignó Incapacidad En Esta Consulta"
+      diagnosticoFinal === "Sin Observaciones, No Se Asignó Incapacidad En Esta Consulta"
         ? 2
         : 1;
 
@@ -61,6 +55,7 @@ export default async function handler(req, res) {
       await transaction.begin();
       console.log("Transacción iniciada.");
 
+      // 1. Inserción en detalleIncapacidad
       await transaction
         .request()
         .input("claveConsulta", sql.Int, claveConsulta)
@@ -70,31 +65,28 @@ export default async function handler(req, res) {
         .input("diagnostico", sql.Text, diagnosticoFinal)
         .input("estatus", sql.Int, estatus)
         .input("clavepaciente", sql.VarChar, clavepaciente)
-        .input("claveMedico", sql.Int, claveusuario) //* O ajusta según corresponda
+        .input("claveMedico", sql.Int, claveusuario) // Se usa la cookie para la actividad
         .query(`
           INSERT INTO detalleIncapacidad 
             (claveConsulta, noNomina, fechaInicial, fechaFinal, diagnostico, estatus, clavepaciente, claveMedico)
           VALUES 
             (@claveConsulta, @clavenomina, CONVERT(datetime2(7), @fechaInicial, 126), CONVERT(datetime2(7), @fechaFinal, 126), @diagnostico, @estatus, @clavepaciente, @claveMedico)
         `);
+      console.log(`Incapacidad guardada exitosamente en la base de datos con estatus: ${estatus}`);
 
-      console.log(
-        `Incapacidad guardada exitosamente en la base de datos con estatus: ${estatus}`
-      );
-
+      // 2. Actualización en la tabla consultas
       await transaction
         .request()
         .input("claveConsulta", sql.Int, claveConsulta)
-        .input("seAsignoIncapacidad", sql.Int, seAsignoIncapacidad).query(`
+        .input("seAsignoIncapacidad", sql.Int, seAsignoIncapacidad)
+        .query(`
           UPDATE consultas
           SET seAsignoIncapacidad = @seAsignoIncapacidad
           WHERE claveConsulta = @claveConsulta
         `);
-      console.log(
-        `Columna seAsignoIncapacidad actualizada con valor: ${seAsignoIncapacidad}`
-      );
+      console.log(`Columna seAsignoIncapacidad actualizada con valor: ${seAsignoIncapacidad}`);
 
-      //* Registrar actividad solo si se asignó incapacidad (es decir, seAsignoIncapacidad === 1)
+      // 3. Registro de actividad (solo si se asignó incapacidad)
       if (seAsignoIncapacidad === 1) {
         try {
           if (claveusuario !== null) {
@@ -106,7 +98,6 @@ export default async function handler(req, res) {
               (req.connection?.socket
                 ? req.connection.socket.remoteAddress
                 : null);
-
             const userAgent = req.headers["user-agent"] || "";
             await pool
               .request()
@@ -114,7 +105,6 @@ export default async function handler(req, res) {
               .input("accion", sql.VarChar, "Asignó una incapacidad")
               .input("direccionIP", sql.VarChar, ip)
               .input("agenteUsuario", sql.VarChar, userAgent)
-              //* Usamos la claveConsulta (la recibida en el body) para guardar en la columna ClaveConsulta
               .input("claveConsulta", sql.Int, parseInt(claveConsulta, 10))
               .query(`
                 INSERT INTO dbo.ActividadUsuarios 
@@ -124,25 +114,22 @@ export default async function handler(req, res) {
               `);
             console.log("Actividad de asignación de incapacidad registrada.");
           } else {
-            console.log(
-              "Cookie 'claveusuario' no encontrada; actividad no registrada."
-            );
+            console.log("Cookie 'claveusuario' no encontrada; actividad no registrada.");
           }
         } catch (errorRegistro) {
-          console.error(
-            "Error registrando actividad de asignación:",
-            errorRegistro
-          );
+          console.error("Error registrando actividad de asignación:", errorRegistro);
         }
       }
 
+      // Confirmar la transacción
       await transaction.commit();
       console.log("Transacción confirmada.");
 
-      //* Opcional: obtener historial actualizado (por ejemplo, de detalleIncapacidad)
+      // (Opcional) Consulta para obtener el historial actualizado
       const result = await pool
         .request()
-        .input("clavenomina", sql.VarChar, clavenomina).query(`
+        .input("clavenomina", sql.VarChar, clavenomina)
+        .query(`
           SELECT 
             d.claveConsulta,
             ISNULL(e.especialidad, 'Sin asignar') AS especialidad,
@@ -157,12 +144,11 @@ export default async function handler(req, res) {
             AND d.fecha_asignacion >= DATEADD(MONTH, -1, GETDATE()) 
           ORDER BY d.fecha_asignacion DESC
         `);
-
       const historial = result.recordset;
       console.log("Historial actualizado (último mes):", historial);
 
       res.status(200).json({
-        message: "Especialidad guardada correctamente.",
+        message: "Incapacidad guardada correctamente.",
         historial,
       });
     } catch (error) {
@@ -173,7 +159,7 @@ export default async function handler(req, res) {
       } catch (rollbackError) {
         console.error("❌ Error al hacer rollback:", rollbackError);
       }
-      res.status(500).json({ message: "Error al guardar la especialidad." });
+      res.status(500).json({ message: "Error al guardar la incapacidad." });
     }
   } else {
     console.warn("❌ Método no permitido.");

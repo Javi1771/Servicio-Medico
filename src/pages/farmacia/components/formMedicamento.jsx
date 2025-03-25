@@ -48,7 +48,7 @@ const FormMedicamento = ({ onAddMedicamento, message }) => {
       medicamento: formData.medicamento,
       clasificacion: formData.clasificacion,
       presentacion: parseInt(formData.presentacion, 10),
-      ean: parseInt(formData.ean, 10),
+      ean: formData.ean,
       piezas: parseInt(formData.piezas, 10),
       minimo: parseInt(formData.minimo, 10),
       maximo: parseInt(formData.maximo, 10),

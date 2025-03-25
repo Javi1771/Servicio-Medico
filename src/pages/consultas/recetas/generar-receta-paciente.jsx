@@ -21,147 +21,125 @@ export default function GenerarReceta() {
     }
   }, [router.query.claveconsulta]);
 
-    //* Función para obtener el nombre del empleado
-    const fetchNombreEmpleado = async (clavenomina) => {
-        try {
-            console.log(`📡 Consultando nombre del empleado con clavenomina: ${clavenomina}`);
-            const response = await fetch("/api/empleado", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ num_nom: clavenomina }),
-            });
-    
-            const data = await response.json();
-            console.log("👤 Datos del empleado recibidos:", data);
-    
-            if (!data || Object.keys(data).length === 0 || !data.nombre) {
-                return "No encontrado";
-            }
-    
-            //* Concatenar nombre completo
-            const nombreCompleto = `${data.nombre ?? ""} ${data.a_paterno ?? ""} ${data.a_materno ?? ""}`.trim();
-            console.log("✅ Nombre completo obtenido:", nombreCompleto);
-            
-            return nombreCompleto;  //* Retorna el nombre en lugar de modificar el estado
-        } catch (error) {
-            console.error("❌ Error al obtener el nombre del empleado:", error);
-            return "Error al cargar";
-        }
-    };        
+  //* Función para obtener el nombre del empleado
+  const fetchNombreEmpleado = async (clavenomina) => {
+    try {
+      console.log(`📡 Consultando nombre del empleado con clavenomina: ${clavenomina}`);
+      const response = await fetch("/api/empleado", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ num_nom: clavenomina }),
+      });
 
-    //* Función para generar código de barras
-    const generarCodigoBarras = (clavenomina, claveproveedor, claveconsulta, folioSurtimiento) => {
-        if (!clavenomina || !claveproveedor || !claveconsulta || !folioSurtimiento) {
-            console.error("❌ Datos insuficientes para generar código de barras");
-            return;
-        }
+      const data = await response.json();
+      console.log("👤 Datos del empleado recibidos:", data);
 
-        const codigo = `${clavenomina}-${claveproveedor}-${claveconsulta}-${folioSurtimiento}`;
-
-        setCodigoBarras(codigo);
-
-        const canvas = document.createElement("canvas");
-
-        //* Aumenta el tamaño del código de barras para mejorar la legibilidad
-        JsBarcode(canvas, codigo, {
-            format: "CODE128",
-            displayValue: false,
-            width: 3, 
-            height: 70,
-            margin: 5, 
-        });
-        
-        return canvas.toDataURL("image/png");
-               
-    };
-
-  //* Función para dibujar texto multilinea
-  const drawMultilineText = (page, text, x, y, maxWidth, fontSize) => {
-    const words = text.split(' ');
-    let line = '';
-    let currentY = y;
-    const maxCharsPerLine = Math.floor(maxWidth / (fontSize * 0.6)); //* Estimación de cuántos caracteres caben en la línea
-
-    for (let i = 0; i < words.length; i++) {
-      const testLine = line + (line ? ' ' : '') + words[i];
-
-      if (testLine.length > maxCharsPerLine) {
-        //* Si la línea es demasiado larga, dibuja la línea anterior y comienza una nueva
-        page.drawText(line, { x, y: currentY, size: fontSize });
-        line = words[i]; //* Comienza una nueva línea con la palabra actual
-        currentY -= 12; //* Salto de línea (se puede cambiar la distancia entre líneas)
-      } else {
-        line = testLine;
+      if (!data || Object.keys(data).length === 0 || !data.nombre) {
+        return "No encontrado";
       }
-    }
 
-    //* Dibuja la última línea
-    page.drawText(line, { x, y: currentY, size: fontSize });
+      //* Concatenar nombre completo
+      const nombreCompleto = `${data.nombre ?? ""} ${data.a_paterno ?? ""} ${data.a_materno ?? ""}`.trim();
+      console.log("✅ Nombre completo obtenido:", nombreCompleto);
+      return nombreCompleto;
+    } catch (error) {
+      console.error("❌ Error al obtener el nombre del empleado:", error);
+      return "Error al cargar";
+    }
   };
 
-    //* Función para obtener los datos de la receta
-    const fetchRecetaData = async () => {
-        if (!claveconsulta) {
-            console.error("⚠️ Clave de consulta no está definida.");
-            return null;
+  //* Función para generar código de barras
+  const generarCodigoBarras = (clavenomina, claveproveedor, claveconsulta, folioSurtimiento) => {
+    if (!clavenomina || !claveproveedor || !claveconsulta || !folioSurtimiento) {
+      console.error("❌ Datos insuficientes para generar código de barras");
+      return;
+    }
+    const codigo = `${clavenomina}-${claveproveedor}-${claveconsulta}-${folioSurtimiento}`;
+    setCodigoBarras(codigo);
+    const canvas = document.createElement("canvas");
+    JsBarcode(canvas, codigo, {
+      format: "CODE128",
+      displayValue: false,
+      width: 3,
+      height: 70,
+      margin: 5,
+    });
+    return canvas.toDataURL("image/png");
+  };
+
+  //* Función para dibujar texto multilinea que retorna la posición Y final
+  const drawMultilineText = (page, text, x, y, maxWidth, fontSize) => {
+    const lines = text.split('\n');
+    let currentY = y;
+    const lineHeight = fontSize + 2; //* Ajuste de separación
+    lines.forEach(lineText => {
+      const words = lineText.split(' ');
+      let line = '';
+      const maxCharsPerLine = Math.floor(maxWidth / (fontSize * 0.6));
+      words.forEach(word => {
+        const testLine = line + (line ? ' ' : '') + word;
+        if (testLine.length > maxCharsPerLine) {
+          page.drawText(line, { x, y: currentY, size: fontSize });
+          currentY -= lineHeight;
+          line = word;
+        } else {
+          line = testLine;
         }
+      });
+      page.drawText(line, { x, y: currentY, size: fontSize });
+      currentY -= lineHeight;
+    });
+    return currentY;
+  };
 
-        console.log("📡 Consultando API con claveconsulta:", claveconsulta);
-
-        const response = await fetch(`/api/recetas/recetaPaciente?claveconsulta=${claveconsulta}`);
-
-        if (!response.ok) {
-            console.error("❌ Error en la API:", await response.text());
-            throw new Error("Error al obtener los datos de la receta");
-        }
-
-        const data = await response.json();
-
-        let nombreCompleto = "No encontrado";  //* Variable local para el nombre
-        let folioSurtimiento = data.folioSurtimiento ?? null; //* Obtener el folioSurtimiento de la respuesta
-
-        let codigoBarrasBase64 = null;
-        if (data.consulta) {
-            nombreCompleto = await fetchNombreEmpleado(data.consulta.clavenomina);
-            codigoBarrasBase64 = generarCodigoBarras(data.consulta.clavenomina, data.consulta.claveproveedor, data.consulta.claveconsulta, folioSurtimiento);
-        }        
-
-        console.log("✅ Datos de la receta recibidos:", data);
-        console.log("✅ Folio surtimiento obtenido:", folioSurtimiento);
-
-        return { ...data, nombreEmpleado: nombreCompleto, folioSurtimiento, codigoBarrasBase64 };
-    };  
+  //* Función para obtener los datos de la receta
+  const fetchRecetaData = async () => {
+    if (!claveconsulta) {
+      console.error("⚠️ Clave de consulta no está definida.");
+      return null;
+    }
+    console.log("📡 Consultando API con claveconsulta:", claveconsulta);
+    const response = await fetch(`/api/recetas/recetaPaciente?claveconsulta=${claveconsulta}`);
+    if (!response.ok) {
+      console.error("❌ Error en la API:", await response.text());
+      throw new Error("Error al obtener los datos de la receta");
+    }
+    const data = await response.json();
+    let nombreCompleto = "No encontrado";
+    let folioSurtimiento = data.folioSurtimiento ?? null;
+    let codigoBarrasBase64 = null;
+    if (data.consulta) {
+      nombreCompleto = await fetchNombreEmpleado(data.consulta.clavenomina);
+      codigoBarrasBase64 = generarCodigoBarras(
+        data.consulta.clavenomina,
+        data.consulta.claveproveedor,
+        data.consulta.claveconsulta,
+        folioSurtimiento
+      );
+    }
+    console.log("✅ Datos de la receta recibidos:", data);
+    console.log("✅ Folio surtimiento obtenido:", folioSurtimiento);
+    return { ...data, nombreEmpleado: nombreCompleto, folioSurtimiento, codigoBarrasBase64 };
+  };
 
   //* Genera el PDF con pdf-lib
   const generatePdf = async () => {
     try {
       console.log("🖨️ Iniciando la generación del PDF...");
       setLoading(true);
-
-      //* Obtener la información desde el endpoint
       const data = await fetchRecetaData();
       if (!data) {
         console.error("❌ Error: No se recibieron datos de la API.");
         return;
       }
-
       console.log("📥 Cargando el PDF base...");
       const existingPdfBytes = await fetch("/Receta-Paciente.pdf").then(res => {
-        if (!res.ok) {
-          throw new Error("Error al cargar el PDF base");
-        }
+        if (!res.ok) throw new Error("Error al cargar el PDF base");
         return res.arrayBuffer();
       });
-
-      console.log("✅ PDF base cargado correctamente.");
-
-      //? Crear el PDF a partir del PDF base
       const pdfDoc = await PDFDocument.load(existingPdfBytes);
       const firstPage = pdfDoc.getPages()[0];
-
-      console.log("✏️ Dibujando datos en el PDF...");
+      console.log("✅ PDF base cargado correctamente.");
 
       //? Bloque: DATOS DE LA CONSULTA
       firstPage.drawText(data.consulta?.especialidadinterconsulta === null ? "General" : "Especialidad", { x: 114, y: 665, size: 10 });
@@ -182,58 +160,82 @@ export default function GenerarReceta() {
       firstPage.drawText(String(data.consulta?.pesopaciente ?? "N/A"), { x: 459, y: 525, size: 10 });
       firstPage.drawText(String(data.consulta?.glucosapaciente ?? "N/A"), { x: 540, y: 525, size: 10 });
 
-      //? Línea especial: Si el paciente NO es empleado (elpacienteesempleado === "N"), se escribe el nombre con el parentesco en negrita y con un guion antes.
+      //? Línea especial: Si el paciente NO es empleado, se muestra el parentesco en negrita
       if (data.consulta?.elpacienteesempleado === "N") {
-        const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold); 
-        const parentescoTexto = `- ${data.consulta?.parentescoNombre ?? "N/A"}`; 
-
-        firstPage.drawText(parentescoTexto, { 
-            x: 162, 
-            y: 601, 
-            size: 13, 
-            font: boldFont 
-        });
+        const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+        const parentescoTexto = `- ${data.consulta?.parentescoNombre ?? "N/A"}`;
+        firstPage.drawText(parentescoTexto, { x: 162, y: 601, size: 13, font: boldFont });
       }
 
       //? Bloque: DIAGNÓSTICO
-      drawMultilineText(firstPage, String(data.consulta?.diagnostico ?? "N/A"), 50, 462, 560, 8);
+      drawMultilineText(firstPage, String(data.consulta?.diagnostico ?? "N/A"), 50, 462, 730, 8);
 
-      //? Bloque: TRATAMIENTO
-      let recetaStartY = 357;
-      const lineSpacing = 30; //* Espacio más grande entre medicamentos
+      //? Bloque: TRATAMIENTO en la primera hoja (primeros 4 medicamentos)
+      let currentMedicationY = 357;
+      const extraSpacing = 10;
+      const medsFirstPage = data.receta.slice(0, 4);
+      medsFirstPage.forEach((item) => {
+        const y1 = drawMultilineText(firstPage, String(item.nombreMedicamento ?? "No Asignado"), 40, currentMedicationY, 130, 8);
+        const y2 = drawMultilineText(firstPage, String(item.indicaciones ?? "No Asignado"), 180, currentMedicationY, 190, 8);
+        const y3 = drawMultilineText(firstPage, String(item.cantidad ?? "No Asignado"), 370, currentMedicationY, 161, 8);
+        const y4 = drawMultilineText(firstPage, String(item.piezas ?? "No Asignados"), 553, currentMedicationY, 100, 8);
+        currentMedicationY = Math.min(y1, y2, y3, y4) - extraSpacing;
+      });
 
-      if (data.receta.length > 0) {
-          data.receta.forEach((item, index) => {
-          const posY = recetaStartY - index * lineSpacing; //* Aumenta el espacio entre líneas
-          drawMultilineText(firstPage, String(item.nombreMedicamento ?? "No Asignado"), 40, posY, 120, 8);
-          drawMultilineText(firstPage, String(item.indicaciones ?? "No Asignado"), 180, posY, 190, 8);
-          drawMultilineText(firstPage, String(item.cantidad ?? "No Asignado"), 370, posY, 161, 8);
-          drawMultilineText(firstPage, String(item.piezas ?? "No Asignados"), 553, posY, 100, 8);
-          });
-      }
+      //? Bloque: OBSERVACIONES en la primera hoja
+      drawMultilineText(firstPage, String(data.consulta?.motivoconsulta ?? "N/A"), 50, 162, 730, 8);
 
-      //? Bloque: OBSERVACIONES
-      drawMultilineText(firstPage, String(data.consulta?.motivoconsulta ?? "N/A"), 50, 162, 560, 8);
-
-      //? Bloque: EXTRAS
-      const incapacidad = data.incapacidades?.[0]; //* Obtiene el primer elemento del array de incapacidades
+      //? Datos extra (incapacidad, especialidad y firmas) en la primera hoja
       firstPage.drawText(data.consulta?.seAsignoIncapacidad === 1 ? "Sí" : "No", { x: 150, y: 78, size: 10 });
+      const incapacidad = data.incapacidades?.[0];
       firstPage.drawText(incapacidad ? incapacidad.fechaInicial : "No asignada", { x: 219, y: 85, size: 10 });
       firstPage.drawText(incapacidad ? incapacidad.fechaFinal : "No asignada", { x: 209, y: 72, size: 10 });
-      
-      const especialidadText = data.consulta?.seasignoaespecialidad === "S" ? `Sí - ${data.detalleEspecialidad[0]?.nombreEspecialidad ?? "N/A"}` : "No";
+      const especialidadText = data.consulta?.seasignoaespecialidad === "S" 
+        ? `Sí - ${data.detalleEspecialidad[0]?.nombreEspecialidad ?? "N/A"}` 
+        : "No";
       firstPage.drawText(especialidadText, { x: 433, y: 78, size: 10 });
-      
-      //? Firmas
-      firstPage.drawText(String(data.consulta?.nombreproveedor ?? "N/A"), { x: 120, y: 52, size: 10 });
+      firstPage.drawText(String(data.consulta?.nombreproveedor ?? "N/A"), { x: 110, y: 52, size: 10 });
       firstPage.drawText(String(data.consulta?.nombrepaciente ?? "N/A"), { x: 370, y: 52, size: 10 });
 
-      //? Guardar el PDF en memoria y generar una URL para previsualización
+      //* Si hay más de 4 medicamentos, se agrega una segunda hoja para mostrar el resto
+      if (data.receta.length > 4) {
+        const medPdfBytes = await fetch("/Receta-Paciente-Medicamentos.pdf").then(res => {
+          if (!res.ok) throw new Error("Error al cargar el PDF Receta-Paciente-Medicamentos");
+          return res.arrayBuffer();
+        });
+        const medPdfDoc = await PDFDocument.load(medPdfBytes);
+        const [medPageTemplate] = await pdfDoc.copyPages(medPdfDoc, [0]);
+        const secondPage = medPageTemplate;
+
+        //? En la segunda hoja se reimprime también el bloque de OBSERVACIONES
+        drawMultilineText(secondPage, String(data.consulta?.motivoconsulta ?? "N/A"), 50, 162, 730, 8);
+
+        //? Lista de medicamentos adicionales empezando en Y=640
+        let currentMedY = 640;
+        const medsSecondPage = data.receta.slice(4); //* Medicamentos desde el quinto en adelante
+        medsSecondPage.forEach((item) => {
+          const y1 = drawMultilineText(secondPage, String(item.nombreMedicamento ?? "No Asignado"), 40, currentMedY, 130, 8);
+          const y2 = drawMultilineText(secondPage, String(item.indicaciones ?? "No Asignado"), 180, currentMedY, 190, 8);
+          const y3 = drawMultilineText(secondPage, String(item.cantidad ?? "No Asignado"), 370, currentMedY, 161, 8);
+          const y4 = drawMultilineText(secondPage, String(item.piezas ?? "No Asignados"), 553, currentMedY, 100, 8);
+          currentMedY = Math.min(y1, y2, y3, y4) - extraSpacing;
+        });
+
+        //? Se reimprimen los datos extra (incapacidad, especialidad y firmas) en las mismas coordenadas que en la primera hoja
+        secondPage.drawText(data.consulta?.seAsignoIncapacidad === 1 ? "Sí" : "No", { x: 150, y: 77, size: 10 });
+        secondPage.drawText(incapacidad ? incapacidad.fechaInicial : "No asignada", { x: 219, y: 82, size: 10 });
+        secondPage.drawText(incapacidad ? incapacidad.fechaFinal : "No asignada", { x: 209, y: 69, size: 10 });
+        secondPage.drawText(especialidadText, { x: 433, y: 77, size: 10 });
+        secondPage.drawText(String(data.consulta?.nombreproveedor ?? "N/A"), { x: 120, y: 51, size: 10 });
+        secondPage.drawText(String(data.consulta?.nombrepaciente ?? "N/A"), { x: 370, y: 51, size: 10 });
+
+        pdfDoc.addPage(secondPage);
+      }
+
       const pdfBytes = await pdfDoc.save();
       const pdfBlob = new Blob([pdfBytes], { type: "application/pdf" });
       const pdfBlobUrl = URL.createObjectURL(pdfBlob);
-      setPdfUrl(pdfBlobUrl); //* Guardar la URL del PDF para previsualización
-
+      setPdfUrl(pdfBlobUrl);
       console.log("✅ PDF generado y listo para previsualización.");
     } catch (error) {
       console.error("❌ Error al generar PDF:", error);
@@ -244,60 +246,45 @@ export default function GenerarReceta() {
 
   //* Generar el PDF automáticamente cuando la claveconsulta esté lista
   useEffect(() => {
-    if (claveconsulta) {
-      generatePdf();
-    }
+    if (claveconsulta) generatePdf();
   }, [claveconsulta]);
 
-  //* Abrir automáticamente el PDF en una nueva pestaña cuando esté listo
+  //* Abrir el PDF en una nueva pestaña cuando esté listo
   useEffect(() => {
-    if (pdfUrl) {
-      window.open(pdfUrl, "_blank");
-    }
+    if (pdfUrl) window.open(pdfUrl, "_blank");
   }, [pdfUrl]);
 
   return (
     <div className="relative min-h-screen bg-black text-white p-10 overflow-hidden">
-      {/* 🔥 FONDO ANIMADO */}
       <div className="absolute inset-0 z-0 bg-gradient-to-br from-black via-gray-900 to-black opacity-90"></div>
       <div className="absolute inset-0 bg-grid opacity-10 animate-grid-move"></div>
-
-      {/* Overlay Loader si loading es true */}
       {loading && (
         <div className="absolute inset-0 z-50 bg-black bg-opacity-70 flex flex-col items-center justify-center text-white">
           <FaSpinner className="text-6xl animate-spin mb-4" />
-          <p className="text-xl font-semibold">Guardando...</p>
+          <p className="text-xl font-semibold">Generando...</p>
         </div>
       )}
-
       <div className="flex flex-col items-center justify-center relative z-10 w-full">
-
-      {/* Previsualización del PDF */}
-      {pdfUrl && (
-        <div className="mt-10 w-full max-w-4xl bg-gray-900 p-6 rounded-2xl border-2 border-cyan-400 shadow-lg shadow-cyan-500/50 relative">
-          
-          {/* Contenedor del PDF con efecto futurista */}
-          <div className="border border-cyan-400 rounded-xl overflow-hidden shadow-lg shadow-cyan-500/30">
-            <iframe
-              src={pdfUrl}
-              className="w-full h-[70vh] rounded-lg border-none"
-              style={{ overflow: "hidden", backgroundColor: "transparent" }}
-              scrolling="no"
-            />
+        {pdfUrl && (
+          <div className="mt-10 w-full max-w-4xl bg-gray-900 p-6 rounded-2xl border-2 border-cyan-400 shadow-lg shadow-cyan-500/50 relative">
+            <div className="border border-cyan-400 rounded-xl overflow-hidden shadow-lg shadow-cyan-500/30">
+              <iframe
+                src={pdfUrl}
+                className="w-full h-[70vh] rounded-lg border-none"
+                style={{ overflow: "hidden", backgroundColor: "transparent" }}
+                scrolling="no"
+              />
+            </div>
+            <div className="flex justify-center mt-6">
+              <button
+                onClick={() => saveAs(pdfUrl, "RecetaPaciente.pdf")}
+                className="px-6 py-3 bg-cyan-600 hover:bg-cyan-500 text-white font-semibold rounded-lg shadow-md shadow-cyan-500/50 transition transform hover:scale-105 hover:shadow-cyan-400/50"
+              >
+                ⬇️ Descargar PDF
+              </button>
+            </div>
           </div>
-
-          {/* Botón de descarga con animación moderna */}
-          <div className="flex justify-center mt-6">
-            <button
-              onClick={() => saveAs(pdfUrl, "RecetaPaciente.pdf")}
-              className="px-6 py-3 bg-cyan-600 hover:bg-cyan-500 text-white font-semibold rounded-lg shadow-md shadow-cyan-500/50 transition transform hover:scale-105 hover:shadow-cyan-400/50"
-            >
-              ⬇️ Descargar PDF
-            </button>
-          </div>
-        </div>
-      )}
-
+        )}
       </div>
     </div>
   );

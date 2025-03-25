@@ -13,15 +13,15 @@ function parseCookies(cookieHeader) {
 
 export default async function handler(req, res) {
   if (req.method === "POST") {
-    const { claveConsulta, diagnostico, motivoconsulta, claveusuario } =
-      req.body;
-    let transaction; //* Declarar la transacción fuera del try
+    const { claveConsulta, diagnostico, motivoconsulta, claveusuario } = req.body;
+    let transaction;
 
     try {
       const pool = await connectToDatabase();
-      transaction = new sql.Transaction(pool); //* Crear una transacción
+      transaction = new sql.Transaction(pool);
+      await transaction.begin(); // Inicia la transacción
 
-      //* Obtener el valor de la cookie 'costo'
+      // Obtener el valor de la cookie 'costo'
       const cookies = req.headers.cookie || "";
       const costoCookie = cookies
         .split("; ")
@@ -29,92 +29,74 @@ export default async function handler(req, res) {
         ?.split("=")[1];
       const costo = costoCookie ? parseFloat(costoCookie) : null;
 
-      //* Validar campos obligatorios mínimos
+      // Validar campos obligatorios mínimos
       if (!claveConsulta || !diagnostico || !motivoconsulta || costo === null) {
-        return res
-          .status(400)
-          .json({ message: "Datos incompletos o inválidos." });
+        throw new Error("Datos incompletos o inválidos.");
       }
 
-      await transaction.begin(); //* Iniciar la transacción
-
-      //* Construir la lista de columnas y valores dinámicos
+      // Construir la lista de columnas y valores dinámicos para el UPDATE
       const sets = [
         "diagnostico = @diagnostico",
         "motivoconsulta = @motivoconsulta",
         "costo = @costo",
       ];
-      const request = transaction
-        .request()
-        .input("claveConsulta", sql.Int, claveConsulta)
-        .input("diagnostico", sql.Text, diagnostico)
-        .input("motivoconsulta", sql.Text, motivoconsulta)
-        .input("costo", sql.Decimal(10, 2), costo);
 
-      //* Agregar claveusuario y claveproveedor si se envía
+      const request = transaction.request();
+      request.input("claveConsulta", sql.Int, claveConsulta);
+      request.input("diagnostico", sql.Text, diagnostico);
+      request.input("motivoconsulta", sql.Text, motivoconsulta);
+      request.input("costo", sql.Decimal(10, 2), costo);
+
+      // Agregar claveusuario y claveproveedor si se envía
       if (claveusuario !== undefined) {
-        sets.push(
-          "claveusuario = @claveusuario",
-          "claveproveedor = @claveusuario"
-        );
+        sets.push("claveusuario = @claveusuario", "claveproveedor = @claveusuario");
         request.input("claveusuario", sql.Int, claveusuario);
       }
 
-      //* Generar el query de actualización
+      // Ejecutar el UPDATE en la tabla "consultas"
       const query = `
         UPDATE consultas
         SET ${sets.join(", ")}
         WHERE claveConsulta = @claveConsulta
       `;
       await request.query(query);
-      await transaction.commit(); //* Confirmar la transacción
 
-      console.log(
-        "✅ Consulta actualizada exitosamente. ClaveConsulta:",
-        claveConsulta
-      );
+      // Registrar la actividad en la misma transacción
+      const allCookies = parseCookies(req.headers.cookie);
+      const idUsuario = allCookies.claveusuario
+        ? Number(allCookies.claveusuario)
+        : claveusuario !== undefined
+        ? Number(claveusuario)
+        : null;
 
-      //* Registrar la actividad: se extrae la cookie "claveusuario" y se usa para IdUsuario.
-      try {
-        const allCookies = parseCookies(req.headers.cookie);
-        // Se usa la cookie "claveusuario" si existe; de lo contrario, se usa el valor enviado en el body.
-        const idUsuario = allCookies.claveusuario
-          ? Number(allCookies.claveusuario)
-          : claveusuario !== undefined
-          ? Number(claveusuario)
-          : null;
-        if (idUsuario === null) {
-          console.log(
-            "❌ No se encontró valor para IdUsuario; actividad no registrada."
-          );
-        } else {
-          let ip =
-            (req.headers["x-forwarded-for"] &&
-              req.headers["x-forwarded-for"].split(",")[0].trim()) ||
-            req.connection?.remoteAddress ||
-            req.socket?.remoteAddress ||
-            (req.connection?.socket
-              ? req.connection.socket.remoteAddress
-              : null);
+      if (idUsuario !== null) {
+        let ip =
+          (req.headers["x-forwarded-for"] &&
+            req.headers["x-forwarded-for"].split(",")[0].trim()) ||
+          req.connection?.remoteAddress ||
+          req.socket?.remoteAddress ||
+          (req.connection?.socket
+            ? req.connection.socket.remoteAddress
+            : null);
 
-          const userAgent = req.headers["user-agent"] || "";
-          await pool
-            .request()
-            .input("userId", sql.Int, idUsuario)
-            .input("accion", sql.VarChar, "Atendió una consulta")
-            .input("direccionIP", sql.VarChar, ip)
-            .input("agenteUsuario", sql.VarChar, userAgent)
-            .input("claveConsulta", sql.Int, claveConsulta).query(`
-              INSERT INTO dbo.ActividadUsuarios (IdUsuario, Accion, FechaHora, DireccionIP, AgenteUsuario, ClaveConsulta)
-              VALUES (@userId, @accion, DATEADD(MINUTE, -4, GETDATE()), @direccionIP, @agenteUsuario, @claveConsulta)
-            `);
-          console.log("Actividad registrada en la base de datos.");
-        }
-      } catch (errorRegistro) {
-        console.error("Error registrando actividad:", errorRegistro);
+        const userAgent = req.headers["user-agent"] || "";
+        const activityRequest = transaction.request();
+        activityRequest.input("userId", sql.Int, idUsuario);
+        activityRequest.input("accion", sql.VarChar, "Atendió una consulta");
+        activityRequest.input("direccionIP", sql.VarChar, ip);
+        activityRequest.input("agenteUsuario", sql.VarChar, userAgent);
+        activityRequest.input("claveConsulta", sql.Int, claveConsulta);
+        await activityRequest.query(`
+          INSERT INTO dbo.ActividadUsuarios 
+          (IdUsuario, Accion, FechaHora, DireccionIP, AgenteUsuario, ClaveConsulta)
+          VALUES (@userId, @accion, DATEADD(MINUTE, -4, GETDATE()), @direccionIP, @agenteUsuario, @claveConsulta)
+        `);
       }
 
-      //* Emitir un evento a través de Socket.io para notificar la actividad
+      await transaction.commit(); // Si todo sale bien, se confirma la transacción
+      console.log("✅ Consulta actualizada y actividad registrada exitosamente. ClaveConsulta:", claveConsulta);
+
+      // Emitir el evento de Socket.io (esta parte no afecta la transacción)
       if (res.socket && res.socket.server && res.socket.server.io) {
         res.socket.server.io.emit("consulta-guardada", {
           claveConsulta,
@@ -132,9 +114,13 @@ export default async function handler(req, res) {
       });
     } catch (error) {
       console.error("❌ Error durante la transacción:", error);
-      if (transaction && transaction.isActive) {
-        await transaction.rollback();
-        console.log("❌ Transacción revertida debido a un error.");
+      if (transaction && !transaction._aborted) {
+        try {
+          await transaction.rollback();
+          console.log("❌ Transacción revertida debido a un error.");
+        } catch (rollbackError) {
+          console.error("Error durante el rollback:", rollbackError);
+        }
       }
       res.status(500).json({ message: "Error al procesar la consulta." });
     }

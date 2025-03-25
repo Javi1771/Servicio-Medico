@@ -4,9 +4,11 @@ import { FormularioContext } from "/src/context/FormularioContext";
 import MedicamentoDropdown from "../components/MedicamentoDropdown"; 
 import Swal from "sweetalert2";
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
   const [medicamentos, setMedicamentos] = useState([]);
   const [listaMedicamentos, setListaMedicamentos] = useState([]);
+  const [loadingMedicamentos, setLoadingMedicamentos] = useState(true); // Estado para controlar la carga
   const [historialMedicamentos, setHistorialMedicamentos] = useState([]);
   const [decisionTomada, setDecisionTomada] = useState("no");
 
@@ -22,10 +24,17 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
 
   //? 1) Cargar lista de medicamentos (endpoint)
   useEffect(() => {
+    setLoadingMedicamentos(true); // Inicia la carga
     fetch("/api/medicamentos/listar")
       .then((res) => res.json())
-      .then((data) => setListaMedicamentos(data))
-      .catch((err) => console.error("Error al cargar medicamentos:", err));
+      .then((data) => {
+        setListaMedicamentos(data);
+        setLoadingMedicamentos(false); // Finaliza la carga
+      })
+      .catch((err) => {
+        console.error("Error al cargar medicamentos:", err);
+        setLoadingMedicamentos(false);
+      });
   }, []);
 
   //? 2) Cargar historial de medicamentos
@@ -183,6 +192,7 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
                   onChangeMedicamento={(claveMed) =>
                     handleMedicamentoChange(index, "medicamento", claveMed)
                   }
+                  isLoading={loadingMedicamentos} // Propiedad para mostrar el spinner
                 />
               </div>
 

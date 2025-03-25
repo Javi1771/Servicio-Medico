@@ -7,7 +7,7 @@ import PresidenteLayout from "../components/PresidenteLayout";
 const rolePermissions = {
   "7": ["/inicio-presidente", "/consultas", "/especialista", "/catalogos", "/estadisticas", "/capturas", "/reportes", "/farmacia", "/dashboard"], //* Permisos para presidente
   "6": ["/inicio-servicio-medico", "/consultas", "/catalogos", "/capturas", "/reportes", "/especialista", "/farmacia"], //* Permisos para administrador
-  "1": ["/inicio-servicio-medico", "/consultas", "/especialista"], //* Permisos para médico
+  "1": ["/inicio-servicio-medico", "/consultas", "/especialista", "/capturas/orden-de-estudio-de-laboratorio"], //* Permisos para médico
   "2": ["/inicio-servicio-medico", "/consultas/signos-vitales", "/consultas/face-test", "consultas/signos-vitales-facial"], //* Permisos para enfermera
   "3": ["/inicio-servicio-medico", "/capturas", "/consultas/recetas"], //* Permisos para capturista
   "8": ["/inicio-servicio-medico", "/reportes", "/catalogos/beneficiarios"], //* Permisos para RRHH

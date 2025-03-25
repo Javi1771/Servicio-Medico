@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable no-unused-vars */
 import React, { useState, useRef, useEffect } from "react";
+import StudySelector from "./components/EstudiosDropdown";
 import { useRouter } from "next/router";
 import {
   FaSearch,
@@ -536,53 +537,18 @@ const EstudioLaboratorio = () => {
                       </select>
                     </div>
                   )}
-                  {/* Selección de Estudios (dropdowns individuales) */}
-                  <div className="mb-4">
-                    <label className="block text-lg font-bold mb-2 text-[#00576A] flex items-center gap-2">
-                      <FaToolbox className="text-xl" /> Seleccionar Estudios:
-                    </label>
-                    {lab.selectedStudies.map((study, studyIndex) => (
-                      <div
-                        key={studyIndex}
-                        className="flex items-center gap-2 mb-2"
-                      >
-                        <select
-                          value={study}
-                          onChange={(e) =>
-                            actualizarStudy(index, studyIndex, e.target.value)
-                          }
-                          className="w-full p-3 border border-[#5BFCFF] rounded-xl focus:outline-none focus:border-[#00E6FF] focus:ring-2 focus:ring-[#00E6FF] text-[#00576A] transition-all duration-300 shadow-sm"
-                        >
-                          <option value="">Seleccione un estudio</option>
-                          {studyOptions.map((opt) => (
-                            <option
-                              key={opt.claveEstudio}
-                              value={opt.claveEstudio}
-                            >
-                              {opt.estudio}
-                            </option>
-                          ))}
-                        </select>
-                        {lab.selectedStudies.length > 1 && (
-                          <button
-                            onClick={() =>
-                              eliminarEstudioDeLab(index, studyIndex)
-                            }
-                            className="text-red-500 hover:text-red-700 transition transform hover:scale-110"
-                          >
-                            <FaTrash />
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                    <button
-                      onClick={() => agregarEstudioALab(index)}
-                      className="flex items-center gap-2 bg-[#00CEFF] hover:bg-[#0093D0] text-[#00384B] font-bold py-2 px-4 rounded-xl transition transform hover:scale-105 shadow"
-                    >
-                      <FaPlus />
-                      <span>Agregar otro estudio</span>
-                    </button>
-                  </div>
+                  {/* Componente de Selección de Estudios */}
+                  <StudySelector
+                    studyOptions={studyOptions}
+                    selectedStudies={lab.selectedStudies}
+                    onChangeStudy={(studyIndex, value) =>
+                      actualizarStudy(index, studyIndex, value)
+                    }
+                    onAddStudy={() => agregarEstudioALab(index)}
+                    onRemoveStudy={(studyIndex) =>
+                      eliminarEstudioDeLab(index, studyIndex)
+                    }
+                  />
                   {/* Ingreso de Diagnóstico */}
                   <div className="mb-4">
                     <label className="block text-lg font-bold mb-2 text-[#00576A] flex items-center gap-2">

@@ -22,7 +22,7 @@ export default async function handler(req, res) {
       clavepaciente,
     });
 
-    //* Validar datos obligatorios
+    // Validación de datos obligatorios
     if (!claveConsulta || !clavenomina || !clavepaciente) {
       console.error("❌ Datos incompletos:", {
         claveConsulta,
@@ -36,12 +36,13 @@ export default async function handler(req, res) {
     }
 
     const pool = await connectToDatabase();
-    const transaction = new sql.Transaction(pool); //* Crear una transacción
+    const transaction = new sql.Transaction(pool);
 
     try {
-      await transaction.begin(); //* Iniciar la transacción
+      // Inicia la transacción
+      await transaction.begin();
 
-      //* Obtener la fecha de registro formateada
+      // Se obtiene la fecha de registro en formato deseado
       const now = new Date();
       const fechaRegistro = `${now.getFullYear()}-${String(
         now.getMonth() + 1
@@ -51,16 +52,17 @@ export default async function handler(req, res) {
         now.getSeconds()
       ).padStart(2, "0")}`;
 
-      //* Si claveEspecialidad es "N", se considera que no se asignó especialidad
+      // Si claveEspecialidad es "N", se considera que no se asignó especialidad
       const claveEspecialidadFinal =
         claveEspecialidad === "N" ? null : claveEspecialidad;
 
-      //* Determinar las observaciones reales: si no se ingresaron, se usa el mensaje predeterminado
+      // Se determina el valor de observaciones, usando un mensaje predeterminado en caso de que no se haya ingresado
       const observacionesFinal =
         observaciones ||
         "Sin Observaciones, No Se Asignó Especialidad En Esta Consulta";
 
-      //* Lógica para determinar el estatus: 0 = sin especialidad asignada, 1 = asignada
+      // Se determina el estatus:
+      // 1 = asignada, 0 = sin asignar, en función de si se asignó claveEspecialidad y observaciones distintas al mensaje predeterminado
       let estatus = 1;
       if (
         !claveEspecialidadFinal &&
@@ -70,21 +72,20 @@ export default async function handler(req, res) {
         estatus = 0;
       }
 
-      console.log("🟠 Insertando en la tabla detalleEspecialidad con datos:");
-      console.log({
-        claveConsulta: parseInt(claveConsulta, 10),
+      console.log("🟠 Insertando en detalleEspecialidad con datos:", {
+        claveconsulta: parseInt(claveConsulta, 10),
         clavenomina,
-        claveEspecialidad: claveEspecialidadFinal
+        claveespecialidad: claveEspecialidadFinal
           ? parseInt(claveEspecialidadFinal, 10)
           : null,
         observaciones: observacionesFinal,
         prioridad: prioridad || "N/A",
         estatus,
-        fechaRegistro,
+        fecha_asignacion: fechaRegistro,
         clavepaciente,
       });
 
-      //* Inserción en detalleEspecialidad
+      // Inserción en la tabla detalleEspecialidad
       await transaction
         .request()
         .input("claveconsulta", sql.Int, parseInt(claveConsulta, 10))
@@ -98,7 +99,8 @@ export default async function handler(req, res) {
         .input("prioridad", sql.VarChar, prioridad || "N/A")
         .input("estatus", sql.Int, estatus)
         .input("fecha_asignacion", sql.DateTime, fechaRegistro)
-        .input("clavepaciente", sql.VarChar, clavepaciente).query(`
+        .input("clavepaciente", sql.VarChar, clavepaciente)
+        .query(`
           INSERT INTO detalleEspecialidad 
             (claveconsulta, clavenomina, claveespecialidad, observaciones, prioridad, estatus, fecha_asignacion, clavepaciente)
           VALUES 
@@ -107,6 +109,7 @@ export default async function handler(req, res) {
 
       console.log("🟢 Registro insertado en la tabla detalleEspecialidad.");
 
+      // Actualización en la tabla consultas
       console.log("🟠 Actualizando la tabla consultas...");
       await transaction
         .request()
@@ -120,7 +123,8 @@ export default async function handler(req, res) {
           "seasignoaespecialidad",
           sql.VarChar,
           claveEspecialidadFinal ? "S" : "N"
-        ).query(`
+        )
+        .query(`
           UPDATE consultas
           SET 
             seasignoaespecialidad = @seasignoaespecialidad
@@ -129,13 +133,12 @@ export default async function handler(req, res) {
 
       console.log("🟢 Tabla consultas actualizada.");
 
-      //* Registrar actividad solo si se asignó especialidad (es decir, si observacionesFinal NO es el mensaje predeterminado)
+      // Registrar la actividad de asignación de especialidad solo si se asignó (es decir, observacionesFinal es distinto al mensaje predeterminado)
       if (
         observacionesFinal.trim() !==
         "Sin Observaciones, No Se Asignó Especialidad En Esta Consulta"
       ) {
         try {
-          //* Parsear cookies para obtener la cookie 'claveusuario'
           const allCookies = cookie.parse(req.headers.cookie || "");
           const idUsuario =
             allCookies.claveusuario !== undefined
@@ -158,7 +161,6 @@ export default async function handler(req, res) {
               .input("accion", sql.VarChar, "Asignó especialidad")
               .input("direccionIP", sql.VarChar, ip)
               .input("agenteUsuario", sql.VarChar, userAgent)
-              //* Aquí se usa la claveConsulta (proveniente de la tabla consultas) para la actividad
               .input("claveConsulta", sql.Int, parseInt(claveConsulta, 10))
               .query(`
                 INSERT INTO dbo.ActividadUsuarios 
@@ -180,14 +182,15 @@ export default async function handler(req, res) {
         }
       }
 
-      //* Commit de la transacción
+      // Confirmación de la transacción
       await transaction.commit();
       console.log("🟢 Transacción confirmada.");
 
-      //* Obtener el historial actualizado (opcional)
+      // (Opcional) Consulta para obtener el historial actualizado
       const result = await pool
         .request()
-        .input("clavenomina", sql.VarChar, clavenomina).query(`
+        .input("clavenomina", sql.VarChar, clavenomina)
+        .query(`
           SELECT 
             d.claveconsulta,
             ISNULL(e.especialidad, 'Sin asignar') AS especialidad,
@@ -202,7 +205,6 @@ export default async function handler(req, res) {
             AND d.fecha_asignacion >= DATEADD(MONTH, -1, GETDATE()) 
           ORDER BY d.fecha_asignacion DESC
         `);
-
       const historial = result.recordset;
       console.log("🟢 Historial actualizado (último mes):", historial);
 

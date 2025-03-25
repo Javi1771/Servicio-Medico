@@ -42,40 +42,40 @@ export default async function handler(req, res) {
         )
         .input(
           "temperaturapaciente",
-          sql.Decimal,
+          sql.VarChar,
           consultaData.temperaturapaciente === ""
             ? null
             : consultaData.temperaturapaciente
         )
         .input(
           "pulsosxminutopaciente",
-          sql.Int,
+          sql.VarChar,
           consultaData.pulsosxminutopaciente === ""
             ? null
             : consultaData.pulsosxminutopaciente
         )
         .input(
           "respiracionpaciente",
-          sql.Int,
+          sql.VarChar,
           consultaData.respiracionpaciente === ""
             ? null
             : consultaData.respiracionpaciente
         )
         .input(
           "estaturapaciente",
-          sql.Decimal,
+          sql.VarChar,
           consultaData.estaturapaciente === ""
             ? null
             : consultaData.estaturapaciente
         )
         .input(
           "pesopaciente",
-          sql.Decimal,
+          sql.VarChar,
           consultaData.pesopaciente === "" ? null : consultaData.pesopaciente
         )
         .input(
           "glucosapaciente",
-          sql.Int,
+          sql.VarChar,
           consultaData.glucosapaciente === ""
             ? null
             : consultaData.glucosapaciente

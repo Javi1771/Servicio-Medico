@@ -87,7 +87,7 @@ export default async function handler(req, res) {
       request.input("medicamento", sql.VarChar, medicamento);
       request.input("clasificacion", sql.NVarChar(1), clasificacion);
       request.input("presentacion", sql.Int, presentacion);
-      request.input("ean", sql.BigInt, ean);
+      request.input("ean", sql.VarChar, ean);
       request.input("piezas", sql.Int, piezas);
       request.input("maximo", sql.Int, maximo);
       request.input("minimo", sql.Int, minimo);

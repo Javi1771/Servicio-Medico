@@ -136,6 +136,11 @@ const Home = () => {
           title: "Especialista",
           options: ["Consulta Especialista"],
           icon: <FaUserMd className="inline-block mr-2" />,
+        },
+        {
+          title: "Capturas",
+          options: ["Orden de Estudio de Laboratorio"],
+          icon: <FaHeartbeat className="inline-block mr-2" />,
         }
       );
     }
