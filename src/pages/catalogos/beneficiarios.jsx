@@ -860,16 +860,18 @@ export default function RegistroBeneficiario() {
       doc.setFontSize(14);
       doc.text(
         `${NOMBRE || ""} ${A_PATERNO || ""} ${A_MATERNO || ""}`,
-        17,
-        6.3
+        16.2,
+        6.4
       ); // Nombre
       doc.text(parentescoDescripcion, 17, 7.9); // Parentesco
       doc.text(edadConAnios, 24, 7.9); // Edad
-      doc.text(vigencia, 17, 9.5); // Vigencia
+      doc.text(vigencia, 17, 9.7); // Vigencia
 
-      doc.text(EMPLEADO_NOMBRE, 17, 11.3); // Nombre del empleado
-      doc.text(NUM_NOMINA, 17, 12.9); // Número de nómina
+      doc.setFontSize(12);
+      doc.text(EMPLEADO_NOMBRE, 16.2, 11.5); // Nombre del empleado en tamaño más pequeño  doc.text(NUM_NOMINA, 17, 12.9); // Número de nómina
       const departamentoText = doc.splitTextToSize(DEPARTAMENTO, 10);
+      doc.setFontSize(15);
+      doc.text(NUM_NOMINA, 17, 13.1); // Número de nómina
       doc.text(departamentoText, 17, 14.9); // Departamento
 
       // Aquí añadimos la firma en la sección "Secretario de Administración" **en la primera página**.
@@ -1060,7 +1062,7 @@ export default function RegistroBeneficiario() {
 
       if (nombreCompleto) {
         // Define el ancho máximo (en cm) antes de forzar salto
-        const maxWidth = 8.5 * factorX;
+        const maxWidth = 10.5 * factorX;
 
         // Divide el texto solo si excede maxWidth
         const splittedName = doc.splitTextToSize(nombreCompleto, maxWidth);
@@ -1139,7 +1141,7 @@ export default function RegistroBeneficiario() {
       );
 
    // Nombre de emergencia: coordenadas originales (13.1, 12)
-doc.setFontSize(15);
+doc.setFontSize(15.2);
 const nombreEmergenciaTexto = (NOMBRE_EMERGENCIA || "Sin información").trim();
 if (nombreEmergenciaTexto) {
   const maxWidthEmergencia = 13 * factorX; // Ajusta según sea necesario
