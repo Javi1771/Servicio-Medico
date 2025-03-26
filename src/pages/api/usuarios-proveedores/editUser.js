@@ -21,7 +21,7 @@ export default async function handler(req, res) {
     costo,
   } = req.body;
 
-  // Validaciones mínimas
+  //* Validaciones mínimas
   if (!usuarioOriginal) {
     return res.status(400).json({
       message: "Falta el usuarioOriginal para localizar el registro.",
@@ -39,10 +39,10 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Conexión a la base de datos
+    //* Conexión a la base de datos
     const pool = await connectToDatabase();
 
-    // Preparar la petición de actualización
+    //* Preparar la petición de actualización
     const request = pool
       .request()
       .input("nombreproveedor", sql.VarChar, nombreproveedor)
@@ -56,12 +56,12 @@ export default async function handler(req, res) {
       .input("usuario", sql.VarChar, usuario)
       .input("usuarioOriginal", sql.VarChar, usuarioOriginal);
 
-    // Agregar costo si está definido
+    //* Agregar costo si está definido
     if (typeof costo !== "undefined") {
       request.input("costo", sql.Decimal, costo);
     }
 
-    // Definir la cláusula SET común a todos
+    //* Definir la cláusula SET común a todos
     let setClause = `
       nombreproveedor   = @nombreproveedor,
       direccionproveedor= @direccionproveedor,
@@ -95,13 +95,13 @@ export default async function handler(req, res) {
       `;
     }
 
-    // Ejecutar la consulta de actualización
+    //* Ejecutar la consulta de actualización
     await request.query(query);
 
-    // Obtener el id del proveedor actualizado (suponemos que 'usuarioOriginal' es único)
+    //* Obtener el id del proveedor actualizado usando el nuevo valor de "usuario"
     const selectResult = await pool
       .request()
-      .input("usuario", sql.VarChar, usuarioOriginal)
+      .input("usuario", sql.VarChar, usuario)
       .query(`SELECT claveproveedor FROM proveedores WHERE usuario = @usuario`);
 
     if (!selectResult.recordset.length) {
@@ -113,7 +113,7 @@ export default async function handler(req, res) {
     const idProveedor = selectResult.recordset[0].claveproveedor;
     console.log("Proveedor actualizado, id:", idProveedor);
 
-    // Registrar la actividad "Editó un proveedor"
+    //* Registrar la actividad "Editó un proveedor"
     const rawCookies = req.headers.cookie || "";
     const claveusuarioCookie = rawCookies
       .split("; ")
@@ -137,15 +137,14 @@ export default async function handler(req, res) {
         .input("accion", sql.VarChar, "Editó un proveedor")
         .input("direccionIP", sql.VarChar, ip)
         .input("agenteUsuario", sql.VarChar, userAgent)
-        .input("idProveedor", sql.Int, idProveedor).query(`
+        .input("idProveedor", sql.Int, idProveedor)
+        .query(`
           INSERT INTO dbo.ActividadUsuarios 
             (IdUsuario, Accion, FechaHora, DireccionIP, AgenteUsuario, IdProveedor)
           VALUES 
             (@userId, @accion, DATEADD(MINUTE, -4, GETDATE()), @direccionIP, @agenteUsuario, @idProveedor)
         `);
-      console.log(
-        "Actividad 'Editó un proveedor' registrada en ActividadUsuarios."
-      );
+      console.log("Actividad 'Editó un proveedor' registrada en ActividadUsuarios.");
     } else {
       console.log("No se pudo registrar la actividad: falta claveusuario.");
     }

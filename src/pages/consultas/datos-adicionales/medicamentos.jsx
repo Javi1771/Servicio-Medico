@@ -1,15 +1,14 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState, useEffect, useContext } from "react";
 import { FormularioContext } from "/src/context/FormularioContext";
-import MedicamentoDropdown from "../components/MedicamentoDropdown"; 
+import MedicamentoDropdown from "../components/MedicamentoDropdown";
+import HistorialMedicamentos from "../components/HistorialMedicamentos";
 import Swal from "sweetalert2";
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
   const [medicamentos, setMedicamentos] = useState([]);
   const [listaMedicamentos, setListaMedicamentos] = useState([]);
-  const [loadingMedicamentos, setLoadingMedicamentos] = useState(true); // Estado para controlar la carga
-  const [historialMedicamentos, setHistorialMedicamentos] = useState([]);
+  const [loadingMedicamentos, setLoadingMedicamentos] = useState(true);
   const [decisionTomada, setDecisionTomada] = useState("no");
 
   const { updateFormulario } = useContext(FormularioContext);
@@ -22,14 +21,14 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
     audio.play();
   };
 
-  //? 1) Cargar lista de medicamentos (endpoint)
+  //* Cargar lista de medicamentos (endpoint)
   useEffect(() => {
-    setLoadingMedicamentos(true); // Inicia la carga
+    setLoadingMedicamentos(true);
     fetch("/api/medicamentos/listar")
       .then((res) => res.json())
       .then((data) => {
         setListaMedicamentos(data);
-        setLoadingMedicamentos(false); // Finaliza la carga
+        setLoadingMedicamentos(false);
       })
       .catch((err) => {
         console.error("Error al cargar medicamentos:", err);
@@ -37,28 +36,23 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
       });
   }, []);
 
-  //? 2) Cargar historial de medicamentos
+  //* Recuperar decisión y medicamentos del localStorage
   useEffect(() => {
-    if (clavenomina && clavepaciente) {
-      const url = `/api/medicamentos/historial?${new URLSearchParams({
-        clavepaciente,
-        clavenomina,
-      }).toString()}`;
-      fetch(url)
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.ok) {
-            setHistorialMedicamentos(data.historial || []);
-          } else {
-            console.error("Error al cargar el historial:", data.error);
-            setHistorialMedicamentos([]);
-          }
-        })
-        .catch((err) => console.error("Error al cargar historial:", err));
-    }
-  }, [clavenomina, clavepaciente]);
+    const savedDecision = localStorage.getItem("decisionTomada");
+    const savedMedicamentos =
+      JSON.parse(localStorage.getItem("medicamentos")) || [];
+    if (savedDecision) setDecisionTomada(savedDecision);
+    if (savedMedicamentos.length > 0) setMedicamentos(savedMedicamentos);
+  }, []);
 
-  //? 3) Verificar si todos los campos están completos
+  //* Guardar medicamentos en localStorage si la decisión es "si"
+  useEffect(() => {
+    if (decisionTomada === "si") {
+      localStorage.setItem("medicamentos", JSON.stringify(medicamentos));
+    }
+  }, [medicamentos, decisionTomada]);
+
+  //* Verificar si todos los campos están completos
   useEffect(() => {
     const camposCompletos =
       decisionTomada === "no" ||
@@ -73,14 +67,12 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
     updateFormulario("Medicamentos", camposCompletos);
   }, [medicamentos, decisionTomada, updateFormulario]);
 
-  //? 4) Guardar medicamentos en localStorage si la decisión es "si"
+  //* Guardar la decisión en localStorage
   useEffect(() => {
-    if (decisionTomada === "si") {
-      localStorage.setItem("medicamentos", JSON.stringify(medicamentos));
-    }
-  }, [medicamentos, decisionTomada]);
+    localStorage.setItem("decisionTomada", decisionTomada);
+  }, [decisionTomada]);
 
-  //? 5) Manejo del cambio de decisión (Sí/No)
+  //* Manejar el cambio de decisión (Sí/No)
   const handleDecision = (decision) => {
     setDecisionTomada(decision);
     if (decision === "no") {
@@ -98,46 +90,21 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
     localStorage.setItem("decisionTomada", decision);
   };
 
-  //? 6) Al montar, recuperar decisión, medicamentos e historial del localStorage
-  useEffect(() => {
-    const savedDecision = localStorage.getItem("decisionTomada");
-    const savedMedicamentos =
-      JSON.parse(localStorage.getItem("medicamentos")) || [];
-    const savedHistorial =
-      JSON.parse(localStorage.getItem("historialMedicamentos")) || [];
-    if (savedDecision) setDecisionTomada(savedDecision);
-    if (savedMedicamentos.length > 0) setMedicamentos(savedMedicamentos);
-    if (savedHistorial.length > 0) setHistorialMedicamentos(savedHistorial);
-  }, []);
-
-  //? 7) Guardar el historial de medicamentos en localStorage al cambiar
-  useEffect(() => {
-    localStorage.setItem(
-      "historialMedicamentos",
-      JSON.stringify(historialMedicamentos)
-    );
-  }, [historialMedicamentos]);
-
-  //? 8) Manejar cambio en la selección o texto de cada medicamento
+  //* Manejar cambio en la selección o texto de cada medicamento
   const handleMedicamentoChange = (index, field, value) => {
     const nuevosMedicamentos = [...medicamentos];
     nuevosMedicamentos[index][field] = value;
     setMedicamentos(nuevosMedicamentos);
   };
 
-  //? 9) Guardar la decisión en localStorage
-  useEffect(() => {
-    localStorage.setItem("decisionTomada", decisionTomada);
-  }, [decisionTomada]);
-
-  //? 10) Agregar un nuevo objeto medicamento
+  //* Agregar un nuevo objeto medicamento
   const agregarMedicamento = () =>
     setMedicamentos([
       ...medicamentos,
       { medicamento: "", indicaciones: "", tratamiento: "", piezas: "" },
     ]);
 
-  //? 11) Quitar un medicamento del array
+  //! Quitar un medicamento del array
   const quitarMedicamento = (index) =>
     setMedicamentos(medicamentos.filter((_, i) => i !== index));
 
@@ -180,7 +147,7 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
             className="mb-6 bg-gradient-to-br from-gray-700 to-gray-800 p-6 rounded-lg shadow-lg"
           >
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              {/* Selección de Medicamento (componente separado) */}
+              {/* Selección de Medicamento */}
               <div>
                 <label className="text-lg font-semibold text-gray-200">
                   Medicamento:
@@ -192,7 +159,7 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
                   onChangeMedicamento={(claveMed) =>
                     handleMedicamentoChange(index, "medicamento", claveMed)
                   }
-                  isLoading={loadingMedicamentos} // Propiedad para mostrar el spinner
+                  isLoading={loadingMedicamentos}
                 />
               </div>
 
@@ -284,72 +251,11 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
         </div>
       )}
 
-      {/* Historial de Medicamentos */}
-      <div className="bg-gray-900 p-8 rounded-xl shadow-2xl mt-10">
-        <h3 className="text-3xl font-semibold text-center text-purple-400 mb-6">
-          Historial de Medicamentos
-        </h3>
-        <div className="overflow-x-auto">
-          <table className="min-w-full rounded-lg text-left">
-            <thead>
-              <tr className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white border-b border-gray-700">
-                <th className="py-4 px-6 text-base font-semibold">
-                  Medicamento
-                </th>
-                <th className="py-4 px-6 text-base font-semibold">
-                  Indicaciones
-                </th>
-                <th className="py-4 px-6 text-base font-semibold">
-                  Tratamiento
-                </th>
-                <th className="py-4 px-6 text-base font-semibold">Piezas</th>
-                <th className="py-4 px-6 text-base font-semibold">Proveedor</th>
-                <th className="py-4 px-6 text-base font-semibold">
-                  Fecha Emisión
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {historialMedicamentos.length > 0 ? (
-                historialMedicamentos.map((item, i) => (
-                  <tr
-                    key={i}
-                    className="hover:bg-purple-600 hover:bg-opacity-50 transition-colors duration-300"
-                  >
-                    <td className="py-4 px-6 border-t border-gray-800 text-gray-300">
-                      {item.medicamento}
-                    </td>
-                    <td className="py-4 px-6 border-t border-gray-800 text-gray-300">
-                      {item.indicaciones}
-                    </td>
-                    <td className="py-4 px-6 border-t border-gray-800 text-gray-300">
-                      {item.tratamiento || ""}
-                    </td>
-                    <td className="py-4 px-6 border-t border-gray-800 text-gray-300">
-                      {item.piezas || ""}
-                    </td>
-                    <td className="py-4 px-6 border-t border-gray-800 text-gray-300">
-                      {item.nombreproveedor || ""}
-                    </td>
-                    <td className="py-4 px-6 border-t border-gray-800 text-gray-300">
-                      {item.fechaEmision}
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td
-                    colSpan="7"
-                    className="py-6 text-center text-gray-400 border-t border-gray-800"
-                  >
-                    No hay medicamentos registrados.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      {/* Componente separado para el Historial */}
+      <HistorialMedicamentos
+        clavenomina={clavenomina}
+        clavepaciente={clavepaciente}
+      />
     </div>
   );
 };

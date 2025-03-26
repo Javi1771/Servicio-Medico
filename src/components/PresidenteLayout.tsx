@@ -119,7 +119,6 @@ const PresidenteLayout: React.FC<PresidenteLayoutProps> = ({ children }) => {
       options: [
         { name: "Beneficiarios", path: "/catalogos/beneficiarios" },
         { name: "Especialidades", path: "/catalogos/especialidades" },
-        { name: "Medicamentos", path: "/catalogos/medicamentos" },
         {
           name: "Enfermedades Crónicas",
           path: "/catalogos/enfermedades-cronicas",
@@ -147,6 +146,7 @@ const PresidenteLayout: React.FC<PresidenteLayoutProps> = ({ children }) => {
         },
         { name: "Incapacidades", path: "/capturas/incapacidades" },
         { name: "Costos", path: "/capturas/costos" },
+        { name: "Cancelaciones", path: "/capturas/cancelaciones" },
       ],
     },
     {

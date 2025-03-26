@@ -98,6 +98,8 @@ const Home = () => {
             "Surtimientos",
             "Orden de Estudio de Laboratorio",
             "Incapacidades",
+            "Costos",
+            "Cancelaciones",
           ],
           icon: <FaHeartbeat className="inline-block mr-2" />,
         },
@@ -161,7 +163,8 @@ const Home = () => {
           "Surtimientos",
           "Orden de Estudio de Laboratorio",
           "Incapacidades",
-          "Costos"
+          "Costos",
+          "Cancelaciones",
         ],
         icon: <FaHeartbeat className="inline-block mr-2" />,
       });
