@@ -1,4 +1,5 @@
 /* Fondo con glassmorphism y blur */
+/* Fondo con glassmorphism y blur */
 .modalOverlay {
   position: fixed;
   top: 0;
@@ -6,31 +7,31 @@
   width: 100%;
   height: 100%;
   background: rgba(41, 41, 41, 0.6); /* Fondo más oscuro */
-  backdrop-filter: blur(12px); /* Aumenta el blur para un efecto más marcado */
+  backdrop-filter: blur(12px); /* Blur marcado */
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 10000; /* Asegura que el modal esté por encima de otros elementos */
-  pointer-events: all; /* Asegura que el modal reciba eventos de mouse */
-  transition: opacity 0.3s ease; /* Transición suave de opacidad */
+  z-index: 10000; /* Por encima de otros elementos */
+  pointer-events: all; /* Recibe todos los eventos */
+  transition: opacity 0.3s ease; /* Transición de opacidad */
 }
 
-/* Contenedor del modal con bordes sutiles y efecto de profundidad */
+/* Contenedor del modal con mayor ancho y alto */
 .modalContent {
-  background: rgba(255, 255, 255, 0.9); /* Fondo más claro con transparencia */
+  background: rgb(255 255 255 / 17%);
   border-radius: 12px;
   padding: 2rem;
-  width: 80%;
-  max-width: 900px;
-  max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3); /* Sombra más suave */
+  width: 90%;           /* Aumenta el ancho */
+  max-width: 1200px;    /* Ancho máximo mayor */
+  max-height: 95vh;     /* Permite ocupar hasta casi el alto de la pantalla */
+  overflow-y: auto;     /* Scroll vertical si es necesario */
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3); /* Sombra suave */
   animation: modalFadeIn 0.5s ease;
-  pointer-events: all; /* Asegura que el modal reciba eventos de mouse */
-  z-index: 10001; /* Garantiza que el contenido del modal esté por encima del fondo */
+  pointer-events: all;
+  z-index: 10001;
 }
 
-/* Animación modal con efecto de escala */
+/* Animación de entrada */
 @keyframes modalFadeIn {
   from {
     opacity: 0;
@@ -42,14 +43,14 @@
   }
 }
 
-/* Ajuste de iframe para una mejor visualización */
+/* Ajuste del iframe para visualizar el PDF completo */
 .modalContent iframe {
   width: 100%;
-  height: 750px; /* Ajustamos la altura */
-  border-radius: 12px; /* Bordes redondeados más suaves */
+  height: 800px;        /* Altura extendida para ver toda la receta */
+  border-radius: 12px;
   border: 0;
   margin-bottom: 1rem;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Sombra ligera para el iframe */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 /* Link de descarga con estilo de botón suave */

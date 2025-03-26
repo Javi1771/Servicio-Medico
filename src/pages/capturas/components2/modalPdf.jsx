@@ -1,5 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { PDFDocument, rgb } from "pdf-lib";
 import JsBarcode from "jsbarcode";
 import styles from "../../css/SURTIMIENTOS_ESTILOS/modalPdf.module.css";
@@ -50,9 +51,7 @@ const ModalPdf = ({ folio, onClose }) => {
       if (!data || Object.keys(data).length === 0 || !data.nombre) {
         return "No encontrado";
       }
-      const nombreCompleto = `${data.nombre ?? ""} ${data.a_paterno ?? ""} ${
-        data.a_materno ?? ""
-      }`.trim();
+      const nombreCompleto = `${data.nombre ?? ""} ${data.a_paterno ?? ""} ${data.a_materno ?? ""}`.trim();
       console.log("✅ Nombre completo obtenido:", nombreCompleto);
       return nombreCompleto;
     } catch (error) {
@@ -148,9 +147,7 @@ const ModalPdf = ({ folio, onClose }) => {
         const medName = String(med.nombreMedicamento ?? "Desconocido");
         const medNameLines = wrapText(medName, 25); // Ajusta 25 según convenga
 
-        // Dibujamos cada línea de nombre de medicamento
         medNameLines.forEach((line, i) => {
-          // Cada línea bajará 10 px
           page.drawText(line, {
             x: 60,
             y: yPos - i * 10,
@@ -179,12 +176,11 @@ const ModalPdf = ({ folio, onClose }) => {
           size: 10,
         });
 
-        // e) Avanzamos al siguiente renglón
         yPos -= step;
       });
 
       // 8. Datos del doctor y firma
-      page.drawText(`Dr. ${doctor ?? "Desconocido"}`, {
+      page.drawText(`${doctor ?? "Desconocido"}`, {
         x: 71,
         y: 95,
         size: 12,
@@ -233,18 +229,14 @@ const ModalPdf = ({ folio, onClose }) => {
 
         console.log("📌 Datos recibidos de la API:", data);
 
-        // Guardar la data (aunque no la usemos directamente)
         setDataReceta(data);
 
-        // Si la API retorna CLAVEUSUARIO, lo usamos para obtener el doctor
         if (data.CLAVEUSUARIO) {
           fetchDoctorName(data.CLAVEUSUARIO);
         }
 
-        // Obtener el nombre del empleado usando la propiedad NOMINA
         const nombreEmpleado = await fetchNombreEmpleado(data.NOMINA);
 
-        // Generar el PDF
         const pdfBytes = await generatePdf(data, nombreEmpleado);
         const pdfBlob = new Blob([pdfBytes], { type: "application/pdf" });
         setPdfUrl(URL.createObjectURL(pdfBlob));
@@ -259,7 +251,8 @@ const ModalPdf = ({ folio, onClose }) => {
     fetchPdf();
   }, [folio]);
 
-  return (
+  // Renderizamos el modal usando un portal para aislarlo del árbol principal
+  return createPortal(
     <div className={styles.modalOverlay}>
       <div className={styles.modalContent}>
         <h2>Receta Generada</h2>
@@ -292,8 +285,10 @@ const ModalPdf = ({ folio, onClose }) => {
           Cerrar
         </button>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 
 export default ModalPdf;
+0
