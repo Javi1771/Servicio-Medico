@@ -2,7 +2,14 @@ import React, { useState } from "react";
 import Swal from "sweetalert2";
 import ModalPdf from "./modalPdf";
 import styles from "../../css/SURTIMIENTOS_ESTILOS/cargaMedicamentos.module.css";
-import { FaPills, FaRegEdit, FaHashtag, FaBoxes, FaPlus, FaSave } from "react-icons/fa"; // Asegúrate de importar los íconos correctos
+import {
+  FaPills,
+  FaRegEdit,
+  FaHashtag,
+  FaBoxes,
+  FaPlus,
+  FaSave,
+} from "react-icons/fa";
 
 const CargaMedicamentosForm = ({
   medicamentos,
@@ -12,7 +19,11 @@ const CargaMedicamentosForm = ({
   folio,
   receta,
 }) => {
-  const [selectedMedicamento, setSelectedMedicamento] = useState("");
+  // "searchText" es el texto que se muestra en el input.
+  const [searchText, setSearchText] = useState("");
+  // "selectedMedicamentoCode" es la clave real del medicamento.
+  const [selectedMedicamentoCode, setSelectedMedicamentoCode] = useState("");
+
   const [indicaciones, setIndicaciones] = useState("");
   const [cantidad, setCantidad] = useState("");
   const [piezas, setPiezas] = useState("");
@@ -28,13 +39,43 @@ const CargaMedicamentosForm = ({
     audio.play();
   };
 
+  /**
+   * Maneja el cambio de texto en el input.
+   * Busca si el texto coincide con algún medicamento para obtener su clave.
+   */
+  const handleChangeMedicamento = (e) => {
+    const newText = e.target.value;
+    setSearchText(newText);
+
+    // Busca si coincide exactamente con uno de los textos generados en la lista
+    const foundMed = medicamentos.find((med) => {
+      const displayText = getDisplayText(med);
+      return displayText === newText;
+    });
+
+    // Si lo encuentra, guardamos la clave. Si no, ponemos "".
+    if (foundMed) {
+      setSelectedMedicamentoCode(foundMed.CLAVEMEDICAMENTO);
+    } else {
+      setSelectedMedicamentoCode("");
+    }
+  };
+
+  /**
+   * Devuelve el texto que se muestra en el <option> de cada medicamento.
+   */
+  const getDisplayText = (med) => {
+    return `${med.MEDICAMENTO} - Presentación: c/${med.PRESENTACION} - Piezas: ${med.PIEZAS}`;
+  };
+
   const handleAddMedicamentoLocal = () => {
-    if (!selectedMedicamento) {
+    // Validar si se ha seleccionado (por clave) un medicamento
+    if (!selectedMedicamentoCode) {
       playSound(false);
       Swal.fire({
         icon: "warning",
         title: "Atención",
-        text: "Por favor, selecciona un medicamento.",
+        text: "Por favor, selecciona un medicamento válido.",
       });
       return;
     }
@@ -67,7 +108,7 @@ const CargaMedicamentosForm = ({
     }
 
     // Verificar si ya existe en la receta
-    if (receta.find((med) => med.claveMedicamento === selectedMedicamento)) {
+    if (receta.find((med) => med.claveMedicamento === selectedMedicamentoCode)) {
       playSound(false);
       Swal.fire({
         icon: "error",
@@ -77,23 +118,35 @@ const CargaMedicamentosForm = ({
       return;
     }
 
-    // Obtener la información del medicamento seleccionado para agregar el nombre
+    // Obtener la información del medicamento por la clave
     const medSeleccionado = medicamentos.find(
-      (med) => med.CLAVEMEDICAMENTO === selectedMedicamento
+      (med) => med.CLAVEMEDICAMENTO === selectedMedicamentoCode
     );
+
+    if (!medSeleccionado) {
+      playSound(false);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "El medicamento seleccionado no existe.",
+      });
+      return;
+    }
+
     const nuevoMedicamento = {
-      claveMedicamento: selectedMedicamento,
+      claveMedicamento: selectedMedicamentoCode,
       nombreMedicamento: medSeleccionado.MEDICAMENTO,
       indicaciones,
       cantidad,
       piezas,
-      clasificacion: medSeleccionado.CLASIFICACION, // <-- AÑADE ESTO
+      clasificacion: medSeleccionado.CLASIFICACION,
     };
 
     onAddMedicamento(nuevoMedicamento);
 
     // Limpiar campos
-    setSelectedMedicamento("");
+    setSearchText("");
+    setSelectedMedicamentoCode("");
     setIndicaciones("");
     setCantidad("");
     setPiezas("");
@@ -124,20 +177,26 @@ const CargaMedicamentosForm = ({
         <label htmlFor="medicamento" className={styles.labelWithIcon}>
           <FaPills className={styles.icon} /> Medicamento
         </label>
-        <select
+        {/*
+          Usamos un <input list="medicamentosList"> para que funcione como buscador.
+          - "searchText" es lo que se muestra en el input.
+          - "selectedMedicamentoCode" es la clave real.
+        */}
+        <input
+          list="medicamentosList"
           id="medicamento"
-          value={selectedMedicamento}
-          onChange={(e) => setSelectedMedicamento(e.target.value)}
+          value={searchText}
+          onChange={handleChangeMedicamento}
           className={styles.select}
+          placeholder="Seleccionar Medicamento"
           disabled={disableAdd}
-        >
-          <option value="">Seleccionar Medicamento</option>
+          style={{ width: "1146px" }} // Ajusta según necesites
+        />
+        <datalist id="medicamentosList">
           {medicamentos.map((med) => (
-            <option key={med.CLAVEMEDICAMENTO} value={med.CLAVEMEDICAMENTO}>
-              {`${med.MEDICAMENTO} - Presentación: c/${med.PRESENTACION} - Piezas: ${med.PIEZAS}`}
-            </option>
+            <option key={med.CLAVEMEDICAMENTO} value={getDisplayText(med)} />
           ))}
-        </select>
+        </datalist>
       </div>
 
       <div className={styles.inputGroup}>

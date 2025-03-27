@@ -22,7 +22,6 @@ import HistorialMedicamentos from "../../pages/consultas/components/HistorialMed
 // hook para obtener clave y nómina
 import useFetchClaveNominaPaciente from "../../hooks/hookSURTIMIENTOS2/useFetchClaveNominaPaciente";
 
-
 import { useRouter } from "next/router";
 import useFetchMedicamentosReceta from "../../hooks/hookSURTIMIENTOS2/useFetchMedicamentosReceta";
 import TablaMedicamentos from "./components2/tablaMedicamentos";
@@ -31,7 +30,6 @@ import jsPDF from "jspdf";
 import "jspdf-autotable";
 
 const SurtimientosBanner = () => {
-  
   // Llamada al hook dentro del componente
   const {
     data: claveData,
@@ -135,16 +133,19 @@ const SurtimientosBanner = () => {
         });
         return;
       }
-  
-      // Llamadas a otros hooks para obtener datos del empleado, paciente, sindicato y especialista
+
+      // Reinicia los datos antes de realizar una nueva búsqueda
+      setReceta([]);
+      // Aquí podrías reiniciar otros estados si fuera necesario
+
+      // Llama a las funciones para obtener datos del empleado, paciente, sindicato, especialista y clave
       fetchEmpleado(folioNumero);
       fetchPaciente(folioNumero);
       fetchSindicato(folioNumero);
       fetchEspecialista(folioNumero);
-  
-      // Llamada a la API para obtener la clave de nómina y clave de paciente
       fetchClaveData(folioNumero);
-  
+
+      // Luego, realiza la llamada para obtener los medicamentos de la receta
       try {
         const response = await fetch(
           "/api/SURTIMIENTOS2/getMedicamentosReceta",
@@ -154,15 +155,13 @@ const SurtimientosBanner = () => {
             body: JSON.stringify({ folioReceta: folioNumero }),
           }
         );
-  
+
         if (!response.ok) {
           throw new Error("Error al obtener los medicamentos.");
         }
-  
+
         const data = await response.json();
-        setReceta(data); // Actualizar la receta local
-  
-        // Actualizar medicamentosReceta
+        setReceta(data);
         fetchMedicamentosReceta(folioNumero);
       } catch (error) {
         console.error("Error al obtener medicamentos:", error);
@@ -176,7 +175,6 @@ const SurtimientosBanner = () => {
       }
     }
   };
-  
 
   // Añadir medicamento a la receta local
   const handleAddMedicamento = (medicamento) => {
@@ -221,9 +219,7 @@ const SurtimientosBanner = () => {
 
         if (!surtimientoResponse.ok) {
           const errorData = await surtimientoResponse.json();
-          throw new Error(
-            errorData.message || "Error al generar surtimiento"
-          );
+          throw new Error(errorData.message || "Error al generar surtimiento");
         }
 
         playSound(true);
@@ -247,9 +243,7 @@ const SurtimientosBanner = () => {
 
         if (!recetaResponse.ok) {
           const errorData = await recetaResponse.json();
-          throw new Error(
-            errorData.message || "Error al guardar la receta."
-          );
+          throw new Error(errorData.message || "Error al guardar la receta.");
         }
 
         playSound(true);
@@ -417,12 +411,14 @@ const SurtimientosBanner = () => {
             </div>
 
             {/* Llamada al componente HistorialMedicamentos */}
-            {isFolioValido && (
-      <HistorialMedicamentos
-        clavenomina={claveData?.NOMINA || ""}
-        clavepaciente={claveData?.CLAVE_PACIENTE || ""}
-      />
-    )}
+       
+            <HistorialMedicamentos
+  key={folio}
+  clavenomina={claveData?.NOMINA || ""}
+  clavepaciente={claveData?.CLAVE_PACIENTE || ""}
+/>
+
+          
           </div>
         )}
       </div>

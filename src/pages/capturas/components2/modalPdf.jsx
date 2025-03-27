@@ -9,7 +9,6 @@ const ModalPdf = ({ folio, onClose }) => {
   const [pdfUrl, setPdfUrl] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  // No necesitamos leer la receta, solo guardarla en un state si quieres.
   const [, setDataReceta] = useState(null);
   const [, setNombreDoctor] = useState("Dr.");
 
@@ -22,7 +21,7 @@ const ModalPdf = ({ folio, onClose }) => {
     return text.match(regex) || [];
   }
 
-  // Ejemplo para obtener el nombre del doctor si te hace falta
+  // Obtener el nombre del doctor
   const fetchDoctorName = async (claveUsuario) => {
     try {
       const response = await fetch(`/api/getDoctor?claveusuario=${claveUsuario}`);
@@ -59,53 +58,42 @@ const ModalPdf = ({ folio, onClose }) => {
   };
 
   /**
-   * Dibuja campos generales en la página (fecha, nómina, empleado).
+   * Dibuja campos generales en la parte superior de la página (fecha, nómina, empleado).
    */
+  // Función para formatear la fecha con día de la semana en español
+function formatFecha(fecha) {
+  const date = new Date(fecha);
+  const diasSemana = [
+    "Domingo",
+    "Lunes",
+    "Martes",
+    "Miércoles",
+    "Jueves",
+    "Viernes",
+    "Sábado",
+  ];
+  const diaSemana = diasSemana[date.getUTCDay()];
+  const dia = String(date.getUTCDate()).padStart(2, "0");
+  const mes = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const año = date.getUTCFullYear();
+  const horas = date.getUTCHours();
+  const minutos = String(date.getUTCMinutes()).padStart(2, "0");
+  const periodo = horas >= 12 ? "p.m." : "a.m.";
+  const horas12 = horas % 12 === 0 ? 12 : horas % 12;
+
+  return `${diaSemana}, ${dia}/${mes}/${año}, ${horas12}:${minutos} ${periodo}`;
+}
+
+
+  
   const drawGeneralFields = (page, data, nombreEmpleado, folio) => {
-    page.drawText(String(data.FECHA_EMISION ?? "N/A"), { x: 102, y: 664, size: 10 });
-    page.drawText(String(data.NOMINA ?? "N/A"), { x: 109, y: 645, size: 10 });
+  // Usamos la función para formatear la fecha
+  const formattedFecha = formatFecha(data.FECHA_EMISION);
+  page.drawText(formattedFecha, { x: 102, y: 664, size: 10 });    page.drawText(String(data.NOMINA ?? "N/A"), { x: 109, y: 645, size: 10 });
     page.drawText(String(nombreEmpleado ?? "N/A"), { x: 120, y: 627, size: 10 });
 
-    // Solo para logging, el barcode real lo dibujamos en generatePdf.
     const barcodeString = `${data.NOMINA} ${data.CLAVEMEDICO} ${folio} ${Number(data.FOLIO_SURTIMIENTO)}`;
     console.log("Barcode string (para esta página):", barcodeString);
-  };
-
-  /**
-   * Dibuja la "tabla" de medicamentos (nombre, indicaciones, etc.).
-   */
-  const drawMedicationsTable = (page, medsArray) => {
-    let yPos = 350;
-    const step = 25;
-    medsArray.forEach((med) => {
-      // Nombre (con wrap)
-      const medName = String(med.nombreMedicamento ?? "Desconocido");
-      const medNameLines = wrapText(medName, 25);
-      medNameLines.forEach((line, i) => {
-        page.drawText(line, {
-          x: 60,
-          y: yPos - i * 10,
-          size: 10,
-        });
-      });
-      // Indicaciones, cantidad y piezas
-      page.drawText(String(med.indicaciones ?? "Sin indicaciones"), {
-        x: 230,
-        y: yPos,
-        size: 10,
-      });
-      page.drawText(String(med.cantidad ?? "N/A"), {
-        x: 410,
-        y: yPos,
-        size: 10,
-      });
-      page.drawText(String(med.piezas ?? "N/A"), {
-        x: 550,
-        y: yPos,
-        size: 10,
-      });
-      yPos -= step;
-    });
   };
 
   /**
@@ -120,120 +108,225 @@ const ModalPdf = ({ folio, onClose }) => {
       page.drawText(line, { x: 410, y: yDepartamento, size: 10 });
       yDepartamento -= 12;
     });
+  
     // Sindicato
-    page.drawText(String(data.SINDICATO ?? "N/A"), { x: 410, y: 626, size: 10 });
-
+    page.drawText(String(data.SINDICATO ?? ""), { x: 410, y: 626, size: 10 });
+  
     // Paciente
     page.drawText(String(data.NOMBRE_PACIENTE ?? "N/A"), { x: 115, y: 571, size: 10 });
-    page.drawText(String(data.NOMBRE_PACIENTE ?? "N/A"), { x: 400, y: 75, size: 10 });
+    page.drawText(String(data.NOMBRE_PACIENTE ?? "N/A"), { x: 345, y: 75, size: 10 });
     page.drawText(String(data.EDAD ?? "N/A"), { x: 435, y: 571, size: 10 });
-    page.drawText(String(data.DIAGNOSTICO ?? "N/A"), { x: 50, y: 510, size: 10 });
-
+  
+    // === Aquí sustituimos el diagnóstico anterior por el nuevo bloque con wrapText y size=6 ===
+    const diagnosticoTexto = String(data.DIAGNOSTICO ?? "N/A").trim();
+    const diagnosticoLineas = wrapText(diagnosticoTexto, 130);
+  
+    let yDiag = 510;
+    diagnosticoLineas.forEach((line) => {
+      page.drawText(line, {
+        x: 60,  // Margen horizontal
+        y: yDiag,
+        size: 6,  // Tamaño de letra 6
+      });
+      yDiag -= 8; // Espacio vertical entre líneas
+    });
+  
     // Firma del doctor y nombre de quien elaboró
     page.drawText(`${data.doctor ?? "Desconocido"}`, { x: 71, y: 95, size: 12, color: rgb(0, 0, 0) });
     page.drawText(` ${data.cedula ?? "No disponible"}`, { x: 40, y: 82, size: 9, color: rgb(0, 0, 0) });
     page.drawText(`${data.elaboro ?? "Desconocido"}`, { x: 400, y: 18, size: 10, color: rgb(0, 0, 0) });
   };
+  
 
   /**
-   * Genera el PDF, separando controlados (C) de no controlados.
-   * - Todos los no controlados en la primera página.
-   * - Para cada controlado, una página individual.
+   * Crea una página nueva (clonada) y dibuja en ella los campos generales, remainingFields y el código de barras.
    */
-/**
- * Genera el PDF separando los no controlados en 1 sola hoja
- * y cada controlado en hojas aparte, SIN sobreescribir la base.
- */
-const generatePdf = async (data, nombreEmpleado) => {
-  try {
-    // 1. Cargamos la plantilla base
-    const response = await fetch("/Receta-Farmacia.pdf");
-    const templateBytes = await response.arrayBuffer();
+  const createNewPage = async (outerDoc, templateDoc, data, nombreEmpleado, folio) => {
+    const [newPage] = await outerDoc.copyPages(templateDoc, [0]);
+    outerDoc.addPage(newPage);
 
-    // 2. Creamos el documento final vacío
-    const outerDoc = await PDFDocument.create();
+    // 1) Campos generales arriba
+    drawGeneralFields(newPage, data, nombreEmpleado, folio);
 
-    // 3. Cargamos la plantilla en un doc aparte
-    const templateDoc = await PDFDocument.load(templateBytes);
-    // Obtenemos la “página base” (índice 0)
-    const [templatePage] = templateDoc.getPages();
+    // 2) Insertamos código de barras
+    const barcodeString = `${data.NOMINA} ${data.CLAVEMEDICO} ${folio} ${Number(data.FOLIO_SURTIMIENTO)}`;
+    const canvas = document.createElement("canvas");
+    JsBarcode(canvas, barcodeString, {
+      format: "CODE128",
+      displayValue: true,
+      width: 2,
+      height: 40,
+    });
+    const barcodeImage = await outerDoc.embedPng(canvas.toDataURL("image/png"));
+    newPage.drawImage(barcodeImage, { x: 275, y: 710, width: 220, height: 50 });
 
-    // 4. Separamos los medicamentos
-    const controlledMeds = data.medicamentos.filter((med) =>
-      (med.clasificacion || "").trim().toUpperCase() === "C"
-    );
-    const nonControlledMeds = data.medicamentos.filter((med) =>
-      (med.clasificacion || "").trim().toUpperCase() !== "C"
-    );
+    // 3) Dibujamos también los campos “restantes” (departamento, sindicato, etc.)
+    drawRemainingFields(newPage, data);
 
-    // 5. Si hay no controlados, clonamos la página base en outerDoc
-    if (nonControlledMeds.length > 0) {
-      const [outerPage] = await outerDoc.copyPages(templateDoc, [0]); 
-      // Dibujamos su contenido en la página clonada
-      drawGeneralFields(outerPage, data, nombreEmpleado, folio);
+    return newPage;
+  };
 
-      // Insertar código de barras
-      {
-        const barcodeString = `${data.NOMINA} ${data.CLAVEMEDICO} ${folio} ${Number(
-          data.FOLIO_SURTIMIENTO
-        )}`;
-        const canvas = document.createElement("canvas");
-        JsBarcode(canvas, barcodeString, {
-          format: "CODE128",
-          displayValue: true,
-          width: 2,
-          height: 40,
-        });
-        const barcodeDataUrl = canvas.toDataURL("image/png");
-        const barcodeImage = await outerDoc.embedPng(barcodeDataUrl);
-        outerPage.drawImage(barcodeImage, { x: 275, y: 710, width: 220, height: 50 });
+  /**
+   * Función que dibuja (paginando) los medicamentos no controlados.
+   * - outerDoc y templateDoc se usan para clonar páginas cuando no cabe el siguiente med.
+   * - page es la página actual donde dibujamos.
+   */
+  const drawMedicationsTablePaginated = async ({
+    outerDoc,
+    templateDoc,
+    page,
+    medsArray,
+    data,
+    nombreEmpleado,
+    folio,
+  }) => {
+    let yPos = 350;             // Posición vertical inicial de la tabla
+    const lineSpacing = 10;
+    const rowSpacing = 25;
+    const BOTTOM_MARGIN = 100;
+
+    // Recorremos los medicamentos
+    for (const med of medsArray) {
+      const medName = String(med.nombreMedicamento ?? "Desconocido");
+      const indicacionesText = String(med.indicaciones ?? "Sin indicaciones");
+      const tratamientoText = String(med.cantidad ?? "N/A");
+      const piezasText = String(med.piezas ?? "N/A");
+
+      // Ajusta caracteres para cada columna
+      const medNameLines = wrapText(medName, 35);
+      const indicacionesLines = wrapText(indicacionesText, 26);
+      const tratamientoLines = wrapText(tratamientoText, 27);
+
+      // Máximo de líneas que se pintarán
+      const maxLines = Math.max(
+        medNameLines.length,
+        indicacionesLines.length,
+        tratamientoLines.length
+      );
+
+      // Altura total que ocupará este medicamento
+      const totalHeightNeeded = rowSpacing + (maxLines - 1) * lineSpacing;
+
+      // ¿Cabe en la página actual?
+      if (yPos - totalHeightNeeded < BOTTOM_MARGIN) {
+        // No cabe -> creamos nueva página (que también dibuja generalFields, remainingFields y barcode)
+        page = await createNewPage(outerDoc, templateDoc, data, nombreEmpleado, folio);
+        yPos = 350;
       }
 
-      drawMedicationsTable(outerPage, nonControlledMeds);
-      drawRemainingFields(outerPage, data);
+      // Dibuja cada línea
+      for (let i = 0; i < maxLines; i++) {
+        if (i < medNameLines.length) {
+          page.drawText(medNameLines[i], {
+            x: 40,
+            y: yPos - i * lineSpacing,
+            size: 8,
+          });
+        }
 
-      // Agregamos la página resultante al doc final
-      outerDoc.addPage(outerPage);
-    }
+        if (i < indicacionesLines.length) {
+          page.drawText(indicacionesLines[i], {
+            x: 220,
+            y: yPos - i * lineSpacing,
+            size: 8,
+          });
+        }
 
-    // 6. Para cada med controlado, clonamos de nuevo la página base “limpia”
-    for (let med of controlledMeds) {
-      const [outerPageControlled] = await outerDoc.copyPages(templateDoc, [0]);
-      drawGeneralFields(outerPageControlled, data, nombreEmpleado, folio);
+        if (i < tratamientoLines.length) {
+          page.drawText(tratamientoLines[i], {
+            x: 410,
+            y: yPos - i * lineSpacing,
+            size: 8,
+          });
+        }
 
-      // Código de barras
-      {
-        const barcodeString = `${data.NOMINA} ${data.CLAVEMEDICO} ${folio} ${Number(
-          data.FOLIO_SURTIMIENTO
-        )}`;
-        const canvas = document.createElement("canvas");
-        JsBarcode(canvas, barcodeString, {
-          format: "CODE128",
-          displayValue: true,
-          width: 2,
-          height: 40,
-        });
-        const barcodeDataUrl = canvas.toDataURL("image/png");
-        const barcodeImage = await outerDoc.embedPng(barcodeDataUrl);
-        outerPageControlled.drawImage(barcodeImage, { x: 275, y: 710, width: 220, height: 50 });
+        // Piezas solo en la primera línea
+        if (i === 0) {
+          page.drawText(piezasText, {
+            x: 560,
+            y: yPos,
+            size: 8,
+          });
+        }
       }
 
-      // Dibuja solo este medicamento
-      drawMedicationsTable(outerPageControlled, [med]);
-      drawRemainingFields(outerPageControlled, data);
-
-      // Agregamos la página al doc final
-      outerDoc.addPage(outerPageControlled);
+      // Bajamos Y para el siguiente medicamento
+      yPos -= totalHeightNeeded;
     }
 
-    // 7. Retornamos los bytes del doc final
-    return await outerDoc.save();
-  } catch (err) {
-    console.error("❌ Error al procesar el PDF:", err);
-    throw new Error("Error al generar el PDF.");
-  }
-};
+    // Devuelve la página final en que terminamos
+    return page;
+  };
 
+  /**
+   * Genera el PDF final, con paginación para no controlados y
+   * una página por cada medicamento controlado.
+   * En cada página (sea la primera o creada después), se dibujan
+   * los datos de "secretaria, sindicato, nombre, edad y diagnostico"
+   * desde el principio.
+   */
+  const generatePdf = async (data, nombreEmpleado) => {
+    try {
+      // 1. Cargar la plantilla base
+      const response = await fetch("/Receta-Farmacia.pdf");
+      const templateBytes = await response.arrayBuffer();
+
+      // 2. Crear documento final vacío
+      const outerDoc = await PDFDocument.create();
+
+      // 3. Cargar la plantilla
+      const templateDoc = await PDFDocument.load(templateBytes);
+
+      // 4. Separar medicamentos controlados y no controlados
+      const controlledMeds = data.medicamentos.filter(
+        (med) => (med.clasificacion || "").trim().toUpperCase() === "C"
+      );
+      const nonControlledMeds = data.medicamentos.filter(
+        (med) => (med.clasificacion || "").trim().toUpperCase() !== "C"
+      );
+
+      // 5. Manejo de NO controlados (paginados)
+      if (nonControlledMeds.length > 0) {
+        // Creamos la primera página
+        // (También dibuja fields + barcode + remainingFields)
+        const firstPage = await createNewPage(outerDoc, templateDoc, data, nombreEmpleado, folio);
+
+        // Dibujamos medicamentos no controlados con paginación
+        await drawMedicationsTablePaginated({
+          outerDoc,
+          templateDoc,
+          page: firstPage,
+          medsArray: nonControlledMeds,
+          data,
+          nombreEmpleado,
+          folio,
+        });
+      }
+
+      // 6. Cada med controlado en su propia página
+      for (const med of controlledMeds) {
+        // Creamos página para este controlado
+        const controlledPage = await createNewPage(outerDoc, templateDoc, data, nombreEmpleado, folio);
+
+        // Dibujamos solo este medicamento controlado
+        await drawMedicationsTablePaginated({
+          outerDoc,
+          templateDoc,
+          page: controlledPage,
+          medsArray: [med],
+          data,
+          nombreEmpleado,
+          folio,
+        });
+      }
+
+      // 7. Guardar doc final
+      return await outerDoc.save();
+    } catch (err) {
+      console.error("❌ Error al procesar el PDF:", err);
+      throw new Error("Error al generar el PDF.");
+    }
+  };
 
   // Hook principal: buscar datos y generar el PDF
   useEffect(() => {
@@ -247,7 +340,7 @@ const generatePdf = async (data, nombreEmpleado) => {
     console.log("📌 Solicitando PDF para folio:", folio);
     const fetchPdf = async () => {
       try {
-        // 1. Llamar a la API que obtiene la receta
+        // 1. Obtener la receta de la API
         const response = await fetch(`/api/SURTIMIENTOS2/getRecetaPDF?folio=${folio}`);
         if (!response.ok) throw new Error("Error al obtener la receta de la API");
 
@@ -259,19 +352,19 @@ const generatePdf = async (data, nombreEmpleado) => {
         console.log("📌 Datos recibidos de la API:", data);
         setDataReceta(data);
 
-        // 2. Si quieres, obtener el nombre del doctor:
+        // 2. (Opcional) obtener nombre del doctor
         if (data.CLAVEUSUARIO) {
           await fetchDoctorName(data.CLAVEUSUARIO);
         }
 
-        // 3. Obtener el nombre del empleado
+        // 3. Nombre completo del empleado
         const nombreEmpleado = await fetchNombreEmpleado(data.NOMINA);
 
-        // 4. Generar PDF con la función
+        // 4. Generar PDF
         const pdfBytes = await generatePdf(data, nombreEmpleado);
         const pdfBlob = new Blob([pdfBytes], { type: "application/pdf" });
 
-        // 5. Crear un ObjectURL para mostrarlo en el iframe
+        // 5. Mostrar en el iframe
         setPdfUrl(URL.createObjectURL(pdfBlob));
       } catch (err) {
         console.error("❌ Error al generar PDF:", err);

@@ -14,21 +14,24 @@ export default async function handler(req, res) {
 
   try {
     const pool = await connectToDatabase();
-    const result = await pool
-      .request()
+    const query = `
+      SELECT NOMINA, CLAVE_PACIENTE
+      FROM SURTIMIENTOS
+      WHERE FOLIO_PASE = @folio
+      UNION ALL
+      SELECT clavenomina AS NOMINA, clavepaciente AS CLAVE_PACIENTE
+      FROM consultas
+      WHERE claveconsulta = @folio
+    `;
+    const result = await pool.request()
       .input("folio", sql.Int, parseInt(folio, 10))
-      .query(`
-        SELECT NOMINA, CLAVE_PACIENTE
-        FROM SURTIMIENTOS
-        WHERE FOLIO_PASE = @folio
-      `);
+      .query(query);
 
     if (result.recordset.length === 0) {
-      return res
-        .status(404)
-        .json({ message: "No se encontró el surtimiento con el folio proporcionado" });
+      return res.status(404).json({ message: "No se encontró el surtimiento o consulta con el folio proporcionado" });
     }
 
+    // Se devuelve el primer registro encontrado (o se podrían devolver todos si se requiere)
     return res.status(200).json({ ok: true, data: result.recordset[0] });
   } catch (error) {
     console.error("Error al obtener clave nomina y clave paciente:", error);
