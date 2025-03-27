@@ -10,10 +10,11 @@ export default async function handler(req, res) {
     const pool = await connectToDatabase();
     const result = await pool.query(`
       SELECT 
-        claveMedicamento AS CLAVEMEDICAMENTO, 
+        claveMedicamento AS CLAVEMEDICAMENTO,
         medicamento AS MEDICAMENTO,
         presentacion AS PRESENTACION,
-        piezas AS PIEZAS
+        piezas AS PIEZAS,
+        clasificacion AS CLASIFICACION  -- <--- INCLUIMOS AQUI
       FROM MEDICAMENTOS
       WHERE estatus = 1
     `);

@@ -81,13 +81,13 @@ const CargaMedicamentosForm = ({
     const medSeleccionado = medicamentos.find(
       (med) => med.CLAVEMEDICAMENTO === selectedMedicamento
     );
-
     const nuevoMedicamento = {
       claveMedicamento: selectedMedicamento,
       nombreMedicamento: medSeleccionado.MEDICAMENTO,
       indicaciones,
       cantidad,
       piezas,
+      clasificacion: medSeleccionado.CLASIFICACION, // <-- AÑADE ESTO
     };
 
     onAddMedicamento(nuevoMedicamento);
