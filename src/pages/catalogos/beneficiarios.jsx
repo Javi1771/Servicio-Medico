@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import Swal from "sweetalert2";
 import Modal from "react-modal";
@@ -7,6 +7,9 @@ import { useRouter } from "next/router";
 import { jsPDF } from "jspdf";
 import { FaCamera } from "react-icons/fa";
 import * as faceapi from "face-api.js";
+import SignatureCanvas from 'react-signature-canvas';
+
+
 
 import {
   FaIdCard,
@@ -61,7 +64,48 @@ export default function RegistroBeneficiario() {
     cartaNoAfiliacionUrl: "",
     actaConcubinatoUrl: "", // Nuevo campo para Acta de Concubinato
     descriptorFacial: "",
+    firma: "",
   });
+
+
+    // Para manejar el recuadro de la firma
+    const [isFirmaOpen, setIsFirmaOpen] = useState(false);
+    const signatureRef = useRef(null);
+  
+    // Al hacer clic en el botón “Firma”
+    const handleOpenFirma = () => {
+      setIsFirmaOpen(true);
+    };
+  // Al pulsar “Guardar Firma” en el modal de la firma
+  const handleSaveFirma = () => {
+    if (!signatureRef.current) return;
+
+    // Obtén la imagen en base64 con fondo transparente
+    const firmaBase64 = signatureRef.current
+    .getCanvas()        // .getCanvas() en vez de .getTrimmedCanvas()
+    .toDataURL("image/png");
+
+    // Guardar en el estado
+    setFormData((prev) => ({
+      ...prev,
+      firma: firmaBase64,
+    }));
+
+    // Cierra el modal
+    setIsFirmaOpen(false);
+
+    // Opcional: podrías hacer un Swal o algún feedback
+    Swal.fire("Firmado", "La firma se guardó correctamente.", "success");
+  };
+    // Al pulsar “Limpiar”
+    const handleClearFirma = () => {
+      if (!signatureRef.current) return;
+      signatureRef.current.clear();
+    };
+
+
+
+
 
   //* Define las rutas de los sonidos de éxito y error
   const successSound = "/assets/applepay.mp3";
@@ -902,7 +946,8 @@ export default function RegistroBeneficiario() {
         Swal.fire("Error", "El beneficiario no está activo.", "error");
         return;
       }
-
+  
+      // Desestructuramos usando "FIRMA" y la renombramos a "firma"
       const {
         NO_NOMINA,
         PARENTESCO,
@@ -916,11 +961,12 @@ export default function RegistroBeneficiario() {
         FOTO_URL,
         SANGRE,
         ALERGIAS,
-        ESDISCAPACITADO, // Nuevo campo para verificar discapacidad
+        ESDISCAPACITADO,
+        FIRMA: firma, // Renombramos FIRMA a firma para usarla posteriormente
       } = beneficiary;
-
+  
       console.log("Datos recibidos del beneficiario:", beneficiary);
-
+  
       // Función para obtener la descripción del parentesco
       const getParentescoDescripcion = (parentescoId) => {
         const parentesco = parentescoOptions.find(
@@ -928,20 +974,20 @@ export default function RegistroBeneficiario() {
         );
         return parentesco ? parentesco.PARENTESCO : "Desconocido";
       };
-
+  
+      // Función para formatear fecha local
       const formatFechaLocal = (fecha) => {
         if (!fecha) return "";
         const dateParts = fecha.split("T")[0].split("-");
         const [year, month, day] = dateParts;
         return `${day}/${month}/${year}`;
       };
-
+  
       const parentescoDescripcion = getParentescoDescripcion(PARENTESCO);
       const edad = calculateAge(F_NACIMIENTO);
-
       console.log("Descripción del parentesco:", parentescoDescripcion);
       console.log("Edad calculada:", edad);
-
+  
       // Calcular vigencia
       const vigencia = calcularVigencia(
         PARENTESCO,
@@ -950,43 +996,35 @@ export default function RegistroBeneficiario() {
         F_NACIMIENTO,
         ESDISCAPACITADO
       );
-
       console.log("Vigencia final asignada:", vigencia);
-
-      // Consumir la API del web service para obtener datos del empleado
+  
+      // Consumir la API para obtener datos del empleado
       const response = await fetch("/api/empleado", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ num_nom: NO_NOMINA }),
       });
-
       if (!response.ok) throw new Error("Empleado no encontrado");
-
       const employeeData = await response.json();
       const DEPARTAMENTO = employeeData?.departamento || "N/A";
-
       console.log("Datos del empleado obtenidos:", employeeData);
-
-      // Configuración para jsPDF
+  
+      // Configuración de jsPDF
       const doc = new jsPDF({
         orientation: "landscape",
         unit: "cm",
         format: "a4",
       });
-
-      // Cargar las imágenes de la credencial
-      const frontTemplateUrl = `/CREDENCIAL_FRONTAL2.png`;
-      const backTemplateUrl = `/CREDENCIAL_TRASERA.png`;
-      const signatureUrl = `/firma.png`; // Ruta de la imagen de firma en la carpeta public
-
-      const frontTemplate = await loadImageBase64(frontTemplateUrl);
-      const backTemplate = await loadImageBase64(backTemplateUrl);
-      const signatureImage = await loadImageBase64(signatureUrl);
-
-      // Página Frontal
+  
+      // Cargar imágenes de la credencial
+      const frontTemplate = await loadImageBase64("/CREDENCIAL_FRONTAL2.png");
+      const backTemplate = await loadImageBase64("/CREDENCIAL_TRASERA.png");
+      const signatureSecretary = await loadImageBase64("/firma.png"); // Firma del secretario
+  
+      // Página frontal
       doc.addImage(frontTemplate, "PNG", 0, 0, 29.7, 21);
-
-      // Añadir la foto y el marco redondeado
+  
+      // Si existe foto del beneficiario, agregarla
       if (FOTO_URL) {
         try {
           const photo = await loadImageBase64(FOTO_URL);
@@ -994,58 +1032,38 @@ export default function RegistroBeneficiario() {
           const photoY = 10.9;
           const photoWidth = 7.0;
           const photoHeight = 8.4;
-
-          // Añadir la foto
           doc.addImage(photo, "JPEG", photoX, photoY, photoWidth, photoHeight);
-
-          // Añadir un marco redondeado alrededor de la foto
+          // Dibujar marco redondeado alrededor de la foto
           doc.setLineWidth(0.25);
           doc.setDrawColor(255, 255, 255);
-          doc.roundedRect(
-            photoX,
-            photoY,
-            photoWidth,
-            photoHeight,
-            0.3,
-            0.3,
-            "S"
-          );
+          doc.roundedRect(photoX, photoY, photoWidth, photoHeight, 0.3, 0.3, "S");
         } catch (error) {
           console.error("Error al cargar la foto del beneficiario:", error);
         }
       }
-
+  
       // Texto en la página frontal
       doc.setFont("helvetica", "bold");
       doc.setTextColor("#19456a");
-
       doc.setFontSize(21);
       if (NO_NOMINA) {
         doc.text(NO_NOMINA.toString(), 18.3, 9.5);
       } else {
         console.error("Error: NO_NOMINA no es válido:", NO_NOMINA);
       }
-
       doc.setFontSize(18);
       if (parentescoDescripcion) {
         doc.text(parentescoDescripcion, 19.8, 11.42);
       } else {
-        console.error(
-          "Error: parentescoDescripcion no es válido:",
-          parentescoDescripcion
-        );
+        console.error("Error: parentescoDescripcion no es válido:", parentescoDescripcion);
       }
-
       doc.setFontSize(15);
-      const nombreCompleto = `${NOMBRE || ""} ${A_PATERNO || ""} ${
-        A_MATERNO || ""
-      }`;
+      const nombreCompleto = `${NOMBRE || ""} ${A_PATERNO || ""} ${A_MATERNO || ""}`;
       if (nombreCompleto.trim()) {
         doc.text(nombreCompleto, 18.4, 13.4);
       } else {
         console.error("Error: Nombre completo no es válido:", nombreCompleto);
       }
-
       doc.setFontSize(18);
       const edadTexto = `${edad} años`;
       if (edadTexto) {
@@ -1053,7 +1071,6 @@ export default function RegistroBeneficiario() {
       } else {
         console.error("Error: Edad no es válida:", edadTexto);
       }
-
       doc.setFontSize(14.5);
       const departamentoText = doc.splitTextToSize(DEPARTAMENTO, 8.5);
       let departamentoY = 16.8;
@@ -1062,57 +1079,56 @@ export default function RegistroBeneficiario() {
           doc.text(line, 20, departamentoY);
           departamentoY += 0.6;
         } else {
-          console.error(
-            "Error: Línea del texto del departamento no es válida:",
-            line
-          );
+          console.error("Error: Línea del texto del departamento no es válida:", line);
         }
       });
-
       doc.setFontSize(18);
       if (vigencia) {
         doc.text(vigencia, 18.8, 19.4);
       } else {
         console.error("Error: Vigencia no es válida:", vigencia);
       }
-
-      // Página Trasera
+  
+      // Página trasera
       doc.addPage();
       doc.addImage(backTemplate, "PNG", 0, 0, 29.7, 21);
-
       doc.setFontSize(18);
       const fechaNacimientoTexto = formatFechaLocal(F_NACIMIENTO);
       if (fechaNacimientoTexto) {
         doc.text(fechaNacimientoTexto, 12.5, 2.8);
       } else {
-        console.error(
-          "Error: Fecha de nacimiento no es válida:",
-          fechaNacimientoTexto
-        );
+        console.error("Error: Fecha de nacimiento no es válida:", fechaNacimientoTexto);
       }
-
       doc.text(SANGRE || "Sin información", 9.8, 5);
       doc.text(ALERGIAS || "Sin información", 7.0, 7.6);
       doc.text(TEL_EMERGENCIA || "Sin información", 14, 9.8);
       doc.text(NOMBRE_EMERGENCIA || "Sin información", 13.1, 12);
-
-      // Añadir la firma en la página trasera
-      // Ajusta las coordenadas (x, y) y el tamaño (width, height) según tus necesidades.
-      doc.addImage(signatureImage, "PNG", 18, 13, 7, 3);
-
-      // Guardar como PDF
+  
+      // Añadir la firma del secretario (más grande)
+      // Se aumenta el tamaño: por ejemplo, de 4.5 x 1.5 a 6 x 2.5, manteniendo la posición original
+      doc.addImage(signatureSecretary, "PNG", 18, 13, 6, 2.5);
+  
+      // Añadir la firma del beneficiario (más abajo)
+      if (firma) {
+        // 'firma' ya es una cadena base64 con el prefijo "data:image/png;base64,..."
+        // Se ajusta la posición para bajarla: por ejemplo, y = 18 (en lugar de 5)
+        doc.addImage(firma, "PNG", 5, 13.8, 9, 3);
+      } else {
+        console.warn("No se encontró la firma del beneficiario.");
+      }
+  
+      // Guardar el PDF
       doc.save(`Credencial_${NOMBRE || ""}_${A_PATERNO || ""}.pdf`);
       console.log("Credencial generada exitosamente");
     } catch (error) {
       console.error("Error al generar la credencial:", error.message);
       playSound(false);
-      Swal.fire(
-        "Error",
-        "No se pudo generar la credencial. Intenta nuevamente.",
-        "error"
-      );
+      Swal.fire("Error", "No se pudo generar la credencial. Intenta nuevamente.", "error");
     }
   };
+  
+  
+  
 
   // Función para cargar imágenes como base64
   const loadImageBase64 = async (src) => {
@@ -1729,6 +1745,8 @@ export default function RegistroBeneficiario() {
         actaConcubinatoUrl: formData.actaConcubinatoUrl || null,
         urlIncap: formData.urlIncap || null,
         descriptorFacial: formData.descriptorFacial || "",
+        firma: formData.firma, // <-- Aquí
+
       };
 
       console.log("Datos enviados al backend (antes del fetch):", payload);
@@ -1927,6 +1945,8 @@ export default function RegistroBeneficiario() {
   /**TERMINO DE LA FUNCION */
 
   return (
+
+    
     <div className={styles.body}>
       <div className={styles.bannerContainer}>
         <Image
@@ -2961,6 +2981,33 @@ export default function RegistroBeneficiario() {
                   )}
                 </button>
               </div>
+
+           
+      {/* El botón que abre la firma */}
+      <button type="button" onClick={handleOpenFirma}>
+        Firma
+      </button>
+
+      {/* Un modal (o similar) para dibujar la firma */}
+      {isFirmaOpen && (
+        <div style={{ border: "1px solid #ccc", padding: "10px" }}>
+          <h3>Firme en el recuadro:</h3>
+          <SignatureCanvas
+            ref={signatureRef}
+            backgroundColor="transparent" // Fondo transparente
+            penColor="black"             // Color del lápiz
+            canvasProps={{
+              width: 500,
+              height: 200,
+              style: { border: "1px dashed #000" },
+            }}
+          />
+          <div>
+            <button onClick={handleClearFirma}>Limpiar</button>
+            <button onClick={handleSaveFirma}>Guardar Firma</button>
+          </div>
+        </div>
+      )}
             </div>
 
             {/* Campo de Tipo de Sangre */}
@@ -2999,6 +3046,7 @@ export default function RegistroBeneficiario() {
                 />
               </div>
             )}
+            
 
             <fieldset className={styles.fieldset}>
               <legend>En caso de emergencia avisar a:</legend>
@@ -3026,6 +3074,7 @@ export default function RegistroBeneficiario() {
                   />
                 </label>
               </div>
+              
             </fieldset>
 
             {/* Botones */}
