@@ -1106,7 +1106,7 @@ export default function RegistroBeneficiario() {
   
       // Añadir la firma del secretario (más grande)
       // Se aumenta el tamaño: por ejemplo, de 4.5 x 1.5 a 6 x 2.5, manteniendo la posición original
-      doc.addImage(signatureSecretary, "PNG", 18, 13, 6, 2.5);
+      doc.addImage(signatureSecretary, "PNG", 18, 13.2, 6, 2.5);
   
       // Añadir la firma del beneficiario (más abajo)
       if (firma) {
