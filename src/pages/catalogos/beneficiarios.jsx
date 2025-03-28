@@ -904,15 +904,17 @@ export default function RegistroBeneficiario() {
       doc.setFontSize(14);
       doc.text(
         `${NOMBRE || ""} ${A_PATERNO || ""} ${A_MATERNO || ""}`,
-        17,
-        6.3
+        16.2,
+        6.4
       ); // Nombre
       doc.text(parentescoDescripcion, 17, 7.9); // Parentesco
       doc.text(edadConAnios, 24, 7.9); // Edad
-      doc.text(vigencia, 17, 9.5); // Vigencia
-
-      doc.text(EMPLEADO_NOMBRE, 17, 11.3); // Nombre del empleado
-      doc.text(NUM_NOMINA, 17, 12.9); // Número de nómina
+      doc.text(vigencia, 17, 9.7); // Vigencia
+      
+      doc.setFontSize(12);
+      doc.text(EMPLEADO_NOMBRE, 16.2, 11.5); // Nombre del empleado
+      doc.setFontSize(12);
+      doc.text(NUM_NOMINA, 17, 13.1); // Número de nómina
       const departamentoText = doc.splitTextToSize(DEPARTAMENTO, 10);
       doc.text(departamentoText, 17, 14.9); // Departamento
 
@@ -1112,7 +1114,7 @@ export default function RegistroBeneficiario() {
       if (firma) {
         // 'firma' ya es una cadena base64 con el prefijo "data:image/png;base64,..."
         // Se ajusta la posición para bajarla: por ejemplo, y = 18 (en lugar de 5)
-        doc.addImage(firma, "PNG", 5, 13.8, 9, 3);
+        doc.addImage(firma, "PNG", 5, 13, 9, 3);
       } else {
         console.warn("No se encontró la firma del beneficiario.");
       }
