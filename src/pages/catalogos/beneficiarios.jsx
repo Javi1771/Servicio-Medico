@@ -7,9 +7,7 @@ import { useRouter } from "next/router";
 import { jsPDF } from "jspdf";
 import { FaCamera } from "react-icons/fa";
 import * as faceapi from "face-api.js";
-import SignatureCanvas from 'react-signature-canvas';
-
-
+import SignatureCanvas from "react-signature-canvas";
 
 import {
   FaIdCard,
@@ -67,23 +65,22 @@ export default function RegistroBeneficiario() {
     firma: "",
   });
 
+  // Para manejar el recuadro de la firma
+  const [isFirmaOpen, setIsFirmaOpen] = useState(false);
+  const signatureRef = useRef(null);
 
-    // Para manejar el recuadro de la firma
-    const [isFirmaOpen, setIsFirmaOpen] = useState(false);
-    const signatureRef = useRef(null);
-  
-    // Al hacer clic en el botón “Firma”
-    const handleOpenFirma = () => {
-      setIsFirmaOpen(true);
-    };
+  // Al hacer clic en el botón “Firma”
+  const handleOpenFirma = () => {
+    setIsFirmaOpen(true);
+  };
   // Al pulsar “Guardar Firma” en el modal de la firma
   const handleSaveFirma = () => {
     if (!signatureRef.current) return;
 
     // Obtén la imagen en base64 con fondo transparente
     const firmaBase64 = signatureRef.current
-    .getCanvas()        // .getCanvas() en vez de .getTrimmedCanvas()
-    .toDataURL("image/png");
+      .getCanvas() // .getCanvas() en vez de .getTrimmedCanvas()
+      .toDataURL("image/png");
 
     // Guardar en el estado
     setFormData((prev) => ({
@@ -97,15 +94,11 @@ export default function RegistroBeneficiario() {
     // Opcional: podrías hacer un Swal o algún feedback
     Swal.fire("Firmado", "La firma se guardó correctamente.", "success");
   };
-    // Al pulsar “Limpiar”
-    const handleClearFirma = () => {
-      if (!signatureRef.current) return;
-      signatureRef.current.clear();
-    };
-
-
-
-
+  // Al pulsar “Limpiar”
+  const handleClearFirma = () => {
+    if (!signatureRef.current) return;
+    signatureRef.current.clear();
+  };
 
   //* Define las rutas de los sonidos de éxito y error
   const successSound = "/assets/applepay.mp3";
@@ -904,19 +897,19 @@ export default function RegistroBeneficiario() {
       doc.setFontSize(14);
       doc.text(
         `${NOMBRE || ""} ${A_PATERNO || ""} ${A_MATERNO || ""}`,
-        16.2,
+        15.7,
         6.4
       ); // Nombre
       doc.text(parentescoDescripcion, 17, 7.9); // Parentesco
       doc.text(edadConAnios, 24, 7.9); // Edad
       doc.text(vigencia, 17, 9.7); // Vigencia
-      
+
       doc.setFontSize(12);
-      doc.text(EMPLEADO_NOMBRE, 16.2, 11.5); // Nombre del empleado
+      doc.text(EMPLEADO_NOMBRE, 15.7, 11.4); // Nombre del empleado
       doc.setFontSize(12);
       doc.text(NUM_NOMINA, 17, 13.1); // Número de nómina
-      const departamentoText = doc.splitTextToSize(DEPARTAMENTO, 10);
-      doc.text(departamentoText, 17, 14.9); // Departamento
+      const departamentoText = doc.splitTextToSize(DEPARTAMENTO, 15);
+      doc.text(departamentoText, 17, 14.7); // Departamento
 
       // Aquí añadimos la firma en la sección "Secretario de Administración" **en la primera página**.
       // Ajusta la posición (x, y) y tamaño (width, height) según tu diseño.
@@ -948,7 +941,7 @@ export default function RegistroBeneficiario() {
         Swal.fire("Error", "El beneficiario no está activo.", "error");
         return;
       }
-  
+
       // Desestructuramos usando "FIRMA" y la renombramos a "firma"
       const {
         NO_NOMINA,
@@ -966,9 +959,9 @@ export default function RegistroBeneficiario() {
         ESDISCAPACITADO,
         FIRMA: firma, // Renombramos FIRMA a firma para usarla posteriormente
       } = beneficiary;
-  
+
       console.log("Datos recibidos del beneficiario:", beneficiary);
-  
+
       // Función para obtener la descripción del parentesco
       const getParentescoDescripcion = (parentescoId) => {
         const parentesco = parentescoOptions.find(
@@ -976,7 +969,7 @@ export default function RegistroBeneficiario() {
         );
         return parentesco ? parentesco.PARENTESCO : "Desconocido";
       };
-  
+
       // Función para formatear fecha local
       const formatFechaLocal = (fecha) => {
         if (!fecha) return "";
@@ -984,12 +977,12 @@ export default function RegistroBeneficiario() {
         const [year, month, day] = dateParts;
         return `${day}/${month}/${year}`;
       };
-  
+
       const parentescoDescripcion = getParentescoDescripcion(PARENTESCO);
       const edad = calculateAge(F_NACIMIENTO);
       console.log("Descripción del parentesco:", parentescoDescripcion);
       console.log("Edad calculada:", edad);
-  
+
       // Calcular vigencia
       const vigencia = calcularVigencia(
         PARENTESCO,
@@ -999,7 +992,7 @@ export default function RegistroBeneficiario() {
         ESDISCAPACITADO
       );
       console.log("Vigencia final asignada:", vigencia);
-  
+
       // Consumir la API para obtener datos del empleado
       const response = await fetch("/api/empleado", {
         method: "POST",
@@ -1010,22 +1003,22 @@ export default function RegistroBeneficiario() {
       const employeeData = await response.json();
       const DEPARTAMENTO = employeeData?.departamento || "N/A";
       console.log("Datos del empleado obtenidos:", employeeData);
-  
+
       // Configuración de jsPDF
       const doc = new jsPDF({
         orientation: "landscape",
         unit: "cm",
         format: "a4",
       });
-  
+
       // Cargar imágenes de la credencial
       const frontTemplate = await loadImageBase64("/CREDENCIAL_FRONTAL2.png");
       const backTemplate = await loadImageBase64("/CREDENCIAL_TRASERA.png");
       const signatureSecretary = await loadImageBase64("/firma.png"); // Firma del secretario
-  
+
       // Página frontal
       doc.addImage(frontTemplate, "PNG", 0, 0, 29.7, 21);
-  
+
       // Si existe foto del beneficiario, agregarla
       if (FOTO_URL) {
         try {
@@ -1038,12 +1031,20 @@ export default function RegistroBeneficiario() {
           // Dibujar marco redondeado alrededor de la foto
           doc.setLineWidth(0.25);
           doc.setDrawColor(255, 255, 255);
-          doc.roundedRect(photoX, photoY, photoWidth, photoHeight, 0.3, 0.3, "S");
+          doc.roundedRect(
+            photoX,
+            photoY,
+            photoWidth,
+            photoHeight,
+            0.3,
+            0.3,
+            "S"
+          );
         } catch (error) {
           console.error("Error al cargar la foto del beneficiario:", error);
         }
       }
-  
+
       // Texto en la página frontal
       doc.setFont("helvetica", "bold");
       doc.setTextColor("#19456a");
@@ -1054,25 +1055,30 @@ export default function RegistroBeneficiario() {
       } else {
         console.error("Error: NO_NOMINA no es válido:", NO_NOMINA);
       }
-  
+
       // Parentesco
-      doc.setFontSize(18);
+      doc.setFontSize(21);
       if (parentescoDescripcion) {
         doc.text(parentescoDescripcion, 19.8, 11.42);
       } else {
-        console.error("Error: parentescoDescripcion no es válido:", parentescoDescripcion);
+        console.error(
+          "Error: parentescoDescripcion no es válido:",
+          parentescoDescripcion
+        );
       }
-  
-      doc.setFontSize(18.5);
-      const nombreCompleto = `${NOMBRE || ""} ${A_PATERNO || ""} ${A_MATERNO || ""}`.trim();
-      
+
+      doc.setFontSize(17.5);
+      const nombreCompleto = `${NOMBRE || ""} ${A_PATERNO || ""} ${
+        A_MATERNO || ""
+      }`.trim();
+
       if (nombreCompleto) {
         // Define el ancho máximo en las unidades de jsPDF
         const maxWidth = 11.3; // Ajusta según tu espacio disponible
-      
+
         // Divide el texto en líneas de acuerdo con maxWidth
         const splittedName = doc.splitTextToSize(nombreCompleto, maxWidth);
-      
+
         if (splittedName.length === 1) {
           // Si solo se generó una línea, imprímela en una sola línea
           doc.text(splittedName[0], 18.4, 13.4);
@@ -1083,59 +1089,95 @@ export default function RegistroBeneficiario() {
       } else {
         console.error("Error: Nombre completo no es válido:", nombreCompleto);
       }
-      
-      
-  
+
       // Edad
-      doc.setFontSize(18);
+      doc.setFontSize(21);
       const edadTexto = `${edad} años`;
       if (edadTexto) {
         doc.text(edadTexto, 17.2, 15.5);
       } else {
         console.error("Error: Edad no es válida:", edadTexto);
       }
-  
+
       // Departamento
-      doc.setFontSize(14.5);
-      const departamentoText = doc.splitTextToSize(DEPARTAMENTO, 8.5);
-      let departamentoY = 16.8;
-      departamentoText.forEach((line) => {
-        if (line.trim()) {
-          doc.text(line, 20, departamentoY);
-          departamentoY += 0.6;
-        } else {
-          console.error("Error: Línea del texto del departamento no es válida:", line);
-        }
-      });
-  
+      doc.setFontSize(17);
+
+      // Define un ancho máximo para el texto del departamento
+      const maxWidthDept = 9.6; // Ajusta según tu diseño
+
+      // Divide el texto del departamento en líneas según maxWidthDept
+      const splittedDept = doc.splitTextToSize(DEPARTAMENTO, maxWidthDept);
+
+      // Posición base en Y (si es una sola línea)
+      const baseYDept = 17.3;
+
+      // Si hay varias líneas, "sube" la primera línea un poco (por ejemplo, 0.5 cm)
+      const multiLineYDept = baseYDept - 0.6;
+
+      if (splittedDept.length === 1) {
+        // Si el texto cabe en una sola línea, se imprime en la posición base
+        doc.text(splittedDept[0], 19.4, baseYDept);
+      } else {
+        // Si el texto ocupa varias líneas, se imprime iniciando en multiLineYDept
+        // y se usa lineHeightFactor para espaciar las líneas
+        doc.text(splittedDept, 19.2, multiLineYDept, { lineHeightFactor: 1.2 });
+      }
+
       // Vigencia
-      doc.setFontSize(18);
+      doc.setFontSize(21);
       if (vigencia) {
         doc.text(vigencia, 18.8, 19.4);
       } else {
         console.error("Error: Vigencia no es válida:", vigencia);
       }
-  
+
       // Página trasera
       doc.addPage();
       doc.addImage(backTemplate, "PNG", 0, 0, 29.7, 21);
-      doc.setFontSize(18);
+      doc.setFontSize(21);
       // Fecha de nacimiento
       const fechaNacimientoTexto = formatFechaLocal(F_NACIMIENTO);
       if (fechaNacimientoTexto) {
         doc.text(fechaNacimientoTexto, 12.5, 2.8);
       } else {
-        console.error("Error: Fecha de nacimiento no es válida:", fechaNacimientoTexto);
+        console.error(
+          "Error: Fecha de nacimiento no es válida:",
+          fechaNacimientoTexto
+        );
       }
       doc.text(SANGRE || "Sin información", 9.8, 5);
       doc.text(ALERGIAS || "Sin información", 7.0, 7.6);
       doc.text(TEL_EMERGENCIA || "Sin información", 14, 9.8);
-      doc.text(NOMBRE_EMERGENCIA || "Sin información", 13.1, 12);
-  
+      doc.setFontSize(21);
+
+      // Define un ancho máximo para el nombre de emergencia
+      const maxWidthEmergencia = 14.5; // Ajusta este valor si necesitas más o menos espacio
+
+      // Divide el texto en líneas
+      const textoEmergencia = NOMBRE_EMERGENCIA || "Sin información";
+      const splittedEmergencia = doc.splitTextToSize(
+        textoEmergencia,
+        maxWidthEmergencia
+      );
+
+      // Posiciones base
+      const baseYEmergencia = 12;
+      const multiLineYEmergencia = baseYEmergencia - 0.8;
+
+      if (splittedEmergencia.length === 1) {
+        // Si solo es una línea, se imprime en su posición normal
+        doc.text(splittedEmergencia[0], 13.1, baseYEmergencia);
+      } else {
+        // Si hay más de una línea, se imprime más arriba y con saltos
+        doc.text(splittedEmergencia, 13.1, multiLineYEmergencia, {
+          lineHeightFactor: 1.2,
+        });
+      }
+
       // Firma del secretario (más grande)
       // Se aumenta el tamaño: por ejemplo, de 4.5 x 1.5 a 6 x 2.5, manteniendo la posición original
       doc.addImage(signatureSecretary, "PNG", 18, 13.2, 6, 2.5);
-  
+
       // Firma del beneficiario (más abajo)
       if (firma) {
         // 'firma' ya es una cadena base64 con el prefijo "data:image/png;base64,..."
@@ -1144,21 +1186,20 @@ export default function RegistroBeneficiario() {
       } else {
         console.warn("No se encontró la firma del beneficiario.");
       }
-  
+
       // Guardar el PDF
       doc.save(`Credencial_${NOMBRE || ""}_${A_PATERNO || ""}.pdf`);
       console.log("Credencial generada exitosamente");
     } catch (error) {
       console.error("Error al generar la credencial:", error.message);
       playSound(false);
-      Swal.fire("Error", "No se pudo generar la credencial. Intenta nuevamente.", "error");
+      Swal.fire(
+        "Error",
+        "No se pudo generar la credencial. Intenta nuevamente.",
+        "error"
+      );
     }
   };
-  
-
-  
-  
-  
 
   // Función para cargar imágenes como base64
   const loadImageBase64 = async (src) => {
@@ -1776,7 +1817,6 @@ export default function RegistroBeneficiario() {
         urlIncap: formData.urlIncap || null,
         descriptorFacial: formData.descriptorFacial || "",
         firma: formData.firma, // <-- Aquí
-
       };
 
       console.log("Datos enviados al backend (antes del fetch):", payload);
@@ -1940,13 +1980,16 @@ export default function RegistroBeneficiario() {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          const response = await fetch(`/api/beneficiarios/eliminarBeneficiario`, {
-            method: "DELETE",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ idBeneficiario }), // Enviar el ID del beneficiario al backend
-          });
+          const response = await fetch(
+            `/api/beneficiarios/eliminarBeneficiario`,
+            {
+              method: "DELETE",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ idBeneficiario }), // Enviar el ID del beneficiario al backend
+            }
+          );
 
           if (!response.ok) {
             const errorData = await response.json();
@@ -1975,8 +2018,6 @@ export default function RegistroBeneficiario() {
   /**TERMINO DE LA FUNCION */
 
   return (
-
-    
     <div className={styles.body}>
       <div className={styles.bannerContainer}>
         <Image
@@ -3012,32 +3053,42 @@ export default function RegistroBeneficiario() {
                 </button>
               </div>
             </div>
-            <button className={styles.signatureButton} onClick={handleOpenFirma}>Firma</button>
+            <button
+              className={styles.signatureButton}
+              onClick={handleOpenFirma}
+            >
+              Firma
+            </button>
 
-{isFirmaOpen && (
-  <div className={styles.signatureModal}>
-    <h3 className={styles.signatureTitle}>Firme en el recuadro:</h3>
-    <SignatureCanvas
-      ref={signatureRef}
-      backgroundColor="transparent"
-      penColor="black"
-      canvasProps={{
-        width: 500,
-        height: 200,
-        className: styles.signatureCanvas, // <-- clase CSS
-      }}
-    />
-    <div className={styles.signatureButtons}>
-      <button className={styles.clearButton} onClick={handleClearFirma}>
-        Limpiar
-      </button>
-      <button className={styles.saveButton} onClick={handleSaveFirma}>
-        Guardar Firma
-      </button>
-    </div>
-  </div>
-)}
-
+            {isFirmaOpen && (
+              <div className={styles.signatureModal}>
+                <h3 className={styles.signatureTitle}>Firme en el recuadro:</h3>
+                <SignatureCanvas
+                  ref={signatureRef}
+                  backgroundColor="transparent"
+                  penColor="black"
+                  canvasProps={{
+                    width: 500,
+                    height: 200,
+                    className: styles.signatureCanvas, // <-- clase CSS
+                  }}
+                />
+                <div className={styles.signatureButtons}>
+                  <button
+                    className={styles.clearButton}
+                    onClick={handleClearFirma}
+                  >
+                    Limpiar
+                  </button>
+                  <button
+                    className={styles.saveButton}
+                    onClick={handleSaveFirma}
+                  >
+                    Guardar Firma
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Campo de Tipo de Sangre */}
             <div className={styles.inputGroup}>
@@ -3075,7 +3126,6 @@ export default function RegistroBeneficiario() {
                 />
               </div>
             )}
-            
 
             <fieldset className={styles.fieldset}>
               <legend>En caso de emergencia avisar a:</legend>
@@ -3103,7 +3153,6 @@ export default function RegistroBeneficiario() {
                   />
                 </label>
               </div>
-              
             </fieldset>
 
             {/* Botones */}
