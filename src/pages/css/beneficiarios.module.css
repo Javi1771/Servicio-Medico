@@ -2483,3 +2483,74 @@
   background-color: #e6e6e6;
   color: #0f2f4a;
 }
+
+
+/*ESTILOS PARA EL CANVA DE FIRMA BENEFICIARIO Y BOTONES*/
+/* Botón que abre el modal de firma */
+.signatureButton {
+  background-color: #4caf50;
+  color: #fff;
+  border: none;
+  padding: 0.6rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 1rem;
+  margin-bottom: 1rem;
+}
+
+/* Contenedor principal (modal) para la firma */
+.signatureModal {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 20px;
+  max-width: 600px;
+  margin: 20px auto;
+  background-color: #f9f9f9;
+}
+
+/* Título dentro del modal de firma */
+.signatureTitle {
+  margin-bottom: 10px;
+  text-align: center;
+  color: #333;
+}
+
+/* Estilo para el canvas de SignatureCanvas */
+.signatureCanvas {
+  border: 2px dashed #000;
+  border-radius: 5px;
+  display: block;
+  margin: 0 auto;
+}
+
+/* Contenedor de los botones dentro del modal de firma */
+.signatureButtons {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 1rem;
+}
+
+/* Botón “Limpiar” */
+.clearButton {
+  background-color: #f44336;
+  color: #fff;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+/* Botón “Guardar Firma” */
+.saveButton {
+  background-color: #2196f3;
+  color: #fff;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
