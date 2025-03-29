@@ -9,26 +9,16 @@ import {
 } from "react-icons/fa"; // Importamos los iconos
 
 const TablaMedicamentos = ({
-  onGenerarReceta, // Asegúrate de recibir esta prop
   folioPase, // Folio pasado desde el componente padre
   medicamentos, // Medicamentos de la receta (vista por defecto)
   loading,
   error,
-  onRemoveMedicamento,
-  // Props para historial
-  surtimientos,
-  loadingSurtimientos,
-  errorSurtimientos,
+  onRemoveMedicamento, // Props para historial
   onFetchSurtimientos,
-  detalle,
-  loadingDetalle,
-  errorDetalle,
-  onFetchDetalleSurtimiento,
 }) => {
   // Estado para controlar la vista: "default" | "surtimientos" | "detalle"
   const [modo, setModo] = useState("default");
   // Guardar el folio del surtimiento seleccionado
-  const [surtSeleccionado, setSurtSeleccionado] = useState(null);
 
   // --- Manejo de vistas ---
   const handleMostrarHistorial = () => {
@@ -36,20 +26,7 @@ const TablaMedicamentos = ({
     setModo("surtimientos");
   };
 
-  const handleVerDetalle = (folioSurtimiento) => {
-    onFetchDetalleSurtimiento(folioSurtimiento);
-    setSurtSeleccionado(folioSurtimiento);
-    setModo("detalle");
-  };
 
-  const handleVolverAtras = () => {
-    if (modo === "detalle") {
-      setModo("surtimientos");
-      setSurtSeleccionado(null);
-    } else {
-      setModo("default");
-    }
-  };
 
   return (
     <div className={styles.tableContainer}>
@@ -63,27 +40,6 @@ const TablaMedicamentos = ({
           onMostrarHistorial={handleMostrarHistorial}
         />
       )}
-
-      {modo === "surtimientos" && (
-        <SurtimientosView
-          loadingSurtimientos={loadingSurtimientos}
-          errorSurtimientos={errorSurtimientos}
-          surtimientos={surtimientos}
-          onVolverAtras={handleVolverAtras}
-          onVerDetalle={handleVerDetalle}
-          onGenerarReceta={onGenerarReceta} // Pasamos la función aquí
-        />
-      )}
-
-      {modo === "detalle" && (
-        <DetalleView
-          loadingDetalle={loadingDetalle}
-          errorDetalle={errorDetalle}
-          detalle={detalle}
-          surtSeleccionado={surtSeleccionado}
-          onVolverAtras={handleVolverAtras}
-        />
-      )}
     </div>
   );
 };
@@ -94,7 +50,6 @@ const DefaultView = ({
   error,
   medicamentos,
   onRemoveMedicamento,
-  onMostrarHistorial,
 }) => {
   if (loading)
     return <p className={styles.loading}>Cargando medicamentos...</p>;

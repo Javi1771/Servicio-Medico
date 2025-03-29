@@ -3164,33 +3164,35 @@ const handleFileUpload = async (event) => {
         className: styles.signatureCanvas,
       }}
     />
-    <div className={styles.signatureButtons}>
-      {formData.firma && (
-        <div className={styles.signaturePreview}>
-          <img src={formData.firma} alt="Firma actual" />
-          <button 
-            type="button"
-            onClick={() => setFormData(prev => ({ ...prev, firma: "" }))}
-          >
-            Quitar firma
-          </button>
-        </div>
-      )}
-      <button
+
+<div className={styles.signatureButtons}>
+  {formData.firma && (
+    <div className={styles.signaturePreview}>
+      <Image src={formData.firma} alt="Firma actual" width={200} height={100} />
+      <button 
         type="button"
-        className={styles.clearButton}
-        onClick={handleClearFirma}
+        onClick={() => setFormData(prev => ({ ...prev, firma: "" }))}
       >
-        Limpiar
-      </button>
-      <button
-        type="button"
-        className={styles.saveButton}
-        onClick={handleSaveFirma}
-      >
-        Guardar Firma
+        Quitar firma
       </button>
     </div>
+  )}
+  <button
+    type="button"
+    className={styles.clearButton}
+    onClick={handleClearFirma}
+  >
+    Limpiar
+  </button>
+  <button
+    type="button"
+    className={styles.saveButton}
+    onClick={handleSaveFirma}
+  >
+    Guardar Firma
+  </button>
+</div>
+
   </div>
 )}
 

@@ -4,7 +4,7 @@ import { useRouter } from "next/router";
 import { useMedicamentos } from "../../hooks/farmaciaHook/useMedicamentos";
 import FormMedicamento from "./components/formMedicamento";
 import MedicamentosTable from "./components/medicamentosTable";
-import SideMenu from "./components/sideMenu";
+import SideMenu from "./components/SideMenu";
 import EditMedicamentoForm from "./components/editMedicamentoForm";
 import { motion, AnimatePresence } from "framer-motion";
 
