@@ -76,3 +76,6 @@ public/ine/*
 # Ignorar todo en /public/uploads/beneficiarios excepto .gitkeep
 public/uploads/beneficiarios/*
 !public/uploads/beneficiarios/.gitkeep
+
+# Ignora la carpeta Beneficiarios dentro de /public
+public/Beneficiarios/
