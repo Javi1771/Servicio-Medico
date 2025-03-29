@@ -65,6 +65,11 @@ export default function RegistroBeneficiario() {
     firma: "",
   });
 
+  const showCheckboxes =
+  (formData.parentesco === "2" || formData.parentesco === 2) &&
+  formData.edad >= 16;
+
+
   // Para manejar el recuadro de la firma
   const [isFirmaOpen, setIsFirmaOpen] = useState(false);
   const signatureRef = useRef(null);
@@ -2845,7 +2850,7 @@ const handleFileUpload = async (event) => {
               )}
 
               {/* Checkboxes dinámicos */}
-              {formData.showCheckboxes && (
+              {showCheckboxes && (
                 <div className={styles.inputRow}>
                   <label className={styles.checkboxWrapper}>
                     <input
