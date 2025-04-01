@@ -1,0 +1,35 @@
+name: "Bug Report"
+description: "Completa este formulario para reportar un bug"
+title: "[BUG]"
+labels:
+  - bug
+
+version: 2
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ¡Gracias por reportar un bug! Por favor, rellena la información a continuación.
+
+  - type: input
+    id: titulo_breve
+    attributes:
+      label: "Descripción breve del problema"
+      placeholder: "Ej: El sistema se cierra al hacer clic en X..."
+
+  - type: textarea
+    id: pasos_reproducir
+    attributes:
+      label: "Pasos para reproducir"
+      description: "Describe los pasos para generar el error"
+      placeholder: |
+        1. ...
+        2. ...
+        3. ...
+
+  - type: textarea
+    id: evidencia
+    attributes:
+      label: "Evidencia o logs"
+      description: "Adjunta capturas de pantalla o logs relevantes"
+      placeholder: "Pega aquí la información adicional"
