@@ -17,29 +17,35 @@ body:
   - type: markdown
     attributes:
       value: |
-        Gracias por reportar un bug. Por favor, rellena la información.
+        ¡Gracias por reportar un bug!  
+        Por favor, rellena la información a continuación para ayudarnos a resolverlo.
 
   - type: input
     id: titulo_breve
     attributes:
       label: "Descripción breve del problema"
-      placeholder: "El sistema se cierra al hacer X..."
+      placeholder: "Ejemplo: El sistema se cierra al hacer clic en X..."
 
   - type: textarea
     id: pasos_reproducir
     attributes:
       label: "Pasos para reproducir"
-      description: "Describe los pasos para generar el error"
+      description: "Describe los pasos necesarios para que ocurra el error"
       placeholder: |
         1. ...
         2. ...
         3. ...
 
-  - type: dropdown
-    id: severidad
+  - type: textarea
+    id: comportamiento_esperado
     attributes:
-      label: "Severidad"
-      options:
-        - "Baja"
-        - "Media"
-        - "Alta"
+      label: "Comportamiento esperado"
+      description: "¿Qué esperabas que sucediera en lugar del error?"
+      placeholder: "El sistema debía..."
+
+  - type: textarea
+    id: evidencia_o_logs
+    attributes:
+      label: "Evidencia / Logs"
+      description: "Si es posible, adjunta capturas de pantalla o logs relevantes"
+      placeholder: "Adjunta links o pegas logs aquí"
