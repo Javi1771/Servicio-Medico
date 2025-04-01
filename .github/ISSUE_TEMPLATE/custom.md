@@ -7,12 +7,15 @@ assignees: ''
 
 ---
 
+---
 name: "User Story"
 description: "Crear una nueva historia de usuario siguiendo un formato ágil"
 title: "[User Story]"
 labels:
   - user story
+---
 
+version: 2
 body:
   - type: markdown
     attributes:
