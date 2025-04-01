@@ -1,26 +1,15 @@
----
-name: Custom issue template
-about: Describe this issue template's purpose here.
-title: ''
-labels: ''
-assignees: ''
-
----
-
----
 name: "User Story"
 description: "Crear una nueva historia de usuario siguiendo un formato ágil"
 title: "[User Story]"
 labels:
   - user story
----
 
 version: 2
 body:
   - type: markdown
     attributes:
       value: |
-        Por favor, describe la historia de usuario con el siguiente formato:  
+        Por favor, describe la historia de usuario con el siguiente formato:
         **"Como [rol], quiero [acción], para [beneficio]."**
 
   - type: input
@@ -44,7 +33,7 @@ body:
     attributes:
       label: "Notas Técnicas / Dependencias"
       description: "Si hay consideraciones de implementación o dependencias"
-      placeholder: "Se requiere la librería X, endpoint Y..."
+      placeholder: "Se requiere la librería X..."
 
   - type: textarea
     id: definition_of_done
