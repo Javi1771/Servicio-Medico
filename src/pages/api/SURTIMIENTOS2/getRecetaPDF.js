@@ -1,3 +1,4 @@
+// API: getRecetaPDF.js
 import { connectToDatabase } from "../connectToDatabase";
 import sql from "mssql";
 
@@ -33,14 +34,15 @@ export default async function handler(req, res) {
       return res.status(404).json({ message: "No se encontró el registro en SURTIMIENTOS." });
     }
 
-    const { FOLIO_SURTIMIENTO: folioSurtimiento, NOMINA, CLAVEMEDICO, CLAVEUSUARIO } = resultSurtimientos.recordset[0];
+    const { FOLIO_SURTIMIENTO: folioSurtimiento, NOMINA, CLAVEMEDICO, CLAVEUSUARIO } =
+      resultSurtimientos.recordset[0];
 
     console.log("✅ Se encontró el FOLIO_SURTIMIENTO más reciente:", folioSurtimiento);
     console.log("📌 Número de nómina (NOMINA):", NOMINA);
     console.log("🩺 Clave del médico:", CLAVEMEDICO);
     console.log("✍ Clave del usuario que elaboró:", CLAVEUSUARIO);
 
-    // 2️⃣ Obtener los medicamentos del detalleSurtimientos
+    // 2️⃣ Obtener los medicamentos del detalleSurtimientos, incluyendo la CLASIFICACION
     console.log("🔍 Buscando medicamentos en detalleSurtimientos...");
     const queryDetalle = `
       SELECT 
@@ -48,13 +50,15 @@ export default async function handler(req, res) {
         mn.medicamento AS nombreMedicamento,
         ds.indicaciones, 
         ds.cantidad, 
-        ds.piezas
+        ds.piezas,
+        mn.clasificacion              -- <--- AGREGAMOS ESTE CAMPO
       FROM detalleSurtimientos ds
       LEFT JOIN MEDICAMENTOS mn ON ds.claveMedicamento = mn.claveMedicamento
       WHERE ds.folioSurtimiento = @folioSurtimiento
     `;
 
-    const resultDetalle = await pool.request()
+    const resultDetalle = await pool
+      .request()
       .input("folioSurtimiento", sql.Int, folioSurtimiento)
       .query(queryDetalle);
 
@@ -76,7 +80,8 @@ export default async function handler(req, res) {
       WHERE FOLIO_SURTIMIENTO = @folioSurtimiento
     `;
 
-    const resultSurtimientoData = await pool.request()
+    const resultSurtimientoData = await pool
+      .request()
       .input("folioSurtimiento", sql.Int, folioSurtimiento)
       .query(querySurtimientoData);
 
@@ -140,8 +145,8 @@ export default async function handler(req, res) {
       doctor: nombreDoctor,
       cedula: cedulaDoctor,
       elaboro: nombreElaboro,
-      FOLIO_SURTIMIENTO: folioSurtimiento, // <-- se añade FOLIO_SURTIMIENTO
-      CLAVEMEDICO                        // <-- se añade CLAVEMEDICO
+      FOLIO_SURTIMIENTO: folioSurtimiento,
+      CLAVEMEDICO,
     });
   } catch (error) {
     console.error("❌ Error al obtener la receta:", error.message);

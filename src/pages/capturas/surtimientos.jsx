@@ -1,4 +1,7 @@
+"use client";
+
 /* eslint-disable @typescript-eslint/no-unused-vars */
+
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import useFetchEmpleado from "../../hooks/hookSURTIMIENTOS2/useFetchEmpleado";
@@ -14,15 +17,27 @@ import CargaMedicamentosForm from "./components2/cargaMedicamentosForm";
 import styles from "../css/SURTIMIENTOS_ESTILOS/surtimientos2.module.css";
 import useFetchSurtimientos from "../../hooks/hookSURTIMIENTOS2/useFetchSurtimientos";
 import useFetchDetalleSurtimiento from "../../hooks/hookSURTIMIENTOS2/useFetchDetalleSurtimiento";
+// nuevo componente
+import HistorialMedicamentos from "../../pages/consultas/components/HistorialMedicamentos";
+// hook para obtener clave y nómina
+import useFetchClaveNominaPaciente from "../../hooks/hookSURTIMIENTOS2/useFetchClaveNominaPaciente";
 
 import { useRouter } from "next/router";
 import useFetchMedicamentosReceta from "../../hooks/hookSURTIMIENTOS2/useFetchMedicamentosReceta";
-import TablaMedicamentos from "./components2/tablaMedicamentos"; // Extensión .jsx
+import TablaMedicamentos from "./components2/tablaMedicamentos";
 import Swal from "sweetalert2";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 
 const SurtimientosBanner = () => {
+  // Llamada al hook dentro del componente
+  const {
+    data: claveData,
+    loading: loadingClave,
+    error: errorClave,
+    fetchData: fetchClaveData,
+  } = useFetchClaveNominaPaciente();
+
   const {
     surtimientos,
     loadingSurtimientos,
@@ -119,11 +134,18 @@ const SurtimientosBanner = () => {
         return;
       }
 
+      // Reinicia los datos antes de realizar una nueva búsqueda
+      setReceta([]);
+      // Aquí podrías reiniciar otros estados si fuera necesario
+
+      // Llama a las funciones para obtener datos del empleado, paciente, sindicato, especialista y clave
       fetchEmpleado(folioNumero);
       fetchPaciente(folioNumero);
       fetchSindicato(folioNumero);
       fetchEspecialista(folioNumero);
+      fetchClaveData(folioNumero);
 
+      // Luego, realiza la llamada para obtener los medicamentos de la receta
       try {
         const response = await fetch(
           "/api/SURTIMIENTOS2/getMedicamentosReceta",
@@ -139,9 +161,7 @@ const SurtimientosBanner = () => {
         }
 
         const data = await response.json();
-        setReceta(data); // ✅ Actualizar la receta local
-
-        // 🔹 Llamar al hook para actualizar medicamentosReceta
+        setReceta(data);
         fetchMedicamentosReceta(folioNumero);
       } catch (error) {
         console.error("Error al obtener medicamentos:", error);
@@ -164,7 +184,6 @@ const SurtimientosBanner = () => {
   const handleSave = (medicamentosRestantes) => {
     // Aquí puedes manejar el proceso de guardar los medicamentos restantes
     console.log("Medicamentos a guardar:", medicamentosRestantes);
-    // Realizar el fetch o las operaciones necesarias para guardar los datos
   };
 
   // Guardar la receta en la BD o generar surtimiento
@@ -184,7 +203,7 @@ const SurtimientosBanner = () => {
       const medicamentosExistentes = await response.json();
 
       if (medicamentosExistentes.length > 0) {
-        // **Caso 1:** Ya existen medicamentos en `detalleSurtimientos`
+        // Caso 1: Ya existen medicamentos en detalleSurtimientos
         const surtimientoResponse = await fetch(
           "/api/SURTIMIENTOS2/generarSurtimiento",
           {
@@ -211,7 +230,7 @@ const SurtimientosBanner = () => {
           confirmButtonText: "Aceptar",
         });
       } else {
-        // **Caso 2:** No existen medicamentos en `detalleSurtimientos`, transferimos desde `detalleReceta`
+        // Caso 2: Transferimos desde detalleReceta
         const recetaResponse = await fetch("/api/SURTIMIENTOS2/guardarReceta", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -235,7 +254,7 @@ const SurtimientosBanner = () => {
           confirmButtonText: "Aceptar",
         });
 
-        // ✅ En lugar de limpiar la receta, volvemos a cargar los medicamentos
+        // Volver a cargar los medicamentos
         fetchMedicamentosReceta(folioNumero);
       }
     } catch (error) {
@@ -303,7 +322,6 @@ const SurtimientosBanner = () => {
 
         {/* Sección de Tarjetas (Empleado / Paciente / Sindicato) */}
         <div className={styles.rowCards}>
-          {/* Datos del Empleado */}
           {loadingEmpleado ? (
             <p className={styles.loading}>Cargando datos del empleado...</p>
           ) : errorEmpleado ? (
@@ -312,7 +330,6 @@ const SurtimientosBanner = () => {
             empleado && <DatosEmpleado empleado={empleado} />
           )}
 
-          {/* Información del Paciente */}
           {loadingPaciente ? (
             <p className={styles.loading}>
               Cargando información del paciente...
@@ -323,7 +340,6 @@ const SurtimientosBanner = () => {
             paciente && <InformacionPaciente paciente={paciente} />
           )}
 
-          {/* Información del Sindicato */}
           {loadingSindicato ? (
             <p className={styles.loading}>
               Cargando información del sindicato...
@@ -352,7 +368,7 @@ const SurtimientosBanner = () => {
                     "📝 Diagnóstico actualizado en `SurtimientosBanner`:",
                     value
                   );
-                  setDiagnostico(value); // ✅ Permitir que el estado se actualice siempre
+                  setDiagnostico(value);
                 }}
               />
             )
@@ -374,7 +390,7 @@ const SurtimientosBanner = () => {
                   onSave={handleSaveReceta}
                   disableAdd={medicamentosReceta.length > 0}
                   receta={receta}
-                  folio={folio} // 🔹 Pasar el folio como prop
+                  folio={folio}
                 />
               )
             )}
@@ -384,22 +400,25 @@ const SurtimientosBanner = () => {
         {/* Tabla de Medicamentos Recetados */}
         {isFolioValido && (
           <div className={styles.historialContainer}>
-            <TablaMedicamentos
-              folioPase={folio}
-              medicamentos={receta}
-              loading={loadingReceta}
-              error={errorReceta}
-              onRemoveMedicamento={handleRemoveMedicamento}
-              // Props para historial
-              surtimientos={surtimientos}
-              loadingSurtimientos={loadingSurtimientos}
-              errorSurtimientos={errorSurtimientos}
-              onFetchSurtimientos={fetchSurtimientos}
-              detalle={detalle}
-              loadingDetalle={loadingDetalle}
-              errorDetalle={errorDetalle}
-              onFetchDetalleSurtimiento={fetchDetalleSurtimiento}
-            />
+            <div className={styles.historialContainer}>
+              <TablaMedicamentos
+                folioPase={folio}
+                medicamentos={receta}
+                loading={loadingReceta}
+                error={errorReceta}
+                onRemoveMedicamento={handleRemoveMedicamento}
+              />
+            </div>
+
+            {/* Llamada al componente HistorialMedicamentos */}
+       
+            <HistorialMedicamentos
+  key={folio}
+  clavenomina={claveData?.NOMINA || ""}
+  clavepaciente={claveData?.CLAVE_PACIENTE || ""}
+/>
+
+          
           </div>
         )}
       </div>

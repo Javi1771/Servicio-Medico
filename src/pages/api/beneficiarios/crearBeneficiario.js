@@ -34,6 +34,8 @@ export default async function handler(req, res) {
     actaConcubinatoUrl,
     urlIncap,
     descriptorFacial,
+    //-------------------- NUEVO CAMPO --------------------//
+    firma, // Aquí recibimos la firma en base64
   } = req.body;
 
   try {
@@ -88,6 +90,8 @@ export default async function handler(req, res) {
       .input("cartaNoAfiliacionUrl", truncatedCartaNoAfiliacionUrl)
       .input("actaConcubinatoUrl", truncatedActaConcubinatoUrl)
       .input("urlIncap", truncatedUrlIncap)
+      //-------------------- NUEVO CAMPO --------------------//
+      .input("firma", firma || "") // Guardamos la firma en la BD
       .input("descriptorFacial", descriptorFacial || "").query(`
         INSERT INTO BENEFICIARIO (
           NO_NOMINA, PARENTESCO, NOMBRE, A_PATERNO, A_MATERNO, SEXO, 
@@ -95,7 +99,7 @@ export default async function handler(req, res) {
           TEL_EMERGENCIA, NOMBRE_EMERGENCIA, ESESTUDIANTE, ESDISCAPACITADO, 
           VIGENCIA_ESTUDIOS, FOTO_URL, URL_CONSTANCIA, 
           URL_CURP, URL_ACTA_NAC, URL_ACTAMATRIMONIO, URL_INE, URL_NOISSTE, 
-          URL_CONCUBINATO, URL_INCAP, DESCRIPTOR_FACIAL
+          URL_CONCUBINATO, URL_INCAP, DESCRIPTOR_FACIAL,FIRMA
         )
         OUTPUT INSERTED.ID_BENEFICIARIO
         VALUES (
@@ -104,7 +108,7 @@ export default async function handler(req, res) {
           @telEmergencia, @nombreEmergencia, @esEstudiante, @esDiscapacitado, 
           @vigenciaEstudios, @imageUrl, @urlConstancia, 
           @urlCurp, @urlActaNac, @actaMatrimonioUrl, @ineUrl, @cartaNoAfiliacionUrl, 
-          @actaConcubinatoUrl, @urlIncap, @descriptorFacial
+          @actaConcubinatoUrl, @urlIncap, @descriptorFacial, @firma
         )
       `);
 

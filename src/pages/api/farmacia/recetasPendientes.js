@@ -1,6 +1,5 @@
 // pages/api/pendientes.js
 import { connectToDatabase } from '../../api/connectToDatabase';
-import sql from 'mssql';
 
 // Función para formatear la fecha con día de la semana en español
 function formatFecha(fecha) {

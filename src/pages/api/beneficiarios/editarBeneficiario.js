@@ -34,6 +34,7 @@ export default async function handler(req, res) {
     ineUrl,
     cartaNoAfiliacionUrl,
     actaConcubinatoUrl,
+    firma, // Aquí recibimos la firma (puede ser cadena vacía o base64)
   } = req.body;
 
   console.log("Datos recibidos en el backend para actualizar:", req.body);
@@ -81,7 +82,7 @@ export default async function handler(req, res) {
     // Forzar la conversión a string para evitar errores en la validación
     const parentescoStr = String(parentesco);
 
-    // Realizar la consulta de actualización
+    // Realizar la consulta de actualización, agregando el campo FIRMA
     const result = await pool
       .request()
       .input("idBeneficiario", sql.Int, idBeneficiario)
@@ -115,6 +116,7 @@ export default async function handler(req, res) {
       .input("ineUrl", sql.VarChar, ineUrl || null)
       .input("cartaNoAfiliacionUrl", sql.VarChar, cartaNoAfiliacionUrl || null)
       .input("actaConcubinatoUrl", sql.VarChar, actaConcubinatoUrl || null)
+      .input("firma", sql.VarChar, firma && firma.trim() !== "" ? firma : null) // Actualización de la firma
       .query(`
         UPDATE BENEFICIARIO
         SET 
@@ -143,7 +145,8 @@ export default async function handler(req, res) {
           URL_ACTAMATRIMONIO = @actaMatrimonioUrl,
           URL_INE = @ineUrl,
           URL_NOISSTE = @cartaNoAfiliacionUrl,
-          URL_CONCUBINATO = @actaConcubinatoUrl
+          URL_CONCUBINATO = @actaConcubinatoUrl,
+          FIRMA = @firma
         WHERE ID_BENEFICIARIO = @idBeneficiario
       `);
 
@@ -180,7 +183,8 @@ export default async function handler(req, res) {
         .input("direccionIP", sql.VarChar, ip)
         .input("agenteUsuario", sql.VarChar, userAgent)
         .input("claveConsulta", sql.Int, null)
-        .input("idBeneficiario", sql.Int, idBeneficiario).query(`
+        .input("idBeneficiario", sql.Int, idBeneficiario)
+        .query(`
           INSERT INTO dbo.ActividadUsuarios 
             (IdUsuario, Accion, FechaHora, DireccionIP, AgenteUsuario, ClaveConsulta, IdBeneficiario)
           VALUES 

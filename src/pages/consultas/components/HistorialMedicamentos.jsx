@@ -104,3 +104,4 @@ const HistorialMedicamentos = ({ clavenomina, clavepaciente }) => {
 };
 
 export default HistorialMedicamentos;
+

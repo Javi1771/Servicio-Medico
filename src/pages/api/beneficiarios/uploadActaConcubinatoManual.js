@@ -4,75 +4,120 @@ import path from "path";
 
 export const config = {
   api: {
-    bodyParser: false, // Deshabilitamos el bodyParser para usar formidable
+    bodyParser: false, // Deshabilitar el bodyParser para usar formidable
   },
+};
+
+// Diccionario para traducir el ID de parentesco al texto
+const PARENTESCO_MAP = {
+  "1": "Esposo(a)",
+  "2": "Hijo(a)",
+  "3": "Concubino(a)",
+  "4": "Padre",
+  "5": "Madre",
 };
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     res.setHeader("Allow", ["POST"]);
-    return res.status(405).json({ error: `Method ${req.method} Not Allowed` });
+    return res
+      .status(405)
+      .json({ error: `Method ${req.method} Not Allowed` });
   }
 
   const form = formidable({
-    multiples: false,
-    keepExtensions: true,
+    multiples: false, // No permitir múltiples archivos
+    keepExtensions: true, // Mantener las extensiones de archivo
   });
 
   form.parse(req, async (err, fields, files) => {
     if (err) {
       console.error("Error al parsear el formulario:", err);
-      return res.status(500).json({ error: "Error al procesar el archivo." });
+      return res
+        .status(500)
+        .json({ error: "Error al procesar el archivo." });
     }
 
+    // Extraer el archivo y los campos necesarios
     const file = Array.isArray(files.file) ? files.file[0] : files.file;
-    let { numNomina } = fields;
+    let { numNomina, nombre, aPaterno, aMaterno, parentesco } = fields;
 
-    // Asegurarse de que numNomina sea una cadena
-    if (Array.isArray(numNomina)) {
-      numNomina = numNomina[0];
-    }
+    // Asegurarse de que no sean arrays
+    if (Array.isArray(numNomina)) numNomina = numNomina[0];
+    if (Array.isArray(nombre)) nombre = nombre[0];
+    if (Array.isArray(aPaterno)) aPaterno = aPaterno[0];
+    if (Array.isArray(aMaterno)) aMaterno = aMaterno[0];
+    if (Array.isArray(parentesco)) parentesco = parentesco[0];
 
     if (!file) {
-      return res.status(400).json({ error: "No se recibió ningún archivo en la solicitud." });
+      console.error("Archivo no encontrado en la solicitud");
+      return res
+        .status(400)
+        .json({ error: "Archivo no encontrado en la solicitud." });
     }
 
     if (!numNomina) {
-      return res.status(400).json({ error: "El número de nómina es obligatorio." });
+      console.error("Número de nómina no proporcionado");
+      return res
+        .status(400)
+        .json({ error: "El número de nómina es obligatorio." });
     }
 
+    // Validar que se hayan enviado los campos del nombre completo y el parentesco
+    if (!nombre || !aPaterno || !aMaterno || !parentesco) {
+      console.error("Faltan campos obligatorios: nombre completo o parentesco");
+      return res.status(400).json({
+        error:
+          "El nombre, apellido paterno, apellido materno y el parentesco son obligatorios.",
+      });
+    }
+
+    // Traducir el ID de parentesco al texto
+    const parentescoTexto = PARENTESCO_MAP[parentesco] || "Desconocido";
+
     try {
-      // Definir la carpeta donde se guardará el archivo: /public/acta_concubinatos/{numNomina}/
+      // Construir la carpeta destino:
+      // /public/Beneficiarios/Documentos/ActasConcubinatoManual/{numNomina}/{parentescoTexto}/{nombre}_{aPaterno}_{aMaterno}/
+      const folderName = `${nombre.trim()}_${aPaterno.trim()}_${aMaterno.trim()}`
+        .replace(/\s+/g, "_");
+
       const uploadDir = path.join(
         process.cwd(),
         "public",
-        "acta_concubinatos",
-        numNomina
+        "Beneficiarios",
+        "Documentos",
+        "ActasConcubinatoManual",
+        numNomina,
+        parentescoTexto,
+        folderName
       );
 
-      // Crear la carpeta si no existe
       if (!fs.existsSync(uploadDir)) {
         fs.mkdirSync(uploadDir, { recursive: true });
       }
 
-      // Generar nombre único para el archivo
-      const fileName = `acta_concubinato_manual_${Date.now()}${path.extname(file.originalFilename || "")}`;
+      // Generar un nombre único para el archivo
+      const fileName = `acta_concubinato_manual_${Date.now()}${path.extname(
+        file.originalFilename || ""
+      )}`;
       const filePath = path.join(uploadDir, fileName);
 
-      // Guardar el archivo en el servidor (mover desde la ubicación temporal)
+      // Mover el archivo desde la ubicación temporal a la carpeta destino
       fs.renameSync(file.filepath, filePath);
 
       // Construir la URL final para acceder al archivo
-      // Asegúrate de ajustar el puerto según el que use tu servidor
-      const finalURL = `${process.env.NEXT_PUBLIC_BASE_URL}/acta_concubinatos/${numNomina}/${fileName}`;
+      const finalURL = `${process.env.NEXT_PUBLIC_BASE_URL}/Beneficiarios/Documentos/ActasConcubinatoManual/${numNomina}/${parentescoTexto}/${folderName}/${fileName}`;
 
       return res.status(200).json({
         url: finalURL,
-        message: "Archivo subido correctamente al servidor propio.",
+        message:
+          "Archivo de Acta de Concubinato Manual subida correctamente al servidor propio.",
       });
     } catch (error) {
-      console.error("Error al subir el archivo de Concubinato Manual:", error);
-      return res.status(500).json({ error: "Error al subir el archivo de Concubinato Manual." });
+      console.error("Error al subir el archivo:", error);
+      return res
+        .status(500)
+        .json({ error: "Error al subir el archivo. Intenta nuevamente." });
     }
   });
 }
