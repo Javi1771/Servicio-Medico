@@ -181,11 +181,11 @@ export default async function handler(req, res) {
       INSERT INTO SURTIMIENTOS  (
         FOLIO_SURTIMIENTO, FOLIO_PASE, FECHA_EMISION, NOMINA, CLAVE_PACIENTE,
         NOMBRE_PACIENTE, EDAD, ESEMPLEADO, CLAVEMEDICO, DIAGNOSTICO,
-        DEPARTAMENTO, ESTATUS, COSTO, FECHA_DESPACHO, SINDICATO, claveusuario
+        DEPARTAMENTO, ESTADO, COSTO, FECHA_DESPACHO, SINDICATO, claveusuario, ESTATUS
       ) VALUES (
         @nuevoFolio, @folioPase, GETDATE(), @nomina, @clavePaciente,
         @nombrePaciente, @edad, @esEmpleado, @claveMedico, @diagnostico,
-        @departamento, @estatus, NULL, NULL, @sindicato, @claveUsuario
+        @departamento, @estatus, NULL, NULL, @sindicato, @claveUsuario, @estado
       )
     `;
 
@@ -222,6 +222,8 @@ export default async function handler(req, res) {
       .input("estatus", sql.Bit, estatusBIT)
       .input("sindicato", sql.NVarChar(10), sindicato || null)
       .input("claveUsuario", sql.Int, consulta.claveusuario)
+      .input("estado", sql.Bit, estatusBIT)
+
       .query(insertSurtimientoQuery);
 
     console.log("Surtimiento insertado exitosamente.");

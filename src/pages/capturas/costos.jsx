@@ -543,8 +543,8 @@ export default function Costos() {
         style={floatingBackButtonStyle}
         onMouseEnter={handleBackMouseEnter}
         onMouseLeave={handleBackMouseLeave}
-        onClick={() => (window.location.href = "/inicio-servicio-medico")}
-      >
+        onClick={() => router.replace("/inicio-servicio-medico")}
+        >
         <FaArrowLeft />
         Regresar
       </button>

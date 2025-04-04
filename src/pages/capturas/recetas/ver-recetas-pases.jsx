@@ -28,7 +28,7 @@ export default function VerRecetas() {
       </button>
 
       <h1 className="text-4xl font-extrabold text-cyan-400 text-center mb-10 flex items-center justify-center gap-3">
-        <span className="bg-cyan-600 p-3 rounded-full text-black">💊</span> Ver Recetas en PDF
+        <span className="bg-cyan-600 p-3 rounded-full text-black">📕</span> Ver Pases en PDF
       </h1>
 
       {/* Contenedor con ajuste de espacio */}

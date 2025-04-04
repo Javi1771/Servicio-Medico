@@ -19,7 +19,7 @@ export default function EnfermedadesCronicas() {
 
   const router = useRouter(); // declaro la variable router
   const handleBack = () => {
-    router.push('/inicio-servicio-medico'); // Redirige a /inicio-servicio-medico
+    router.replace('/inicio-servicio-medico'); // Redirige a /inicio-servicio-medico
   };
 
 

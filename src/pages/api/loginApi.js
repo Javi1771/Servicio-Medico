@@ -94,9 +94,7 @@ export default async function handler(req, res) {
     res.setHeader("set-cookie", [
       `token=${token}; path=/; samesite=lax`,
       `rol=${user.clavetipousuario}; path=/; samesite=lax`,
-      `nombreusuario=${encodeURIComponent(
-        user.nombreproveedor
-      )}; path=/; samesite=lax`,
+      `nombreusuario=${encodeURIComponent(user.nombreproveedor)}; path=/; samesite=lax`,
       `claveespecialidad=${user.claveespecialidad}; path=/; samesite=lax`,
       `claveusuario=${user.claveproveedor}; path=/; samesite=lax`,
       `costo=${user.costo}; path=/; samesite=lax`,

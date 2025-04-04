@@ -21,10 +21,11 @@ export default async function handler(req, res) {
       .request()
       .input("folio", sql.Int, folioConsulta)
       .query(`
-        SELECT clavenomina, seAsignoIncapacidad
+        SELECT clavenomina, nombrepaciente, edad, departamento, claveproveedor, clavepaciente
         FROM consultas 
         WHERE claveconsulta = @folio 
           AND clavestatus = 2
+          AND especialidadinterconsulta IS NOT NULL
       `);
 
     if (consultaResult.recordset.length === 0) {

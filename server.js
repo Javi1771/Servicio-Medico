@@ -73,8 +73,10 @@ app.prepare().then(() => {
   // Arranca el servidor HTTPS en la IP y puerto especificados
   //server.listen(3000, "172.16.4.47", (err) => {
   server.listen(3000, "172.16.12.100", (err) => {
+  //server.listen(3000, "172.16.31.213", (err) => {
     if (err) throw err;
     //console.log("Servidor HTTPS corriendo en https://172.16.4.47:3000");
     console.log("Servidor HTTPS corriendo en https://172.16.12.100:3000");
+    //console.log("Servidor HTTPS corriendo en https://172.16.31.213:3000");
   });
 });

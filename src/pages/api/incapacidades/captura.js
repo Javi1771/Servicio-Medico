@@ -59,9 +59,9 @@ export default async function handler(req, res) {
     const incapacidadResult = await pool
       .request()
       .input("noNomina", sql.NVarChar, noNomina)
-      .input("folioConsulta", sql.Int, folioConsulta) // Asegúrate de usar folioConsulta
+      .input("folioConsulta", sql.Int, folioConsulta) 
       .query(`
-        SELECT fechaInicial, fechaFinal, diagnostico, claveMedico, claveConsulta
+        SELECT fechaInicial, fechaFinal, diagnostico, claveMedico, claveConsulta, estatus
         FROM detalleIncapacidad 
         WHERE noNomina = @noNomina 
           AND estatus = 1 

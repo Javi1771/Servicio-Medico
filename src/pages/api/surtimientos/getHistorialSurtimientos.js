@@ -32,7 +32,9 @@ export default async function handler(req, res) {
         NOMBRE_PACIENTE,
         DIAGNOSTICO
       FROM SURTIMIENTOS
-      WHERE FOLIO_PASE = @folioPase AND ESTATUS = 1
+      WHERE FOLIO_PASE = @folioPase 
+      AND ESTADO = 1
+      AND ESTATUS = 1
     `;
 
     const result = await pool

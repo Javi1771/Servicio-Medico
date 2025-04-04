@@ -485,6 +485,10 @@ const EstudioLaboratorio = () => {
                   {consultaData.especialidad_medico.especialidad}
                 </p>
               )}
+              <p className="text-lg text-[#00576A]">
+                <span className="font-semibold">Diagnóstico del médico:</span>{" "}
+                {consultaData.paciente.diagnostico || "N/A"}
+              </p>
             </div>
 
             {/* Sección de Laboratorios y Estudios */}

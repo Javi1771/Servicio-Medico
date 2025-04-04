@@ -20,7 +20,7 @@ const FarmaciaSurtimientos = () => {
   };
 
   const handleRegresar = () => {
-    router.push("/inicio-servicio-medico");
+    router.replace("/inicio-servicio-medico");
   };
 
   //* Función para limpiar la pantalla después de guardar

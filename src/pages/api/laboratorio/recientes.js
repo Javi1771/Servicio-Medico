@@ -13,6 +13,7 @@ export default async function handler(req, res) {
         DEPARTAMENTO
       FROM LABORATORIOS
       WHERE FECHA_EMISION >= DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()), 0)
+      AND ESTATUS = 1
       ORDER BY FECHA_EMISION DESC;
     `;
 

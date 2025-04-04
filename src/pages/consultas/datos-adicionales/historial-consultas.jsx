@@ -55,7 +55,7 @@ const HistorialConsultas = ({ clavepaciente, clavenomina }) => {
     }
     const encryptedClaveConsulta = btoa(consulta.claveconsulta.toString());
     console.log("Clave encriptada:", encryptedClaveConsulta);
-    router.push(
+    router.replace(
       `/consultas/recetas/ver-recetas?claveconsulta=${encryptedClaveConsulta}`
     );
   };

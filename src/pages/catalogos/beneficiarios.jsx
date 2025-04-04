@@ -1286,7 +1286,7 @@ export default function RegistroBeneficiario() {
   }
 
   const handleBack = () => {
-    router.push("/inicio-servicio-medico"); // Redirige a /inicio-servicio-medico
+    router.replace("/inicio-servicio-medico"); // Redirige a /inicio-servicio-medico
   };
 
   // Función para obtener las opciones de sexo desde la API

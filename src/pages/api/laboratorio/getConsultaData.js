@@ -57,6 +57,7 @@ export async function getConsultaData(claveconsulta) {
       SINDICATO
     FROM LABORATORIOS
     WHERE CLAVECONSULTA = @claveConsulta
+      AND ESTATUS = 1
   `;
   const labResult = await pool
     .request()
