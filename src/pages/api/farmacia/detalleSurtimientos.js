@@ -19,16 +19,18 @@ export default async function handler(req, res) {
       .input('id', sql.VarChar, id)
       .query(`
         SELECT 
-          [idSurtimiento],
-          [folioSurtimiento],
-          [claveMedicamento],
-          [indicaciones],
-          [cantidad],
-          [estatus],
-          [piezas],
-          [entregado]
-        FROM [detalleSurtimientos]
-        WHERE [folioSurtimiento] = @id AND [estatus] = 1
+          ds.[idSurtimiento],
+          ds.[folioSurtimiento],
+          ds.[claveMedicamento],
+          ds.[indicaciones],
+          ds.[cantidad],
+          ds.[estatus],
+          ds.[piezas],
+          ds.[entregado],
+          m.[medicamento] AS nombreMedicamento
+        FROM [detalleSurtimientos] ds
+        LEFT JOIN [MEDICAMENTOS] m ON ds.[claveMedicamento] = m.[claveMedicamento]
+        WHERE ds.[folioSurtimiento] = @id AND ds.[estatus] = 1
       `);
 
     res.status(200).json(result.recordset);

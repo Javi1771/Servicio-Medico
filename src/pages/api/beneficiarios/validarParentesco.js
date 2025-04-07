@@ -5,6 +5,11 @@ export default async function handler(req, res) {
   if (req.method === "POST") {
     const { numNomina, parentesco } = req.body;
 
+    // Validar que los parámetros estén presentes
+    if (!numNomina || !parentesco) {
+      return res.status(400).json({ error: "Solicitud incorrecta: faltan parámetros." });
+    }
+
     try {
       const pool = await connectToDatabase();
 
@@ -37,7 +42,7 @@ export default async function handler(req, res) {
           return res.status(400).json({ conflict: true, message });
         }
 
-        // Validar que no existan múltiples registros del mismo tipo (Esposo/Concubino)
+        // Validar duplicados del mismo tipo (Esposo/Concubino)
         const duplicateQuery = `
           SELECT COUNT(*) AS duplicateCount
           FROM BENEFICIARIO
@@ -64,14 +69,14 @@ export default async function handler(req, res) {
         }
       }
 
-      // Si no hay conflictos, permitir el registro
-      res.status(200).json({ conflict: false });
+      // Si no hay conflictos, devolver respuesta válida
+      return res.status(200).json({ conflict: false });
     } catch (error) {
       console.error("Error al validar parentesco:", error.message);
-      res.status(500).json({ error: "Error interno del servidor" });
+      return res.status(500).json({ error: "Error interno del servidor" });
     }
   } else {
     res.setHeader("Allow", ["POST"]);
-    res.status(405).end(`Método ${req.method} no permitido`);
+    return res.status(405).json({ error: `Método ${req.method} no permitido` });
   }
 }

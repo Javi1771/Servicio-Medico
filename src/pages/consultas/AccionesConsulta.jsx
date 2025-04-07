@@ -374,6 +374,8 @@ const AccionesConsulta = ({
 
   //* Guardado global
   const handleGuardarGlobal = async () => {
+    setLoading(true);
+    console.log("🔄 Guardando globalmente...");
     try {
       //* Mostrar alerta de confirmación si todas las respuestas son "NO"
       if (

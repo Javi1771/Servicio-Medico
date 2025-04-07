@@ -4,7 +4,9 @@ import { Agent } from "https";
 const nextConfig = {
   images: {
     // Agrega tu dominio interno "172.16.0.7" además de "res.cloudinary.com"
-    domains: ["172.16.4.47","172.16.31.211"],
+    domains: ["172.16.4.47"],
+    //domains: ["172.16.31.211"],
+
   },
   env: {
     CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME,

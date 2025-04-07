@@ -1,5 +1,6 @@
 // components/RecetasPendientes.jsx
 import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import Link from 'next/link';
 import styles from '../css/EstilosFarmacia/RecetasPendientes.module.css';
 import { 
@@ -25,6 +26,19 @@ const RecetasPendientes = () => {
   // Estados para la paginación
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12; // Mostrar 12 tarjetas por página
+
+  // Estado para el contenedor del modal, que crearemos dinámicamente
+  const [modalContainer, setModalContainer] = useState(null);
+
+  // Creamos y agregamos un contenedor para el modal al body del documento
+  useEffect(() => {
+    const modalDiv = document.createElement('div');
+    document.body.appendChild(modalDiv);
+    setModalContainer(modalDiv);
+    return () => {
+      document.body.removeChild(modalDiv);
+    };
+  }, []);
 
   useEffect(() => {
     const fetchPendientes = async () => {
@@ -181,40 +195,54 @@ const RecetasPendientes = () => {
         </button>
       </div>
 
-      {/* Modal de medicamentos pendientes */}
-      {modalVisible && (
+      {/* Modal de medicamentos pendientes (usando React Portal) */}
+      {modalVisible && modalContainer && ReactDOM.createPortal(
         <div className={styles.modalOverlay} onClick={closeModal}>
           <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-            <button className={styles.modalCloseBtn} onClick={closeModal}>
-              <FaTimes />
-            </button>
-            <h2 className={styles.modalTitle}>
-              Medicamentos pendientes para surtimiento: {modalFolio}
-            </h2>
+
+            {/* Cabecera del Modal */}
+            <div className={styles.modalHeader}>
+              <h2 className={styles.modalTitle}>
+                Medicamentos pendientes: {modalFolio}
+              </h2>
+              <button className={styles.modalCloseBtn} onClick={closeModal}>
+                <FaTimes />
+              </button>
+            </div>
+
+            {/* Cuerpo del Modal */}
             <div className={styles.modalBody}>
               {medicationDetails[modalFolio] && medicationDetails[modalFolio].length > 0 ? (
-                medicationDetails[modalFolio].map((med) => (
-                  <div key={med.claveMedicamento} className={styles.medicationCard}>
-                    <div className={styles.infoRow}>
-                      <FaPills className={styles.iconLeft} />
-                      <strong>Clave Medicamento:</strong>
-                      <span className={styles.value}>{med.claveMedicamento}</span>
-                    </div>
+                medicationDetails[modalFolio].map((med, index) => (
+                  <div key={`${med.claveMedicamento}-${index}`} className={styles.medicationCard}>
+                    {/* Nombre del Medicamento (si existe en la consulta) */}
+                    {med.nombreMedicamento && (
+                      <div className={styles.infoRow}>
+                        <FaPills className={styles.iconLeft} />
+                        <strong>Nombre:</strong>
+                        <span className={styles.value}>{med.nombreMedicamento}</span>
+                      </div>
+                    )}
+                 
+                    {/* Indicaciones */}
                     <div className={styles.infoRow}>
                       <FaClipboardList className={styles.iconLeft} />
                       <strong>Indicaciones:</strong>
                       <span className={styles.value}>{med.indicaciones}</span>
                     </div>
+                    {/* Cantidad */}
                     <div className={styles.infoRow}>
                       <span className={styles.iconLeft}>💊</span>
                       <strong>Cantidad:</strong>
                       <span className={styles.value}>{med.cantidad}</span>
                     </div>
+                    {/* Piezas */}
                     <div className={styles.infoRow}>
                       <span className={styles.iconLeft}>📦</span>
                       <strong>Piezas:</strong>
                       <span className={styles.value}>{med.piezas}</span>
                     </div>
+                    {/* Entregado */}
                     <div className={styles.infoRow}>
                       <FaExclamationCircle className={styles.iconLeft} style={{ color: '#666' }} />
                       <strong>Entregado:</strong>
@@ -227,7 +255,8 @@ const RecetasPendientes = () => {
               )}
             </div>
           </div>
-        </div>
+        </div>,
+        modalContainer
       )}
     </div>
   );
