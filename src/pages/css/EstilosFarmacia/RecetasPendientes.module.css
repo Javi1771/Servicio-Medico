@@ -333,3 +333,37 @@
   color: #555;
   font-weight: 500;
 }
+
+
+
+
+
+/* Contenedor principal: organiza las secciones en columna */
+.mainContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* Sección de Recetas Pendientes (fila superior) */
+.recetasContainer {
+  background-color: #ffffff;
+  padding: 24px;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+/* Sección de Top Medicamentos (fila inferior) */
+.topMedicamentosWrapper {
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Resto de tus estilos (backButtonContainer, titleContainer, cardsContainer, etc.)
+   se mantienen según tu implementación actual */

@@ -31,6 +31,7 @@ import {
 Modal.setAppElement("#__next"); // Configuración del modal en Next.js
 
 export default function RegistroBeneficiario() {
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [numNomina, setNumNomina] = useState("");
   const [empleado, setEmpleado] = useState(null);
   const [beneficiarios, setBeneficiarios] = useState([]);
@@ -1630,11 +1631,16 @@ export default function RegistroBeneficiario() {
   const handleModalSubmit = async (e) => {
     e.preventDefault();
 
+    // Evitar múltiples envíos
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+
     // Llamamos a la función validateDocuments
     const { success, message } = validateDocuments(formData);
     if (!success) {
       playSound(false);
       Swal.fire("Error", message, "error");
+      setIsSubmitting(false);
       return; // Detenemos el proceso si falta algún documento obligatorio
     }
 
@@ -1642,7 +1648,7 @@ export default function RegistroBeneficiario() {
 
     // Validar campos obligatorios según el backend
     if (
-      (isEditMode && !currentBeneficiaryId) || // Validar idBeneficiario en modo edición
+      (isEditMode && !currentBeneficiaryId) ||
       !numNomina ||
       !formData.parentesco ||
       !formData.nombre ||
@@ -1657,16 +1663,16 @@ export default function RegistroBeneficiario() {
         title: "Error",
         text: "Todos los campos obligatorios deben completarse.",
       });
+      setIsSubmitting(false);
       return;
     }
 
-    // ** Validar si ya existe un Padre o Madre registrado **
+    // Validar si ya existe un Padre o Madre registrado
     try {
       const { conflict, message } = await validateUniqueParentesco(
         numNomina,
         formData.parentesco
       );
-
       if (conflict) {
         playSound(false);
         Swal.fire({
@@ -1674,16 +1680,17 @@ export default function RegistroBeneficiario() {
           title: "Conflicto detectado",
           text: message,
         });
+        setIsSubmitting(false);
         return;
       }
     } catch (error) {
-      playSound(false);
       playSound(false);
       Swal.fire({
         icon: "error",
         title: "Error",
         text: error.message,
       });
+      setIsSubmitting(false);
       return;
     }
 
@@ -1695,8 +1702,10 @@ export default function RegistroBeneficiario() {
         title: "Error",
         text: "Por favor, sube una imagen válida.",
       });
+      setIsSubmitting(false);
       return;
     }
+
     // Validar la URL del acta de concubinato (opcional)
     if (
       formData.actaConcubinatoUrl &&
@@ -1708,10 +1717,11 @@ export default function RegistroBeneficiario() {
         title: "Error",
         text: "Por favor, sube un enlace válido para el acta de concubinato.",
       });
+      setIsSubmitting(false);
       return;
     }
 
-    // ** Validar relación exclusiva entre Esposo(a) y Concubino(a) **
+    // Validar relación exclusiva entre Esposo(a) y Concubino(a)
     try {
       const validationResponse = await fetch(
         "/api/beneficiarios/validarParentesco",
@@ -1733,15 +1743,11 @@ export default function RegistroBeneficiario() {
       try {
         validationData = JSON.parse(responseText);
       } catch {
-        // Si no se puede parsear, se lanza un error con el texto recibido
         throw new Error(responseText);
       }
-
       if (!validationResponse.ok) {
         throw new Error(validationData.message || "Error en la validación");
       }
-
-      // Si existe un conflicto, detener el flujo
       if (validationData.conflict) {
         playSound(false);
         Swal.fire({
@@ -1749,6 +1755,7 @@ export default function RegistroBeneficiario() {
           title: "Conflicto detectado",
           text: validationData.message,
         });
+        setIsSubmitting(false);
         return;
       }
     } catch (error) {
@@ -1762,6 +1769,7 @@ export default function RegistroBeneficiario() {
         title: "Error",
         text: error.message,
       });
+      setIsSubmitting(false);
       return;
     }
 
@@ -1769,7 +1777,6 @@ export default function RegistroBeneficiario() {
     const formattedNacimiento = formData.fNacimiento
       ? new Date(formData.fNacimiento).toISOString()
       : null;
-
     const formattedVigenciaEstudios = formData.vigenciaEstudios
       ? (() => {
           const parsedDate = new Date(formData.vigenciaEstudios);
@@ -1778,7 +1785,7 @@ export default function RegistroBeneficiario() {
               "Vigencia de estudios tiene un valor inválido:",
               formData.vigenciaEstudios
             );
-            return null; // Devuelve null si la fecha no es válida
+            return null;
           }
           return parsedDate.toISOString();
         })()
@@ -1814,20 +1821,17 @@ export default function RegistroBeneficiario() {
         urlConstancia: formData.urlConstancia || null,
         urlActaNac: formData.urlActaNac || null,
         urlCurp: formData.urlCurp || null,
-
         actaMatrimonioUrl: formData.actaMatrimonioUrl || null,
         ineUrl: formData.ineUrl || null,
         cartaNoAfiliacionUrl: formData.cartaNoAfiliacionUrl || null,
-
         actaConcubinatoUrl: formData.actaConcubinatoUrl || null,
         urlIncap: formData.urlIncap || null,
         descriptorFacial: formData.descriptorFacial || "",
-        firma: formData.firma, // <-- Aquí
+        firma: formData.firma,
       };
 
       console.log("Datos enviados al backend (antes del fetch):", payload);
 
-      // Realizar la solicitud al backend
       const response = await fetch(endpoint, {
         method,
         headers: {
@@ -1836,7 +1840,6 @@ export default function RegistroBeneficiario() {
         body: JSON.stringify(payload),
       });
 
-      // Validar respuesta del backend
       if (!response.ok) {
         const errorData = await response.json();
         console.error("Error del backend:", errorData);
@@ -1884,12 +1887,12 @@ export default function RegistroBeneficiario() {
         ineUrl: "",
         cartaNoAfiliacionUrl: "",
         actaConcubinatoUrl: "",
-        urlIncap: "", // Reseteo del campo URL_INCAP
-        firma: "", // Reseteo del campo firma
+        urlIncap: "",
+        firma: "",
       });
 
       setIsModalOpen(false);
-      fetchBeneficiarios(); // Refrescar lista de beneficiarios
+      fetchBeneficiarios();
     } catch (error) {
       console.error("Error al enviar el formulario:", error.message);
       playSound(false);
@@ -1898,6 +1901,8 @@ export default function RegistroBeneficiario() {
         title: "Error",
         text: error.message,
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -3199,7 +3204,7 @@ export default function RegistroBeneficiario() {
                 className={`${styles.submitButton} ${
                   isSaveDisabled ? styles.disabled : ""
                 }`}
-                disabled={isSaveDisabled} // Botón deshabilitado si la fecha es inválida
+                disabled={isSaveDisabled || isSubmitting}
               >
                 <FaSave className={`${styles.icon} ${styles.iconLarge}`} />
                 {isEditMode ? "Actualizar" : "Guardar"}

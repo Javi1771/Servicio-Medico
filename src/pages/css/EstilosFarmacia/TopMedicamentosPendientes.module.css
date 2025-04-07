@@ -1,0 +1,138 @@
+/* Layout principal que contiene ambos contenedores */
+.mainContainer {
+    display: flex;
+    gap: 20px;
+  }
+  
+  /* Contenedor para las recetas pendientes */
+  .recetasContainer {
+    flex: 2;
+  }
+  
+  /* Contenedor para Top Medicamentos */
+  .topMedicamentosWrapper {
+    flex: 1;
+    /* Puedes agregar márgenes, padding o background adicional si lo deseas */
+    background: rgba(255, 255, 255, 0.9);
+    padding: 20px;
+    border-radius: 16px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  }
+  
+  /* Estilos para el componente TopMedicamentos */
+  .topMedicamentosContainer {
+    /* Ajusta estos estilos según tu diseño */
+  }
+  
+  .topMedicamentosTitle {
+    font-size: 1.5rem;
+    margin-bottom: 12px;
+    color: #333;
+  }
+  
+  .topMedicamentosList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .topMedicamentoItem {
+    display: flex;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .topMedicamentoItem:last-child {
+    border-bottom: none;
+  }
+  
+  .medicamentoName {
+    flex: 1;
+    font-weight: 500;
+    color: #555;
+  }
+  
+  .medicamentoCount {
+    font-size: 0.9rem;
+    color: #888;
+  }
+  
+
+
+
+  .topMedicamentosContainer {
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 16px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .topMedicamentosTitle {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: #333;
+  }
+  
+  .datePickerContainer {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  .datePicker {
+    padding: 0.4rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1rem;
+  }
+  
+  .consultarButton {
+    padding: 0.5rem 1rem;
+    background-color: #0070f3;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+  
+  .consultarButton:hover {
+    background-color: #005bb5;
+  }
+  
+  .topMedicamentosList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .topMedicamentoItem {
+    display: flex;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .topMedicamentoItem:last-child {
+    border-bottom: none;
+  }
+  
+  .iconLeft {
+    font-size: 1rem;
+    color: #666;
+    margin-right: 6px;
+  }
+  
+  .medicamentoName {
+    flex: 1;
+    font-weight: 500;
+    color: #555;
+  }
+  
+  .medicamentoCount {
+    font-size: 0.9rem;
+    color: #888;
+  }
+  

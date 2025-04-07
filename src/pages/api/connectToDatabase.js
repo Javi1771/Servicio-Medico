@@ -8,7 +8,7 @@ const dbConfig = {
   options: {
     encrypt: process.env.DB_ENCRYPT === 'true',
     trustServerCertificate: process.env.DB_TRUST_SERVER_CERTIFICATE === 'true',
-    requestTimeout: 18000, // Timeout global de 16 segundos
+    requestTimeout: 60000, // Timeout global de 16 segundos
   },
   pool: {
     max: 100,
