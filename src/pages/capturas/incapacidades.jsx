@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable react-hooks/exhaustive-deps */
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
@@ -22,7 +20,9 @@ import {
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 
+// Componentes de historial
 import HistorialIncapacidadesTable from "./incapacidades/historial-incapacidades-captura";
+import HistorialCompletoPage from "./incapacidades/historial-incapacidades-completo";
 
 const MySwal = withReactContent(Swal);
 
@@ -85,21 +85,20 @@ const CapturaIncapacidades = () => {
   const [employeeData, setEmployeeData] = useState({});
   const [incapacidadData, setIncapacidadData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  //* Historial de incapacidades
+  const [isSaving, setIsSaving] = useState(false);
+
+  //* Historial de incapacidades (tabla resumida)
   const [historialIncapacidades, setHistorialIncapacidades] = useState([]);
 
   //* Efecto visual (partículas)
   useEffect(() => {
     const createParticles = () => {
       const container = document.createElement("div");
-      container.className =
-        "absolute inset-0 overflow-hidden pointer-events-none";
+      container.className = "absolute inset-0 overflow-hidden pointer-events-none";
       document.body.appendChild(container);
-
       for (let i = 0; i < 30; i++) {
         const particle = document.createElement("div");
-        particle.className =
-          "absolute w-3 h-3 bg-cyan-400 rounded-full blur-lg opacity-75 animate-pulse";
+        particle.className = "absolute w-3 h-3 bg-cyan-400 rounded-full blur-lg opacity-75 animate-pulse";
         particle.style.left = `${Math.random() * 100}%`;
         particle.style.top = `${Math.random() * 100}%`;
         container.appendChild(particle);
@@ -120,7 +119,7 @@ const CapturaIncapacidades = () => {
   };
 
   // ----------------------------------------------------------------
-  //? (1) Buscar la nómina a partir del folioConsulta
+  //* Buscar la nómina a partir del folioConsulta
   // ----------------------------------------------------------------
   const fetchEmpleado = async () => {
     if (!folioConsulta) return;
@@ -132,102 +131,90 @@ const CapturaIncapacidades = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ folioConsulta }),
       });
-
-      if (!response.ok) {
+      if (response.ok) {
+        const data = await response.json();
+        console.log("✅ Respuesta de obtenerConsulta:", data);
+        if (data.seAsignoIncapacidad === null) {
+          playSound(false);
+          MySwal.fire({
+            icon: "question",
+            title: "<span style='color: #00acc1; font-weight: bold; font-size: 1.5em;'>Incapacidad no asignada</span>",
+            html: "<p style='color: #fff; font-size: 1.1em;'>No se encontró una incapacidad asignada para el folio de consulta ingresado. ¿Desea asignar una nueva incapacidad?</p>",
+            background: "linear-gradient(145deg, #004d40, #00251a)",
+            showCancelButton: true,
+            confirmButtonColor: "#00e676",
+            cancelButtonColor: "#ff1744",
+            confirmButtonText: "<span style='color: #000; font-weight: bold;'>Asignar Incapacidad</span>",
+            cancelButtonText: "<span style='color: #fff; font-weight: bold;'>Cancelar</span>",
+            customClass: {
+              popup: "border border-cyan-400 shadow-[0_0_20px_5px_rgba(0,230,118,0.8)] rounded-lg",
+            },
+          }).then((result) => {
+            if (result.isConfirmed) {
+              const encryptedClaveConsulta = btoa(folioConsulta.trim());
+              router.replace(`/capturas/incapacidades/nueva-incapacidad?claveconsulta=${encryptedClaveConsulta}`);
+            } else {
+              limpiarFormulario();
+            }
+            setIsLoading(false);
+          });
+          return;
+        }
+        const nominaObtenida = data.clavenomina;
+        setNomina(nominaObtenida);
+        const responseEmpleado = await fetch("/api/empleado", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ num_nom: nominaObtenida }),
+        });
+        if (!responseEmpleado.ok) {
+          throw new Error("Error al buscar la nómina del empleado.");
+        }
+        const empleadoData = await responseEmpleado.json();
+        console.log("✅ Datos del empleado:", empleadoData);
+        if (!empleadoData || !empleadoData.nombre) {
+          playSound(false);
+          MySwal.fire({
+            icon: "error",
+            title: "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Empleado no encontrado</span>",
+            html: "<p style='color: #fff; font-size: 1.1em;'>No se pudo recuperar la información del empleado.</p>",
+            background: "linear-gradient(145deg, #4a0000, #220000)",
+            confirmButtonColor: "#ff1744",
+            confirmButtonText: "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
+            customClass: {
+              popup: "border border-red-600 shadow-[0_0_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
+            },
+          });
+          limpiarFormulario();
+          setIsLoading(false);
+          return;
+        }
+        const edadCalculada = calcularEdad(empleadoData.fecha_nacimiento);
+        const employeeInfo = {
+          photo: "/user_icon_.png",
+          name: `${empleadoData.nombre} ${empleadoData.a_paterno} ${empleadoData.a_materno}`,
+          department: empleadoData.departamento || "Desconocido",
+          workstation: empleadoData.puesto || "Desconocido",
+          age: edadCalculada,
+        };
+        setEmployeeData(employeeInfo);
+        fetchIncapacidad(nominaObtenida, folioConsulta);
+        setIsLoading(false);
+      } else {
         throw new Error("Error al buscar el folio de consulta.");
       }
-      const data = await response.json();
-      console.log("✅ Respuesta de obtenerConsulta:", data);
-
-      if (!data.clavenomina) {
-        //! Folio no encontrado
-        playSound(false);
-        MySwal.fire({
-          icon: "error",
-          title:
-            "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>⚠️ Folio de consulta no encontrado</span>",
-          html: "<p style='color: #fff; font-size: 1.1em;'>No se encontró el folio. Revisa o asigna una nueva incapacidad.</p>",
-          background: "linear-gradient(145deg, #4a0000, #220000)",
-          confirmButtonColor: "#ff1744",
-          confirmButtonText:
-            "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-          customClass: {
-            popup:
-              "border border-red-600 shadow-[0_0_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-          },
-        });
-        limpiarFormulario();
-        setIsLoading(false);
-        return;
-      }
-
-      const nominaObtenida = data.clavenomina;
-      setNomina(nominaObtenida);
-
-      //? 2) Buscar datos del empleado con /api/empleado
-      const responseEmpleado = await fetch("/api/empleado", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ num_nom: nominaObtenida }),
-      });
-      if (!responseEmpleado.ok) {
-        throw new Error("Error al buscar la nómina del empleado.");
-      }
-      const empleadoData = await responseEmpleado.json();
-      console.log("✅ Datos del empleado:", empleadoData);
-
-      if (!empleadoData || !empleadoData.nombre) {
-        //! Empleado no encontrado
-        playSound(false);
-        MySwal.fire({
-          icon: "error",
-          title:
-            "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Empleado no encontrado</span>",
-          html: "<p style='color: #fff; font-size: 1.1em;'>No se pudo recuperar la información del empleado.</p>",
-          background: "linear-gradient(145deg, #4a0000, #220000)",
-          confirmButtonColor: "#ff1744",
-          confirmButtonText:
-            "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-          customClass: {
-            popup:
-              "border border-red-600 shadow-[0_0_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-          },
-        });
-        limpiarFormulario();
-        setIsLoading(false);
-        return;
-      }
-
-      //* Calcular la edad
-      const edadCalculada = calcularEdad(empleadoData.fecha_nacimiento);
-      const employeeInfo = {
-        photo: "/user_icon_.png",
-        name: `${empleadoData.nombre} ${empleadoData.a_paterno} ${empleadoData.a_materno}`,
-        department: empleadoData.departamento || "Desconocido",
-        workstation: empleadoData.puesto || "Desconocido",
-        age: edadCalculada,
-      };
-      setEmployeeData(employeeInfo);
-
-      //? 3) Buscar la incapacidad
-      fetchIncapacidad(nominaObtenida, folioConsulta);
-
-      setIsLoading(false);
     } catch (error) {
       console.error("Error en fetchEmpleado:", error);
       playSound(false);
       MySwal.fire({
         icon: "error",
-        title:
-          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error al obtener información</span>",
+        title: "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error al obtener información</span>",
         html: "<p style='color: #fff; font-size: 1.1em;'>Hubo un error. Intenta nuevamente.</p>",
         background: "linear-gradient(145deg, #4a0000, #220000)",
         confirmButtonColor: "#ff1744",
-        confirmButtonText:
-          "<span style='color: #fff; font-weight: bold;'>Reintentar</span>",
+        confirmButtonText: "<span style='color: #fff; font-weight: bold;'>Reintentar</span>",
         customClass: {
-          popup:
-            "border border-red-600 shadow-[0_0_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
+          popup: "border border-red-600 shadow-[0_0_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
         },
       });
       setIsLoading(false);
@@ -236,7 +223,6 @@ const CapturaIncapacidades = () => {
 
   // ----------------------------------------------------------------
   //* Buscar la incapacidad con /api/incapacidades/captura
-  //* Añadimos 2 botones en la alerta “Folio ya atendido”: Ver Historial o Regresar
   // ----------------------------------------------------------------
   const fetchIncapacidad = async (nomina, folioConsulta) => {
     if (!folioConsulta) {
@@ -251,9 +237,7 @@ const CapturaIncapacidades = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(bodyData),
       });
-
       if (!response.ok) {
-        //* Folio ya atendido
         throw new Error("No se encontró incapacidad (folio atendido).");
       }
       const data = await response.json();
@@ -262,37 +246,24 @@ const CapturaIncapacidades = () => {
     } catch (error) {
       console.error("Error en fetchIncapacidad:", error);
       setIncapacidadData(null);
-
-      //! Alerta con 2 opciones
       playSound(false);
       MySwal.fire({
         icon: "warning",
-        title:
-          "<span style='color: #ff9800; font-weight: bold; font-size: 1.5em;'>⚠️ Folio ya atendido</span>",
+        title: "<span style='color: #ff9800; font-weight: bold; font-size: 1.5em;'>⚠️ Folio ya atendido</span>",
         html: "<p style='color: #fff; font-size: 1.1em;'>El folio de consulta ya fue atendido. ¿Deseas ver el historial o regresar?</p>",
         background: "linear-gradient(145deg, #4a2600, #220f00)",
         showCancelButton: true,
-
         confirmButtonColor: "#088000",
         cancelButtonColor: "#ff1100",
-
-        confirmButtonText:
-          "<span style='color: #fff; font-weight: bold;'>Ver Historial</span>",
-        cancelButtonText:
-          "<span style='color: #fff; font-weight: bold;'>Regresar</span>",
-
+        confirmButtonText: "<span style='color: #fff; font-weight: bold;'>Ver Historial</span>",
+        cancelButtonText: "<span style='color: #fff; font-weight: bold;'>Regresar</span>",
         customClass: {
-          popup:
-            "border border-yellow-600 shadow-[0_0_20px_5px_rgba(255,152,0,0.9)] rounded-lg",
+          popup: "border border-yellow-600 shadow-[0_0_20px_5px_rgba(255,152,0,0.9)] rounded-lg",
         },
       }).then((result) => {
         if (result.isDismissed) {
-          //* El usuario eligió "Regresar"
           limpiarFormulario();
         }
-        //* Si el usuario da "Ver Historial" (isConfirmed),
-        //* NO limpiamos nada, de modo que la "nomina" permanece
-        //* y se sigue mostrando la tabla sin cambios.
       });
     }
   };
@@ -301,6 +272,7 @@ const CapturaIncapacidades = () => {
   //* Guardar la incapacidad
   // ----------------------------------------------------------------
   const guardarCaptura = async () => {
+    setIsSaving(true);
     try {
       if (!incapacidadData) {
         throw new Error("No hay datos de incapacidad para guardar");
@@ -316,9 +288,7 @@ const CapturaIncapacidades = () => {
         claveConsulta: incapacidadData.claveConsulta,
         claveMedico: incapacidadData.claveMedico,
       };
-
       console.log("Enviando a /api/incapacidades/guardarCaptura:", payload);
-
       const response = await fetch("/api/incapacidades/guardarCaptura", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -327,21 +297,20 @@ const CapturaIncapacidades = () => {
       if (!response.ok) {
         throw new Error("Error al guardar la incapacidad");
       }
-
       playSound(true);
       MySwal.fire({
         icon: "success",
-        title:
-          "<span style='color: #00e676; font-weight: bold; font-size: 1.5em;'>✔️ Incapacidad guardada</span>",
+        title: "<span style='color: #00e676; font-weight: bold; font-size: 1.5em;'>✔️ Incapacidad guardada</span>",
         html: "<p style='color: #fff; font-size: 1.1em;'>La incapacidad se registró con éxito.</p>",
         background: "linear-gradient(145deg, #004d40, #00251a)",
         confirmButtonColor: "#00e676",
-        confirmButtonText:
-          "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
+        confirmButtonText: "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
         customClass: {
-          popup:
-            "border border-green-600 shadow-[0_0_20px_5px_rgba(0,230,118,0.8)] rounded-lg",
+          popup: "border border-green-600 shadow-[0_0_20px_5px_rgba(0,230,118,0.8)] rounded-lg",
         },
+      }).then(() => {
+        const encryptedClaveConsulta = btoa(folioConsulta.trim());
+        router.replace(`/capturas/incapacidades/ver-incapacidad?claveconsulta=${encryptedClaveConsulta}`);
       });
       limpiarFormulario();
     } catch (error) {
@@ -349,40 +318,34 @@ const CapturaIncapacidades = () => {
       playSound(false);
       MySwal.fire({
         icon: "error",
-        title:
-          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error al guardar</span>",
+        title: "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error al guardar</span>",
         html: "<p style='color: #fff; font-size: 1.1em;'>No se pudo completar el registro de la incapacidad.</p>",
         background: "linear-gradient(145deg, #4a0000, #220000)",
         confirmButtonColor: "#ff1744",
-        confirmButtonText:
-          "<span style='color: #fff; font-weight: bold;'>Reintentar</span>",
+        confirmButtonText: "<span style='color: #fff; font-weight: bold;'>Reintentar</span>",
         customClass: {
-          popup:
-            "border border-red-600 shadow-[0_0_20px_5px_rgba(255,23,68,0.8)] rounded-lg",
+          popup: "border border-red-600 shadow-[0_0_20px_5px_rgba(255,23,68,0.8)] rounded-lg",
         },
       });
+    } finally {
+      setIsSaving(false);
     }
   };
 
   // ----------------------------------------------------------------
-  //? Cargar historial (si hay "nomina"), enviándola como clavenomina
+  //* Cargar historial (si hay "nomina"), enviándola como clavenomina
   // ----------------------------------------------------------------
   useEffect(() => {
     if (!nomina) {
-      console.warn(
-        "Falta 'clavenomina'. Evitando llamada a la API de historial."
-      );
+      console.warn("Falta 'clavenomina'. Evitando llamada a la API de historial.");
       setHistorialIncapacidades([]);
       return;
     }
     console.log(`Cargando historial para clavenomina: ${nomina}`);
-
     const fetchHistorialIncapacidades = async () => {
       try {
         const queryParams = new URLSearchParams({ clavenomina: nomina });
-        const response = await fetch(
-          `/api/incapacidades/historialCaptura?${queryParams.toString()}`
-        );
+        const response = await fetch(`/api/incapacidades/historialCaptura?${queryParams.toString()}`);
         if (!response.ok) {
           console.error("Error al cargar historial:", await response.text());
           setHistorialIncapacidades([]);
@@ -401,12 +364,11 @@ const CapturaIncapacidades = () => {
         setHistorialIncapacidades([]);
       }
     };
-
     fetchHistorialIncapacidades();
   }, [nomina]);
 
   const handleRegresar = () => {
-    router.push("/inicio-servicio-medico"); // Redirige a /inicio-servicio-medico
+    router.replace("/inicio-servicio-medico");
   };
 
   return (
@@ -424,7 +386,6 @@ const CapturaIncapacidades = () => {
           animate={{ scale: 1, opacity: 1 }}
           className="text-center mb-12 space-y-4"
         >
-          {/* Botón regresar */}
           <div className="flex justify-start mb-12">
             <button
               onClick={handleRegresar}
@@ -467,6 +428,9 @@ const CapturaIncapacidades = () => {
           </button>
         </motion.div>
 
+        {/* Mostrar Historial Completo solo si no se usa el buscador de folio */}
+        {folioConsulta === "" && <HistorialCompletoPage />}
+
         {/* Información del Empleado */}
         {Object.keys(employeeData).length > 0 && (
           <motion.div
@@ -481,7 +445,6 @@ const CapturaIncapacidades = () => {
                 Información del Empleado
               </span>
             </h2>
-
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-center">
               <div className="relative w-48 h-48 mx-auto">
                 <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 to-amber-600 rounded-full blur-lg opacity-30 animate-pulse" />
@@ -534,7 +497,6 @@ const CapturaIncapacidades = () => {
                 Detalles de la Incapacidad
               </span>
             </h2>
-
             <div className="grid md:grid-cols-2 gap-6 text-lg">
               <div className="space-y-4">
                 <p className="flex items-center gap-3 text-red-200">
@@ -569,8 +531,6 @@ const CapturaIncapacidades = () => {
                 </p>
               </div>
             </div>
-
-            {/* Botones de acción */}
             <motion.div
               className="flex justify-end gap-4 mt-8"
               initial={{ opacity: 0 }}
@@ -585,16 +545,17 @@ const CapturaIncapacidades = () => {
               </button>
               <button
                 onClick={guardarCaptura}
-                className="bg-gradient-to-r from-emerald-500 to-cyan-600 px-6 py-3 rounded-lg font-bold hover:scale-105 transition-all flex items-center gap-2"
+                disabled={isSaving}
+                className="bg-gradient-to-r from-emerald-500 to-cyan-600 px-6 py-3 rounded-lg font-bold hover:scale-105 transition-all flex items-center gap-2 disabled:opacity-50"
               >
                 <FaSave className="text-xl" />
-                Guardar
+                {isSaving ? "Guardando..." : "Guardar"}
               </button>
             </motion.div>
           </motion.div>
         )}
 
-        {/* Tabla de Historial: se muestra SOLO si hay registros en historialIncapacidades */}
+        {/* Tabla de Historial Resumido */}
         {historialIncapacidades.length > 0 && (
           <HistorialIncapacidadesTable historial={historialIncapacidades} />
         )}

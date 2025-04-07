@@ -32,6 +32,7 @@ export default async function handler(req, res) {
       FROM consultas c
       INNER JOIN proveedores p ON c.claveproveedor = p.claveproveedor
       WHERE claveconsulta = @folio
+        AND clavestatus = 2
     `;
     const consultaRequest = pool.request();
     consultaRequest.timeout = 0; //! Deshabilitar timeout

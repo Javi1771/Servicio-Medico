@@ -1,6 +1,28 @@
 import React from "react";
 
-const HistorialIncapacidadesTable = ({ historial }) => {
+const HistorialIncapacidadesTable = ({ historial, loading }) => {
+  if (loading) {
+    return (
+      <div className="bg-gray-900 p-6 md:p-8 rounded-xl shadow-2xl mt-8 flex justify-center items-center min-h-[200px]">
+        <svg className="animate-spin h-12 w-12 text-white" viewBox="0 0 24 24">
+          <circle
+            className="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            strokeWidth="4"
+          ></circle>
+          <path
+            className="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8v8H4z"
+          ></path>
+        </svg>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-gray-900 p-6 md:p-8 rounded-xl shadow-2xl mt-8">
       <h2 className="text-2xl md:text-4xl font-semibold mb-4 text-center text-purple-400">
@@ -73,7 +95,7 @@ const HistorialIncapacidadesTable = ({ historial }) => {
               ))
             ) : (
               <tr>
-                <td colSpan={6} className="text-center py-6 text-gray-400">
+                <td colSpan={8} className="text-center py-6 text-gray-400">
                   No hay incapacidades registradas para el paciente.
                 </td>
               </tr>

@@ -70,10 +70,11 @@ export default async function handler(req, res) {
         ,[CLAVEMEDICO]
         ,[DIAGNOSTICO]
         ,[DEPARTAMENTO]
-        ,[ESTATUS]
+        ,[ESTADO]
         ,[FECHA_DESPACHO]
         ,[SINDICATO]
-        ,[claveusuario])
+        ,[claveusuario]
+        ,[ESTATUS])
       VALUES
         (@nuevoFolio
         ,@folioPase
@@ -89,7 +90,8 @@ export default async function handler(req, res) {
         ,@estatus
         ,@fechaDespacho
         ,@sindicato
-        ,@claveUsuario)
+        ,@claveUsuario
+        ,@estado)
     `;
 
     await pool
@@ -109,6 +111,7 @@ export default async function handler(req, res) {
       .input("fechaDespacho", sql.DateTime, fechaDespacho)
       .input("sindicato", sql.NVarChar(10), sindicato)
       .input("claveUsuario", sql.Int, claveUsuario)
+      .input("estado", sql.Bit, estatus)
       .query(query);
 
     res.status(200).json({ message: "Surtimiento insertado exitosamente.", nuevoFolio });

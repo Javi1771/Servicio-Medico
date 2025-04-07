@@ -38,7 +38,9 @@ const Notificaciones = () => {
         const data = await response.json();
         console.log("Datos recibidos:", data);
         //* Suponemos que la respuesta contiene { medicamentos: [...], usuario: "..." }
-        setNotificaciones(Array.isArray(data.medicamentos) ? data.medicamentos : []);
+        setNotificaciones(
+          Array.isArray(data.medicamentos) ? data.medicamentos : []
+        );
         setNombreUsuario(data.usuario || "Usuario no definido");
         setfechaActualFormateada(data.fecha || "Usuario no definido");
         console.log("Usuario recibido:", data.usuario);
@@ -72,6 +74,88 @@ const Notificaciones = () => {
     [notificaciones]
   );
 
+  //* Función para dibujar texto en múltiples líneas, respetando un ancho máximo.
+  const drawMultilineText = (
+    page,
+    text,
+    x,
+    y,
+    maxWidth,
+    fontSize,
+    font,
+    color
+  ) => {
+    const lines = text.split("\n");
+    let currentY = y;
+    const lineHeight = fontSize + 2; //* Ajuste de separación
+    //* Se estima la cantidad máxima de caracteres por línea
+    const maxCharsPerLine = Math.floor(maxWidth / (fontSize * 0.6));
+    lines.forEach((lineText) => {
+      const words = lineText.split(" ");
+      let line = "";
+      words.forEach((word) => {
+        const testLine = line ? line + " " + word : word;
+        if (testLine.length > maxCharsPerLine) {
+          page.drawText(line, { x, y: currentY, size: fontSize, font, color });
+          currentY -= lineHeight;
+          line = word;
+        } else {
+          line = testLine;
+        }
+      });
+      page.drawText(line, { x, y: currentY, size: fontSize, font, color });
+      currentY -= lineHeight;
+    });
+    return currentY;
+  };
+
+  //* Función auxiliar para imprimir un ítem usando texto multilinea
+  const printItem = (page, x, y, item, maxWidth) => {
+    //? Bloque 1: Medicamento y EAN
+    const medicamentoText = `${item.medicamento} (EAN: ${item.ean})`;
+    y = drawMultilineText(
+      page,
+      medicamentoText,
+      x,
+      y,
+      maxWidth,
+      fontSize,
+      font,
+      color
+    );
+    y -= 1; //* Margen adicional
+
+    //? Bloque 2: Presentación y piezas
+    const presentacionText = `Presentación: ${item.presentacion} ${
+      item.medida || ""
+    } | Piezas: ${item.piezas}`;
+    y = drawMultilineText(
+      page,
+      presentacionText,
+      x,
+      y,
+      maxWidth,
+      fontSize,
+      font,
+      color
+    );
+    y -= 1; //* Margen adicional
+
+    //? Bloque 3: Mínimo y Máximo
+    const minMaxText = `Mín: ${item.minimo} / Máx: ${item.maximo}`;
+    y = drawMultilineText(
+      page,
+      minMaxText,
+      x,
+      y,
+      maxWidth,
+      fontSize,
+      font,
+      color
+    );
+    return y;
+  };
+
   //* Función para generar el PDF con paginación (9 registros por columna)
   const handleGeneratePDF = async () => {
     try {
@@ -95,83 +179,137 @@ const Notificaciones = () => {
       const fontSize = 10;
       const color = rgb(0, 0, 0);
 
-      //? d) Coordenadas originales
-      const leftColumnX = 15;   //* Columna Stock Medio
-      const rightColumnX = 320; //* Columna Stock Bajo
-
-      //? e) Calcular la cantidad de páginas necesarias (9 registros por columna)
-      const pagesCount = Math.max(
-        Math.ceil(stockMedio.length / 9),
-        Math.ceil(stockBajo.length / 9)
-      );
-
-      //? f) Función auxiliar para imprimir un ítem
-      const printItem = (page, x, y, item) => {
-        page.drawText(`${item.medicamento} (EAN: ${item.ean})`, {
-          x,
-          y,
-          size: fontSize,
-          font,
-          color,
+      //? Función para dibujar texto en múltiples líneas
+      const drawMultilineText = (
+        page,
+        text,
+        x,
+        y,
+        maxWidth,
+        fontSize,
+        font,
+        color
+      ) => {
+        const lines = text.split("\n");
+        let currentY = y;
+        const lineHeight = fontSize + 2; //* Espacio entre líneas
+        const maxCharsPerLine = Math.floor(maxWidth / (fontSize * 0.6));
+        lines.forEach((lineText) => {
+          const words = lineText.split(" ");
+          let line = "";
+          words.forEach((word) => {
+            const testLine = line ? line + " " + word : word;
+            if (testLine.length > maxCharsPerLine) {
+              page.drawText(line, {
+                x,
+                y: currentY,
+                size: fontSize,
+                font,
+                color,
+              });
+              currentY -= lineHeight;
+              line = word;
+            } else {
+              line = testLine;
+            }
+          });
+          page.drawText(line, { x, y: currentY, size: fontSize, font, color });
+          currentY -= lineHeight;
         });
-        page.drawText(
-          `Presentación: ${item.presentacion} ${item.medida || ""} | Piezas: ${item.piezas}`,
-          {
-            x,
-            y: y - 15,
-            size: fontSize,
-            font,
-            color,
-          }
-        );
-        page.drawText(`Mín: ${item.minimo} / Máx: ${item.maximo}`, {
-          x,
-          y: y - 30,
-          size: fontSize,
-          font,
-          color,
-        });
+        return currentY;
       };
 
-      //? g) Para cada página, copiar la plantilla y listar 9 registros por columna
+      //* Función para imprimir un ítem utilizando texto multilinea
+      const printItem = (page, x, y, item, maxWidth) => {
+        let newY = y;
+        //? Bloque 1: Medicamento y EAN
+        const medicamentoText = `${item.medicamento} (EAN: ${item.ean})`;
+        newY = drawMultilineText(
+          page,
+          medicamentoText,
+          x,
+          newY,
+          maxWidth,
+          fontSize,
+          font,
+          color
+        );
+        newY -= 1; //* Margen adicional
+
+        //? Bloque 2: Presentación y piezas
+        const presentacionText = `Presentación: ${item.presentacion} ${
+          item.medida || ""
+        } | Piezas: ${item.piezas}`;
+        newY = drawMultilineText(
+          page,
+          presentacionText,
+          x,
+          newY,
+          maxWidth,
+          fontSize,
+          font,
+          color
+        );
+        newY -= 1; //* Margen adicional
+
+        //? Bloque 3: Mínimo y Máximo
+        const minMaxText = `Mín: ${item.minimo} / Máx: ${item.maximo}`;
+        newY = drawMultilineText(
+          page,
+          minMaxText,
+          x,
+          newY,
+          maxWidth,
+          fontSize,
+          font,
+          color
+        );
+        return newY;
+      };
+
+      //? d) Coordenadas originales
+      const leftColumnX = 15; //* Columna Stock Medio
+      const rightColumnX = 320; //* Columna Stock Bajo
+      const maxWidth = 280; //* Ancho máximo para el texto
+
+      //? e) Calcular la cantidad de páginas necesarias (7 registros por columna)
+      const pagesCount = Math.max(
+        Math.ceil(stockMedio.length / 7),
+        Math.ceil(stockBajo.length / 7)
+      );
+
+      //? f) Para cada página, copiar la plantilla y listar 7 registros por columna
       for (let p = 0; p < pagesCount; p++) {
         const [copiedPage] = await pdfDoc.copyPages(templateDoc, [0]);
         const currentPage = copiedPage;
         pdfDoc.addPage(currentPage);
 
-        //* Escribir el nombre de usuario en la cabecera (coordenadas originales)
-        currentPage.drawText(`${nombreUsuario}`, {
-          x: 463,
-          y: height - 758,
-          size: 8,
-          font,
-          color,
-        });
-        currentPage.drawText(`${fechaActualFormateada}`, {
-          x: 460,
-          y: height - 767.2,
-          size: 8,
-          font,
-          color,
-        });
+        //* Cabecera: Nombre de usuario y fecha
+        currentPage.drawText(`${nombreUsuario}`, {x: 463, y: height - 758, size: 8, font, color, });
+        currentPage.drawText(`${fechaActualFormateada}`, {x: 460, y: height - 767.2, size: 8, font, color, });
 
         let yStart = height - 175;
-        const medioItems = stockMedio.slice(p * 9, p * 9 + 9);
-        let yLeft = yStart;
-        for (let i = 0; i < medioItems.length; i++) {
-          printItem(currentPage, leftColumnX, yLeft, medioItems[i]);
-          yLeft -= 60;
-        }
 
-        const bajoItems = stockBajo.slice(p * 9, p * 9 + 9);
+        //* Para la columna Stock Medio
+        let yLeft = yStart;
+        const medioItems = stockMedio.slice(p * 9, p * 9 + 9);
+        medioItems.forEach((item) => {
+          yLeft = printItem(currentPage, leftColumnX, yLeft, item, maxWidth);
+          // *Agregar espacio extra para separar cada medicamento
+          yLeft -= 20;
+        });
+
+        //* Para la columna Stock Bajo
         let yRight = yStart;
-        for (let i = 0; i < bajoItems.length; i++) {
-          printItem(currentPage, rightColumnX, yRight, bajoItems[i]);
-          yRight -= 60;
-        }
+        const bajoItems = stockBajo.slice(p * 9, p * 9 + 9);
+        bajoItems.forEach((item) => {
+          yRight = printItem(currentPage, rightColumnX, yRight, item, maxWidth);
+          //* Agregar espacio extra para separar cada medicamento
+          yRight -= 20;
+        });
       }
 
-      //? h) Guardar y descargar el PDF generado
+      //? g) Guardar y descargar el PDF generado
       const pdfBytes = await pdfDoc.save();
       const blob = new Blob([pdfBytes], { type: "application/pdf" });
       saveAs(blob, "ReporteMedicamentos.pdf");
@@ -185,10 +323,25 @@ const Notificaciones = () => {
   const getStatusIcon = (status) => {
     const lowerStatus = status.toLowerCase();
     if (lowerStatus === "stock bajo")
-      return <BiErrorCircle className="text-3xl text-red-500" aria-label="Stock bajo" />;
+      return (
+        <BiErrorCircle
+          className="text-3xl text-red-500"
+          aria-label="Stock bajo"
+        />
+      );
     if (lowerStatus === "stock medio")
-      return <FaRegStopCircle className="text-3xl text-orange-500" aria-label="Stock medio" />;
-    return <BiCheckCircle className="text-3xl text-cyan-500" aria-label="Stock alto" />;
+      return (
+        <FaRegStopCircle
+          className="text-3xl text-orange-500"
+          aria-label="Stock medio"
+        />
+      );
+    return (
+      <BiCheckCircle
+        className="text-3xl text-cyan-500"
+        aria-label="Stock alto"
+      />
+    );
   };
 
   const getCardStyle = (status) => {
@@ -261,7 +414,9 @@ const Notificaciones = () => {
         </p>
       )}
       {error && (
-        <p className="relative z-10 text-center text-red-500 text-xl">{error}</p>
+        <p className="relative z-10 text-center text-red-500 text-xl">
+          {error}
+        </p>
       )}
 
       {/* Render normal de tarjetas */}
@@ -276,7 +431,9 @@ const Notificaciones = () => {
               const cardStyle = getCardStyle(item.stockStatus);
               const statusIcon = getStatusIcon(item.stockStatus);
               const dynamicColor = getColorByStatus(item.stockStatus);
-              const illuminationShadow = getIlluminationShadow(item.stockStatus);
+              const illuminationShadow = getIlluminationShadow(
+                item.stockStatus
+              );
 
               return (
                 <motion.div

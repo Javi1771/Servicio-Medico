@@ -7,14 +7,14 @@ import dynamic from "next/dynamic";
 import {
   FaUserCheck,
   FaBookMedical,
-  FaStethoscope,  
+  FaStethoscope,
   FaLaptopMedical,
   FaChartLine,
   FaMedkit,
+  FaBars,
+  FaTimes,
 } from "react-icons/fa";
-import {
-  BiLogoReact 
-} from "react-icons/bi";
+import { BiLogoReact } from "react-icons/bi";
 import { MdLogout } from "react-icons/md";
 import Cookies from "js-cookie";
 
@@ -33,7 +33,7 @@ interface PresidenteLayoutProps {
 const PresidenteLayout: React.FC<PresidenteLayoutProps> = ({ children }) => {
   const router = useRouter();
   const [isClient, setIsClient] = useState(false);
-
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
   useEffect(() => {
     setIsClient(true);
@@ -45,8 +45,8 @@ const PresidenteLayout: React.FC<PresidenteLayoutProps> = ({ children }) => {
     "/capturas/recetas/generar-receta-paciente-pase",
     "/capturas/recetas/generar-receta-farmacia-pase",
     "/capturas/laboratorio/generar-ordenes",
+    "/capturas/incapacidades/generar-incapacidad",
   ];
-  
 
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -54,14 +54,14 @@ const PresidenteLayout: React.FC<PresidenteLayoutProps> = ({ children }) => {
 
   useEffect(() => {
     const handleRouteChangeStart = () => {
-      console.log("Route change started");
       if (fromSidebar) setIsLoading(true);
     };
 
     const handleRouteChangeComplete = () => {
-      console.log("Route change completed");
       setIsLoading(false);
       setFromSidebar(false);
+      // Cierra el menú móvil al navegar
+      setMobileMenuOpen(false);
     };
 
     router.events.on("routeChangeStart", handleRouteChangeStart);
@@ -174,7 +174,7 @@ const PresidenteLayout: React.FC<PresidenteLayoutProps> = ({ children }) => {
     {
       title: "Dashboard",
       icon: (
-        <BiLogoReact  className="text-blue-400 text-3xl group-hover:scale-110 transition-transform duration-300" />
+        <BiLogoReact className="text-blue-400 text-3xl group-hover:scale-110 transition-transform duration-300" />
       ),
       options: [
         { name: "Actividades", path: "/dashboard/actividades" },
@@ -191,74 +191,146 @@ const PresidenteLayout: React.FC<PresidenteLayoutProps> = ({ children }) => {
   }  
 
   return (
-    <div className="min-h-screen flex bg-gradient-to-b from-gray-900 via-gray-800 to-black text-white">
-      {/* Sidebar */}
-      <aside className="fixed top-0 left-0 h-full w-80 bg-gradient-to-b from-gray-900 via-gray-800 to-gray-700 p-6 shadow-2xl flex flex-col">
-        <div className="text-center mb-10">
-          <h1
-            className="text-4xl font-extrabold text-blue-500 glow cursor-pointer"
-            onClick={() => router.replace("/inicio-presidente")}
-          >
-            PANDORA Dashboard
-          </h1>
-          <p className="text-gray-400 text-sm mt-2">Servicio Médico</p>
-        </div>
-        <nav className="flex-1">
-          <ul className="space-y-6">
-            {menuOptions.map((menu, index) => (
-              <li key={index}>
-                <div
-                  className="flex items-center space-x-4 p-4 bg-gradient-to-r from-gray-800 to-gray-700 rounded-lg shadow-lg cursor-pointer hover:scale-105 hover:shadow-[0_0_25px_10px_rgba(59,130,246,0.8)] transform transition-all duration-300 group"
-                  onClick={() => toggleMenu(menu.title)}
-                >
-                  {menu.icon}
-                  <span className="text-lg font-bold group-hover:text-blue-400 transition-all duration-300">
-                    {menu.title}
-                  </span>
-                </div>
-                {openMenu === menu.title && (
-                  <ul className="ml-6 mt-2 space-y-2">
-                    {menu.options.map((option, idx) => (
-                      <li
-                        key={idx}
-                        className="cursor-pointer px-4 py-2 bg-gradient-to-r from-gray-700 to-gray-600 rounded-md shadow-md hover:scale-105 transform transition hover:bg-gray-500 text-white text-sm"
-                        onClick={() => navigateTo(option.path)}
-                      >
-                        {option.name}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </li>
-            ))}
-          </ul>
-        </nav>
-        <button
-          className="flex items-center space-x-4 p-4 mt-4 bg-gradient-to-r from-red-700 to-red-500 rounded-lg shadow-lg cursor-pointer hover:scale-105 hover:shadow-[0_0_25px_10px_rgba(245,56,85,0.8)] transform transition-all duration-300 group"
-          onClick={handleLogout}
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-gray-900 via-gray-800 to-black text-white">
+      {/* Header móvil */}
+      <header className="md:hidden flex items-center justify-between p-4 bg-gradient-to-r from-gray-800 to-gray-700 shadow-md">
+        <h1
+          className="text-xl font-extrabold text-blue-500 cursor-pointer"
+          onClick={() => router.replace("/inicio-presidente")}
         >
-          <MdLogout className="text-red-300 text-3xl group-hover:scale-110 transition-transform duration-300" />
-          <span className="text-lg font-semibold">Cerrar Sesión</span>
+          PANDORA Dashboard
+        </h1>
+        <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+          {mobileMenuOpen ? (
+            <FaTimes className="text-3xl" />
+          ) : (
+            <FaBars className="text-3xl" />
+          )}
         </button>
-      </aside>
+      </header>
 
-      {/* Main Content */}
-      <main className="relative flex-1 p-12 ml-80">
-        {isLoading && fromSidebar && (
-          <div className="absolute inset-0 flex justify-center items-center bg-black bg-opacity-75 z-50">
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-              <LoaderGeneral size={120} />
-            </div>
+      <div className="flex flex-1">
+        {/* Sidebar para desktop */}
+        <aside className="hidden md:flex flex-col fixed top-0 left-0 h-full w-80 bg-gradient-to-b from-gray-900 via-gray-800 to-gray-700 p-6 shadow-2xl">
+          <div className="text-center mb-10">
+            <h1
+              className="text-4xl font-extrabold text-blue-500 glow cursor-pointer"
+              onClick={() => router.replace("/inicio-presidente")}
+            >
+              PANDORA Dashboard
+            </h1>
+            <p className="text-gray-400 text-sm mt-2">Servicio Médico</p>
           </div>
+          <nav className="flex-1">
+            <ul className="space-y-6">
+              {menuOptions.map((menu, index) => (
+                <li key={index}>
+                  <div
+                    className="flex items-center space-x-4 p-4 bg-gradient-to-r from-gray-800 to-gray-700 rounded-lg shadow-lg cursor-pointer hover:scale-105 hover:shadow-[0_0_25px_10px_rgba(59,130,246,0.8)] transform transition-all duration-300 group"
+                    onClick={() => toggleMenu(menu.title)}
+                  >
+                    {menu.icon}
+                    <span className="text-lg font-bold group-hover:text-blue-400 transition-all duration-300">
+                      {menu.title}
+                    </span>
+                  </div>
+                  {openMenu === menu.title && (
+                    <ul className="ml-6 mt-2 space-y-2">
+                      {menu.options.map((option, idx) => (
+                        <li
+                          key={idx}
+                          className="cursor-pointer px-4 py-2 bg-gradient-to-r from-gray-700 to-gray-600 rounded-md shadow-md hover:scale-105 transform transition hover:bg-gray-500 text-white text-sm"
+                          onClick={() => navigateTo(option.path)}
+                        >
+                          {option.name}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </nav>
+          <button
+            className="flex items-center space-x-4 p-4 mt-4 bg-gradient-to-r from-red-700 to-red-500 rounded-lg shadow-lg cursor-pointer hover:scale-105 hover:shadow-[0_0_25px_10px_rgba(245,56,85,0.8)] transform transition-all duration-300 group"
+            onClick={handleLogout}
+          >
+            <MdLogout className="text-red-300 text-3xl group-hover:scale-110 transition-transform duration-300" />
+            <span className="text-lg font-semibold">Cerrar Sesión</span>
+          </button>
+        </aside>
+
+        {/* Sidebar móvil */}
+        {mobileMenuOpen && (
+          <aside className="md:hidden fixed top-0 left-0 w-64 h-full bg-gradient-to-b from-gray-900 via-gray-800 to-gray-700 p-6 z-50 shadow-2xl overflow-y-auto">
+            <div className="text-center mb-10">
+              <h1
+                className="text-2xl font-extrabold text-blue-500 glow cursor-pointer"
+                onClick={() => {
+                  router.replace("/inicio-presidente");
+                  setMobileMenuOpen(false);
+                }}
+              >
+                PANDORA Dashboard
+              </h1>
+              <p className="text-gray-400 text-sm mt-2">Servicio Médico</p>
+            </div>
+            <nav className="flex-1">
+              <ul className="space-y-4">
+                {menuOptions.map((menu, index) => (
+                  <li key={index}>
+                    <div
+                      className="flex items-center space-x-3 p-3 bg-gradient-to-r from-gray-800 to-gray-700 rounded-lg shadow cursor-pointer hover:bg-gray-600 transition"
+                      onClick={() => toggleMenu(menu.title)}
+                    >
+                      {menu.icon}
+                      <span className="text-md font-bold">{menu.title}</span>
+                    </div>
+                    {openMenu === menu.title && (
+                      <ul className="ml-4 mt-2 space-y-2">
+                        {menu.options.map((option, idx) => (
+                          <li
+                            key={idx}
+                            className="cursor-pointer px-3 py-2 bg-gradient-to-r from-gray-700 to-gray-600 rounded shadow hover:bg-gray-500 text-sm"
+                            onClick={() => navigateTo(option.path)}
+                          >
+                            {option.name}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </nav>
+            <button
+              className="flex items-center justify-center w-full p-3 mt-6 bg-gradient-to-r from-red-700 to-red-500 rounded-lg shadow cursor-pointer hover:bg-red-600 transition"
+              onClick={handleLogout}
+            >
+              <MdLogout className="text-red-300 text-3xl" />
+              <span className="ml-2 text-md font-semibold">Cerrar Sesión</span>
+            </button>
+          </aside>
         )}
-        <div
-          className={`transition-transform duration-300 ${
-            isLoading ? "opacity-0 translate-y-10" : "opacity-100 translate-y-0"
-          }`}
-        >
-          {children}
-        </div>
-      </main>
+
+        {/* Main Content */}
+        <main className="relative flex-1 p-6 w-full md:ml-80 mt-4 md:mt-0">
+          {isLoading && fromSidebar && (
+            <div className="absolute inset-0 flex justify-center items-center bg-black bg-opacity-75 z-50">
+              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                <LoaderGeneral size={120} />
+              </div>
+            </div>
+          )}
+          <div
+            className={`transition-transform duration-300 ${
+              isLoading ? "opacity-0 translate-y-10" : "opacity-100 translate-y-0"
+            }`}
+          >
+            {children}
+          </div>
+        </main>
+      </div>
     </div>
   );
 };

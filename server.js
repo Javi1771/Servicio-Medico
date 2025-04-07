@@ -70,13 +70,24 @@ app.prepare().then(() => {
     });
   });
 
-  // Arranca el servidor HTTPS en la IP y puerto especificados
-  server.listen(3000, "172.16.4.47", (err) => {
+  // IP de mesh Carlos
+  //server.listen(3000, "172.16.4.47", (err) => {
+
+  // IP de mesh Javier  
+  server.listen(3000, "172.16.12.100", (err) => {
+
+  // IP de VPN Carlos
+  //server.listen(3000, "172.16.31.213", (err) => {
+
+  // IP de VPN Javier
   //server.listen(3000, "172.16.31.211", (err) => {
-  //server.listen(3000, "172.16.12.100", (err) => {
+
+    
     if (err) throw err;
+    //console.log("Servidor HTTPS corriendo en https://172.16.4.47:3000");
+    console.log("Servidor HTTPS corriendo en https://172.16.12.100:3000");
+    //console.log("Servidor HTTPS corriendo en https://172.16.31.213:3000");
     //console.log("Servidor HTTPS corriendo en https://172.16.31.211:3000");
-    console.log("Servidor HTTPS corriendo en https://172.16.4.47:3000");
-    //console.log("Servidor HTTPS corriendo en https://172.16.12.100:3000");
+
   });
 });

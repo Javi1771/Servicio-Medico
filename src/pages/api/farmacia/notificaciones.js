@@ -45,27 +45,36 @@ export default async function handler(req, res) {
       console.log("Conexión a la base de datos exitosa");
 
       const result = await pool.request().query(`
-          SELECT 
-            m.claveMedicamento AS id,
-            m.medicamento,
-            m.clasificacion,
-            m.presentacion,
-            m.ean,
-            m.piezas,
-            m.maximo,
-            m.minimo,
-            u.medida,
-            CASE 
-              WHEN piezas <= minimo THEN 'stock bajo'
-              WHEN piezas >= maximo THEN 'stock alto'
-              ELSE 'stock medio'
-            END AS stockStatus
-          FROM MEDICAMENTOS m
-          INNER JOIN unidades_de_medida u ON m.medida = u.id_medida
-          WHERE estatus = 1 
-            AND piezas < maximo
-          ORDER BY stockStatus ASC
-        `);
+        SELECT 
+          m.claveMedicamento AS id,
+          REPLACE(
+            REPLACE(
+              REPLACE(
+                REPLACE(m.medicamento, ', ', ','), 
+                ',', ', '
+              ),
+              ' / ', '/'
+            ),
+            '/', ' / '
+          ) AS medicamento,
+          m.clasificacion,
+          m.presentacion,
+          m.ean,
+          m.piezas,
+          m.maximo,
+          m.minimo,
+          u.medida,
+          CASE 
+            WHEN m.piezas <= m.minimo THEN 'stock bajo'
+            WHEN m.piezas >= m.maximo THEN 'stock alto'
+            ELSE 'stock medio'
+          END AS stockStatus
+        FROM MEDICAMENTOS m
+        INNER JOIN unidades_de_medida u ON m.medida = u.id_medida
+        WHERE m.estatus = 1 
+          AND m.piezas < m.maximo
+        ORDER BY stockStatus ASC
+      `);
 
       const medicamentos = result.recordset;
       const nombreusuario = decodeURIComponent(req.cookies.nombreusuario);
@@ -79,13 +88,11 @@ export default async function handler(req, res) {
       console.log("Medicamentos enviados:", medicamentos);
       console.log("Fecha enviada:", fechaActualFormateada);
 
-      res
-        .status(200)
-        .json({
-          usuario: nombreusuario,
-          fecha: fechaActualFormateada,
-          medicamentos,
-        });
+      res.status(200).json({
+        usuario: nombreusuario,
+        fecha: fechaActualFormateada,
+        medicamentos,
+      });
     } catch (error) {
       console.error("Error al obtener los medicamentos:", error);
       res.status(500).json({ message: "Error al obtener los medicamentos" });
