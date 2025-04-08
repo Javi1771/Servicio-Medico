@@ -94,11 +94,13 @@ const CapturaIncapacidades = () => {
   useEffect(() => {
     const createParticles = () => {
       const container = document.createElement("div");
-      container.className = "absolute inset-0 overflow-hidden pointer-events-none";
+      container.className =
+        "absolute inset-0 overflow-hidden pointer-events-none";
       document.body.appendChild(container);
       for (let i = 0; i < 30; i++) {
         const particle = document.createElement("div");
-        particle.className = "absolute w-3 h-3 bg-cyan-400 rounded-full blur-lg opacity-75 animate-pulse";
+        particle.className =
+          "absolute w-3 h-3 bg-cyan-400 rounded-full blur-lg opacity-75 animate-pulse";
         particle.style.left = `${Math.random() * 100}%`;
         particle.style.top = `${Math.random() * 100}%`;
         container.appendChild(particle);
@@ -138,21 +140,27 @@ const CapturaIncapacidades = () => {
           playSound(false);
           MySwal.fire({
             icon: "question",
-            title: "<span style='color: #00acc1; font-weight: bold; font-size: 1.5em;'>Incapacidad no asignada</span>",
+            title:
+              "<span style='color: #00acc1; font-weight: bold; font-size: 1.5em;'>Incapacidad no asignada</span>",
             html: "<p style='color: #fff; font-size: 1.1em;'>No se encontró una incapacidad asignada para el folio de consulta ingresado. ¿Desea asignar una nueva incapacidad?</p>",
             background: "linear-gradient(145deg, #004d40, #00251a)",
             showCancelButton: true,
             confirmButtonColor: "#00e676",
             cancelButtonColor: "#ff1744",
-            confirmButtonText: "<span style='color: #000; font-weight: bold;'>Asignar Incapacidad</span>",
-            cancelButtonText: "<span style='color: #fff; font-weight: bold;'>Cancelar</span>",
+            confirmButtonText:
+              "<span style='color: #000; font-weight: bold;'>Asignar Incapacidad</span>",
+            cancelButtonText:
+              "<span style='color: #fff; font-weight: bold;'>Cancelar</span>",
             customClass: {
-              popup: "border border-cyan-400 shadow-[0_0_20px_5px_rgba(0,230,118,0.8)] rounded-lg",
+              popup:
+                "border border-cyan-400 shadow-[0_0_20px_5px_rgba(0,230,118,0.8)] rounded-lg",
             },
           }).then((result) => {
             if (result.isConfirmed) {
               const encryptedClaveConsulta = btoa(folioConsulta.trim());
-              router.replace(`/capturas/incapacidades/nueva-incapacidad?claveconsulta=${encryptedClaveConsulta}`);
+              router.replace(
+                `/capturas/incapacidades/nueva-incapacidad?claveconsulta=${encryptedClaveConsulta}`
+              );
             } else {
               limpiarFormulario();
             }
@@ -176,13 +184,16 @@ const CapturaIncapacidades = () => {
           playSound(false);
           MySwal.fire({
             icon: "error",
-            title: "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Empleado no encontrado</span>",
+            title:
+              "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Empleado no encontrado</span>",
             html: "<p style='color: #fff; font-size: 1.1em;'>No se pudo recuperar la información del empleado.</p>",
             background: "linear-gradient(145deg, #4a0000, #220000)",
             confirmButtonColor: "#ff1744",
-            confirmButtonText: "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
+            confirmButtonText:
+              "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
             customClass: {
-              popup: "border border-red-600 shadow-[0_0_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
+              popup:
+                "border border-red-600 shadow-[0_0_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
             },
           });
           limpiarFormulario();
@@ -208,13 +219,16 @@ const CapturaIncapacidades = () => {
       playSound(false);
       MySwal.fire({
         icon: "error",
-        title: "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error al obtener información</span>",
+        title:
+          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error al obtener información</span>",
         html: "<p style='color: #fff; font-size: 1.1em;'>Hubo un error. Intenta nuevamente.</p>",
         background: "linear-gradient(145deg, #4a0000, #220000)",
         confirmButtonColor: "#ff1744",
-        confirmButtonText: "<span style='color: #fff; font-weight: bold;'>Reintentar</span>",
+        confirmButtonText:
+          "<span style='color: #fff; font-weight: bold;'>Reintentar</span>",
         customClass: {
-          popup: "border border-red-600 shadow-[0_0_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
+          popup:
+            "border border-red-600 shadow-[0_0_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
         },
       });
       setIsLoading(false);
@@ -249,16 +263,20 @@ const CapturaIncapacidades = () => {
       playSound(false);
       MySwal.fire({
         icon: "warning",
-        title: "<span style='color: #ff9800; font-weight: bold; font-size: 1.5em;'>⚠️ Folio ya atendido</span>",
+        title:
+          "<span style='color: #ff9800; font-weight: bold; font-size: 1.5em;'>⚠️ Folio ya atendido</span>",
         html: "<p style='color: #fff; font-size: 1.1em;'>El folio de consulta ya fue atendido. ¿Deseas ver el historial o regresar?</p>",
         background: "linear-gradient(145deg, #4a2600, #220f00)",
         showCancelButton: true,
         confirmButtonColor: "#088000",
         cancelButtonColor: "#ff1100",
-        confirmButtonText: "<span style='color: #fff; font-weight: bold;'>Ver Historial</span>",
-        cancelButtonText: "<span style='color: #fff; font-weight: bold;'>Regresar</span>",
+        confirmButtonText:
+          "<span style='color: #fff; font-weight: bold;'>Ver Historial</span>",
+        cancelButtonText:
+          "<span style='color: #fff; font-weight: bold;'>Regresar</span>",
         customClass: {
-          popup: "border border-yellow-600 shadow-[0_0_20px_5px_rgba(255,152,0,0.9)] rounded-lg",
+          popup:
+            "border border-yellow-600 shadow-[0_0_20px_5px_rgba(255,152,0,0.9)] rounded-lg",
         },
       }).then((result) => {
         if (result.isDismissed) {
@@ -300,17 +318,22 @@ const CapturaIncapacidades = () => {
       playSound(true);
       MySwal.fire({
         icon: "success",
-        title: "<span style='color: #00e676; font-weight: bold; font-size: 1.5em;'>✔️ Incapacidad guardada</span>",
+        title:
+          "<span style='color: #00e676; font-weight: bold; font-size: 1.5em;'>✔️ Incapacidad guardada</span>",
         html: "<p style='color: #fff; font-size: 1.1em;'>La incapacidad se registró con éxito.</p>",
         background: "linear-gradient(145deg, #004d40, #00251a)",
         confirmButtonColor: "#00e676",
-        confirmButtonText: "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
+        confirmButtonText:
+          "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
         customClass: {
-          popup: "border border-green-600 shadow-[0_0_20px_5px_rgba(0,230,118,0.8)] rounded-lg",
+          popup:
+            "border border-green-600 shadow-[0_0_20px_5px_rgba(0,230,118,0.8)] rounded-lg",
         },
       }).then(() => {
         const encryptedClaveConsulta = btoa(folioConsulta.trim());
-        router.replace(`/capturas/incapacidades/ver-incapacidad?claveconsulta=${encryptedClaveConsulta}`);
+        router.replace(
+          `/capturas/incapacidades/ver-incapacidad?claveconsulta=${encryptedClaveConsulta}`
+        );
       });
       limpiarFormulario();
     } catch (error) {
@@ -318,13 +341,16 @@ const CapturaIncapacidades = () => {
       playSound(false);
       MySwal.fire({
         icon: "error",
-        title: "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error al guardar</span>",
+        title:
+          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error al guardar</span>",
         html: "<p style='color: #fff; font-size: 1.1em;'>No se pudo completar el registro de la incapacidad.</p>",
         background: "linear-gradient(145deg, #4a0000, #220000)",
         confirmButtonColor: "#ff1744",
-        confirmButtonText: "<span style='color: #fff; font-weight: bold;'>Reintentar</span>",
+        confirmButtonText:
+          "<span style='color: #fff; font-weight: bold;'>Reintentar</span>",
         customClass: {
-          popup: "border border-red-600 shadow-[0_0_20px_5px_rgba(255,23,68,0.8)] rounded-lg",
+          popup:
+            "border border-red-600 shadow-[0_0_20px_5px_rgba(255,23,68,0.8)] rounded-lg",
         },
       });
     } finally {
@@ -337,7 +363,9 @@ const CapturaIncapacidades = () => {
   // ----------------------------------------------------------------
   useEffect(() => {
     if (!nomina) {
-      console.warn("Falta 'clavenomina'. Evitando llamada a la API de historial.");
+      console.warn(
+        "Falta 'clavenomina'. Evitando llamada a la API de historial."
+      );
       setHistorialIncapacidades([]);
       return;
     }
@@ -345,7 +373,9 @@ const CapturaIncapacidades = () => {
     const fetchHistorialIncapacidades = async () => {
       try {
         const queryParams = new URLSearchParams({ clavenomina: nomina });
-        const response = await fetch(`/api/incapacidades/historialCaptura?${queryParams.toString()}`);
+        const response = await fetch(
+          `/api/incapacidades/historialCaptura?${queryParams.toString()}`
+        );
         if (!response.ok) {
           console.error("Error al cargar historial:", await response.text());
           setHistorialIncapacidades([]);
@@ -379,7 +409,7 @@ const CapturaIncapacidades = () => {
         <div className="w-[600px] h-[600px] bg-gradient-to-r from-purple-500/20 to-pink-500/10 rounded-full absolute -bottom-64 -right-64 blur-3xl animate-pulse delay-1000" />
       </div>
 
-      <div className="max-w-7xl w-full mx-auto bg-gray-900/80 backdrop-blur-xl rounded-3xl shadow-[0_0_40px_-10px_rgba(34,211,238,0.5)] p-12 border-2 border-cyan-400/50 relative z-10">
+      <div className="w-full max-w-screen-2xl mx-auto bg-gray-900/80 backdrop-blur-xl rounded-3xl shadow-[0_0_40px_-10px_rgba(34,211,238,0.5)] p-12 border-2 border-cyan-400/50 relative z-10">
         {/* Encabezado */}
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
@@ -541,7 +571,7 @@ const CapturaIncapacidades = () => {
                 className="bg-gradient-to-r from-red-500 to-pink-600 px-6 py-3 rounded-lg font-bold hover:scale-105 transition-all flex items-center gap-2"
               >
                 <FaTimes className="text-xl" />
-                Cancelar
+                Volver
               </button>
               <button
                 onClick={guardarCaptura}
