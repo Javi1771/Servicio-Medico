@@ -11,14 +11,17 @@ import {
   FaNotesMedical,
   FaHeartbeat,
   FaClinicMedical,
-  FaToolbox,
   FaPlus,
   FaTrash,
   FaSpinner,
   FaRegSmileBeam,
+  FaCalendarAlt,
+  FaCalendarPlus,
 } from "react-icons/fa";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
+import Calendar from "react-calendar";
+import "react-calendar/dist/Calendar.css"; // Asegúrate de importar los estilos de react-calendar
 
 const MySwal = withReactContent(Swal);
 
@@ -33,16 +36,19 @@ const EstudioLaboratorio = () => {
   const [consultaData, setConsultaData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [especialistas, setEspecialistas] = useState([]);
+  const [isSaving, setIsSaving] = useState(false); // Estado para evitar múltiples clics en guardar
 
   //* Estado para opciones de estudios
   const [studyOptions, setStudyOptions] = useState([]);
 
-  //* Estado para los laboratorios (cada uno con especialista, estudios y diagnóstico)
+  //* Estado para los laboratorios (cada uno con especialista, estudios, diagnóstico, fecha y control de calendario)
   const [labs, setLabs] = useState([
     {
       selectedEspecialista: null,
       selectedStudies: [""],
       diagnosis: "",
+      selectedDate: "", // Fecha seleccionada en formato "YYYY-MM-DD"
+      isDatePickerOpen: false, // Controla si se muestra el selector de fecha
     },
   ]);
 
@@ -93,6 +99,8 @@ const EstudioLaboratorio = () => {
         selectedEspecialista: null,
         selectedStudies: [""],
         diagnosis: "",
+        selectedDate: "",
+        isDatePickerOpen: false,
       },
     ]);
   };
@@ -107,7 +115,6 @@ const EstudioLaboratorio = () => {
   // ================================
   //! ALERTAS con el DISEÑO REQUERIDO
   // ================================
-
   const showWarning = (title, message) => {
     playSound(false);
     MySwal.fire({
@@ -197,7 +204,13 @@ const EstudioLaboratorio = () => {
   const agregarLaboratorio = () => {
     setLabs((prev) => [
       ...prev,
-      { selectedEspecialista: null, selectedStudies: [""], diagnosis: "" },
+      {
+        selectedEspecialista: null,
+        selectedStudies: [""],
+        diagnosis: "",
+        selectedDate: "",
+        isDatePickerOpen: false,
+      },
     ]);
   };
 
@@ -284,6 +297,13 @@ const EstudioLaboratorio = () => {
         );
         return;
       }
+      if (!lab.selectedDate) {
+        showWarning(
+          "⚠️ Fecha Requerida",
+          `Selecciona una fecha para el registro ${i + 1}.`
+        );
+        return;
+      }
     }
 
     const body = {
@@ -303,10 +323,12 @@ const EstudioLaboratorio = () => {
         costo: lab.selectedEspecialista?.costo,
         estudios: lab.selectedStudies,
         diagnostico: lab.diagnosis,
+        fecha: lab.selectedDate,
       })),
     };
 
     console.log("Datos enviados:", body);
+    setIsSaving(true); // Deshabilitamos el botón y cambiamos el texto a "Guardando..."
     try {
       const res = await fetch("/api/laboratorio/insertarOrden", {
         method: "POST",
@@ -331,6 +353,7 @@ const EstudioLaboratorio = () => {
         "❌ Error al Guardar",
         "No se pudo guardar el estudio. Intenta nuevamente."
       );
+      setIsSaving(false); // Habilitamos nuevamente el botón si ocurrió un error
     }
   };
 
@@ -550,6 +573,82 @@ const EstudioLaboratorio = () => {
                       </select>
                     </div>
                   )}
+                  {/* Calendario para seleccionar fecha */}
+                  <div className="mb-4">
+                  <label className="block text-lg font-bold mb-2 text-[#00576A] flex items-center gap-2">
+                        <FaCalendarPlus className="text-xl" />
+                        Seleccionar Fecha:
+                      </label>
+                    <div className="relative">
+                      <div
+                        className="flex items-center bg-[#00a7c0] rounded-full p-4 shadow-md cursor-pointer"
+                        onClick={() =>
+                          actualizarLab(
+                            index,
+                            "isDatePickerOpen",
+                            !lab.isDatePickerOpen
+                          )
+                        }
+                      >
+                        <FaCalendarAlt
+                          className="text-[#9effff] mr-4"
+                          size={28}
+                        />
+                        <span className="text-[#9effff] font-medium">
+                          {lab.selectedDate
+                            ? lab.selectedDate
+                            : "Selecciona una fecha"}
+                        </span>
+                      </div>
+                      {lab.isDatePickerOpen && (
+                        <div className="absolute top-16 left-0 z-50 bg-gradient-to-br from-gray-900 via-black to-gray-800 p-6 rounded-3xl shadow-lg ring-2 ring-cyan-500">
+                          <Calendar
+                            onChange={(date) => {
+                              const year = date.getFullYear();
+                              const month = String(
+                                date.getMonth() + 1
+                              ).padStart(2, "0");
+                              const day = String(date.getDate()).padStart(
+                                2,
+                                "0"
+                              );
+                              const fechaSeleccionada = `${year}-${month}-${day}`;
+                              actualizarLab(
+                                index,
+                                "selectedDate",
+                                fechaSeleccionada
+                              );
+                              actualizarLab(index, "isDatePickerOpen", false);
+                              console.log("Fecha Inicial:", fechaSeleccionada);
+                            }}
+                            value={
+                              lab.selectedDate
+                                ? new Date(lab.selectedDate)
+                                : null
+                            }
+                            className="bg-gradient-to-br from-gray-900 via-black to-gray-800 rounded-lg text-cyan-300"
+                            tileDisabled={({ date }) => {
+                              const today = new Date();
+                              today.setHours(0, 0, 0, 0);
+                              return date < today;
+                            }}
+                            navigationLabel={({ date }) => (
+                              <p className="text-lg font-bold text-cyan-400">
+                                {date.toLocaleString("default", {
+                                  month: "long",
+                                  year: "numeric",
+                                })}
+                              </p>
+                            )}
+                            nextLabel={<span className="text-cyan-400">→</span>}
+                            prevLabel={<span className="text-cyan-400">←</span>}
+                            next2Label={null}
+                            prev2Label={null}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
                   {/* Componente de Selección de Estudios */}
                   <StudySelector
                     studyOptions={studyOptions}
@@ -572,10 +671,15 @@ const EstudioLaboratorio = () => {
                       maxLength={250}
                       value={lab.diagnosis}
                       onChange={(e) =>
-                        actualizarLab(index, "diagnosis", e.target.value)
+                        actualizarLab(
+                          index,
+                          "diagnosis",
+                          e.target.value.toUpperCase()
+                        )
                       }
                       className="w-full p-4 border border-[#5BFCFF] rounded-xl focus:outline-none focus:border-[#00E6FF] focus:ring-2 focus:ring-[#00E6FF] text-[#00576A] transition-all duration-300 shadow-sm"
                       placeholder="Escribe aquí el diagnóstico..."
+                      style={{ textTransform: "uppercase" }}
                     />
                     <p className="text-right text-sm text-[#0084A9]">
                       {lab.diagnosis.length}/250
@@ -596,9 +700,18 @@ const EstudioLaboratorio = () => {
             <div className="flex justify-center">
               <button
                 onClick={handleGuardar}
-                className="flex items-center justify-center bg-[#00CEFF] hover:bg-[#0093D0] text-[#00384B] font-bold py-4 px-8 rounded-xl shadow-2xl transition transform hover:scale-105 animate-pulseSlow"
+                disabled={isSaving}
+                className={`flex items-center justify-center bg-[#00CEFF] ${
+                  isSaving
+                    ? "cursor-not-allowed opacity-70"
+                    : "hover:bg-[#0093D0] transition transform hover:scale-105"
+                } text-[#00384B] font-bold py-4 px-8 rounded-xl shadow-2xl`}
               >
-                Guardar Estudios
+                {isSaving ? (
+                  <span>Guardando...</span>
+                ) : (
+                  <span>Guardar Estudios</span>
+                )}
               </button>
             </div>
           </div>

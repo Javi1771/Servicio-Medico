@@ -23,7 +23,11 @@ const playSound = (isSuccess) => {
 
 const NuevaIncapacidad = () => {
   const router = useRouter();
-  const { claveconsulta: encryptedClaveConsulta, clavenomina, clavepaciente } = router.query;
+  const {
+    claveconsulta: encryptedClaveConsulta,
+    clavenomina,
+    clavepaciente,
+  } = router.query;
   const claveConsulta = encryptedClaveConsulta ? atob(encryptedClaveConsulta) : "";
 
   //* Estados
@@ -40,13 +44,75 @@ const NuevaIncapacidad = () => {
   const startCalendarRef = useRef(null);
   const endCalendarRef = useRef(null);
 
+  // ================================
+  //! ALERTAS con el DISEÑO REQUERIDO
+  // ================================
+  const showWarning = (title, message) => {
+    playSound(false);
+    MySwal.fire({
+      icon: "warning",
+      title: `<span style='color: #ffbb33; font-weight: bold; font-size: 1.5em;'>${title}</span>`,
+      html: `<p style='color: #fff; font-size: 1.1em;'>${message}</p>`,
+      background: "linear-gradient(145deg, #664d00, #332600)",
+      confirmButtonColor: "#ffbb33",
+      confirmButtonText:
+        "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
+      customClass: {
+        popup:
+          "border border-yellow-500 shadow-[0px_0px_20px_5px_rgba(255,187,51,0.9)] rounded-lg",
+      },
+    });
+  };
+
+  const showError = (title, message) => {
+    playSound(false);
+    MySwal.fire({
+      icon: "error",
+      title: `<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>${title}</span>`,
+      html: `<p style='color: #fff; font-size: 1.1em;'>${message}</p>`,
+      background: "linear-gradient(145deg, #4a0000, #220000)",
+      confirmButtonColor: "#ff1744",
+      confirmButtonText:
+        "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
+      customClass: {
+        popup:
+          "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
+      },
+    });
+  };
+
+  const showSuccess = (title, message) => {
+    playSound(true);
+    MySwal.fire({
+      icon: "success",
+      title: `<span style='color: #00e676; font-weight: bold; font-size: 1.5em;'>${title}</span>`,
+      html: `<p style='color: #fff; font-size: 1.1em;'>${message}</p>`,
+      background: "linear-gradient(145deg, #003300, #001a00)",
+      confirmButtonColor: "#00e676",
+      confirmButtonText:
+        "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
+      customClass: {
+        popup:
+          "border border-green-500 shadow-[0px_0px_20px_5px_rgba(0,230,118,0.9)] rounded-lg",
+      },
+    });
+  };
+
   //! Cierra el calendario si se hace clic fuera
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (isFechaInicioOpen && startCalendarRef.current && !startCalendarRef.current.contains(event.target)) {
+      if (
+        isFechaInicioOpen &&
+        startCalendarRef.current &&
+        !startCalendarRef.current.contains(event.target)
+      ) {
         setIsFechaInicioOpen(false);
       }
-      if (isFechaFinOpen && endCalendarRef.current && !endCalendarRef.current.contains(event.target)) {
+      if (
+        isFechaFinOpen &&
+        endCalendarRef.current &&
+        !endCalendarRef.current.contains(event.target)
+      ) {
         setIsFechaFinOpen(false);
       }
     };
@@ -60,7 +126,9 @@ const NuevaIncapacidad = () => {
       const fetchHistorial = async () => {
         try {
           const queryParams = new URLSearchParams({ clavenomina });
-          const res = await fetch(`/api/incapacidades/historial?${queryParams.toString()}`);
+          const res = await fetch(
+            `/api/incapacidades/historial?${queryParams.toString()}`
+          );
           if (res.ok) {
             const data = await res.json();
             if (data && Array.isArray(data.historial)) {
@@ -80,14 +148,19 @@ const NuevaIncapacidad = () => {
     if (claveConsulta) {
       const fetchDatosFaltantes = async () => {
         try {
-          const resDatosFaltantes = await fetch("/api/incapacidades/datosFaltantes", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ folioConsulta: claveConsulta }),
-          });
+          const resDatosFaltantes = await fetch(
+            "/api/incapacidades/datosFaltantes",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ folioConsulta: claveConsulta }),
+            }
+          );
           if (!resDatosFaltantes.ok) {
             const errorDatos = await resDatosFaltantes.json();
-            throw new Error(errorDatos.message || "Error al obtener datos faltantes.");
+            throw new Error(
+              errorDatos.message || "Error al obtener datos faltantes."
+            );
           }
           const datos = await resDatosFaltantes.json();
           setDatosFaltantes(datos);
@@ -109,46 +182,29 @@ const NuevaIncapacidad = () => {
     return `${year}-${month}-${day}`;
   };
 
-  //* Función para ajustar el texto automáticamente (wrap) en un ancho máximo
-  const drawWrappedText = (page, text, x, y, maxWidth, fontSize, font) => {
-    const words = text.split(" ");
-    let line = "";
-    let currentY = y;
-    const lineHeight = fontSize + 2;
-    const approxCharWidth = fontSize * 0.6; // Ajusta este valor según la fuente
-    words.forEach((word) => {
-      const testLine = line ? `${line} ${word}` : word;
-      if (testLine.length * approxCharWidth > maxWidth) {
-        page.drawText(line, { x, y: currentY, size: fontSize, font });
-        currentY -= lineHeight;
-        line = word;
-      } else {
-        line = testLine;
-      }
-    });
-    if (line) {
-      page.drawText(line, { x, y: currentY, size: fontSize, font });
-    }
+  //* Función para calcular la cantidad de días entre dos fechas
+  const getDiasDiferencia = () => {
+    if (!fechaInicio || !fechaFin) return 0;
+    const inicio = new Date(fechaInicio);
+    const fin = new Date(fechaFin);
+    const diffTime = fin - inicio;
+    return Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
   };
 
   //* Guardar
   const handleGuardar = async () => {
     try {
       if (!fechaInicio || !fechaFin || !diagnostico.trim()) {
-        return MySwal.fire({
-          icon: "warning",
-          title: "Campos incompletos",
-          text: "Selecciona las fechas y escribe un diagnóstico.",
-          confirmButtonColor: "#e74c3c",
-        });
+        return showWarning(
+          "Campos incompletos",
+          "Selecciona las fechas y escribe un diagnóstico."
+        );
       }
       if (!datosFaltantes) {
-        return MySwal.fire({
-          icon: "error",
-          title: "Error",
-          text: "No se pudieron cargar los datos faltantes. Intenta más tarde.",
-          confirmButtonColor: "#e74c3c",
-        });
+        return showError(
+          "Error",
+          "No se pudieron cargar los datos faltantes. Intenta más tarde."
+        );
       }
 
       setIsSaving(true);
@@ -156,7 +212,9 @@ const NuevaIncapacidad = () => {
       const incapacidadData = {
         fechaInicial: `${formatDate(fechaInicio)} 00:00:00.000`,
         fechaFinal: `${formatDate(fechaFin)} 23:59:59.000`,
-        diagnostico: diagnostico.trim() || "Sin Observaciones, No Se Asignó Incapacidad En Esta Consulta",
+        diagnostico:
+          diagnostico.trim() ||
+          "Sin Observaciones, No Se Asignó Incapacidad En Esta Consulta",
         claveConsulta,
       };
       localStorage.setItem("Incapacidad", JSON.stringify(incapacidadData));
@@ -178,64 +236,56 @@ const NuevaIncapacidad = () => {
       });
       if (!resGuardar.ok) {
         const errorResponse = await resGuardar.json();
-        throw new Error(errorResponse.message || "Error al guardar incapacidad.");
+        throw new Error(
+          errorResponse.message || "Error al guardar incapacidad."
+        );
       }
 
       //? 2) Guardar Captura (endpoint /api/incapacidades/guardarCaptura)
       const payloadCaptura = {
         fechaInicio: incapacidadData.fechaInicial,
         fechaFin: incapacidadData.fechaFinal,
-        nomina: localStorage.getItem("nomina") || datosFaltantes.clavenomina || "",
-        nombreEmpleado: localStorage.getItem("nombreEmpleado") || datosFaltantes.nombrepaciente || "",
-        departamento: localStorage.getItem("departamento") || datosFaltantes.departamento || "",
+        nomina:
+          localStorage.getItem("nomina") || datosFaltantes.clavenomina || "",
+        nombreEmpleado:
+          localStorage.getItem("nombreEmpleado") ||
+          datosFaltantes.nombrepaciente ||
+          "",
+        departamento:
+          localStorage.getItem("departamento") ||
+          datosFaltantes.departamento ||
+          "",
         observaciones: incapacidadData.diagnostico,
         edad: localStorage.getItem("edad") || datosFaltantes.edad || "",
         claveConsulta: incapacidadData.claveConsulta,
-        claveMedico: localStorage.getItem("claveMedico") || datosFaltantes.claveproveedor || "",
+        claveMedico:
+          localStorage.getItem("claveMedico") ||
+          datosFaltantes.claveproveedor ||
+          "",
       };
       const resCaptura = await fetch("/api/incapacidades/guardarCaptura", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payloadCaptura),
       });
-      if (!resCaptura.ok) throw new Error("Error al guardar la captura de incapacidad");
+      if (!resCaptura.ok)
+        throw new Error("Error al guardar la captura de incapacidad");
 
-      playSound(true);
-      await MySwal.fire({
-        icon: "success",
-        title:
-          "<span style='color: #16a085; font-weight: bold; font-size: 1.5em;'>✔️ Incapacidad guardada</span>",
-        html: "<p style='color: #ecf0f1; font-size: 1.1em;'>La incapacidad se registró con éxito.</p>",
-        background: "linear-gradient(145deg, #2c3e50, #34495e)",
-        confirmButtonColor: "#16a085",
-        confirmButtonText:
-          "<span style='color: #ecf0f1; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup: "border border-teal-500 shadow-lg rounded-lg neon-border",
-        },
-      });
+      showSuccess(
+        "✔️ Incapacidad guardada",
+        "La incapacidad se registró con éxito."
+      );
 
       //* Redirige a la pantalla de ver incapacidad
       router.push(
         `/capturas/incapacidades/ver-incapacidad?claveconsulta=${encryptedClaveConsulta}`
       );
-      
     } catch (error) {
       console.error("Error al guardar incapacidad:", error);
-      playSound(false);
-      MySwal.fire({
-        icon: "error",
-        title:
-          "<span style='color: #c0392b; font-weight: bold; font-size: 1.5em;'>❌ Error al guardar</span>",
-        html: "<p style='color: #ecf0f1; font-size: 1.1em;'>No se pudo completar el registro de la incapacidad.</p>",
-        background: "linear-gradient(145deg, #2c3e50, #c0392b)",
-        confirmButtonColor: "#c0392b",
-        confirmButtonText:
-          "<span style='color: #ecf0f1; font-weight: bold;'>Reintentar</span>",
-        customClass: {
-          popup: "border border-red-500 shadow-lg rounded-lg neon-border",
-        },
-      });
+      showError(
+        "❌ Error al guardar",
+        "No se pudo completar el registro de la incapacidad."
+      );
       setIsSaving(false);
     }
   };
@@ -269,19 +319,23 @@ const NuevaIncapacidad = () => {
         {/* Encabezado con nuevo estilo */}
         <div className="text-center mb-10 space-y-2">
           <h1 className="text-6xl font-black tracking-wider uppercase animate-title neon-text">
-            Incapacidad Express
+            Incapacidad de Especialidad
           </h1>
           <p className="text-2xl text-gray-400 font-light italic">
-            Folio de consulta: <span className="font-bold">{claveConsulta}</span>
+            Folio de consulta:{" "}
+            <span className="font-bold">{claveConsulta}</span>
           </p>
         </div>
 
         {/* Sección para mostrar los datos faltantes */}
         {datosFaltantes && (
           <div className="mb-8 p-6 bg-gray-700 rounded-2xl shadow-2xl neon-border">
-            <h2 className="text-2xl font-bold text-gray-100">Datos del Paciente</h2>
+            <h2 className="text-2xl font-bold text-gray-100">
+              Datos del Paciente
+            </h2>
             <p className="text-gray-300 mt-2">
-              <strong>Nombre del Paciente:</strong> {datosFaltantes.nombrepaciente}
+              <strong>Nombre del Paciente:</strong>{" "}
+              {datosFaltantes.nombrepaciente}
             </p>
             <p className="text-gray-300 mt-1">
               <strong>Nómina:</strong> {datosFaltantes.clavenomina}
@@ -296,20 +350,20 @@ const NuevaIncapacidad = () => {
         )}
 
         {/* Fecha Inicial */}
-        <div className="mb-8">
-          <label className="block text-2xl font-extrabold text-teal-400 mb-4 tracking-wide">
+        <div className="mb-6">
+          <label className="block text-xl font-extrabold text-cyan-400 mb-3 tracking-wider">
             Fecha Inicial:
           </label>
-          <div className="relative">
+          <div className="relative" ref={startCalendarRef}>
             <div
-              className="flex items-center bg-gray-700 shadow-lg rounded-full p-5 cursor-pointer hover:scale-105 transition-transform neon-border"
+              className="flex items-center bg-gradient-to-r from-blue-900 via-purple-900 to-blue-900 rounded-full p-4 shadow-md cursor-pointer"
               onClick={() => {
                 setIsFechaInicioOpen(!isFechaInicioOpen);
                 setIsFechaFinOpen(false);
               }}
             >
-              <FaCalendarAlt className="text-teal-400 mr-5" size={30} />
-              <span className="text-xl">
+              <FaCalendarAlt className="text-cyan-400 mr-4" size={28} />
+              <span className="text-cyan-200 font-medium">
                 {fechaInicio
                   ? typeof fechaInicio === "string"
                     ? fechaInicio.substring(0, 10)
@@ -320,42 +374,44 @@ const NuevaIncapacidad = () => {
               </span>
             </div>
             {isFechaInicioOpen && (
-              <div ref={startCalendarRef} className="absolute top-20 left-0 z-50 bg-gray-700 p-8 rounded-3xl shadow-2xl ring-2 ring-teal-400">
+              <div className="absolute top-16 left-0 z-50 bg-gradient-to-br from-gray-900 via-black to-gray-800 p-6 rounded-3xl shadow-lg ring-2 ring-cyan-500">
                 <Calendar
                   onChange={(date) => {
                     const year = date.getFullYear();
                     const month = String(date.getMonth() + 1).padStart(2, "0");
                     const day = String(date.getDate()).padStart(2, "0");
-                    const fechaInicialSeleccionada = `${year}-${month}-${day} 00:00:00.000`;
-                    setFechaInicio(fechaInicialSeleccionada);
+                    // Establecer la hora de inicio a 12:00 a.m.
+                    const fechaSeleccionada = `${year}-${month}-${day} 00:00:00.000`;
+                    setFechaInicio(fechaSeleccionada);
                     setFechaFin(null);
                     setIsFechaInicioOpen(false);
+                    console.log("Fecha Inicial:", fechaSeleccionada);
                   }}
                   value={
                     fechaInicio
-                      ? typeof fechaInicio === "string"
-                        ? new Date(fechaInicio.replace(" ", "T"))
-                        : fechaInicio instanceof Date
-                        ? fechaInicio
-                        : null
+                      ? new Date(
+                          typeof fechaInicio === "string"
+                            ? fechaInicio.replace(" ", "T")
+                            : fechaInicio
+                        )
                       : null
                   }
+                  className="bg-gradient-to-br from-gray-900 via-black to-gray-800 rounded-lg text-cyan-300"
                   tileDisabled={({ date }) => {
                     const today = new Date();
                     today.setHours(0, 0, 0, 0);
                     return date < today;
                   }}
-                  className="bg-gray-700 rounded-lg text-teal-400 fancy-calendar"
                   navigationLabel={({ date }) => (
-                    <p className="text-xl font-bold text-teal-400">
+                    <p className="text-lg font-bold text-cyan-400">
                       {date.toLocaleString("default", {
                         month: "long",
                         year: "numeric",
                       })}
                     </p>
                   )}
-                  nextLabel={<span className="text-teal-400">→</span>}
-                  prevLabel={<span className="text-teal-400">←</span>}
+                  nextLabel={<span className="text-cyan-400">→</span>}
+                  prevLabel={<span className="text-cyan-400">←</span>}
                   next2Label={null}
                   prev2Label={null}
                 />
@@ -365,20 +421,20 @@ const NuevaIncapacidad = () => {
         </div>
 
         {/* Fecha Final */}
-        <div className="mb-8">
-          <label className="block text-2xl font-extrabold text-pink-500 mb-4 tracking-wide">
+        <div className="mb-6">
+          <label className="block text-xl font-extrabold text-pink-400 mb-3 tracking-wider">
             Fecha Final:
           </label>
-          <div className="relative">
+          <div className="relative" ref={endCalendarRef}>
             <div
-              className="flex items-center bg-gray-700 shadow-lg rounded-full p-5 cursor-pointer hover:scale-105 transition-transform neon-border"
+              className="flex items-center bg-gradient-to-r from-red-900 via-orange-900 to-red-900 rounded-full p-4 shadow-md cursor-pointer"
               onClick={() => {
                 setIsFechaFinOpen(!isFechaFinOpen);
                 setIsFechaInicioOpen(false);
               }}
             >
-              <FaCalendarAlt className="text-pink-500 mr-5" size={30} />
-              <span className="text-xl">
+              <FaCalendarAlt className="text-pink-400 mr-4" size={28} />
+              <span>
                 {fechaFin
                   ? typeof fechaFin === "string"
                     ? fechaFin.substring(0, 10)
@@ -389,15 +445,17 @@ const NuevaIncapacidad = () => {
               </span>
             </div>
             {isFechaFinOpen && (
-              <div ref={endCalendarRef} className="absolute top-20 left-0 z-50 bg-gray-700 p-8 rounded-3xl shadow-2xl ring-2 ring-pink-400">
+              <div className="absolute top-16 left-0 z-50 bg-gradient-to-br from-gray-900 via-black to-gray-800 p-6 rounded-3xl shadow-lg ring-2 ring-pink-500">
                 <Calendar
                   onChange={(date) => {
                     const year = date.getFullYear();
                     const month = String(date.getMonth() + 1).padStart(2, "0");
                     const day = String(date.getDate()).padStart(2, "0");
+                    // Establecer la hora final a 11:59 p.m.
                     const fechaFinalSeleccionada = `${year}-${month}-${day} 23:59:59.000`;
                     setFechaFin(fechaFinalSeleccionada);
                     setIsFechaFinOpen(false);
+                    console.log("Fecha Final:", fechaFinalSeleccionada);
                   }}
                   value={
                     fechaFin
@@ -408,24 +466,29 @@ const NuevaIncapacidad = () => {
                         : null
                       : null
                   }
-                  className="bg-gray-700 rounded-lg text-pink-500 fancy-calendar"
+                  className="bg-gradient-to-br from-gray-900 via-black to-gray-800 rounded-lg text-pink-300"
                   tileDisabled={({ date }) => {
                     if (!fechaInicio) return true;
-                    const fechaIni = new Date(fechaInicio.replace(" ", "T"));
+                    const fechaIni =
+                      typeof fechaInicio === "string"
+                        ? new Date(fechaInicio.replace(" ", "T"))
+                        : fechaInicio;
                     const maxDate = new Date(fechaIni);
-                    maxDate.setDate(fechaIni.getDate() + 15);
-                    return date < fechaIni || date > maxDate;
+                    maxDate.setDate(fechaIni.getDate() + 14);
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    return date < fechaIni || date > maxDate || date < today;
                   }}
                   navigationLabel={({ date }) => (
-                    <p className="text-xl font-bold text-pink-500">
+                    <p className="text-lg font-bold text-pink-400">
                       {date.toLocaleString("default", {
                         month: "long",
                         year: "numeric",
                       })}
                     </p>
                   )}
-                  nextLabel={<span className="text-pink-500">→</span>}
-                  prevLabel={<span className="text-pink-500">←</span>}
+                  nextLabel={<span className="text-pink-400">→</span>}
+                  prevLabel={<span className="text-pink-400">←</span>}
                   next2Label={null}
                   prev2Label={null}
                 />
@@ -434,23 +497,41 @@ const NuevaIncapacidad = () => {
           </div>
         </div>
 
+        {/* Contador de días entre fechas */}
+        {fechaInicio && fechaFin && (
+          <div className="mb-6 flex flex-col items-center justify-center bg-gradient-to-r from-green-600 to-blue-500 p-4 rounded-lg shadow-lg">
+            <span className="text-white font-bold text-lg">
+              Días de Incapacidad
+            </span>
+            <div className="mt-2 flex items-baseline">
+              <span className="text-white text-4xl font-extrabold">
+                {getDiasDiferencia()}
+              </span>
+              <span className="text-white ml-2 text-xl">
+                {getDiasDiferencia() === 1 ? "día" : "días"}
+              </span>
+            </div>
+          </div>
+        )}
+
         {/* Diagnóstico */}
-        <div className="mb-8">
-          <label className="block text-2xl font-extrabold text-blue-400 mb-4 tracking-wide">
-            Diagnóstico:
+        <div className="mb-6">
+          <label className="text-white font-semibold mb-2 block uppercase">
+            DIAGNÓSTICO:
           </label>
           <textarea
-            className="w-full rounded-xl bg-gray-700 text-gray-200 p-6 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-shadow neon-border"
-            maxLength={120}
-            rows={5}
-            placeholder="Describe el diagnóstico... (máx. 120 caracteres)"
             value={diagnostico}
             onChange={(e) => {
-              if (e.target.value.length <= 120) setDiagnostico(e.target.value);
+              if (e.target.value.length <= 120) {
+                setDiagnostico(e.target.value.toUpperCase());
+              }
             }}
+            maxLength={120}
+            className="block w-full rounded-lg bg-gray-600 border-gray-500 text-white p-2 md:p-3 uppercase"
+            placeholder="ESCRIBE AQUÍ EL DIAGNÓSTICO... (MÁX. 120 CARACTERES)"
           />
-          <p className="text-lg text-gray-400 mt-2 text-right">
-            {diagnostico.length}/120 caracteres
+          <p className="text-sm text-gray-300 mt-1 uppercase">
+            {diagnostico.length}/120 CARACTERES
           </p>
         </div>
 
@@ -472,135 +553,6 @@ const NuevaIncapacidad = () => {
           </div>
         )}
       </motion.div>
-
-      {/* Estilos del calendario */}
-      <style jsx global>{`
-        /* Calendario con tonos oscuros y detalles neon */
-        .react-calendar,
-        .react-calendar * {
-          color: #bdc3c7 !important;
-        }
-        .react-calendar {
-          border: none;
-          border-radius: 1rem;
-          background: #34495e;
-          box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
-          overflow: hidden;
-        }
-        .react-calendar__navigation {
-          background: transparent;
-          border-bottom: 1px solid #7f8c8d;
-          padding: 0.5rem;
-        }
-        .react-calendar__navigation button {
-          background: transparent;
-          font-size: 1.2rem;
-          font-weight: bold;
-          border: none;
-          outline: none;
-          transition: color 0.3s ease;
-        }
-        .react-calendar__navigation button:hover {
-          color: #16a085 !important;
-        }
-        .react-calendar__month-view__weekdays {
-          text-transform: uppercase;
-          font-weight: bold;
-          font-size: 0.85rem;
-          background: #2c3e50;
-          padding: 0.5rem;
-        }
-        .react-calendar__month-view__weekdays__weekday abbr {
-          text-decoration: none;
-          font-size: 0.85rem;
-          color: #bdc3c7 !important;
-        }
-        .react-calendar__month-view__days {
-          padding: 0.5rem;
-        }
-        .react-calendar__month-view__days__day {
-          padding: 0.75rem;
-          transition: background 0.3s ease, transform 0.3s ease;
-          border-radius: 50%;
-          margin: 0.25rem;
-        }
-        .react-calendar__month-view__days__day abbr {
-          text-decoration: none;
-          color: #bdc3c7 !important;
-          font-size: 1rem;
-          font-weight: 500;
-        }
-        .react-calendar__tile--now {
-          border: 2px solid #e67e22;
-        }
-        .react-calendar__tile--active,
-        .react-calendar__tile--active:enabled:hover {
-          background-color: #3d566e;
-          transform: scale(1.1);
-          box-shadow: 0 4px 8px rgba(22, 160, 133, 0.3);
-        }
-        .react-calendar__tile:enabled:hover,
-        .react-calendar__tile:enabled:focus {
-          background-color: #2c3e50;
-          transform: scale(1.05);
-        }
-      `}</style>
-      {/* Efectos neon extra y fondo animado */}
-      <style jsx>{`
-        .neon-text {
-          text-shadow: 0 0 8px #16a085, 0 0 16px #16a085, 0 0 24px #16a085;
-        }
-        .neon-border {
-          box-shadow: 0 0 15px rgba(22, 160, 133, 0.8);
-        }
-        .neon-particles {
-          animation: neonPulse 5s linear infinite;
-          background: radial-gradient(circle at 50% 50%, rgba(22, 160, 133, 0.2), transparent 70%);
-          filter: blur(8px);
-        }
-        @keyframes neonPulse {
-          0% {
-            opacity: 0.5;
-          }
-          50% {
-            opacity: 1;
-          }
-          100% {
-            opacity: 0.5;
-          }
-        }
-        .hover\\:shadow-neon:hover {
-          box-shadow: 0 0 20px #16a085, 0 0 30px #16a085;
-        }
-        .fancy-bg {
-          background: linear-gradient(135deg, #1f1c2c, #928dab);
-          background-size: 400% 400%;
-          animation: gradientShift 15s ease infinite;
-        }
-        @keyframes gradientShift {
-          0% {
-            background-position: 0% 50%;
-          }
-          50% {
-            background-position: 100% 50%;
-          }
-          100% {
-            background-position: 0% 50%;
-          }
-        }
-        /* Animación especial para el título */
-        .animate-title {
-          animation: titleGlow 3s ease-in-out infinite;
-        }
-        @keyframes titleGlow {
-          0%, 100% {
-            text-shadow: 0 0 10px #16a085, 0 0 20px #16a085, 0 0 30px #16a085;
-          }
-          50% {
-            text-shadow: 0 0 20px #16a085, 0 0 40px #16a085, 0 0 60px #16a085;
-          }
-        }
-      `}</style>
     </div>
   );
 };

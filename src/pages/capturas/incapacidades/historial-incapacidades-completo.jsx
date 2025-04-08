@@ -111,7 +111,6 @@ const HistorialCompletoPage = () => {
                 <th className="p-3 text-sm font-semibold">Fin</th>
                 <th className="p-3 text-sm font-semibold">Nómina</th>
                 <th className="p-3 text-sm font-semibold">Nombre Paciente</th>
-                <th className="p-3 text-sm font-semibold">Departamento</th>
                 <th className="p-3 text-sm font-semibold">Observaciones</th>
                 <th className="p-3 text-sm font-semibold">Días Restantes</th>
                 <th className="p-3 text-sm font-semibold">Futura</th>
@@ -132,7 +131,6 @@ const HistorialCompletoPage = () => {
                     <td className="p-3 border-t border-gray-800">{item.fechafin}</td>
                     <td className="p-3 border-t border-gray-800">{item.nomina}</td>
                     <td className="p-3 border-t border-gray-800">{item.nombrepaciente}</td>
-                    <td className="p-3 border-t border-gray-800">{item.departamento}</td>
                     <td className="p-3 border-t border-gray-800">{item.observaciones}</td>
                     <td className="p-3 border-t border-gray-800">
                       {/* Diseño para Días Restantes */}

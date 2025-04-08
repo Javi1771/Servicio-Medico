@@ -18,6 +18,8 @@ import {
   FaCalendarPlus 
 } from "react-icons/fa";
 
+import { useRouter } from 'next/router';
+
 const MySwal = withReactContent(Swal);
 
 const successSound = "/assets/applepay.mp3";
@@ -95,6 +97,7 @@ export default function Costos() {
   const [costo, setCosto] = useState("");
   const [numeroFactura, setNumeroFactura] = useState("");
   const [facturada, setFacturada] = useState(false);
+  const router = useRouter(); 
 
   //* Búsqueda en el endpoint
   const handleSearch = async () => {
@@ -172,7 +175,7 @@ export default function Costos() {
     }
   };
 
-  // Guardar el costo (POST)
+  //* Guardar el costo (POST)
   const handleSubmitForm = async (e) => {
     e.preventDefault();
     if (!costo || !numeroFactura) {

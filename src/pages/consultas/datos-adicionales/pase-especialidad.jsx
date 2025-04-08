@@ -43,7 +43,9 @@ const PaseEspecialidad = ({
 
   //* Restaurar datos desde localStorage al montar el componente
   useEffect(() => {
-    const cachedData = localStorage.getItem(`PaseEspecialidad:${claveConsulta}`);
+    const cachedData = localStorage.getItem(
+      `PaseEspecialidad:${claveConsulta}`
+    );
     if (cachedData) {
       const parsedData = JSON.parse(cachedData);
       console.log("Restaurando datos desde localStorage:", parsedData);
@@ -211,25 +213,25 @@ const PaseEspecialidad = ({
           <div className="mb-6">
             <label
               htmlFor="textareaObservaciones"
-              className="text-white font-semibold mb-2 block"
+              className="text-white font-semibold mb-2 block uppercase"
             >
-              Observaciones:
+              OBSERVACIONES:
             </label>
             <textarea
               id="textareaObservaciones"
               value={observaciones}
               onChange={(e) => {
                 if (e.target.value.length <= 120) {
-                  setObservaciones(e.target.value);
+                  setObservaciones(e.target.value.toUpperCase());
                 }
               }}
               maxLength={120} //* También evita escribir más de 120 caracteres
-              className="block w-full rounded-lg bg-gray-600 border-gray-500 text-white p-2 md:p-3 focus:ring-2 focus:ring-green-500"
-              placeholder="Escribe aquí las observaciones... (máx. 120 caracteres)"
-              aria-label="Escribe observaciones"
+              className="block w-full rounded-lg bg-gray-600 border-gray-500 text-white p-2 md:p-3 focus:ring-2 focus:ring-green-500 uppercase"
+              placeholder="ESCRIBE AQUÍ LAS OBSERVACIONES... (MÁX. 120 CARACTERES)"
+              aria-label="ESCRIBE OBSERVACIONES"
             />
-            <p className="text-sm text-gray-300 mt-1">
-              {observaciones.length}/120 caracteres
+            <p className="text-sm text-gray-300 mt-1 uppercase">
+              {observaciones.length}/120 CARACTERES
             </p>
           </div>
 
@@ -284,7 +286,8 @@ const PaseEspecialidad = ({
                 onClick={() => {
                   setPrioridad("ROJO");
                   const cachedData = JSON.parse(
-                    localStorage.getItem(`PaseEspecialidad:${claveConsulta}`) || "{}"
+                    localStorage.getItem(`PaseEspecialidad:${claveConsulta}`) ||
+                      "{}"
                   );
                   cachedData.prioridad = "ROJO";
                   localStorage.setItem(
@@ -313,7 +316,8 @@ const PaseEspecialidad = ({
                 onClick={() => {
                   setPrioridad("NARANJA");
                   const cachedData = JSON.parse(
-                    localStorage.getItem(`PaseEspecialidad:${claveConsulta}`) || "{}"
+                    localStorage.getItem(`PaseEspecialidad:${claveConsulta}`) ||
+                      "{}"
                   );
                   cachedData.prioridad = "NARANJA";
                   localStorage.setItem(
@@ -342,7 +346,8 @@ const PaseEspecialidad = ({
                 onClick={() => {
                   setPrioridad("AMARILLO");
                   const cachedData = JSON.parse(
-                    localStorage.getItem(`PaseEspecialidad:${claveConsulta}`) || "{}"
+                    localStorage.getItem(`PaseEspecialidad:${claveConsulta}`) ||
+                      "{}"
                   );
                   cachedData.prioridad = "AMARILLO";
                   localStorage.setItem(
@@ -371,7 +376,8 @@ const PaseEspecialidad = ({
                 onClick={() => {
                   setPrioridad("VERDE");
                   const cachedData = JSON.parse(
-                    localStorage.getItem(`PaseEspecialidad:${claveConsulta}`) || "{}"
+                    localStorage.getItem(`PaseEspecialidad:${claveConsulta}`) ||
+                      "{}"
                   );
                   cachedData.prioridad = "VERDE";
                   localStorage.setItem(
@@ -400,7 +406,8 @@ const PaseEspecialidad = ({
                 onClick={() => {
                   setPrioridad("AZUL");
                   const cachedData = JSON.parse(
-                    localStorage.getItem(`PaseEspecialidad:${claveConsulta}`) || "{}"
+                    localStorage.getItem(`PaseEspecialidad:${claveConsulta}`) ||
+                      "{}"
                   );
                   cachedData.prioridad = "AZUL";
                   localStorage.setItem(
@@ -482,7 +489,8 @@ const PaseEspecialidad = ({
               ) : (
                 <tr>
                   <td colSpan="6" className="text-center py-6 text-gray-400">
-                    No hay especialidades registradas para el paciente seleccionado.
+                    No hay especialidades registradas para el paciente
+                    seleccionado.
                   </td>
                 </tr>
               )}

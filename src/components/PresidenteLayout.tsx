@@ -18,12 +18,10 @@ import { BiLogoReact } from "react-icons/bi";
 import { MdLogout } from "react-icons/md";
 import Cookies from "js-cookie";
 
-//* Dinámicamente importa el loader
+// Carga dinámica del loader sin SSR
 const LoaderGeneral = dynamic(
   () => import("../pages/estadisticas/Loaders/Loader-general"),
-  {
-    ssr: false,
-  }
+  { ssr: false }
 );
 
 interface PresidenteLayoutProps {
@@ -32,13 +30,13 @@ interface PresidenteLayoutProps {
 
 const PresidenteLayout: React.FC<PresidenteLayoutProps> = ({ children }) => {
   const router = useRouter();
-  const [isClient, setIsClient] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  
-  useEffect(() => {
-    setIsClient(true);
-  }, []); 
+  const [isClient, setIsClient] = useState<boolean>(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
+  const [openMenu, setOpenMenu] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [fromSidebar, setFromSidebar] = useState<boolean>(false); // Determina si el cambio es desde la barra lateral
 
+  // Lista de rutas sin layout
   const noLayoutRoutes = [
     "/consultas/recetas/generar-receta-farmacia",
     "/consultas/recetas/generar-receta-paciente",
@@ -48,10 +46,12 @@ const PresidenteLayout: React.FC<PresidenteLayoutProps> = ({ children }) => {
     "/capturas/incapacidades/generar-incapacidad",
   ];
 
-  const [openMenu, setOpenMenu] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [fromSidebar, setFromSidebar] = useState(false); //* Determina si el cambio es desde el menú lateral
+  // Para evitar renderizado en SSR
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
+  // Efecto para manejar el cambio de ruta y la animación de carga
   useEffect(() => {
     const handleRouteChangeStart = () => {
       if (fromSidebar) setIsLoading(true);
@@ -60,8 +60,7 @@ const PresidenteLayout: React.FC<PresidenteLayoutProps> = ({ children }) => {
     const handleRouteChangeComplete = () => {
       setIsLoading(false);
       setFromSidebar(false);
-      // Cierra el menú móvil al navegar
-      setMobileMenuOpen(false);
+      setMobileMenuOpen(false); // Cierra el menú móvil tras la navegación
     };
 
     router.events.on("routeChangeStart", handleRouteChangeStart);
@@ -73,26 +72,30 @@ const PresidenteLayout: React.FC<PresidenteLayoutProps> = ({ children }) => {
     };
   }, [fromSidebar, router.events]);
 
+  // Función para cerrar sesión
   const handleLogout = () => {
     Cookies.remove("token");
     Cookies.remove("rol");
     router.replace("/");
   };
 
+  // Navega a una ruta, marcando el cambio como proveniente de la sidebar
   const navigateTo = (path: string) => {
-    setFromSidebar(true); //* Marcar como navegación desde la barra lateral
+    setFromSidebar(true);
     router.replace(path);
   };
 
+  // Alterna la apertura/cierre de un menú (acordeón)
   const toggleMenu = (menu: string) => {
     setOpenMenu(openMenu === menu ? null : menu);
   };
 
+  // Opciones del menú lateral
   const menuOptions = [
     {
       title: "Consultas",
       icon: (
-        <FaStethoscope className="text-blue-400 text-3xl group-hover:scale-110 transition-transform duration-300" />
+        <FaStethoscope className="text-blue-400 text-3xl transition-transform duration-300 group-hover:scale-110" />
       ),
       options: [
         { name: "Signos Vitales", path: "/consultas/signos-vitales" },
@@ -102,48 +105,31 @@ const PresidenteLayout: React.FC<PresidenteLayoutProps> = ({ children }) => {
     {
       title: "Especialista",
       icon: (
-        <FaUserCheck className="text-blue-400 text-3xl group-hover:scale-110 transition-transform duration-300" />
+        <FaUserCheck className="text-blue-400 text-3xl transition-transform duration-300 group-hover:scale-110" />
       ),
-      options: [
-        {
-          name: "Consulta Especialista",
-          path: "/especialista/consulta-especialista",
-        },
-      ],
+      options: [{ name: "Consulta Especialista", path: "/especialista/consulta-especialista" }],
     },
     {
       title: "Catálogos",
       icon: (
-        <FaBookMedical className="text-blue-400 text-3xl group-hover:scale-110 transition-transform duration-300" />
+        <FaBookMedical className="text-blue-400 text-3xl transition-transform duration-300 group-hover:scale-110" />
       ),
       options: [
         { name: "Beneficiarios", path: "/catalogos/beneficiarios" },
         { name: "Especialidades", path: "/catalogos/especialidades" },
-        {
-          name: "Enfermedades Crónicas",
-          path: "/catalogos/enfermedades-cronicas",
-        },
-        {
-          name: "Usuarios y Proveedores",
-          path: "/catalogos/usuarios-y-proveedores",
-        },
+        { name: "Enfermedades Crónicas", path: "/catalogos/enfermedades-cronicas" },
+        { name: "Usuarios y Proveedores", path: "/catalogos/usuarios-y-proveedores" },
       ],
     },
     {
       title: "Capturas",
       icon: (
-        <FaLaptopMedical className="text-blue-400 text-3xl group-hover:scale-110 transition-transform duration-300" />
+        <FaLaptopMedical className="text-blue-400 text-3xl transition-transform duration-300 group-hover:scale-110" />
       ),
       options: [
-        {
-          name: "Pases a Especialidades",
-          path: "/capturas/pases-a-especialidades",
-        },
+        { name: "Pases a Especialidades", path: "/capturas/pases-a-especialidades" },
         { name: "Surtimientos", path: "/capturas/surtimientos" },
-        {
-          name: "Orden de Estudio de Laboratorio",
-          path: "/capturas/orden-de-estudio-de-laboratorio",
-        },
+        { name: "Orden de Estudio de Laboratorio", path: "/capturas/orden-de-estudio-de-laboratorio" },
         { name: "Incapacidades", path: "/capturas/incapacidades" },
         { name: "Costos", path: "/capturas/costos" },
         { name: "Cancelaciones", path: "/capturas/cancelaciones" },
@@ -152,16 +138,14 @@ const PresidenteLayout: React.FC<PresidenteLayoutProps> = ({ children }) => {
     {
       title: "Reportes",
       icon: (
-        <FaChartLine className="text-blue-400 text-3xl group-hover:scale-110 transition-transform duration-300" />
+        <FaChartLine className="text-blue-400 text-3xl transition-transform duration-300 group-hover:scale-110" />
       ),
-      options: [
-        { name: "Incapacidades", path: "/reportes/incapacidades" },
-      ],
+      options: [{ name: "Incapacidades", path: "/reportes/incapacidades" }],
     },
     {
       title: "Farmacia",
       icon: (
-        <FaMedkit className="text-blue-400 text-3xl group-hover:scale-110 transition-transform duration-300" />
+        <FaMedkit className="text-blue-400 text-3xl transition-transform duration-300 group-hover:scale-110" />
       ),
       options: [
         { name: "Medicamentos", path: "/farmacia/medicamentos" },
@@ -174,25 +158,19 @@ const PresidenteLayout: React.FC<PresidenteLayoutProps> = ({ children }) => {
     {
       title: "Dashboard",
       icon: (
-        <BiLogoReact className="text-blue-400 text-3xl group-hover:scale-110 transition-transform duration-300" />
+        <BiLogoReact className="text-blue-400 text-3xl transition-transform duration-300 group-hover:scale-110" />
       ),
-      options: [
-        { name: "Actividades", path: "/dashboard/actividades" },
-      ],
+      options: [{ name: "Actividades", path: "/dashboard/actividades" }],
     },
-  ]; 
+  ];
 
-  if (!isClient) {
-    return null; //! Evita renderizar en SSR
-  }
-  
-  if (noLayoutRoutes.includes(router.pathname)) {
-    return <>{children}</>;
-  }  
+  // Evitar renderizar el layout en SSR o para rutas que no lo requieren
+  if (!isClient) return null;
+  if (noLayoutRoutes.includes(router.pathname)) return <>{children}</>;
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-gray-900 via-gray-800 to-black text-white">
-      {/* Header móvil */}
+      {/* Header para mobile */}
       <header className="md:hidden flex items-center justify-between p-4 bg-gradient-to-r from-gray-800 to-gray-700 shadow-md">
         <h1
           className="text-xl font-extrabold text-blue-500 cursor-pointer"
@@ -201,11 +179,7 @@ const PresidenteLayout: React.FC<PresidenteLayoutProps> = ({ children }) => {
           PANDORA Dashboard
         </h1>
         <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-          {mobileMenuOpen ? (
-            <FaTimes className="text-3xl" />
-          ) : (
-            <FaBars className="text-3xl" />
-          )}
+          {mobileMenuOpen ? <FaTimes className="text-3xl" /> : <FaBars className="text-3xl" />}
         </button>
       </header>
 
@@ -214,7 +188,7 @@ const PresidenteLayout: React.FC<PresidenteLayoutProps> = ({ children }) => {
         <aside className="hidden md:flex flex-col fixed top-0 left-0 h-full w-80 bg-gradient-to-b from-gray-900 via-gray-800 to-gray-700 p-6 shadow-2xl">
           <div className="text-center mb-10">
             <h1
-              className="text-4xl font-extrabold text-blue-500 glow cursor-pointer"
+              className="text-4xl font-extrabold text-blue-500 cursor-pointer"
               onClick={() => router.replace("/inicio-presidente")}
             >
               PANDORA Dashboard
@@ -226,11 +200,11 @@ const PresidenteLayout: React.FC<PresidenteLayoutProps> = ({ children }) => {
               {menuOptions.map((menu, index) => (
                 <li key={index}>
                   <div
-                    className="flex items-center space-x-4 p-4 bg-gradient-to-r from-gray-800 to-gray-700 rounded-lg shadow-lg cursor-pointer hover:scale-105 hover:shadow-[0_0_25px_10px_rgba(59,130,246,0.8)] transform transition-all duration-300 group"
+                    className="flex items-center space-x-4 p-4 bg-gradient-to-r from-gray-800 to-gray-700 rounded-lg shadow-lg cursor-pointer transform transition-all duration-300 hover:scale-105 group"
                     onClick={() => toggleMenu(menu.title)}
                   >
                     {menu.icon}
-                    <span className="text-lg font-bold group-hover:text-blue-400 transition-all duration-300">
+                    <span className="text-lg font-bold transition-all duration-300 group-hover:text-blue-400">
                       {menu.title}
                     </span>
                   </div>
@@ -239,7 +213,7 @@ const PresidenteLayout: React.FC<PresidenteLayoutProps> = ({ children }) => {
                       {menu.options.map((option, idx) => (
                         <li
                           key={idx}
-                          className="cursor-pointer px-4 py-2 bg-gradient-to-r from-gray-700 to-gray-600 rounded-md shadow-md hover:scale-105 transform transition hover:bg-gray-500 text-white text-sm"
+                          className="cursor-pointer px-4 py-2 bg-gradient-to-r from-gray-700 to-gray-600 rounded-md shadow-md text-sm transition transform hover:scale-105 hover:bg-gray-500"
                           onClick={() => navigateTo(option.path)}
                         >
                           {option.name}
@@ -252,20 +226,20 @@ const PresidenteLayout: React.FC<PresidenteLayoutProps> = ({ children }) => {
             </ul>
           </nav>
           <button
-            className="flex items-center space-x-4 p-4 mt-4 bg-gradient-to-r from-red-700 to-red-500 rounded-lg shadow-lg cursor-pointer hover:scale-105 hover:shadow-[0_0_25px_10px_rgba(245,56,85,0.8)] transform transition-all duration-300 group"
+            className="flex items-center space-x-4 p-4 mt-4 bg-gradient-to-r from-red-700 to-red-500 rounded-lg shadow-lg cursor-pointer transform transition-all duration-300 hover:scale-105 group hover:shadow-[0_0_25px_10px_rgba(245,56,85,0.8)]"
             onClick={handleLogout}
           >
-            <MdLogout className="text-red-300 text-3xl group-hover:scale-110 transition-transform duration-300" />
+            <MdLogout className="text-red-300 text-3xl transition-transform duration-300 group-hover:scale-110" />
             <span className="text-lg font-semibold">Cerrar Sesión</span>
           </button>
         </aside>
 
-        {/* Sidebar móvil */}
+        {/* Sidebar para mobile */}
         {mobileMenuOpen && (
           <aside className="md:hidden fixed top-0 left-0 w-64 h-full bg-gradient-to-b from-gray-900 via-gray-800 to-gray-700 p-6 z-50 shadow-2xl overflow-y-auto">
             <div className="text-center mb-10">
               <h1
-                className="text-2xl font-extrabold text-blue-500 glow cursor-pointer"
+                className="text-2xl font-extrabold text-blue-500 cursor-pointer"
                 onClick={() => {
                   router.replace("/inicio-presidente");
                   setMobileMenuOpen(false);
@@ -280,7 +254,7 @@ const PresidenteLayout: React.FC<PresidenteLayoutProps> = ({ children }) => {
                 {menuOptions.map((menu, index) => (
                   <li key={index}>
                     <div
-                      className="flex items-center space-x-3 p-3 bg-gradient-to-r from-gray-800 to-gray-700 rounded-lg shadow cursor-pointer hover:bg-gray-600 transition"
+                      className="flex items-center space-x-3 p-3 bg-gradient-to-r from-gray-800 to-gray-700 rounded-lg shadow cursor-pointer transition hover:bg-gray-600"
                       onClick={() => toggleMenu(menu.title)}
                     >
                       {menu.icon}
@@ -291,7 +265,7 @@ const PresidenteLayout: React.FC<PresidenteLayoutProps> = ({ children }) => {
                         {menu.options.map((option, idx) => (
                           <li
                             key={idx}
-                            className="cursor-pointer px-3 py-2 bg-gradient-to-r from-gray-700 to-gray-600 rounded shadow hover:bg-gray-500 text-sm"
+                            className="cursor-pointer px-3 py-2 bg-gradient-to-r from-gray-700 to-gray-600 rounded shadow text-sm transition hover:bg-gray-500"
                             onClick={() => navigateTo(option.path)}
                           >
                             {option.name}
@@ -304,7 +278,7 @@ const PresidenteLayout: React.FC<PresidenteLayoutProps> = ({ children }) => {
               </ul>
             </nav>
             <button
-              className="flex items-center justify-center w-full p-3 mt-6 bg-gradient-to-r from-red-700 to-red-500 rounded-lg shadow cursor-pointer hover:bg-red-600 transition"
+              className="flex items-center justify-center w-full p-3 mt-6 bg-gradient-to-r from-red-700 to-red-500 rounded-lg shadow cursor-pointer transition hover:bg-red-600"
               onClick={handleLogout}
             >
               <MdLogout className="text-red-300 text-3xl" />
@@ -313,13 +287,11 @@ const PresidenteLayout: React.FC<PresidenteLayoutProps> = ({ children }) => {
           </aside>
         )}
 
-        {/* Main Content */}
+        {/* Contenido principal */}
         <main className="relative flex-1 p-6 w-full md:ml-80 mt-4 md:mt-0">
           {isLoading && fromSidebar && (
             <div className="absolute inset-0 flex justify-center items-center bg-black bg-opacity-75 z-50">
-              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                <LoaderGeneral size={120} />
-              </div>
+              <LoaderGeneral size={120} />
             </div>
           )}
           <div

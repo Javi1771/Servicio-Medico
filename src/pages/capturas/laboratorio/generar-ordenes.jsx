@@ -14,7 +14,7 @@ export default function GenerarOrdenLaboratorio() {
   const [pdfUrl, setPdfUrl] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
 
-  // 1. Decodificar claveconsulta de la URL
+  //? 1. Decodificar claveconsulta de la URL
   useEffect(() => {
     if (router.query.claveconsulta) {
       const decodedClave = atob(router.query.claveconsulta);
@@ -22,7 +22,7 @@ export default function GenerarOrdenLaboratorio() {
     }
   }, [router.query.claveconsulta]);
 
-  // 2. Generar código de barras
+  //? 2. Generar código de barras
   const generarCodigoBarras = (nomina, claveconsulta, folioOrden) => {
     if (!nomina || !claveconsulta || !folioOrden) {
       console.error("❌ Datos insuficientes para generar código de barras");
@@ -40,7 +40,7 @@ export default function GenerarOrdenLaboratorio() {
     return canvas.toDataURL("image/png");
   };
 
-  // 3. Llamar a la API real para obtener datos
+  //? 3. Llamar a la API real para obtener datos
   const fetchConsultaData = async () => {
     if (!claveconsulta) {
       console.error("⚠️ Clave de consulta no definida");
@@ -65,7 +65,7 @@ export default function GenerarOrdenLaboratorio() {
     }
   };
 
-  /**
+  /*
    * Agrega una nueva página al PDF final copiando la página base y dibujando la
    * información del laboratorio sobre ella. Se conserva el tamaño original del PDF base.
    */
@@ -85,157 +85,66 @@ export default function GenerarOrdenLaboratorio() {
 
     const blackColor = rgb(0, 0, 0);
 
-    copiedPage.drawText(`${lab.laboratorio || "N/A"}`, {
-      x: 45,
-      y: height - 12.8,
-      size: 2,
-      color: blackColor,
-    });
-    copiedPage.drawText(`${lab.laboratorio || "N/A"}`, {
-      x: 175,
-      y: height - 12.8,
-      size: 2,
-      color: blackColor,
-    });
-    copiedPage.drawText(`${consulta.NOMINA || "N/A"}`, {
-      x: 23.5,
-      y: height - 24.5,
-      size: 2,
-      color: blackColor,
-    });
-    copiedPage.drawText(`${consulta.NOMINA || "N/A"}`, {
-      x: 150,
-      y: height - 24.5,
-      size: 2,
-      color: blackColor,
-    });
-    copiedPage.drawText(`${consulta.NOMBRE_PACIENTE || "N/A"}`, {
-      x: 25,
-      y: height - 37.9,
-      size: 2,
-      color: blackColor,
-    });
-    copiedPage.drawText(`${consulta.NOMBRE_PACIENTE || "N/A"}`, {
-      x: 151,
-      y: height - 37.9,
-      size: 2,
-      color: blackColor,
-    });
-    copiedPage.drawText(`${consulta.EDAD || "N/A"}`, {
-      x: 87.5,
-      y: height - 37.9,
-      size: 2,
-      color: blackColor,
-    });
-    copiedPage.drawText(`${consulta.EDAD || "N/A"}`, {
-      x: 213.5,
-      y: height - 37.9,
-      size: 2,
-      color: blackColor,
-    });
-    copiedPage.drawText(`${consulta.DEPARTAMENTO || "N/A"}`, {
-      x: 26,
-      y: height - 27.8,
-      size: 2,
-      color: blackColor,
-    });
-    copiedPage.drawText(`${consulta.DEPARTAMENTO || "N/A"}`, {
-      x: 152,
-      y: height - 27.8,
-      size: 2,
-      color: blackColor,
-    });
-    copiedPage.drawText(`- ${consulta.parentesco || "Empleado"}`, {
-      x: 34,
-      y: height - 32.1,
-      size: 2.5,
-      color: blackColor,
-    });
-    copiedPage.drawText(`- ${consulta.parentesco || "Empleado"}`, {
-      x: 160,
-      y: height - 32.1,
-      size: 2.5,
-      color: blackColor,
-    });
-    copiedPage.drawText(`${lab.FECHA_EMISION || "N/A"}`, {
-      x: 23,
-      y: height - 20.9,
-      size: 2,
-      color: blackColor,
-    });
-    copiedPage.drawText(`${lab.FECHA_EMISION || "N/A"}`, {
-      x: 148.5,
-      y: height - 20.9,
-      size: 2,
-      color: blackColor,
-    });
-    copiedPage.drawText(`${lab.DIAGNOSTICO || "N/A"}`, {
-      x: 13,
-      y: height - 49,
-      size: 2,
-      color: blackColor,
-    });
-    copiedPage.drawText(`${lab.DIAGNOSTICO || "N/A"}`, {
-      x: 139,
-      y: height - 49,
-      size: 2,
-      color: blackColor,
-    });
+    //? Nombre del Laboratorio
+    copiedPage.drawText(`${lab.laboratorio || "N/A"}`, { x: 45, y: height - 12.8, size: 2, color: blackColor, });
+    copiedPage.drawText(`${lab.laboratorio || "N/A"}`, { x: 175, y: height - 12.8, size: 2, color: blackColor, });
 
+    //? Número de nómina
+    copiedPage.drawText(`${consulta.NOMINA || "N/A"}`, { x: 80, y: height - 20.6, size: 2, color: blackColor, });
+    copiedPage.drawText(`${consulta.NOMINA || "N/A"}`, { x: 206.1, y: height - 20.6, size: 2, color: blackColor, });
+
+    //? Nombre del paciente
+    copiedPage.drawText(`${consulta.NOMBRE_PACIENTE || "N/A"}`, { x: 25, y: height - 37.9, size: 2, color: blackColor, });
+    copiedPage.drawText(`${consulta.NOMBRE_PACIENTE || "N/A"}`, { x: 151, y: height - 37.9, size: 2, color: blackColor, });
+
+    //? Edad del paciente
+    copiedPage.drawText(`${consulta.EDAD || "N/A"}`, { x: 87.5, y: height - 37.9, size: 2, color: blackColor, });
+    copiedPage.drawText(`${consulta.EDAD || "N/A"}`, { x: 213.5, y: height - 37.9, size: 2, color: blackColor, });
+
+    //? Secretaria
+    copiedPage.drawText(`${consulta.DEPARTAMENTO || "N/A"}`, { x: 26, y: height - 27.8, size: 2, color: blackColor, });
+    copiedPage.drawText(`${consulta.DEPARTAMENTO || "N/A"}`, { x: 152, y: height - 27.8, size: 2, color: blackColor, });
+
+    //? Parentesco
+    copiedPage.drawText(`- ${consulta.parentesco || "Empleado"}`, { x: 34, y: height - 32.1, size: 2.5, color: blackColor, });
+    copiedPage.drawText(`- ${consulta.parentesco || "Empleado"}`, { x: 160, y: height - 32.1, size: 2.5, color: blackColor, });
+
+    //? Fecha de elaboración
+    copiedPage.drawText(`${lab.FECHA_EMISION || "N/A"}`, { x: 35, y: height - 20.6, size: 2, color: blackColor, });
+    copiedPage.drawText(`${lab.FECHA_EMISION || "N/A"}`, { x: 161.5, y: height - 20.6, size: 2, color: blackColor, });
+
+    //? Fecha de cita
+    copiedPage.drawText(`${lab.FECHA_CITA || "N/A"}`, { x: 29, y: height - 24.2, size: 2, color: blackColor, });
+    copiedPage.drawText(`${lab.FECHA_CITA || "N/A"}`, { x: 155.5, y: height - 24.2, size: 2, color: blackColor, });
+
+    //? Diagnóstico
+    copiedPage.drawText(`${lab.DIAGNOSTICO || "N/A"}`, { x: 13, y: height - 49, size: 2, color: blackColor, });
+    copiedPage.drawText(`${lab.DIAGNOSTICO || "N/A"}`, { x: 139, y: height - 49, size: 2, color: blackColor, });
+
+    //? Lista de estudios
     let currentY = height - 56;
     currentY -= 10;
     if (lab.estudios && lab.estudios.length > 0) {
       lab.estudios.forEach((est) => {
-        copiedPage.drawText(`${est.estudio}`, {
-          x: 13,
-          y: currentY,
-          size: 2,
-          color: blackColor,
-        });
-        copiedPage.drawText(`${est.estudio}`, {
-          x: 139,
-          y: currentY,
-          size: 2,
-          color: blackColor,
-        });
+
+        copiedPage.drawText(`${est.estudio}`, { x: 13, y: currentY, size: 2, color: blackColor, });
+        copiedPage.drawText(`${est.estudio}`, { x: 139, y: currentY, size: 2, color: blackColor, });
         currentY -= 3;
       });
     } else {
-      copiedPage.drawText("No hay estudios asignados", {
-        x: 13,
-        y: currentY,
-        size: 2,
-        color: blackColor,
-      });
+      copiedPage.drawText("No hay estudios asignados", { x: 13, y: currentY, size: 2, color: blackColor, });
     }
 
-    copiedPage.drawText(`${lab.medico || "N/A"}`, {
-      x: 50,
-      y: height - 123,
-      size: 2,
-      color: blackColor,
-    });
-    copiedPage.drawText(`${lab.medico || "N/A"}`, {
-      x: 175,
-      y: height - 123,
-      size: 2,
-      color: blackColor,
-    });
-    copiedPage.drawText(`${consulta.nombreelaborador || "N/A"}`, {
-      x: 98,
-      y: height - 132,
-      size: 1.5,
-      color: blackColor,
-    });
-    copiedPage.drawText(`${consulta.nombreelaborador || "N/A"}`, {
-      x: 228,
-      y: height - 132,
-      size: 1.5,
-      color: blackColor,
-    });
+    //? Firma del médico
+    copiedPage.drawText(`${lab.medico || "N/A"}`, { x: 50, y: height - 123, size: 2, color: blackColor, });
+    copiedPage.drawText(`${lab.medico || "N/A"}`, { x: 175, y: height - 123, size: 2, color: blackColor, });
+
+    //? Quien elaboró
+    copiedPage.drawText(`${consulta.nombreelaborador || "N/A"}`, { x: 98, y: height - 132, size: 1.5, color: blackColor, });
+    copiedPage.drawText(`${consulta.nombreelaborador || "N/A"}`, { x: 228, y: height - 132, size: 1.5, color: blackColor, });
   }
 
-  // 4. Generar un único PDF con una página por laboratorio
+  //? 4. Generar un único PDF con una página por laboratorio
   const generateAllPdfs = async () => {
     try {
       setLoading(true);

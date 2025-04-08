@@ -15,31 +15,42 @@ const rolePermissions = {
 export function middleware(request) {
   const { pathname } = request.nextUrl;
 
-  //* Omitir rutas estáticas, API, imágenes, etc.
-  if (pathname.startsWith('/_next') || pathname.startsWith('/api') || pathname.startsWith('/static')) {
+  // Excluir rutas públicas y estáticas
+  if (pathname === '/' || pathname === '/login') {
     return NextResponse.next();
   }
 
-  //* Obtener cookies
+  if (
+    pathname.startsWith('/_next') ||
+    pathname.startsWith('/api') ||
+    pathname.startsWith('/static')
+  ) {
+    return NextResponse.next();
+  }
+
   const token = request.cookies.get('token');
   const rol = request.cookies.get('rol');
 
-  //* Si falta token o rol, redirige a login
   if (!token || !rol) {
     return NextResponse.redirect(new URL('/', request.url));
   }
 
-  //* Validar ruta permitida
   const allowedRoutes = rolePermissions[rol] || [];
   const isAllowed = allowedRoutes.some(route => pathname.startsWith(route));
 
   if (!isAllowed) {
     const defaultRoute = rol === "7" ? "/inicio-presidente" : "/inicio-servicio-medico";
-    return NextResponse.redirect(new URL(defaultRoute, request.url));
+    // Agrega un query param opcional para evitar bucles en caso de errores
+    const redirectUrl = new URL(defaultRoute, request.url);
+    if (!redirectUrl.searchParams.has("redirected")) {
+      redirectUrl.searchParams.set("redirected", "true");
+      return NextResponse.redirect(redirectUrl);
+    }
   }
 
   return NextResponse.next();
 }
+
 
 //* Configuración del matcher para que afecte todas las rutas salvo las excluidas
 export const config = {

@@ -1,6 +1,6 @@
 // components/HistorialOrdenes.jsx
 import React, { useState, useEffect } from "react";
-import { FaSearch } from "react-icons/fa";
+import { FaSearch, FaSpinner } from "react-icons/fa";
 import { useRouter } from "next/router";
 
 const HistorialOrdenes = () => {
@@ -8,6 +8,7 @@ const HistorialOrdenes = () => {
   const [historial, setHistorial] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [loading, setLoading] = useState(true); // Estado para el loader
   const itemsPerPage = 5;
 
   useEffect(() => {
@@ -22,6 +23,8 @@ const HistorialOrdenes = () => {
         }
       } catch (error) {
         console.error("Error al obtener el historial:", error);
+      } finally {
+        setLoading(false); // Finalizamos la carga
       }
     };
 
@@ -41,11 +44,16 @@ const HistorialOrdenes = () => {
   //* Paginación
   const totalPages = Math.ceil(filteredHistorial.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const currentItems = filteredHistorial.slice(startIndex, startIndex + itemsPerPage);
+  const currentItems = filteredHistorial.slice(
+    startIndex,
+    startIndex + itemsPerPage
+  );
 
   const handleRowClick = (item) => {
     const encryptedClaveConsulta = btoa(item.CLAVECONSULTA.toString().trim());
-    router.replace(`/capturas/laboratorio/ver-ordenes?claveconsulta=${encryptedClaveConsulta}`);
+    router.replace(
+      `/capturas/laboratorio/ver-ordenes?claveconsulta=${encryptedClaveConsulta}`
+    );
   };
 
   const handlePrevPage = () => {
@@ -55,6 +63,15 @@ const HistorialOrdenes = () => {
   const handleNextPage = () => {
     if (currentPage < totalPages) setCurrentPage(currentPage + 1);
   };
+
+  //* Loader animado
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center">
+        <FaSpinner className="animate-spin text-6xl text-black" />
+      </div>
+    );
+  }
 
   return (
     <div className="bg-[#CBFFFE]/50 p-4 rounded-xl shadow-md">
@@ -122,7 +139,10 @@ const HistorialOrdenes = () => {
               ))
             ) : (
               <tr>
-                <td colSpan="5" className="p-3 text-center text-[#00576A] font-medium">
+                <td
+                  colSpan="5"
+                  className="p-3 text-center text-[#00576A] font-medium"
+                >
                   No se encontraron registros.
                 </td>
               </tr>
