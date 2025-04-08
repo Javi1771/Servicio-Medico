@@ -87,9 +87,12 @@ app.prepare().then(() => {
 
 
     if (err) throw err;
-    //console.log("Servidor HTTPS corriendo en https://172.16.4.47:3000");
-    console.log("Servidor HTTPS corriendo en https://172.16.12.100:3000");
+    console.log("Servidor HTTPS corriendo en https://172.16.4.47:3000");
+    //console.log("Servidor HTTPS corriendo en https://172.16.12.100:3000");
+
+    /**IPS CON VPN */ /**JAVIER- CARLOS */
     //console.log("Servidor HTTPS corriendo en https://172.16.31.213:3000");
     //console.log("Servidor HTTPS corriendo en https://172.16.31.211:3000");
+
   });
 });
