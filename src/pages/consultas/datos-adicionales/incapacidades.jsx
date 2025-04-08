@@ -24,7 +24,6 @@ const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
 
   // -------------------------------------------------------------
   //? 1) Cargar historial de incapacidades desde el backend, SOLO con clavenomina
-  //?    y sin formatear las fechas (ya vienen listas del backend)
   // -------------------------------------------------------------
   useEffect(() => {
     if (!clavenomina) {
@@ -182,6 +181,17 @@ const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
   }
 
   // ----------------------------------------------------------------
+  //* Función para calcular la cantidad de días entre dos fechas
+  // ----------------------------------------------------------------
+  const getDiasDiferencia = () => {
+    if (!fechaInicio || !fechaFin) return 0;
+    const inicio = new Date(fechaInicio);
+    const fin = new Date(fechaFin);
+    const diffTime = fin - inicio;
+    return Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+  };
+
+  // ----------------------------------------------------------------
   //* Render principal
   // ----------------------------------------------------------------
   return (
@@ -234,7 +244,7 @@ const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
                     ? typeof fechaInicio === "string"
                       ? fechaInicio.substring(0, 10)
                       : fechaInicio instanceof Date
-                      ? fechaInicio.toISOString().substring(0, 10) //* Convertir Date a string
+                      ? fechaInicio.toISOString().substring(0, 10)
                       : "📅 Selecciona una fecha"
                     : "📅 Selecciona una fecha"}
                 </span>
@@ -249,6 +259,7 @@ const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
                         "0"
                       );
                       const day = String(date.getDate()).padStart(2, "0");
+                      // Establecer la hora de inicio a 12:00 a.m.
                       const fechaSeleccionada = `${year}-${month}-${day} 00:00:00.000`;
                       setFechaInicio(fechaSeleccionada);
                       setFechaFin(null);
@@ -257,14 +268,18 @@ const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
                     }}
                     value={
                       fechaInicio
-                        ? new Date(fechaInicio.replace(" ", "T"))
+                        ? new Date(
+                            typeof fechaInicio === "string"
+                              ? fechaInicio.replace(" ", "T")
+                              : fechaInicio
+                          )
                         : null
                     }
                     className="bg-gradient-to-br from-gray-900 via-black to-gray-800 rounded-lg text-cyan-300"
                     tileDisabled={({ date }) => {
                       const today = new Date();
                       today.setHours(0, 0, 0, 0);
-                      return date < today; //! deshabilitar fechas pasadas
+                      return date < today;
                     }}
                     navigationLabel={({ date }) => (
                       <p className="text-lg font-bold text-cyan-400">
@@ -303,7 +318,7 @@ const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
                     ? typeof fechaFin === "string"
                       ? fechaFin.substring(0, 10)
                       : fechaFin instanceof Date
-                      ? fechaFin.toISOString().substring(0, 10) //* Convertir Date a string
+                      ? fechaFin.toISOString().substring(0, 10)
                       : "📅 Selecciona una fecha"
                     : "📅 Selecciona una fecha"}
                 </span>
@@ -318,7 +333,8 @@ const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
                         "0"
                       );
                       const day = String(date.getDate()).padStart(2, "0");
-                      const fechaFinalSeleccionada = `${year}-${month}-${day} 23:59:59.000`;
+                      // Establecer la hora final a 11:59 p.m.
+                      const fechaFinalSeleccionada = `${year}-${month}-${day} 23:59:00.000`;
                       setFechaFin(fechaFinalSeleccionada);
                       setIsFechaFinOpen(false);
                       console.log("Fecha Final:", fechaFinalSeleccionada);
@@ -335,10 +351,12 @@ const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
                     className="bg-gradient-to-br from-gray-900 via-black to-gray-800 rounded-lg text-pink-300"
                     tileDisabled={({ date }) => {
                       if (!fechaInicio) return true;
-                      //* Máximo 15 días después de inicial
-                      const fechaIni = new Date(fechaInicio.replace(" ", "T"));
+                      const fechaIni =
+                        typeof fechaInicio === "string"
+                          ? new Date(fechaInicio.replace(" ", "T"))
+                          : fechaInicio;
                       const maxDate = new Date(fechaIni);
-                      maxDate.setDate(fechaIni.getDate() + 15);
+                      maxDate.setDate(fechaIni.getDate() + 14);
                       const today = new Date();
                       today.setHours(0, 0, 0, 0);
                       return date < fechaIni || date > maxDate || date < today;
@@ -361,24 +379,42 @@ const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
             </div>
           </div>
 
+          {/* Contador de días entre fechas */}
+          {fechaInicio && fechaFin && (
+            <div className="mb-6 flex flex-col items-center justify-center bg-gradient-to-r from-green-600 to-blue-500 p-4 rounded-lg shadow-lg">
+              <span className="text-white font-bold text-lg">
+                Días de Incapacidad
+              </span>
+              <div className="mt-2 flex items-baseline">
+                <span className="text-white text-4xl font-extrabold">
+                  {getDiasDiferencia()}
+                </span>
+                <span className="text-white ml-2 text-xl">
+                  {getDiasDiferencia() === 1 ? "día" : "días"}
+                </span>
+              </div>
+            </div>
+          )}
+
           {/* Diagnóstico */}
           <div className="mb-6">
-            <label className="text-white font-semibold mb-2 block">
-              Diagnóstico:
+            <label className="text-white font-semibold mb-2 block uppercase">
+              DIAGNÓSTICO:
             </label>
             <textarea
               value={diagnostico}
               onChange={(e) => {
                 if (e.target.value.length <= 120) {
-                  setDiagnostico(e.target.value);
+                  //* Convertir a mayúsculas lo que se escribe
+                  setDiagnostico(e.target.value.toUpperCase());
                 }
               }}
               maxLength={120} //! Restringe el número de caracteres a 120
-              className="block w-full rounded-lg bg-gray-600 border-gray-500 text-white p-2 md:p-3"
-              placeholder="Escribe aquí el diagnóstico... (máx. 120 caracteres)"
+              className="block w-full rounded-lg bg-gray-600 border-gray-500 text-white p-2 md:p-3 uppercase"
+              placeholder="ESCRIBE AQUÍ EL DIAGNÓSTICO... (MÁX. 120 CARACTERES)"
             />
-            <p className="text-sm text-gray-300 mt-1">
-              {diagnostico.length}/120 caracteres
+            <p className="text-sm text-gray-300 mt-1 uppercase">
+              {diagnostico.length}/120 CARACTERES
             </p>
           </div>
         </>

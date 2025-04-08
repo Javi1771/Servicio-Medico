@@ -53,7 +53,10 @@ const HistorialCompletoPage = () => {
 
   //* Calcular los items a mostrar en la página actual
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const currentItems = filteredHistorial.slice(startIndex, startIndex + itemsPerPage);
+  const currentItems = filteredHistorial.slice(
+    startIndex,
+    startIndex + itemsPerPage
+  );
   const totalPages = Math.ceil(filteredHistorial.length / itemsPerPage);
 
   const handlePrevPage = () => {
@@ -74,7 +77,7 @@ const HistorialCompletoPage = () => {
   }
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-br from-black via-gray-900 to-blue-900 text-white py-16 px-4 sm:px-20 flex flex-col items-center">
+    <div className="relative bg-gradient-to-br from-black via-gray-900 to-blue-900 text-white py-8 px-4 sm:px-20 flex flex-col items-center">
       {/* Encabezado */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
@@ -84,9 +87,6 @@ const HistorialCompletoPage = () => {
         <h1 className="text-5xl font-extrabold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent drop-shadow-lg">
           Historial Completo de Incapacidades
         </h1>
-        {/* <p className="text-lg text-cyan-200 font-light italic mt-2">
-          Sistema de Gestión Médica
-        </p> */}
       </motion.div>
 
       {/* Buscador con diseño mejorado */}
@@ -111,7 +111,6 @@ const HistorialCompletoPage = () => {
                 <th className="p-3 text-sm font-semibold">Fin</th>
                 <th className="p-3 text-sm font-semibold">Nómina</th>
                 <th className="p-3 text-sm font-semibold">Nombre Paciente</th>
-                <th className="p-3 text-sm font-semibold">Departamento</th>
                 <th className="p-3 text-sm font-semibold">Observaciones</th>
                 <th className="p-3 text-sm font-semibold">Días Restantes</th>
                 <th className="p-3 text-sm font-semibold">Futura</th>
@@ -127,13 +126,24 @@ const HistorialCompletoPage = () => {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                   >
-                    <td className="p-3 border-t border-gray-800">{item.claveconsulta}</td>
-                    <td className="p-3 border-t border-gray-800">{item.fechainicio}</td>
-                    <td className="p-3 border-t border-gray-800">{item.fechafin}</td>
-                    <td className="p-3 border-t border-gray-800">{item.nomina}</td>
-                    <td className="p-3 border-t border-gray-800">{item.nombrepaciente}</td>
-                    <td className="p-3 border-t border-gray-800">{item.departamento}</td>
-                    <td className="p-3 border-t border-gray-800">{item.observaciones}</td>
+                    <td className="p-3 border-t border-gray-800">
+                      {item.claveconsulta}
+                    </td>
+                    <td className="p-3 border-t border-gray-800">
+                      {item.fechainicio}
+                    </td>
+                    <td className="p-3 border-t border-gray-800">
+                      {item.fechafin}
+                    </td>
+                    <td className="p-3 border-t border-gray-800">
+                      {item.nomina}
+                    </td>
+                    <td className="p-3 border-t border-gray-800">
+                      {item.nombrepaciente}
+                    </td>
+                    <td className="p-3 border-t border-gray-800">
+                      {item.observaciones}
+                    </td>
                     <td className="p-3 border-t border-gray-800">
                       {/* Diseño para Días Restantes */}
                       {item.diasRestantes !== null ? (
@@ -146,7 +156,8 @@ const HistorialCompletoPage = () => {
                               : "bg-green-600 text-white"
                           }`}
                         >
-                          {item.diasRestantes} día{item.diasRestantes !== 1 ? "s" : ""}
+                          {item.diasRestantes} día
+                          {item.diasRestantes !== 1 ? "s" : ""}
                         </span>
                       ) : (
                         "N/A"

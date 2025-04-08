@@ -59,10 +59,7 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
       (decisionTomada === "si" &&
         medicamentos.every(
           (med) =>
-            med.medicamento &&
-            med.indicaciones &&
-            med.tratamiento &&
-            med.piezas
+            med.medicamento && med.indicaciones && med.tratamiento && med.piezas
         ));
     updateFormulario("Medicamentos", camposCompletos);
   }, [medicamentos, decisionTomada, updateFormulario]);
@@ -165,8 +162,8 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
 
               {/* Indicaciones */}
               <div>
-                <label className="text-lg font-semibold text-gray-200">
-                  Indicaciones:
+                <label className="text-lg font-semibold text-gray-200 uppercase">
+                  INDICACIONES:
                 </label>
                 <textarea
                   value={med.indicaciones}
@@ -174,22 +171,22 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
                     handleMedicamentoChange(
                       index,
                       "indicaciones",
-                      e.target.value.slice(0, 60)
+                      e.target.value.slice(0, 60).toUpperCase()
                     )
                   }
                   maxLength={60}
-                  className="mt-2 block w-full h-32 md:h-40 rounded-lg bg-gray-700 border-gray-600 text-white p-3"
-                  placeholder="Escribe aquí las indicaciones..."
+                  className="mt-2 block w-full h-32 md:h-40 rounded-lg bg-gray-700 border-gray-600 text-white p-3 uppercase"
+                  placeholder="ESCRIBE AQUÍ LAS INDICACIONES..."
                 />
-                <p className="text-sm text-gray-400 mt-1">
-                  {med.indicaciones.length}/60 caracteres
+                <p className="text-sm text-gray-400 mt-1 uppercase">
+                  {med.indicaciones.length}/60 CARACTERES
                 </p>
               </div>
 
               {/* Tratamiento */}
               <div>
-                <label className="text-lg font-semibold text-gray-200">
-                  Tratamiento:
+                <label className="text-lg font-semibold text-gray-200 uppercase">
+                  TRATAMIENTO:
                 </label>
                 <textarea
                   value={med.tratamiento}
@@ -197,15 +194,15 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
                     handleMedicamentoChange(
                       index,
                       "tratamiento",
-                      e.target.value.slice(0, 30)
+                      e.target.value.slice(0, 30).toUpperCase()
                     )
                   }
                   maxLength={30}
-                  className="mt-2 block w-full h-32 md:h-40 rounded-lg bg-gray-700 border-gray-600 text-white p-3"
-                  placeholder="Escribe aquí el tratamiento..."
+                  className="mt-2 block w-full h-32 md:h-40 rounded-lg bg-gray-700 border-gray-600 text-white p-3 uppercase"
+                  placeholder="ESCRIBE AQUÍ EL TRATAMIENTO..."
                 />
-                <p className="text-sm text-gray-400 mt-1">
-                  {med.tratamiento.length}/30 caracteres
+                <p className="text-sm text-gray-400 mt-1 uppercase">
+                  {med.tratamiento.length}/30 CARACTERES
                 </p>
               </div>
 

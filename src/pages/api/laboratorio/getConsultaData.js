@@ -2,9 +2,10 @@ import { connectToDatabase } from "../connectToDatabase";
 import sql from "mssql";
 
 /*
- * Función para formatear la fecha con día de la semana
+ * Función para formatear la fecha con día de la semana.
+ * Si includeTime es false, no se mostrarán las horas y minutos.
  */
-function formatFecha(fecha) {
+function formatFecha(fecha, includeTime = true) {
   if (!fecha) return "N/A";
 
   const date = new Date(fecha);
@@ -21,12 +22,16 @@ function formatFecha(fecha) {
   const dia = String(date.getUTCDate()).padStart(2, "0");
   const mes = String(date.getUTCMonth() + 1).padStart(2, "0");
   const año = date.getUTCFullYear();
-  const horas = date.getUTCHours();
-  const minutos = String(date.getUTCMinutes()).padStart(2, "0");
-  const periodo = horas >= 12 ? "p.m." : "a.m.";
-  const horas12 = horas % 12 === 0 ? 12 : horas % 12;
 
-  return `${diaSemana}, ${dia}/${mes}/${año}, ${horas12}:${minutos} ${periodo}`;
+  if (includeTime) {
+    const horas = date.getUTCHours();
+    const minutos = String(date.getUTCMinutes()).padStart(2, "0");
+    const periodo = horas >= 12 ? "p.m." : "a.m.";
+    const horas12 = horas % 12 === 0 ? 12 : horas % 12;
+    return `${diaSemana}, ${dia}/${mes}/${año}, ${horas12}:${minutos} ${periodo}`;
+  } else {
+    return `${diaSemana}, ${dia}/${mes}/${año}`;
+  }
 }
 
 /*
@@ -54,7 +59,8 @@ export async function getConsultaData(claveconsulta) {
       DIAGNOSTICO,
       claveusuario,
       CLAVEMEDICO,
-      SINDICATO
+      SINDICATO,
+      FECHA_CITA
     FROM LABORATORIOS
     WHERE CLAVECONSULTA = @claveConsulta
       AND ESTATUS = 1
@@ -110,8 +116,9 @@ export async function getConsultaData(claveconsulta) {
 
   const laboratorios = await Promise.all(
     labResult.recordset.map(async (labRow) => {
-      // Formatear la fecha de emisión para cada registro (se hace una sola vez)
+      //* Formatear la fecha de emisión con hora y la fecha de cita sin hora
       labRow.FECHA_EMISION = formatFecha(labRow.FECHA_EMISION);
+      labRow.FECHA_CITA = formatFecha(labRow.FECHA_CITA, false);
 
       //* Consultar estudios asociados a este laboratorio
       const detalleResult = await pool
@@ -163,6 +170,7 @@ export async function getConsultaData(claveconsulta) {
       return {
         FOLIO_ORDEN_LABORATORIO: labRow.FOLIO_ORDEN_LABORATORIO,
         FECHA_EMISION: labRow.FECHA_EMISION,
+        FECHA_CITA: labRow.FECHA_CITA,
         NOMINA: labRow.NOMINA,
         EDAD: labRow.EDAD,
         NOMBRE_PACIENTE: labRow.NOMBRE_PACIENTE,
