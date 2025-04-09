@@ -1,0 +1,107 @@
+/* Beneficiarios.module.css */
+
+/* ------------------ */
+/* Overlay del modal  */
+/* ------------------ */
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5); /* Fondo semitransparente */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999; /* Asegúrate de que supere la capa de tu interfaz */
+  }
+  
+  /* ------------------ */
+  /* Contenedor del modal */
+  /* ------------------ */
+  .modal {
+    position: relative;
+    background-color: #fff;
+    max-width: 500px;   /* Ajusta al ancho que desees */
+    width: 90%;         /* Para que sea responsive */
+    margin: 0 auto;
+    border-radius: 8px;
+    overflow: hidden;   /* Redondea esquinas del contenedor */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    outline: none;      /* Quita borde azul de navegadores */
+    animation: fadeIn 0.2s ease-in-out; /* Pequeña animación de entrada */
+    z-index: 10000;     /* Sobre el overlay */
+    padding: 20px;      /* Espacio interno */
+  }
+  
+  /* Ejemplo de animación */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5%); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  
+  /* ------------------ */
+  /* Contenido dentro   */
+  /* ------------------ */
+  .modalContent {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem; /* Espacio entre cada sección */
+  }
+  
+  /* Título */
+  .modalContent h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: #333;
+  }
+  
+  /* Textarea */
+  .inputField {
+    width: 100%;
+    font-size: 1rem;
+    padding: 8px;
+    resize: none;       /* Evita cambiar el tamaño manual */
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  
+  /* Contenedor de botones (Eliminar / Cancelar) */
+  .buttonGroup {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+  }
+  
+  /* Botón Eliminar */
+  .deleteButton {
+    background-color: #d9534f; /* Rojo */
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 0.6rem 1.2rem;
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: background-color 0.3s;
+  }
+  
+  .deleteButton:hover {
+    background-color: #c9302c; /* Un tono más oscuro al hover */
+  }
+  
+  /* Botón Cancelar */
+  .cancelButton {
+    background-color: #bbb; /* Gris */
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 0.6rem 1.2rem;
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: background-color 0.3s;
+  }
+  
+  .cancelButton:hover {
+    background-color: #999;
+  }
+  

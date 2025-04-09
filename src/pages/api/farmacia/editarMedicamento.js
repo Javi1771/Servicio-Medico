@@ -15,6 +15,9 @@ function getUserIdFromCookie(req) {
 
 export default async function handler(req, res) {
   if (req.method === "PUT") {
+    // ===========================================================
+    // Se añade "precio" a la desestructuración de req.body
+    // ===========================================================
     const {
       id,
       medicamento,
@@ -25,9 +28,11 @@ export default async function handler(req, res) {
       maximo,
       minimo,
       medida,
+      precio // <-- Nuevo campo
     } = req.body;
 
     //* Verificar campos obligatorios
+    //  Incluimos precio si es requisito
     if (
       id == null ||
       medicamento == null ||
@@ -37,7 +42,8 @@ export default async function handler(req, res) {
       piezas == null ||
       maximo == null ||
       minimo == null ||
-      medida == null
+      medida == null ||
+      precio == null // <-- Validar precio
     ) {
       console.error("Faltan campos obligatorios:", {
         id,
@@ -49,6 +55,7 @@ export default async function handler(req, res) {
         maximo,
         minimo,
         medida,
+        precio
       });
       return res
         .status(400)
@@ -66,9 +73,14 @@ export default async function handler(req, res) {
         maximo,
         minimo,
         medida,
+        precio
       });
 
       const pool = await connectToDatabase();
+
+      // =========================================================
+      // Añadimos la columna "precio" en la sentencia de UPDATE
+      // =========================================================
       const query = `
         UPDATE MEDICAMENTOS
         SET medicamento = @medicamento, 
@@ -78,7 +90,8 @@ export default async function handler(req, res) {
             piezas = @piezas,
             maximo = @maximo,
             minimo = @minimo,
-            medida = @medida
+            medida = @medida,
+            precio = @precio   -- <-- Aquí agregamos la columna precio
         WHERE claveMedicamento = @id
       `;
 
@@ -92,6 +105,10 @@ export default async function handler(req, res) {
       request.input("maximo", sql.Int, maximo);
       request.input("minimo", sql.Int, minimo);
       request.input("medida", sql.Int, medida);
+      // ====================================================================
+      // Se sugiere manejar precio como DECIMAL(18,2) (o similar) en tu DB
+      // ====================================================================
+      request.input("precio", sql.Decimal(18, 2), precio);
 
       console.log("Ejecutando query de actualización:", query);
       const result = await request.query(query);
@@ -100,11 +117,10 @@ export default async function handler(req, res) {
       if (result.rowsAffected[0] > 0) {
         console.log("✅ Medicamento actualizado correctamente, ID:", id);
 
-        //* ===========================
-        //* Registrar la actividad
-        //* ===========================
+        // ===========================
+        // Registrar la actividad
+        // ===========================
         try {
-          //* Obtenemos el usuario de la cookie
           const idUsuario = getUserIdFromCookie(req);
           let ip =
             (req.headers["x-forwarded-for"] &&
@@ -117,25 +133,22 @@ export default async function handler(req, res) {
 
           const userAgent = req.headers["user-agent"] || "";
 
-          //* Solo si realmente tenemos un ID de usuario
           if (idUsuario) {
             await pool
               .request()
               .input("idUsuario", sql.Int, idUsuario)
               .input("accion", sql.VarChar, "Editó un medicamento")
-              //* Si tu tabla requiere un DATETIME
               .input("direccionIP", sql.VarChar, ip)
               .input("agenteUsuario", sql.VarChar, userAgent)
-              .input("idMedicamento", sql.VarChar, id.toString()).query(`
+              .input("idMedicamento", sql.VarChar, id.toString())
+              .query(`
                 INSERT INTO ActividadUsuarios 
                   (IdUsuario, Accion, FechaHora, DireccionIP, AgenteUsuario, IdMedicamento)
                 VALUES 
                   (@idUsuario, @accion, GETDATE(), @direccionIP, @agenteUsuario, @idMedicamento)
               `);
 
-            console.log(
-              "✅ Actividad registrada en la tabla ActividadUsuarios."
-            );
+            console.log("✅ Actividad registrada en la tabla ActividadUsuarios.");
           } else {
             console.log(
               "⚠️ No se pudo registrar la actividad: falta idUsuario (cookie)."
@@ -143,7 +156,6 @@ export default async function handler(req, res) {
           }
         } catch (errorAct) {
           console.error("❌ Error al registrar la actividad:", errorAct);
-          //! Puedes decidir si envías un error o no
         }
 
         return res

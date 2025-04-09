@@ -10,12 +10,12 @@ const FormMedicamento = ({ onAddMedicamento, message }) => {
     minimo: "",
     maximo: "",
     medida: "",
+    precio: "" // <-- Nuevo campo precio
   });
 
-  //* Estado para las unidades de medida traídas de la API
+  // Estado para las unidades de medida traídas de la API
   const [unidades, setUnidades] = useState([]);
 
-  //* Fetch de las unidades de medida desde el endpoint
   useEffect(() => {
     const fetchUnidades = async () => {
       try {
@@ -53,6 +53,7 @@ const FormMedicamento = ({ onAddMedicamento, message }) => {
       minimo: parseInt(formData.minimo, 10),
       maximo: parseInt(formData.maximo, 10),
       medida: formData.medida,
+      precio: parseFloat(formData.precio) // <-- Convertimos el precio a número con decimales
     });
 
     // Reset del formulario
@@ -65,6 +66,7 @@ const FormMedicamento = ({ onAddMedicamento, message }) => {
       minimo: "",
       maximo: "",
       medida: "",
+      precio: ""
     });
   };
 
@@ -255,6 +257,26 @@ const FormMedicamento = ({ onAddMedicamento, message }) => {
             value={formData.maximo}
             onChange={handleChange}
             placeholder="Stock máximo permitido"
+            required
+            className="p-2 rounded-md border border-teal-500 bg-[#041616] text-teal-200 
+                       focus:outline-none focus:ring-2 focus:ring-cyan-500 
+                       placeholder:text-teal-500 transition-colors"
+          />
+        </div>
+
+        {/* Precio */}
+        <div className="flex flex-col">
+          <label htmlFor="precio" className="mb-1 font-semibold text-teal-300">
+            Precio (Costo):
+          </label>
+          <input
+            type="number"
+            id="precio"
+            name="precio"
+            value={formData.precio}
+            onChange={handleChange}
+            placeholder="Ej. 123.45"
+            step="0.01"
             required
             className="p-2 rounded-md border border-teal-500 bg-[#041616] text-teal-200 
                        focus:outline-none focus:ring-2 focus:ring-cyan-500 

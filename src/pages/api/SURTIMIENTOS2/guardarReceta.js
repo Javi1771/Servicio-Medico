@@ -95,7 +95,7 @@ export default async function handler(req, res) {
     console.log("Sindicato determinado:", sindicato);
 
     //* Si sindicato es null o undefined, asigna un valor predeterminado
-    const sindicatoFinal = sindicato || null; // Valor por defecto
+    const sindicatoFinal = sindicato || "N/A"; // Valor por defecto
 
     //* Limitar el valor a 10 caracteres
     const sindicatoLimpio = sindicatoFinal.substring(0, 10);
@@ -139,7 +139,6 @@ export default async function handler(req, res) {
     console.log("estatus:", consulta.clavestatus);
     console.log("sindicato:", sindicato);
     console.log("claveUsuario:", consulta.claveusuario);
-    console.log("claveUsuario:", consulta.claveusuario);
 
     // **Mapear 'clavestatus' a BIT**
     //* Si 'clavestatus' es mayor que 0, asigna 1, de lo contrario 0
@@ -158,9 +157,9 @@ export default async function handler(req, res) {
       .input("diagnostico", sql.NVarChar(sql.MAX), diagnostico)
       .input("departamento", sql.NVarChar(100), departamento)
       .input("estatus", sql.Bit, estatusBIT)
-      .input("estado", sql.Bit, 1)
       .input("sindicato", sql.NVarChar(10), sindicato || null)
       .input("claveUsuario", sql.Int, consulta.claveusuario)
+      .input("estado", sql.Bit, 1)
       .query(insertSurtimientoQuery);
 
     console.log("Surtimiento insertado exitosamente.");

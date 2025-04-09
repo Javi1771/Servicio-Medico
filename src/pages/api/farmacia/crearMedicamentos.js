@@ -21,6 +21,9 @@ export default async function handler(req, res) {
       .json({ message: `Método ${req.method} no permitido` });
   }
 
+  // =======================
+  // AGREGAMOS "precio" AQUÍ
+  // =======================
   const {
     medicamento,
     clasificacion,
@@ -30,11 +33,13 @@ export default async function handler(req, res) {
     maximo,
     minimo,
     medida,
+    precio // <-- Nuevo campo
   } = req.body;
 
   console.log("📌 Datos recibidos en la solicitud:", req.body);
 
   //* Validar que todos los campos estén presentes
+  //   Incluyendo "precio" si es obligatorio
   if (
     !medicamento ||
     clasificacion == null ||
@@ -43,7 +48,8 @@ export default async function handler(req, res) {
     piezas == null ||
     maximo == null ||
     minimo == null ||
-    medida == null
+    medida == null ||
+    precio == null // <-- Validamos también precio
   ) {
     console.error("⚠️ Faltan datos obligatorios:", {
       medicamento,
@@ -54,6 +60,7 @@ export default async function handler(req, res) {
       maximo,
       minimo,
       medida,
+      precio
     });
     return res
       .status(400)
@@ -114,13 +121,17 @@ export default async function handler(req, res) {
       maximo,
       minimo,
       medida,
+      precio // <-- Incluimos precio
     });
 
+    // ======================================================
+    // AÑADIMOS LA COLUMNA "precio" AL INSERT Y AL VALUES
+    // ======================================================
     const insertQuery = `
       INSERT INTO MEDICAMENTOS 
-        (claveMedicamento, medicamento, clasificacion, presentacion, ean, piezas, maximo, minimo, medida, estatus)
+        (claveMedicamento, medicamento, clasificacion, presentacion, ean, piezas, maximo, minimo, medida, precio, estatus)
       VALUES 
-        (@claveMedicamento, @medicamento, @clasificacion, @presentacion, @ean, @piezas, @maximo, @minimo, @medida, @estatus);
+        (@claveMedicamento, @medicamento, @clasificacion, @presentacion, @ean, @piezas, @maximo, @minimo, @medida, @precio, @estatus);
     `;
 
     await dbPool
@@ -134,6 +145,10 @@ export default async function handler(req, res) {
       .input("maximo", sql.Int, maximo)
       .input("minimo", sql.Int, minimo)
       .input("medida", sql.Int, medida)
+      // ==============================================
+      // ALMACENAMOS "precio" COMO DECIMAL(18,2), POR EJ
+      // ==============================================
+      .input("precio", sql.Decimal(18, 2), precio)
       .input("estatus", sql.Bit, 1)
       .query(insertQuery);
 
@@ -143,10 +158,8 @@ export default async function handler(req, res) {
     //* Insertar la actividad en la tabla ActividadUsuarios
     //* =========================
     try {
-      //* Leer la claveusuario de la cookie
       const idUsuario = getUserIdFromCookie(req);
 
-      //* Tomar IP y user-agent
       let ip =
         (req.headers["x-forwarded-for"] &&
           req.headers["x-forwarded-for"].split(",")[0].trim()) ||
@@ -161,10 +174,8 @@ export default async function handler(req, res) {
           .request()
           .input("idUsuario", sql.Int, idUsuario)
           .input("accion", sql.VarChar, "Creó un nuevo medicamento")
-          //* Fecha/hora: si la tabla requiere un DATETIME
           .input("direccionIP", sql.VarChar, ip)
           .input("agenteUsuario", sql.VarChar, userAgent)
-          //* Insertamos la nueva claveMedicamento en la columna IdMedicamento
           .input("idMedicamento", sql.VarChar, newClaveMedicamento).query(`
             INSERT INTO ActividadUsuarios 
               (IdUsuario, Accion, FechaHora, DireccionIP, AgenteUsuario, IdMedicamento)

@@ -31,6 +31,7 @@ export default async function handler(req, res) {
         SELECT TOP 1 FOLIO_SURTIMIENTO 
         FROM SURTIMIENTOS
         WHERE FOLIO_PASE = @folioReceta
+          AND ESTATUS = 1
         ORDER BY FOLIO_SURTIMIENTO DESC
       `);
 

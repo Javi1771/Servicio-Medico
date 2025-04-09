@@ -11,14 +11,15 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
     piezas: "",
     maximo: "",
     minimo: "",
-    medida: "",         // Aquí se guarda el id de la unidad
-    unidadMedida: "",   // Aquí se guarda el nombre de la unidad
+    medida: "",        // Aquí se guarda el id de la unidad
+    unidadMedida: "",  // Aquí se guarda el nombre de la unidad
+    precio: ""         // <-- NUEVO: Agregamos campo precio
   });
 
-  //* Estado para las unidades de medida traídas de la API
+  // Estado para las unidades de medida traídas de la API
   const [unidades, setUnidades] = useState([]);
 
-  //* Fetch de las unidades de medida desde el endpoint
+  // Fetch de las unidades de medida desde el endpoint
   useEffect(() => {
     const fetchUnidades = async () => {
       try {
@@ -36,6 +37,8 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
     fetchUnidades();
   }, []);
 
+  // Cuando cargamos el medicamento, llenamos el form con sus datos,
+  // incluyendo el precio si existe
   useEffect(() => {
     if (medicamento) {
       console.log("📌 Medicamento recibido:", medicamento);
@@ -50,22 +53,24 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
         piezas: medicamento.piezas || "",
         maximo: medicamento.maximo || "",
         minimo: medicamento.minimo || "",
-        medida: medicamento.medida || "",            // ID
-        unidadMedida: medicamento.unidadMedida || "",  // Nombre
+        medida: medicamento.medida || "",      // ID
+        unidadMedida: medicamento.unidadMedida || "", // Nombre
+        precio: medicamento.precio || ""       // <-- Capturamos precio
       });
     }
   }, [medicamento]);
 
-  //* Define las rutas de los sonidos de éxito y error
+  // Define las rutas de los sonidos de éxito y error
   const successSound = "/assets/applepay.mp3";
   const errorSound = "/assets/error.mp3";
 
-  //! Reproduce un sonido de éxito/error
+  // Reproduce un sonido de éxito/error
   const playSound = (isSuccess) => {
     const audio = new Audio(isSuccess ? successSound : errorSound);
     audio.play();
   };
 
+  // Handler para inputs
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -74,16 +79,19 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
     }));
   };
 
+  // Al enviar el formulario:
   const handleSubmit = (e) => {
     e.preventDefault();
 
+    // Validación mínima
     if (
       !formData.presentacion ||
       !formData.ean ||
       !formData.piezas ||
       !formData.maximo ||
       !formData.minimo ||
-      !formData.medida
+      !formData.medida ||
+      !formData.precio        // <-- Incluimos precio si es obligatorio
     ) {
       playSound(false);
       Swal.fire({
@@ -123,6 +131,7 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
       },
     }).then((result) => {
       if (result.isConfirmed) {
+        // Llamamos onEdit con todos los datos, incluyendo precio.
         onEdit({
           id: formData.id,
           medicamento: formData.medicamento,
@@ -132,7 +141,8 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
           piezas: parseInt(formData.piezas, 10),
           maximo: parseInt(formData.maximo, 10),
           minimo: parseInt(formData.minimo, 10),
-          medida: formData.medida // Aquí se envía el nuevo id de la unidad de medida
+          medida: formData.medida,
+          precio: parseFloat(formData.precio) // <-- Convertir a número
         });
 
         playSound(true);
@@ -160,7 +170,9 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
         <h2 className="text-3xl font-extrabold text-center mb-8 text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-cyan-400 drop-shadow-[0_0_8px_rgba(0,255,255,0.8)] uppercase tracking-wide">
           Editar Medicamento
         </h2>
+
         <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+          {/* Medicamento */}
           <div>
             <label className="text-sm font-semibold mb-1">Medicamento:</label>
             <input
@@ -172,6 +184,8 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
               className="w-full px-4 py-2 bg-[#0b2424] border border-teal-600 rounded-lg text-gray-300 shadow-inner"
             />
           </div>
+
+          {/* Clasificación */}
           <div>
             <label className="text-sm font-semibold mb-1">Clasificación:</label>
             <select
@@ -222,6 +236,7 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
             </select>
           </div>
 
+          {/* Presentación */}
           <div>
             <label className="block text-sm font-semibold mb-1">
               Presentación:
@@ -236,6 +251,8 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
               placeholder="*Cantidad de producto por caja o frasco*"
             />
           </div>
+
+          {/* EAN */}
           <div>
             <label className="block text-sm font-semibold mb-1">EAN:</label>
             <input
@@ -253,6 +270,8 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
               className="w-full px-4 py-2 bg-[#0b2424] border border-teal-500 rounded-lg shadow-inner focus:outline-none focus:ring-2 focus:ring-teal-500 transition"
             />
           </div>
+
+          {/* Piezas */}
           <div>
             <label className="block text-sm font-semibold mb-1">Piezas:</label>
             <input
@@ -265,6 +284,8 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
               placeholder="*Cantidad de cajas o frascos en stock*"
             />
           </div>
+
+          {/* Máximo */}
           <div>
             <label className="block text-sm font-semibold mb-1">Máximo:</label>
             <input
@@ -277,6 +298,8 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
               placeholder="*Cantidad máxima permitida*"
             />
           </div>
+
+          {/* Mínimo */}
           <div>
             <label className="block text-sm font-semibold mb-1">Mínimo:</label>
             <input
@@ -290,6 +313,22 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
             />
           </div>
 
+          {/* PRECIO - NUEVO CAMPO */}
+          <div>
+            <label className="block text-sm font-semibold mb-1">Precio:</label>
+            <input
+              type="number"
+              name="precio"
+              step="0.01"
+              value={formData.precio}
+              onChange={handleChange}
+              required
+              className="w-full px-4 py-2 bg-[#0b2424] border border-teal-600 rounded-lg shadow-inner focus:outline-none focus:ring-2 focus:ring-teal-500 transition"
+              placeholder="Ej. 123.45"
+            />
+          </div>
+
+          {/* Botones Guardar/Cancelar */}
           <div className="flex justify-between gap-4 mt-4">
             <button
               type="submit"

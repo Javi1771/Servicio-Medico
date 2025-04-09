@@ -8,6 +8,7 @@ import SideMenu from "./components/SideMenu";
 import EditMedicamentoForm from "./components/editMedicamentoForm";
 import { motion, AnimatePresence } from "framer-motion";
 
+// Función auxiliar para leer cookies en el cliente
 const getCookie = (name) => {
   if (typeof document === "undefined") return null;
   const match = document.cookie.match(new RegExp("(^| )" + name + "=([^;]+)"));
@@ -28,6 +29,7 @@ const Medicamentos = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [closingModal, setClosingModal] = useState(false);
   const [role, setRole] = useState(null);
+
   const router = useRouter();
 
   useEffect(() => {
@@ -35,7 +37,9 @@ const Medicamentos = () => {
     setRole(rolCookie);
   }, []);
 
+  // Cuando hacemos clic en "Editar" en la tabla, abrimos el modal
   const handleEdit = (medicamento) => {
+    // medicamento ya incluye "precio", "medicamento", "piezas", etc.
     setSelectedMedicamento(medicamento || {});
     setIsModalOpen(true);
   };
@@ -58,14 +62,14 @@ const Medicamentos = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#040f0f] to-[#0c1e1e] text-teal-200">
       <div className="flex flex-col lg:flex-row">
-        {/* Menú lateral (si rol !== "9") */}
+        {/* Menú lateral (lo ocultamos si rol === "9") */}
         {role !== "9" && (
           <div className="lg:w-64 flex-none bg-[#0b2424] shadow-xl border border-teal-500">
             <SideMenu onMenuClick={setActiveView} />
           </div>
         )}
 
-        {/* Contenedor principal */}
+        {/* Contenido principal */}
         <div className="flex-grow relative">
           {/* Botón de salida */}
           <button
@@ -96,8 +100,9 @@ const Medicamentos = () => {
             Salir
           </button>
 
-          {/* Contenedor centrado con padding para el contenido */}
+          {/* Contenedor centrado con padding */}
           <div className="container mx-auto px-4 py-6">
+            {/* Si rol !== "9", mostramos el formulario y la tabla */}
             {role !== "9" ? (
               activeView === "registrar" && (
                 <motion.div
@@ -108,15 +113,15 @@ const Medicamentos = () => {
                   exit="exit"
                   transition={{ duration: 0.2 }}
                 >
-                  {/* Stacking (uno debajo del otro) */}
                   <div className="flex flex-col gap-8">
-                    {/* Formulario para registrar */}
+                    {/* Formulario para registrar medicamento */}
                     <div className="bg-[#0b2424] p-6 rounded-2xl shadow-[0_0_40px_rgba(0,255,255,0.2)] border border-teal-500">
                       <FormMedicamento
                         onAddMedicamento={addMedicamento}
                         message={message}
                       />
                     </div>
+
                     {/* Tabla de medicamentos */}
                     <div className="bg-[#0b2424] p-6 rounded-2xl shadow-[0_0_40px_rgba(0,255,255,0.2)] border border-teal-500">
                       <MedicamentosTable
@@ -129,7 +134,7 @@ const Medicamentos = () => {
                 </motion.div>
               )
             ) : (
-              // Si rol === "9", solo mostramos la tabla
+              // Si rol === "9", solo la tabla
               <div className="bg-[#0b2424] p-6 rounded-2xl shadow-[0_0_40px_rgba(0,255,255,0.2)] border border-teal-500">
                 <MedicamentosTable
                   medicamentos={medicamentos || []}
@@ -165,6 +170,7 @@ const Medicamentos = () => {
               exit={{ opacity: 0, scale: 0.8 }}
               transition={{ duration: 0.3 }}
             >
+              {/* Dentro de EditMedicamentoForm ya gestionas 'precio' */}
               <EditMedicamentoForm
                 medicamento={selectedMedicamento}
                 onEdit={(updatedMedicamento) => {

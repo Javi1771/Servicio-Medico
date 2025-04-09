@@ -5,22 +5,22 @@ export const useMedicamentos = () => {
   const [medicamentos, setMedicamentos] = useState([]);
   const [message, setMessage] = useState("");
 
-  //* Cargar medicamentos al montar el componente
+  // Audio para notificaciones
+  const successSound = "/assets/applepay.mp3";
+  const errorSound = "/assets/error.mp3";
+
+  // Cargar medicamentos al montar el componente
   useEffect(() => {
     fetchMedicamentos();
   }, []);
 
-  //* Define las rutas de los sonidos de éxito y error
-  const successSound = "/assets/applepay.mp3";
-  const errorSound = "/assets/error.mp3";
-
-  //! Reproduce un sonido de éxito/error
+  // Reproduce un sonido de éxito/error
   const playSound = (isSuccess) => {
     const audio = new Audio(isSuccess ? successSound : errorSound);
     audio.play();
   };
 
-  //* Obtener medicamentos de la API
+  // Obtener medicamentos de la API
   const fetchMedicamentos = async () => {
     try {
       const response = await fetch("/api/farmacia/obtenerMedicamentos");
@@ -40,18 +40,25 @@ export const useMedicamentos = () => {
     }
   };
 
-  //? Registrar un nuevo medicamento
+  // ===========================
+  // REGISTRAR (INSERT) MEDICAMENTO
+  // ===========================
   const addMedicamento = async (medicamentoData) => {
     try {
+      // Asegúrate que medicamentoData incluya "precio"
+      // Si viene en string, lo convertimos a float
       const response = await fetch("/api/farmacia/crearMedicamentos", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(medicamentoData),
+        body: JSON.stringify({
+          ...medicamentoData,
+          precio: parseFloat(medicamentoData.precio), // conversión a número
+        }),
       });
 
       const data = await response.json();
       if (response.ok) {
-        //* Alerta de éxito: fondo verde
+        // Alerta de éxito
         playSound(true);
         Swal.fire({
           icon: "success",
@@ -75,7 +82,7 @@ export const useMedicamentos = () => {
         fetchMedicamentos();
       } else {
         if (data.message === "El medicamento ya está registrado.") {
-          //! Alerta de error: fondo rojo
+          // Alerta de error: medicamento duplicado
           playSound(false);
           Swal.fire({
             icon: "error",
@@ -106,9 +113,10 @@ export const useMedicamentos = () => {
     }
   };
 
-  //? Eliminar un medicamento
+  // ===========================
+  // ELIMINAR (DELETE) MEDICAMENTO
+  // ===========================
   const deleteMedicamento = async (id) => {
-    //TODO: Alerta de advertencia: fondo naranja
     playSound(false);
     const result = await Swal.fire({
       icon: "warning",
@@ -142,7 +150,6 @@ export const useMedicamentos = () => {
 
         const data = await response.json();
         if (response.ok) {
-          //* Alerta de éxito: fondo verde
           playSound(true);
           Swal.fire({
             icon: "success",
@@ -165,7 +172,6 @@ export const useMedicamentos = () => {
           });
           fetchMedicamentos();
         } else {
-          //! Alerta de error: fondo rojo
           playSound(false);
           Swal.fire({
             icon: "error",
@@ -191,7 +197,6 @@ export const useMedicamentos = () => {
         }
       } catch (error) {
         console.error("Error al eliminar medicamento:", error);
-        //! Alerta de error interno: fondo rojo
         playSound(false);
         Swal.fire({
           icon: "error",
@@ -216,68 +221,96 @@ export const useMedicamentos = () => {
     }
   };
 
- //? Editar un medicamento
-const editMedicamento = async (medicamentoData) => {
-  const {
-    id,
-    medicamento,
-    clasificacion,
-    presentacion,
-    ean,
-    piezas,
-    maximo,
-    minimo,
-    medida,
-  } = medicamentoData;
-  try {
-    const response = await fetch("/api/farmacia/editarMedicamento", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        id,
-        medicamento,
-        clasificacion,
-        presentacion,
-        ean,
-        piezas,
-        maximo,
-        minimo,
-        medida : parseInt(medida, 10),
-      }),
-    });
+  // ===========================
+  // EDITAR (UPDATE) MEDICAMENTO
+  // ===========================
+  const editMedicamento = async (medicamentoData) => {
+    const {
+      id,
+      medicamento,
+      clasificacion,
+      presentacion,
+      ean,
+      piezas,
+      maximo,
+      minimo,
+      medida,
+      precio // <-- Asegúrate de traer precio
+    } = medicamentoData;
 
-    const data = await response.json();
-    if (response.ok) {
-      playSound(true);
-      Swal.fire({
-        icon: "success",
-        title:
-          "<span style='color: #ffffff; font-weight: bold;'>Éxito</span>",
-        html: "<p style='color: #ffffff; font-size: 1.1rem;'>El medicamento fue editado exitosamente.</p>",
-        background: "linear-gradient(145deg, #004d00, #002200)",
-        confirmButtonColor: "#00c853",
-        confirmButtonText:
-          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-green-600 shadow-[0px_0px_20px_5px_rgba(76,175,80,0.9)] rounded-lg",
-        },
-        didOpen: () => {
-          const popup = Swal.getPopup();
-          popup.style.boxShadow = "0px 0px 20px 5px rgba(76,175,80,0.9)";
-          popup.style.borderRadius = "15px";
-        },
+    try {
+      const response = await fetch("/api/farmacia/editarMedicamento", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id,
+          medicamento,
+          clasificacion,
+          presentacion,
+          ean,
+          piezas,
+          maximo,
+          minimo,
+          medida: parseInt(medida, 10),
+          precio: parseFloat(precio) // <-- Convertimos a número
+        }),
       });
-      fetchMedicamentos();
-    } else {
+
+      const data = await response.json();
+      if (response.ok) {
+        playSound(true);
+        Swal.fire({
+          icon: "success",
+          title:
+            "<span style='color: #ffffff; font-weight: bold;'>Éxito</span>",
+          html: "<p style='color: #ffffff; font-size: 1.1rem;'>El medicamento fue editado exitosamente.</p>",
+          background: "linear-gradient(145deg, #004d00, #002200)",
+          confirmButtonColor: "#00c853",
+          confirmButtonText:
+            "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
+          customClass: {
+            popup:
+              "border border-green-600 shadow-[0px_0px_20px_5px_rgba(76,175,80,0.9)] rounded-lg",
+          },
+          didOpen: () => {
+            const popup = Swal.getPopup();
+            popup.style.boxShadow = "0px 0px 20px 5px rgba(76,175,80,0.9)";
+            popup.style.borderRadius = "15px";
+          },
+        });
+        fetchMedicamentos();
+      } else {
+        playSound(false);
+        Swal.fire({
+          icon: "error",
+          title:
+            "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>Error</span>",
+          html: `<p style='color: #fff; font-size: 1.1rem;'>${
+            data.message || "No se pudo editar el medicamento."
+          }</p>`,
+          background: "linear-gradient(145deg, #4a0000, #220000)",
+          confirmButtonColor: "#ff1744",
+          confirmButtonText:
+            "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
+          customClass: {
+            popup:
+              "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
+          },
+          didOpen: () => {
+            const popup = Swal.getPopup();
+            popup.style.boxShadow = "0px 0px 20px 5px rgba(255,23,68,0.9)";
+            popup.style.borderRadius = "15px";
+          },
+        });
+      }
+    } catch (error) {
+      console.error("Error al editar medicamento:", error);
       playSound(false);
       Swal.fire({
         icon: "error",
         title:
           "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>Error</span>",
-        html: `<p style='color: #fff; font-size: 1.1rem;'>${
-          data.message || "No se pudo editar el medicamento."
-        }</p>`,
+        html: "<p style='color: #fff; font-size: 1.1rem;'>Error interno del servidor.</p>",
         background: "linear-gradient(145deg, #4a0000, #220000)",
         confirmButtonColor: "#ff1744",
         confirmButtonText:
@@ -293,30 +326,7 @@ const editMedicamento = async (medicamentoData) => {
         },
       });
     }
-  } catch (error) {
-    console.error("Error al editar medicamento:", error);
-    playSound(false);
-    Swal.fire({
-      icon: "error",
-      title:
-        "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>Error</span>",
-      html: "<p style='color: #fff; font-size: 1.1rem;'>Error interno del servidor.</p>",
-      background: "linear-gradient(145deg, #4a0000, #220000)",
-      confirmButtonColor: "#ff1744",
-      confirmButtonText:
-        "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-      customClass: {
-        popup:
-          "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-      },
-      didOpen: () => {
-        const popup = Swal.getPopup();
-        popup.style.boxShadow = "0px 0px 20px 5px rgba(255,23,68,0.9)";
-        popup.style.borderRadius = "15px";
-      },
-    });
-  }
-};
+  };
 
   return {
     medicamentos,

@@ -8,6 +8,8 @@ import { jsPDF } from "jspdf";
 import { FaCamera } from "react-icons/fa";
 import * as faceapi from "face-api.js";
 import SignatureCanvas from "react-signature-canvas";
+import DeleteWithReasonModal from "./components/deleteWithReasonModal"; // Ajusta la ruta según tu estructura
+
 
 import {
   FaIdCard,
@@ -65,6 +67,9 @@ export default function RegistroBeneficiario() {
     descriptorFacial: "",
     firma: "",
   });
+
+
+  const [beneficiaryIdToDelete, setBeneficiaryIdToDelete] = useState(null);
 
   const showCheckboxes =
     (formData.parentesco === "2" || formData.parentesco === 2) &&
@@ -1631,9 +1636,31 @@ export default function RegistroBeneficiario() {
   const handleModalSubmit = async (e) => {
     e.preventDefault();
 
-    // Evitar múltiples envíos
+    // 1. Validación de edad mínima para padre o madre
+    //    Asumiendo que los valores de parentesco para "Padre" o "Madre"
+    //    son 4 y 5 respectivamente (revísalo en tus datos reales).
     if (isSubmitting) return;
     setIsSubmitting(true);
+
+    // ... Validaciones que ya tengas (documentos, foto, etc.)
+
+    // Verifica si es Padre o Madre y si la edad es < 40
+    // IMPORTANTE: Ajusta según cómo guardes el parentesco: numérico o texto
+    // Ejemplo si guardas el ID como string '4' o '5':
+    if (
+      (Number(formData.parentesco) === 4 ||
+        Number(formData.parentesco) === 5) &&
+      formData.edad < 40
+    ) {
+      playSound(false);
+      Swal.fire({
+        icon: "error",
+        title: "Edad insuficiente",
+        text: "Para registrar a un Padre o Madre, la edad debe ser de al menos 40 años.",
+      });
+      setIsSubmitting(false);
+      return;
+    }
 
     // Llamamos a la función validateDocuments
     const { success, message } = validateDocuments(formData);
@@ -1908,16 +1935,12 @@ export default function RegistroBeneficiario() {
 
   //EDITAR BENEFICIAROS//
   const handleEditBeneficiary = (beneficiario) => {
-    // Formatear fechas
+    // 1. Funciones auxiliares para dar formato a fechas
     const formatFecha = (fecha) => {
       if (!fecha) return "";
       const date = new Date(fecha);
       return date.toISOString().split("T")[0]; // Formato YYYY-MM-DD
     };
-
-    if (beneficiario.FIRMA) {
-      setIsFirmaOpen(true);
-    }
 
     const formatDateTimeLocal = (fecha) => {
       if (!fecha) return "";
@@ -1925,19 +1948,33 @@ export default function RegistroBeneficiario() {
       return date.toISOString().slice(0, 16); // Formato YYYY-MM-DDTHH:MM
     };
 
-    // Calcular la edad a partir de la fecha de nacimiento
+    // 2. Calcula la edad a partir de la fecha de nacimiento
     const edad = calculateAge(new Date(beneficiario.F_NACIMIENTO));
 
-    // Determinar el tipo de parentesco
-    const isHijo = beneficiario.PARENTESCO === 2; // Hijo(a) tiene ID 2
-    const isPadreOMadre =
-      beneficiario.PARENTESCO === 4 || beneficiario.PARENTESCO === 5; // Padre (4) o Madre (5)
-    const isEsposo = beneficiario.PARENTESCO === 1; // Esposo(a) tiene ID 1
-    const isConcubino = beneficiario.PARENTESCO === 3; // Concubino(a) tiene ID 3
+    // 3. Convierto el parentesco a número (por si llega como string)
+    const parentescoNum = Number(beneficiario.PARENTESCO);
+    console.log(
+      "Parentesco del beneficiario (antes de setFormData):",
+      beneficiario.PARENTESCO,
+      "tipo:",
+      typeof beneficiario.PARENTESCO,
+      "-> usando parentescoNum:",
+      parentescoNum
+    );
 
-    // Actualizar los datos en el formulario
+    // 4. Determina el tipo de parentesco de manera numérica
+    const isHijo = parentescoNum === 2; // Hijo(a)
+    const isPadreOMadre = parentescoNum === 4 || parentescoNum === 5; // Padre (4) o Madre (5)
+    const isEsposo = parentescoNum === 1; // Esposo(a)
+    const isConcubino = parentescoNum === 3; // Concubino(a)
+
+    // 5. Ajusta showCheckboxes y showUploadFiles de acuerdo a lo anterior
+    const showCheckboxes = isHijo && edad >= 16;
+    const showUploadFiles = isHijo || isPadreOMadre || isEsposo || isConcubino;
+
+    // 6. Actualiza el formulario
     setFormData({
-      parentesco: beneficiario.PARENTESCO || "",
+      parentesco: parentescoNum || "", // GUARDA EL NÚMERO en lugar de string
       nombre: beneficiario.NOMBRE || "",
       aPaterno: beneficiario.A_PATERNO || "",
       aMaterno: beneficiario.A_MATERNO || "",
@@ -1945,7 +1982,7 @@ export default function RegistroBeneficiario() {
       fNacimiento: formatFecha(beneficiario.F_NACIMIENTO) || "",
       edad, // Edad calculada
       alergias: beneficiario.ALERGIAS || "",
-      sangre: beneficiario.SANGRE?.toUpperCase().trim() || "", // Normaliza y limpia el valor
+      sangre: beneficiario.SANGRE?.toUpperCase().trim() || "",
       telEmergencia: beneficiario.TEL_EMERGENCIA || "",
       nombreEmergencia: beneficiario.NOMBRE_EMERGENCIA || "",
       activo: beneficiario.ACTIVO || "A",
@@ -1953,27 +1990,30 @@ export default function RegistroBeneficiario() {
         ? formatDateTimeLocal(beneficiario.VIGENCIA_ESTUDIOS)
         : "",
       imageUrl: beneficiario.FOTO_URL || "",
-      esEstudiante: Number(beneficiario.ESESTUDIANTE) === 1, // Convertir a booleano
-      esDiscapacitado: Number(beneficiario.ESDISCAPACITADO) === 1, // Convertir a booleano
+      esEstudiante: Number(beneficiario.ESESTUDIANTE) === 1,
+      esDiscapacitado: Number(beneficiario.ESDISCAPACITADO) === 1,
       urlConstancia: beneficiario.URL_CONSTANCIA || "",
-      urlActaNac: beneficiario.URL_ACTA_NAC || "", // Acta de Nacimiento
-      urlCurp: beneficiario.URL_CURP || "", // CURP
-      actaMatrimonioUrl: beneficiario.URL_ACTAMATRIMONIO || "", // Acta de Matrimonio
-      ineUrl: beneficiario.URL_INE || "", // INE
-      cartaNoAfiliacionUrl: beneficiario.URL_NOISSTE || "", // Carta de No Afiliación
-      actaConcubinatoUrl: beneficiario.URL_CONCUBINATO || "", // Acta de Concubinato
-      urlIncap: beneficiario.URL_INCAP || "", // Nuevo campo: Acta de Incapacidad
-      showCheckboxes: isHijo && edad >= 16, // Mostrar checkboxes si es Hijo(a) y tiene >= 16 años
-      showUploadFiles: isHijo || isPadreOMadre || isEsposo || isConcubino, // Mostrar inputs para archivos si aplica
-      showEsposoFiles: isEsposo, // Mostrar campos específicos de Esposo(a)
-      showConcubinoFiles: isConcubino, // Mostrar campos específicos de Concubino(a)
-      descriptorFacial: beneficiario.DESCRIPTOR_FACIAL || "", // <-- Nuevo
-      firma: beneficiario.FIRMA || "", // <-- Nuevo
+      urlActaNac: beneficiario.URL_ACTA_NAC || "",
+      urlCurp: beneficiario.URL_CURP || "",
+      actaMatrimonioUrl: beneficiario.URL_ACTAMATRIMONIO || "",
+      ineUrl: beneficiario.URL_INE || "",
+      cartaNoAfiliacionUrl: beneficiario.URL_NOISSTE || "",
+      actaConcubinatoUrl: beneficiario.URL_CONCUBINATO || "",
+      urlIncap: beneficiario.URL_INCAP || "",
+      descriptorFacial: beneficiario.DESCRIPTOR_FACIAL || "",
+      firma: beneficiario.FIRMA || "",
+
+      // Estos flags controlan UI en tu formulario
+      showCheckboxes,
+      showUploadFiles,
+      showEsposoFiles: isEsposo,
+      showConcubinoFiles: isConcubino,
     });
 
+    // 7. Ajusta estados de edición y abre el modal
     setCurrentBeneficiaryId(beneficiario.ID_BENEFICIARIO);
-    setIsEditMode(true); // Activar modo edición
-    setIsModalOpen(true); // Abrir modal
+    setIsEditMode(true);
+    setIsModalOpen(true);
   };
 
   useEffect(() => {}, [formData]);
@@ -1994,42 +2034,68 @@ export default function RegistroBeneficiario() {
       cancelButtonColor: "#3085d6",
       confirmButtonText: "Sí, eliminar",
       cancelButtonText: "Cancelar",
-    }).then(async (result) => {
+    }).then((result) => {
       if (result.isConfirmed) {
-        try {
-          const response = await fetch(
-            `/api/beneficiarios/eliminarBeneficiario`,
-            {
-              method: "DELETE",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({ idBeneficiario }), // Enviar el ID del beneficiario al backend
-            }
-          );
-
-          if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(
-              errorData.error || "No se pudo eliminar el beneficiario."
-            );
-          }
-
-          playSound(true);
-          Swal.fire(
-            "Eliminado",
-            "El beneficiario y su imagen asociada han sido eliminados correctamente.",
-            "success"
-          );
-
-          fetchBeneficiarios(); // Refresca la lista de beneficiarios después de eliminar
-        } catch (error) {
-          playSound(false);
-          Swal.fire("Error", error.message, "error");
-        }
-      }
+        // 1. Aquí NO eliminamos directo, sino que guardamos el ID
+        setBeneficiaryIdToDelete(idBeneficiario);
+        // 2. Abrimos un modal interno (con un input de motivo)
+        setDeleteModalOpen(true)      }
     });
   };
+
+// En tu confirmDeleteWithReason:
+const confirmDeleteWithReason = async (motivo) => {
+  if (!motivo.trim()) {
+    Swal.fire("Error", "Por favor, ingresa un motivo.", "warning");
+    return;
+  }
+
+  try {
+    // Manda al backend el beneficiaryIdToDelete y el motivo
+    const response = await fetch("/api/beneficiarios/eliminarBeneficiario", {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        idBeneficiario: beneficiaryIdToDelete,
+        motivoEliminacion: motivo,  // <-- Envías el motivo aquí
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(
+        errorData.error || "No se pudo eliminar el beneficiario."
+      );
+    }
+
+    playSound(true);
+    Swal.fire(
+      "Eliminado",
+      "El beneficiario y su imagen asociada han sido eliminados correctamente.",
+      "success"
+    );
+
+    // Cierra el modal de motivo
+    setDeleteModalOpen(false);
+    // Limpia id en caso de reuso
+    setBeneficiaryIdToDelete(null);
+
+    // Refresca la lista
+    fetchBeneficiarios();
+  } catch (error) {
+    playSound(false);
+    Swal.fire("Error", error.message, "error");
+  }
+};
+
+  
+  // Encima del return
+const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+const [deleteReason, setDeleteReason] = useState("");
+
+
 
   /** */
   /**TERMINO DE LA FUNCION */
@@ -2318,37 +2384,48 @@ export default function RegistroBeneficiario() {
                     name="parentesco"
                     value={formData.parentesco}
                     onChange={(e) => {
-                      const selectedId = e.target.value;
+                      // 1. Conviértelo a número
+                      const selectedId = Number(e.target.value);
+
+                      // 2. Encuentra la opción en tu arreglo parentescoOptions
                       const selectedOption = parentescoOptions.find(
-                        (option) =>
-                          String(option.ID_PARENTESCO) === String(selectedId)
+                        (option) => option.ID_PARENTESCO === selectedId
                       );
                       const selectedParentescoText = selectedOption
                         ? selectedOption.PARENTESCO
                         : "";
 
-                      // Verificar tipo de parentesco
-                      const isHijo = selectedParentescoText === "Hijo(a)";
+                      // 3. Verifica el tipo de parentesco según ID o según el texto
+                      //    (aquí ejemplo: 2 -> Hijo, 4 -> Padre, 5 -> Madre, 1 -> Esposo(a), 3 -> Concubino(a))
+                      const isHijo = selectedId === 2;
                       const isPadreOMadre =
-                        selectedParentescoText === "Padre" ||
-                        selectedParentescoText === "Madre";
-                      const isEsposo = selectedParentescoText === "Esposo(a)";
-                      const isConcubino =
-                        selectedParentescoText === "Concubino(a)"; // Nuevo caso
+                        selectedId === 4 || selectedId === 5;
+                      const isEsposo = selectedId === 1;
+                      const isConcubino = selectedId === 3;
 
+                      // 4. Actualiza el formData
                       setFormData((prev) => ({
                         ...prev,
+                        // Aquí lo guardas como número, ¡no string!
                         parentesco: selectedId,
+
+                        // Mostrar inputs de documentos si se trata de Hijo, Padre/Madre, etc.
                         showUploadFiles:
-                          isHijo || isPadreOMadre || isEsposo || isConcubino, // Mostrar inputs para estos casos
-                        showEsposoFiles: isEsposo, // Mostrar campos específicos de Esposo(a)
-                        showConcubinoFiles: isConcubino, // Mostrar campo específico para Concubino(a)
-                        showCheckboxes: isHijo && prev.edad >= 16, // Checkboxes solo para Hijo(a) mayor o igual a 16 años
+                          isHijo || isPadreOMadre || isEsposo || isConcubino,
+                        showEsposoFiles: isEsposo,
+                        showConcubinoFiles: isConcubino,
+
+                        // Checkboxes si es Hijo y tiene >=16 años
+                        showCheckboxes: isHijo && prev.edad >= 16,
+
+                        // Limpia flags de estudiante/discapacitado al cambiar
                         esEstudiante: 0,
                         esDiscapacitado: 0,
+
+                        // Limpia campos de documentos si deseas
                         actaNacimientoUrl: "",
                         curpFileUrl: "",
-                        actaConcubinatoUrl: "", // Limpia el nuevo campo
+                        actaConcubinatoUrl: "",
                       }));
                     }}
                     className={styles.inputField}
@@ -3221,6 +3298,67 @@ export default function RegistroBeneficiario() {
             </div>
           </form>
         </Modal>
+
+
+
+
+
+  <div>
+    {/* Todo tu JSX (banner, tabla, etc.) */}
+
+    <Modal
+  isOpen={deleteModalOpen}  // Usar deleteModalOpen
+  onRequestClose={() => {
+    setDeleteModalOpen(false);  // Usar setDeleteModalOpen
+    setBeneficiaryIdToDelete(null);
+  }}
+  overlayClassName={styles.modalOverlay}
+  className={styles.modal}
+>
+  <div className={styles.modalContent}>
+    <h2>Motivo de la eliminación</h2>
+    <textarea
+      className={styles.inputField}
+      rows={4}
+      placeholder="Explica por qué eliminarás este beneficiario..."
+      value={deleteReason}
+      onChange={(e) => setDeleteReason(e.target.value)}
+    />
+    <div className={styles.buttonGroup}>
+      <button
+        onClick={() => confirmDeleteWithReason(deleteReason)}
+        className={styles.deleteButton}
+      >
+        Eliminar
+      </button>
+      <button
+        onClick={() => {
+          setDeleteModalOpen(false);
+          setBeneficiaryIdToDelete(null);
+        }}
+        className={styles.cancelButton}
+      >
+        Cancelar
+      </button>
+    </div>
+  </div>
+</Modal>
+
+
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         <Modal
           key={isViewModalOpen ? "open" : "closed"} // Forzar un re-render al abrir/cerrar
