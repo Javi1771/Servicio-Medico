@@ -19,6 +19,7 @@ export default async function handler(req, res) {
             m.maximo,
             m.minimo,
             m.medida,
+            m.precio,         -- <== Nuevo campo precio
             u.medida AS unidadMedida,
             CASE 
               WHEN m.piezas <= m.minimo THEN 'stock bajo'

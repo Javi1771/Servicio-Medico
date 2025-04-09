@@ -74,10 +74,10 @@ app.prepare().then(() => {
 
 
   //* IP de mesh Carlos
-  //server.listen(3000, "172.16.4.47", (err) => {
+  server.listen(3000, "172.16.4.47", (err) => {
 
   //? IP de mesh Javier  
-  server.listen(3000, "172.16.12.100", (err) => {
+  //server.listen(3000, "172.16.12.100", (err) => {
 
   //* IP de VPN Carlos
   //server.listen(3000, "172.16.31.213", (err) => {

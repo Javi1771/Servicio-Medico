@@ -4,7 +4,9 @@ import sql from "mssql";
 
 export default async function handler(req, res) {
   if (req.method === "DELETE") {
-    const { idBeneficiario } = req.body;
+    // Desestructuramos ambos valores del body
+    // motivEliminacion será el texto que el usuario ingresa
+    const { idBeneficiario, motivoEliminacion } = req.body;
 
     if (!idBeneficiario) {
       return res.status(400).json({ error: "Falta el ID del beneficiario" });
@@ -13,7 +15,7 @@ export default async function handler(req, res) {
     try {
       const pool = await connectToDatabase();
 
-      //* Obtener la URL de la imagen del beneficiario
+      //* 1) Obtener la URL de la imagen del beneficiario
       const imageResult = await pool
         .request()
         .input("idBeneficiario", sql.Int, idBeneficiario)
@@ -27,7 +29,7 @@ export default async function handler(req, res) {
 
       const { FOTO_URL } = imageResult.recordset[0];
 
-      //! Eliminar la imagen de Cloudinary si existe
+      //! 2) Eliminar la imagen de Cloudinary si existe
       if (FOTO_URL) {
         const publicId = extractCloudinaryPublicId(FOTO_URL);
         if (publicId) {
@@ -36,19 +38,25 @@ export default async function handler(req, res) {
         }
       }
 
-      //* Actualizar el campo ACTIVO a 'I' (inactivo) en la tabla BENEFICIARIO
-      const result = await pool
+      //* 3) Actualizar el campo ACTIVO a 'I' (inactivo) y almacenar el MOTIVO
+      //    Asegúrate de que la columna MOTIVO exista en tu tabla BENEFICIARIO
+      //    y tenga tipo VARCHAR/ NVARCHAR (dependiendo de lo que uses).
+      const updateResult = await pool
         .request()
         .input("idBeneficiario", sql.Int, idBeneficiario)
-        .query(
-          "UPDATE BENEFICIARIO SET ACTIVO = 'I' WHERE ID_BENEFICIARIO = @idBeneficiario"
-        );
+        .input("motivoEliminacion", sql.VarChar(255), motivoEliminacion || "") 
+        .query(`
+          UPDATE BENEFICIARIO 
+             SET ACTIVO = 'I',
+                 MOTIVO = @motivoEliminacion
+           WHERE ID_BENEFICIARIO = @idBeneficiario
+        `);
 
-      if (result.rowsAffected[0] === 0) {
+      if (updateResult.rowsAffected[0] === 0) {
         return res.status(404).json({ error: "Beneficiario no encontrado" });
       }
 
-      //* Registrar la actividad "Eliminó un beneficiario"
+      //* 4) Registrar la actividad "Eliminó un beneficiario" en tu tabla de logs
       const rawCookies = req.headers.cookie || "";
       const claveusuarioCookie = rawCookies
         .split("; ")
@@ -75,12 +83,14 @@ export default async function handler(req, res) {
           .input("direccionIP", sql.VarChar, ip)
           .input("agenteUsuario", sql.VarChar, userAgent)
           .input("claveConsulta", sql.Int, null)
-          .input("idBeneficiario", sql.Int, idBeneficiario).query(`
+          .input("idBeneficiario", sql.Int, idBeneficiario)
+          .query(`
             INSERT INTO ActividadUsuarios 
               (IdUsuario, Accion, FechaHora, DireccionIP, AgenteUsuario, ClaveConsulta, IdBeneficiario)
             VALUES 
               (@userId, @accion, DATEADD(MINUTE, -4, GETDATE()), @direccionIP, @agenteUsuario, @claveConsulta, @idBeneficiario)
           `);
+
         console.log(
           "Actividad 'Eliminó un beneficiario' registrada en ActividadUsuarios."
         );

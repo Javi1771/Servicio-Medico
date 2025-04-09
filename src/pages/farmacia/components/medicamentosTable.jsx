@@ -10,15 +10,15 @@ const MedicamentosTable = ({ medicamentos = [], onDelete, onEdit }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [role, setRole] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10; //* Mostrar 10 elementos por página
+  const itemsPerPage = 10; // Mostrar 10 elementos por página
 
-  //* Obtener el rol desde la cookie al montar el componente
+  // Obtener el rol desde la cookie al montar el componente
   useEffect(() => {
     const rolCookie = getCookie("rol");
     setRole(rolCookie);
   }, []);
 
-  //* Mapeo de clasificación: letra -> nombre completo
+  // Mapeo de clasificación: letra -> nombre completo
   const classificationMapping = {
     p: "PATENTE",
     g: "GENERICO",
@@ -26,28 +26,36 @@ const MedicamentosTable = ({ medicamentos = [], onDelete, onEdit }) => {
     e: "ESPECIALIDAD",
   };
 
-  //* Mapeo de stockStatus proveniente del backend a label y color
+  // Mapeo de stockStatus proveniente del backend a label y color
   const stockStatusMapping = {
     "stock bajo": { label: "Bajo", color: "bg-red-600" },
     "stock medio": { label: "Medio", color: "bg-yellow-500" },
     "stock alto": { label: "Bueno", color: "bg-green-500" },
   };
 
-  //* Filtrar por medicamento o clasificación
+  // Filtrar por medicamento, clasificación, EAN o piezas
   const filteredMedicamentos = medicamentos.filter((med) =>
     [med.medicamento, med.clasificacion, String(med.ean), String(med.piezas)]
       .filter(Boolean)
       .some((value) => value.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
-  //* Cálculo de paginación
+  // Paginación
   const totalPages = Math.ceil(filteredMedicamentos.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const medicamentosPaginados = filteredMedicamentos.slice(
-    startIndex,
-    endIndex
-  );
+  const medicamentosPaginados = filteredMedicamentos.slice(startIndex, endIndex);
+
+  // Función para formatear el precio si deseas mostrar el símbolo y dos decimales
+  const formatPrecio = (precio) => {
+    if (precio == null) return "Sin Precio";
+    // Opcionalmente, usar Intl.NumberFormat para formateo local:
+    // return new Intl.NumberFormat('es-MX', {
+    //   style: 'currency',
+    //   currency: 'MXN'
+    // }).format(precio);
+    return `$${precio.toFixed(2)}`;
+  };
 
   return (
     <div className="w-full mx-auto p-8 bg-gradient-to-br from-[#040f0f] to-[#0c1e1e] rounded-3xl border border-teal-500 border-opacity-40 shadow-[0_0_30px_#0ff]">
@@ -82,6 +90,7 @@ const MedicamentosTable = ({ medicamentos = [], onDelete, onEdit }) => {
                 "Piezas",
                 "Máximo",
                 "Mínimo",
+                "Precio", // <--- Nueva columna Precio
                 "Estado",
                 "Acciones",
               ].map((header) => (
@@ -97,28 +106,31 @@ const MedicamentosTable = ({ medicamentos = [], onDelete, onEdit }) => {
           <tbody>
             {medicamentosPaginados.length > 0 ? (
               medicamentosPaginados.map((med) => {
-                const status = stockStatusMapping[
-                  med.stockStatus.toLowerCase()
-                ] || {
-                  label: med.stockStatus,
-                  color: "bg-gray-500",
-                };
+                const status =
+                  stockStatusMapping[med.stockStatus.toLowerCase()] || {
+                    label: med.stockStatus,
+                    color: "bg-gray-500",
+                  };
+
                 return (
                   <tr key={med.id}>
                     <td className="py-3 px-5 text-center">{med.medicamento}</td>
                     <td className="py-3 px-5 text-center">
-                      {classificationMapping[
-                        med.clasificacion?.toLowerCase()
-                      ] || med.clasificacion}
+                      {
+                        classificationMapping[med.clasificacion?.toLowerCase()] ||
+                        med.clasificacion
+                      }
                     </td>
-                    <td className="py-3 px-5 text-center">{`${
-                      med.presentacion || "Sin Presentación"
-                    } ${med.unidadMedida || "Sin Unidad de Medida"}`}</td>
+                    <td className="py-3 px-5 text-center">
+                      {`${med.presentacion || "Sin Presentación"} ${
+                        med.unidadMedida || "Sin Unidad de Medida"
+                      }`}
+                    </td>
                     <td className="py-3 px-5 text-center">
                       {med.ean || "Sin EAN"}
                     </td>
                     <td className="py-3 px-5 text-center">{`(${
-                      med.piezas || "Sin Piezas"
+                      med.piezas ?? "Sin Piezas"
                     }) en stock`}</td>
                     <td className="py-3 px-5 text-center">
                       {med.maximo || "Sin Máximos"}
@@ -126,6 +138,11 @@ const MedicamentosTable = ({ medicamentos = [], onDelete, onEdit }) => {
                     <td className="py-3 px-5 text-center">
                       {med.minimo || "Sin Mínimos"}
                     </td>
+                    {/* Nueva celda para Precio */}
+                    <td className="py-3 px-5 text-center">
+                      {formatPrecio(med.precio)}
+                    </td>
+                    {/* Estado (stock) */}
                     <td className="py-3 px-5 text-center">
                       <span
                         className={`px-3 py-1 rounded-full text-white ${status.color} shadow-[0_0_10px_#0ff]`}
@@ -133,6 +150,7 @@ const MedicamentosTable = ({ medicamentos = [], onDelete, onEdit }) => {
                         {status.label}
                       </span>
                     </td>
+                    {/* Acciones */}
                     <td className="py-3 px-5 flex justify-center space-x-3">
                       <button
                         onClick={() => onEdit?.(med)}
@@ -155,7 +173,7 @@ const MedicamentosTable = ({ medicamentos = [], onDelete, onEdit }) => {
               })
             ) : (
               <tr>
-                <td colSpan="9" className="text-center py-6 text-gray-400">
+                <td colSpan="10" className="text-center py-6 text-gray-400">
                   ❌ No hay medicamentos registrados.
                 </td>
               </tr>

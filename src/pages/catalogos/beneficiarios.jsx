@@ -8,6 +8,8 @@ import { jsPDF } from "jspdf";
 import { FaCamera } from "react-icons/fa";
 import * as faceapi from "face-api.js";
 import SignatureCanvas from "react-signature-canvas";
+import DeleteWithReasonModal from "./components/deleteWithReasonModal"; // Ajusta la ruta según tu estructura
+
 
 import {
   FaIdCard,
@@ -65,6 +67,9 @@ export default function RegistroBeneficiario() {
     descriptorFacial: "",
     firma: "",
   });
+
+
+  const [beneficiaryIdToDelete, setBeneficiaryIdToDelete] = useState(null);
 
   const showCheckboxes =
     (formData.parentesco === "2" || formData.parentesco === 2) &&
@@ -2029,42 +2034,68 @@ export default function RegistroBeneficiario() {
       cancelButtonColor: "#3085d6",
       confirmButtonText: "Sí, eliminar",
       cancelButtonText: "Cancelar",
-    }).then(async (result) => {
+    }).then((result) => {
       if (result.isConfirmed) {
-        try {
-          const response = await fetch(
-            `/api/beneficiarios/eliminarBeneficiario`,
-            {
-              method: "DELETE",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({ idBeneficiario }), // Enviar el ID del beneficiario al backend
-            }
-          );
-
-          if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(
-              errorData.error || "No se pudo eliminar el beneficiario."
-            );
-          }
-
-          playSound(true);
-          Swal.fire(
-            "Eliminado",
-            "El beneficiario y su imagen asociada han sido eliminados correctamente.",
-            "success"
-          );
-
-          fetchBeneficiarios(); // Refresca la lista de beneficiarios después de eliminar
-        } catch (error) {
-          playSound(false);
-          Swal.fire("Error", error.message, "error");
-        }
-      }
+        // 1. Aquí NO eliminamos directo, sino que guardamos el ID
+        setBeneficiaryIdToDelete(idBeneficiario);
+        // 2. Abrimos un modal interno (con un input de motivo)
+        setDeleteModalOpen(true)      }
     });
   };
+
+// En tu confirmDeleteWithReason:
+const confirmDeleteWithReason = async (motivo) => {
+  if (!motivo.trim()) {
+    Swal.fire("Error", "Por favor, ingresa un motivo.", "warning");
+    return;
+  }
+
+  try {
+    // Manda al backend el beneficiaryIdToDelete y el motivo
+    const response = await fetch("/api/beneficiarios/eliminarBeneficiario", {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        idBeneficiario: beneficiaryIdToDelete,
+        motivoEliminacion: motivo,  // <-- Envías el motivo aquí
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(
+        errorData.error || "No se pudo eliminar el beneficiario."
+      );
+    }
+
+    playSound(true);
+    Swal.fire(
+      "Eliminado",
+      "El beneficiario y su imagen asociada han sido eliminados correctamente.",
+      "success"
+    );
+
+    // Cierra el modal de motivo
+    setDeleteModalOpen(false);
+    // Limpia id en caso de reuso
+    setBeneficiaryIdToDelete(null);
+
+    // Refresca la lista
+    fetchBeneficiarios();
+  } catch (error) {
+    playSound(false);
+    Swal.fire("Error", error.message, "error");
+  }
+};
+
+  
+  // Encima del return
+const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+const [deleteReason, setDeleteReason] = useState("");
+
+
 
   /** */
   /**TERMINO DE LA FUNCION */
@@ -3267,6 +3298,67 @@ export default function RegistroBeneficiario() {
             </div>
           </form>
         </Modal>
+
+
+
+
+
+  <div>
+    {/* Todo tu JSX (banner, tabla, etc.) */}
+
+    <Modal
+  isOpen={deleteModalOpen}  // Usar deleteModalOpen
+  onRequestClose={() => {
+    setDeleteModalOpen(false);  // Usar setDeleteModalOpen
+    setBeneficiaryIdToDelete(null);
+  }}
+  overlayClassName={styles.modalOverlay}
+  className={styles.modal}
+>
+  <div className={styles.modalContent}>
+    <h2>Motivo de la eliminación</h2>
+    <textarea
+      className={styles.inputField}
+      rows={4}
+      placeholder="Explica por qué eliminarás este beneficiario..."
+      value={deleteReason}
+      onChange={(e) => setDeleteReason(e.target.value)}
+    />
+    <div className={styles.buttonGroup}>
+      <button
+        onClick={() => confirmDeleteWithReason(deleteReason)}
+        className={styles.deleteButton}
+      >
+        Eliminar
+      </button>
+      <button
+        onClick={() => {
+          setDeleteModalOpen(false);
+          setBeneficiaryIdToDelete(null);
+        }}
+        className={styles.cancelButton}
+      >
+        Cancelar
+      </button>
+    </div>
+  </div>
+</Modal>
+
+
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         <Modal
           key={isViewModalOpen ? "open" : "closed"} // Forzar un re-render al abrir/cerrar
