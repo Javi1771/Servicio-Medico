@@ -3,6 +3,7 @@ import React, { useState, useEffect, useContext } from "react";
 import { FormularioContext } from "/src/context/FormularioContext";
 import MedicamentoDropdown from "../components/MedicamentoDropdown";
 import HistorialMedicamentos from "../components/HistorialMedicamentos";
+import TratamientoInput from "../components/TratamientoInput";
 import Swal from "sweetalert2";
 
 const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
@@ -12,6 +13,9 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
   const [decisionTomada, setDecisionTomada] = useState("no");
 
   const { updateFormulario } = useContext(FormularioContext);
+
+  //* Lista de frases predeterminadas con el marcador "__" para sustituir con el número de días
+  const phraseTemplates = ["Durante __ días.", "Por __ días.", "En __ días."];
 
   //* Sonidos
   const successSound = "/assets/applepay.mp3";
@@ -184,26 +188,13 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
               </div>
 
               {/* Tratamiento */}
-              <div>
-                <label className="text-lg font-semibold text-gray-200 uppercase">
-                  TRATAMIENTO:
-                </label>
-                <textarea
-                  value={med.tratamiento}
-                  onChange={(e) =>
-                    handleMedicamentoChange(
-                      index,
-                      "tratamiento",
-                      e.target.value.slice(0, 30).toUpperCase()
-                    )
-                  }
-                  maxLength={30}
-                  className="mt-2 block w-full h-32 md:h-40 rounded-lg bg-gray-700 border-gray-600 text-white p-3 uppercase"
-                  placeholder="ESCRIBE AQUÍ EL TRATAMIENTO..."
+              <div className="md:col-span-1 col-span-1">
+                <TratamientoInput
+                  med={med}
+                  index={index}
+                  handleMedicamentoChange={handleMedicamentoChange}
+                  phraseTemplates={phraseTemplates}
                 />
-                <p className="text-sm text-gray-400 mt-1 uppercase">
-                  {med.tratamiento.length}/30 CARACTERES
-                </p>
               </div>
 
               {/* Campo Piezas */}

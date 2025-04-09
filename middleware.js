@@ -15,7 +15,7 @@ const rolePermissions = {
 export function middleware(request) {
   const { pathname } = request.nextUrl;
 
-  // Excluir rutas públicas y estáticas
+  //* Excluir rutas públicas y estáticas
   if (pathname === '/' || pathname === '/login') {
     return NextResponse.next();
   }
@@ -40,7 +40,7 @@ export function middleware(request) {
 
   if (!isAllowed) {
     const defaultRoute = rol === "7" ? "/inicio-presidente" : "/inicio-servicio-medico";
-    // Agrega un query param opcional para evitar bucles en caso de errores
+    //* Agrega un query param opcional para evitar bucles en caso de errores
     const redirectUrl = new URL(defaultRoute, request.url);
     if (!redirectUrl.searchParams.has("redirected")) {
       redirectUrl.searchParams.set("redirected", "true");

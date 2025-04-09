@@ -35,7 +35,7 @@ const DatosAdicionales = ({
 
   //* Función para procesar el texto:
   //* - Convierte a mayúsculas.
-  //* - Separa en líneas y divide cada línea en fragmentos de 145 caracteres.
+  //* - Separa en líneas y divide cada línea en fragmentos de 130 caracteres.
   //* - Limita el total a máximo 7 líneas.
   const processText = (text) => {
     let upperText = text.toUpperCase();
@@ -43,16 +43,16 @@ const DatosAdicionales = ({
     let lines = upperText.split("\n");
     let processedLines = [];
     for (let line of lines) {
-      //* Divide en fragmentos de 145 caracteres si es muy larga la línea
-      while (line.length > 145) {
-        processedLines.push(line.slice(0, 145));
-        line = line.slice(145);
+      //* Divide en fragmentos de 130 caracteres si es muy larga la línea
+      while (line.length > 130) {
+        processedLines.push(line.slice(0, 130));
+        line = line.slice(130);
       }
       processedLines.push(line);
     }
     //* Limitar a máximo 7 líneas
-    if (processedLines.length > 7) {
-      processedLines = processedLines.slice(0, 7);
+    if (processedLines.length > 6) {
+      processedLines = processedLines.slice(0, 6);
     }
     return processedLines.join("\n");
   };
@@ -87,11 +87,11 @@ const DatosAdicionales = ({
   }, []);
 
   //* Se calcula dinámicamente el máximo permitido:
-  //* Cada línea permite 145 caracteres, con un máximo de 7 líneas.
+  //* Cada línea permite 130 caracteres, con un máximo de 7 líneas.
   const diagLines = diagnosticoTexto.split("\n").length;
-  const diagMaxAllowed = diagLines < 7 ? diagLines * 145 : 7 * 145;
+  const diagMaxAllowed = diagLines < 6 ? diagLines * 130 : 6 * 130;
   const motivoLines = motivoConsultaTexto.split("\n").length;
-  const motivoMaxAllowed = motivoLines < 7 ? motivoLines * 145 : 7 * 145;
+  const motivoMaxAllowed = motivoLines < 6 ? motivoLines * 130 : 6 * 130;
 
   useEffect(() => {
     const esCompleto =

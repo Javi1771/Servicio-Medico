@@ -259,7 +259,7 @@ const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
                         "0"
                       );
                       const day = String(date.getDate()).padStart(2, "0");
-                      // Establecer la hora de inicio a 12:00 a.m.
+                      //* Establecer la hora de inicio a 12:00 a.m.
                       const fechaSeleccionada = `${year}-${month}-${day} 00:00:00.000`;
                       setFechaInicio(fechaSeleccionada);
                       setFechaFin(null);
@@ -333,7 +333,7 @@ const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
                         "0"
                       );
                       const day = String(date.getDate()).padStart(2, "0");
-                      // Establecer la hora final a 11:59 p.m.
+                      //* Establecer la hora final a 11:59 p.m.
                       const fechaFinalSeleccionada = `${year}-${month}-${day} 23:59:00.000`;
                       setFechaFin(fechaFinalSeleccionada);
                       setIsFechaFinOpen(false);

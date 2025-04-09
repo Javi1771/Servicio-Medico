@@ -171,22 +171,17 @@ export default function GenerarReceta() {
     pdfDoc,
     codigoBarrasBase64
   ) => {
-    page.drawText(String(data.consulta?.fechaconsulta ?? "N/A"), {x: 102, y: 664, size: 10});
-    page.drawText(String(data.consulta?.clavenomina ?? "N/A"), {x: 109, y: 645, size: 10});
-    drawMultilineText(page, String(data.consulta?.departamento?.trim() ?? "N/A"), 410, 665, 170, 10);
+    page.drawText(String(data.consulta?.fechaconsulta ?? "N/A"), {x: 104, y: 662, size: 10});
+    page.drawText(String(data.consulta?.clavenomina ?? "N/A"), {x: 112, y: 643, size: 10});
+    drawMultilineText(page, String(data.consulta?.departamento?.trim() ?? "N/A"), 413, 663, 170, 10);
     page.drawText(String(data.consulta?.sindicato ?? ""), {x: 408, y: 625, size: 10});
-    page.drawText(`${nombreEmpleado}`, { x: 119, y: 626, size: 10 });
-    page.drawText(String(data.consulta?.nombrepaciente ?? "N/A"), {x: 115, y: 571, size: 10});
+    page.drawText(`${nombreEmpleado}`, { x: 123, y: 624, size: 10 });
+    page.drawText(String(data.consulta?.nombrepaciente ?? "N/A"), {x: 118, y: 571, size: 10});
     page.drawText(String(data.consulta?.edad ?? "N/A"), {x: 435, y: 571, size: 10});
     if (data.consulta?.elpacienteesempleado === "N") {
       const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
       const parentescoTexto = `- ${data.consulta?.parentescoNombre ?? "N/A"}`;
-      page.drawText(parentescoTexto, {
-        x: 162,
-        y: 601,
-        size: 13,
-        font: boldFont,
-      });
+      page.drawText(parentescoTexto, { x: 162, y: 601, size: 13, font: boldFont, });
     }
     if (codigoBarrasBase64) {
       const barcodeImage = await pdfDoc.embedPng(codigoBarrasBase64);
@@ -202,11 +197,11 @@ export default function GenerarReceta() {
       const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
       page.drawText(`*${infoCodigoBarras}*`, {x: 330, y: 720, size: 8, font: helveticaBold});
     }
-    drawMultilineText(page, String(data.consulta?.diagnostico ?? "N/A"), 50, 518, 560, 6);
+    drawMultilineText(page, String(data.consulta?.diagnostico ?? "N/A"), 50, 525, 560, 7);
     page.drawText(String(data.consulta?.nombreproveedor ?? "N/A"), {x: 108, y: 96, size: 10});
-    page.drawText(String(data.consulta?.cedulaproveedor ?? "N/A"), {x: 55, y: 78, size: 10});
+    page.drawText(String(data.consulta?.cedulaproveedor ?? "N/A"), {x: 50, y: 78, size: 10});
     page.drawText(String(data.consulta?.nombrepaciente ?? "N/A"), {x: 370, y: 78, size: 10});
-    page.drawText(`${nombreUsuario}`, { x: 396, y: 17, size: 8 });
+    page.drawText(`${nombreUsuario}`, { x: 396, y: 22, size: 8 });
   };
 
   //? Dibuja solo la lista de medicamentos usando la posición dinámica
@@ -220,8 +215,8 @@ export default function GenerarReceta() {
     let currentY = startY;
     medsArray.forEach((med) => {
       const y1 = drawMultilineText(page, String(med.nombreMedicamento ?? "No Asignado"), 40, currentY, 130, fontSize );
-      const y2 = drawMultilineText(page, String(med.indicaciones ?? "No Asignado"), 180, currentY, 190, fontSize );
-      const y3 = drawMultilineText(page, String(med.cantidad ?? "No Asignado"), 370, currentY, 161, fontSize );
+      const y2 = drawMultilineText(page, String(med.indicaciones ?? "No Asignado"), 180, currentY, 200, fontSize );
+      const y3 = drawMultilineText(page, String(med.cantidad ?? "No Asignado"), 422, currentY, 161, fontSize );
       const y4 = drawMultilineText(page, String(med.piezas ?? "No Asignados"), 553, currentY, 100, fontSize );
       currentY = Math.min(y1, y2, y3, y4) - extraSpacing;
     });
@@ -244,10 +239,10 @@ export default function GenerarReceta() {
       page.drawText(`*${infoCodigoBarras}*`, {x: 330, y: 720, size: 8, font: helveticaBold});
     }
     page.drawText(String(data.consulta?.nombreproveedor ?? "N/A"), {x: 108, y: 96, size: 10});
-    page.drawText(String(data.consulta?.cedulaproveedor ?? "N/A"), {x: 60, y: 78, size: 10});
+    page.drawText(String(data.consulta?.cedulaproveedor ?? "N/A"), {x: 50, y: 78, size: 10});
     page.drawText(String(data.consulta?.nombrepaciente ?? "N/A"), {x: 370, y: 78, size: 10});
     const nombreUsuario = getCookie("nombreusuario") || "N/A";
-    page.drawText(`${nombreUsuario}`, { x: 396, y: 17, size: 8 });
+    page.drawText(`${nombreUsuario}`, { x: 396, y: 22, size: 8 });
   };
 
   //? Primera hoja: con info base + medicamentos (para otros meds)
@@ -274,14 +269,14 @@ export default function GenerarReceta() {
       finalDoc,
       codigoBarrasBase64
     );
-    const startY = 357;
+    const startY = 400;
     const extraSpacing = 10;
     const fontSize = 8;
     let currentMedicationY = startY;
     medsArray.forEach((med) => {
       const y1 = drawMultilineText(copiedPage, String(med.nombreMedicamento ?? "No Asignado"), 40, currentMedicationY, 130, fontSize );
-      const y2 = drawMultilineText(copiedPage, String(med.indicaciones ?? "No Asignado"), 180, currentMedicationY, 190, fontSize );
-      const y3 = drawMultilineText(copiedPage, String(med.cantidad ?? "No Asignado"), 370, currentMedicationY, 161, fontSize );
+      const y2 = drawMultilineText(copiedPage, String(med.indicaciones ?? "No Asignado"), 180, currentMedicationY, 200, fontSize );
+      const y3 = drawMultilineText(copiedPage, String(med.cantidad ?? "No Asignado"), 422, currentMedicationY, 161, fontSize );
       const y4 = drawMultilineText(copiedPage, String(med.piezas ?? "No Asignados"), 553, currentMedicationY, 100, fontSize );
       currentMedicationY = Math.min(y1, y2, y3, y4) - extraSpacing;
     });
@@ -302,7 +297,7 @@ export default function GenerarReceta() {
     const baseDoc = await PDFDocument.load(baseBytes);
     const [copiedPage] = await finalDoc.copyPages(baseDoc, [0]);
     //* La posición de inicio se configura en options.startY
-    const startY = options?.startY ?? 640;
+    const startY = options?.startY ?? 400;
     const extraSpacing = 10;
     const fontSize = options?.fontSize ?? 8;
     drawOnlyMedications(copiedPage, medsArray, startY, extraSpacing, fontSize);
@@ -334,12 +329,12 @@ export default function GenerarReceta() {
       finalDoc,
       codigoBarrasBase64
     );
-    const startY = 357;
+    const startY = 400;
 
     //? Aunque es un solo medicamento, se usa la misma lógica dinámica
     drawMultilineText(copiedPage, String(med.nombreMedicamento), 40, startY, 130, 8);
-    drawMultilineText(copiedPage, String(med.indicaciones), 180, startY, 190, 8);
-    drawMultilineText(copiedPage, String(med.cantidad), 370, startY, 161, 8);
+    drawMultilineText(copiedPage, String(med.indicaciones), 180, startY, 200, 8);
+    drawMultilineText(copiedPage, String(med.cantidad), 422, startY, 161, 8);
     drawMultilineText(copiedPage, String(med.piezas), 553, startY, 100, 8);
 
     finalDoc.addPage(copiedPage);
@@ -379,8 +374,8 @@ export default function GenerarReceta() {
             data.codigoBarrasBase64
           );
         } else {
-          const firstThree = otherMeds.slice(0, 3);
-          const remaining = otherMeds.slice(3);
+          const firstThree = otherMeds.slice(0, 4);
+          const remaining = otherMeds.slice(4);
           await addNonCMedPageFirst(
             finalDoc,
             "/Receta-Farmacia.pdf",

@@ -150,15 +150,15 @@ export default function GenerarReceta() {
       firstPage.drawText(String(data.consulta?.sindicato ? data.consulta.sindicato : ""), { x: 408, y: 645, size: 10 });
 
       //? Bloque: DATOS DEL PACIENTE
-      firstPage.drawText(String(data.consulta?.nombrepaciente ?? "N/A"), { x: 115, y: 570, size: 10 });
-      firstPage.drawText(String(data.consulta?.edad ?? "N/A"), { x: 435, y: 571, size: 10 });
-      firstPage.drawText(String(data.consulta?.presionarterialpaciente ?? "N/A"), { x: 37, y: 525, size: 10 });
-      firstPage.drawText(String(data.consulta?.temperaturapaciente ?? "N/A"), { x: 130, y: 525, size: 10 });
-      firstPage.drawText(String(data.consulta?.pulsosxminutopaciente ?? "N/A"), { x: 210, y: 525, size: 10 });
-      firstPage.drawText(String(data.consulta?.respiracionpaciente ?? "N/A"), { x: 290, y: 525, size: 10 });
-      firstPage.drawText(String(data.consulta?.estaturapaciente ?? "N/A"), { x: 373, y: 525, size: 10 });
-      firstPage.drawText(String(data.consulta?.pesopaciente ?? "N/A"), { x: 459, y: 525, size: 10 });
-      firstPage.drawText(String(data.consulta?.glucosapaciente ?? "N/A"), { x: 540, y: 525, size: 10 });
+      firstPage.drawText(String(data.consulta?.nombrepaciente ?? "N/A"), { x: 115, y: 574, size: 10 });
+      firstPage.drawText(String(data.consulta?.edad ?? "N/A"), { x: 435, y: 574, size: 10 });
+      firstPage.drawText(String(data.consulta?.presionarterialpaciente ?? "N/A"), { x: 37, y: 537, size: 10 });
+      firstPage.drawText(String(data.consulta?.temperaturapaciente ?? "N/A"), { x: 130, y: 537, size: 10 });
+      firstPage.drawText(String(data.consulta?.pulsosxminutopaciente ?? "N/A"), { x: 210, y: 537, size: 10 });
+      firstPage.drawText(String(data.consulta?.respiracionpaciente ?? "N/A"), { x: 290, y: 537, size: 10 });
+      firstPage.drawText(String(data.consulta?.estaturapaciente ?? "N/A"), { x: 373, y: 537, size: 10 });
+      firstPage.drawText(String(data.consulta?.pesopaciente ?? "N/A"), { x: 459, y: 537, size: 10 });
+      firstPage.drawText(String(data.consulta?.glucosapaciente ?? "N/A"), { x: 540, y: 537, size: 10 });
 
       //? Línea especial: Si el paciente NO es empleado, se muestra el parentesco en negrita
       if (data.consulta?.elpacienteesempleado === "N") {
@@ -168,32 +168,36 @@ export default function GenerarReceta() {
       }
 
       //? Bloque: DIAGNÓSTICO
-      drawMultilineText(firstPage, String(data.consulta?.diagnostico ?? "N/A"), 50, 470, 560, 6);
+      drawMultilineText(firstPage, String(data.consulta?.diagnostico ?? "N/A"), 45, 493, 600, 7);
 
       //? Bloque: TRATAMIENTO en la primera hoja (primeros 4 medicamentos)
-      let currentMedicationY = 357;
+      let currentMedicationY = 358;
       const extraSpacing = 10;
       const medsFirstPage = data.receta.slice(0, 4);
       medsFirstPage.forEach((item) => {
         const y1 = drawMultilineText(firstPage, String(item.nombreMedicamento ?? "No Asignado"), 40, currentMedicationY, 130, 8);
-        const y2 = drawMultilineText(firstPage, String(item.indicaciones ?? "No Asignado"), 180, currentMedicationY, 190, 8);
-        const y3 = drawMultilineText(firstPage, String(item.cantidad ?? "No Asignado"), 370, currentMedicationY, 161, 8);
+        const y2 = drawMultilineText(firstPage, String(item.indicaciones ?? "No Asignado"), 180, currentMedicationY, 200, 8);
+        //* Define la coordenada X en función del valor de item.cantidad
+        const xCoordinate = item.cantidad === "Sin tiempo de toma estimado, sin medicamentos." ? 380 : 422;
+
+        //* Dibuja el texto en la coordenada determinada
+        const y3 = drawMultilineText(firstPage, String(item.cantidad ?? "No Asignado"), xCoordinate, currentMedicationY, 161, 8);
         const y4 = drawMultilineText(firstPage, String(item.piezas ?? "No Asignados"), 553, currentMedicationY, 100, 8);
         currentMedicationY = Math.min(y1, y2, y3, y4) - extraSpacing;
       });
 
       //? Bloque: OBSERVACIONES en la primera hoja
-      drawMultilineText(firstPage, String(data.consulta?.motivoconsulta ?? "N/A"), 50, 170, 560, 6);
+      drawMultilineText(firstPage, String(data.consulta?.motivoconsulta ?? "N/A"), 50, 180, 600, 7);
 
       //? Datos extra (incapacidad, especialidad y firmas) en la primera hoja
-      firstPage.drawText(data.consulta?.seAsignoIncapacidad === 1 ? "Sí" : "No", { x: 150, y: 78, size: 10 });
+      firstPage.drawText(data.consulta?.seAsignoIncapacidad === 1 ? "Sí" : "No", { x: 150, y: 75, size: 10 });
       const incapacidad = data.incapacidades?.[0];
-      firstPage.drawText(incapacidad ? incapacidad.fechaInicial : "No asignada", { x: 219, y: 85, size: 10 });
-      firstPage.drawText(incapacidad ? incapacidad.fechaFinal : "No asignada", { x: 209, y: 72, size: 10 });
+      firstPage.drawText(incapacidad ? incapacidad.fechaInicial : "No asignada", { x: 219, y: 83, size: 10 });
+      firstPage.drawText(incapacidad ? incapacidad.fechaFinal : "No asignada", { x: 209, y: 68, size: 10 });
       const especialidadText = data.consulta?.seasignoaespecialidad === "S" 
         ? `Sí - ${data.detalleEspecialidad[0]?.nombreEspecialidad ?? "N/A"}` 
         : "No";
-      firstPage.drawText(especialidadText, { x: 433, y: 78, size: 10 });
+      firstPage.drawText(especialidadText, { x: 433, y: 75, size: 10 });
       firstPage.drawText(String(data.consulta?.nombreproveedor ?? "N/A"), { x: 110, y: 52, size: 10 });
       firstPage.drawText(String(data.consulta?.nombrepaciente ?? "N/A"), { x: 370, y: 52, size: 10 });
 
@@ -208,7 +212,7 @@ export default function GenerarReceta() {
         const secondPage = medPageTemplate;
 
         //? En la segunda hoja se reimprime también el bloque de OBSERVACIONES
-        drawMultilineText(secondPage, String(data.consulta?.motivoconsulta ?? "N/A"), 50, 162, 560, 6);
+        drawMultilineText(secondPage, String(data.consulta?.motivoconsulta ?? "N/A"), 50, 164, 600, 7);
 
         //? Lista de medicamentos adicionales empezando en Y=640
         let currentMedY = 640;
@@ -216,16 +220,16 @@ export default function GenerarReceta() {
         medsSecondPage.forEach((item) => {
           const y1 = drawMultilineText(secondPage, String(item.nombreMedicamento ?? "No Asignado"), 40, currentMedY, 130, 8);
           const y2 = drawMultilineText(secondPage, String(item.indicaciones ?? "No Asignado"), 180, currentMedY, 190, 8);
-          const y3 = drawMultilineText(secondPage, String(item.cantidad ?? "No Asignado"), 370, currentMedY, 161, 8);
+          const y3 = drawMultilineText(secondPage, String(item.cantidad ?? "No Asignado"), 422, currentMedY, 161, 8);
           const y4 = drawMultilineText(secondPage, String(item.piezas ?? "No Asignados"), 553, currentMedY, 100, 8);
           currentMedY = Math.min(y1, y2, y3, y4) - extraSpacing;
         });
 
         //? Se reimprimen los datos extra (incapacidad, especialidad y firmas) en las mismas coordenadas que en la primera hoja
-        secondPage.drawText(data.consulta?.seAsignoIncapacidad === 1 ? "Sí" : "No", { x: 150, y: 77, size: 10 });
+        secondPage.drawText(data.consulta?.seAsignoIncapacidad === 1 ? "Sí" : "No", { x: 150, y: 76, size: 10 });
         secondPage.drawText(incapacidad ? incapacidad.fechaInicial : "No asignada", { x: 219, y: 82, size: 10 });
-        secondPage.drawText(incapacidad ? incapacidad.fechaFinal : "No asignada", { x: 209, y: 69, size: 10 });
-        secondPage.drawText(especialidadText, { x: 433, y: 77, size: 10 });
+        secondPage.drawText(incapacidad ? incapacidad.fechaFinal : "No asignada", { x: 209, y: 68, size: 10 });
+        secondPage.drawText(especialidadText, { x: 433, y: 76, size: 10 });
         secondPage.drawText(String(data.consulta?.nombreproveedor ?? "N/A"), { x: 120, y: 51, size: 10 });
         secondPage.drawText(String(data.consulta?.nombrepaciente ?? "N/A"), { x: 370, y: 51, size: 10 });
 

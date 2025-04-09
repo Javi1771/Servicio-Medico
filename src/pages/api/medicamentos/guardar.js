@@ -8,7 +8,10 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Método no permitido" });
   }
 
-  console.log("📨 Datos recibidos en el backend:", JSON.stringify(req.body, null, 2));
+  console.log(
+    "📨 Datos recibidos en el backend:",
+    JSON.stringify(req.body, null, 2)
+  );
   const { medicamentos = [], folioReceta, decisionTomada } = req.body;
 
   if (!folioReceta || decisionTomada === undefined) {
@@ -38,14 +41,24 @@ export default async function handler(req, res) {
     const resultados = [];
 
     if (decisionTomada === "no") {
-      console.log("⚠ Decisión tomada: NO. Insertando registro predeterminado en detalleReceta.");
+      console.log(
+        "⚠ Decisión tomada: NO. Insertando registro predeterminado en detalleReceta."
+      );
       await transaction
         .request()
         .input("folioReceta", sql.Int, parseInt(folioReceta, 10))
         .input("descMedicamento", sql.Int, 0)
-        .input("indicaciones", sql.NVarChar, "Sin indicaciones ya que no se asignaron medicamentos.")
+        .input(
+          "indicaciones",
+          sql.NVarChar,
+          "Sin indicaciones ya que no se asignaron medicamentos."
+        )
         .input("estatus", sql.Int, 1)
-        .input("cantidad", sql.NVarChar, "Sin tiempo de toma estimado, sin medicamentos.")
+        .input(
+          "cantidad",
+          sql.NVarChar,
+          "Sin tiempo de toma estimado, sin medicamentos."
+        )
         .input("piezas", sql.Int, 0)
         .query(queryInsertarReceta);
 
@@ -55,11 +68,18 @@ export default async function handler(req, res) {
         message: "Registro predeterminado insertado en detalleReceta.",
       });
     } else {
-      console.log(`💊 Insertando ${medicamentos.length} medicamento(s) en detalleReceta...`);
+      console.log(
+        `💊 Insertando ${medicamentos.length} medicamento(s) en detalleReceta...`
+      );
       for (const med of medicamentos) {
         console.log("📦 Medicamento a insertar:", med);
-        const { descMedicamento, indicaciones, cantidad, piezas } = med;
-        if (!descMedicamento || !indicaciones || !cantidad || !piezas) {
+        //* Extraemos los campos enviados desde el front.
+        //* Se recibe el valor del medicamento en "descMedicamento".
+        //* El tratamiento (mensaje) puede venir en la propiedad "tratamiento" o en "cantidad".
+        const { descMedicamento, indicaciones, tratamiento, cantidad, piezas } = med;
+        //! Si tratamiento no existe, usamos lo que venga en cantidad.
+        const treatmentValue = tratamiento || cantidad;
+        if (!descMedicamento || !indicaciones || !treatmentValue || !piezas) {
           console.error("❌ Error: Medicamento con campos faltantes:", med);
           await transaction.rollback();
           return res.status(400).json({
@@ -69,10 +89,12 @@ export default async function handler(req, res) {
         await transaction
           .request()
           .input("folioReceta", sql.Int, parseInt(folioReceta, 10))
+          //* Convertir descMedicamento al número esperado
           .input("descMedicamento", sql.Int, parseInt(descMedicamento, 10))
           .input("indicaciones", sql.NVarChar, indicaciones.trim())
           .input("estatus", sql.Int, 1)
-          .input("cantidad", sql.NVarChar, cantidad.trim())
+          //* Usamos treatmentValue para la columna "cantidad"
+          .input("cantidad", sql.NVarChar, treatmentValue.trim())
           .input("piezas", sql.Int, parseInt(piezas, 10))
           .query(queryInsertarReceta);
         resultados.push({
@@ -108,11 +130,16 @@ export default async function handler(req, res) {
           .status(404)
           .json({ error: "No se encontró consulta asociada al folioReceta." });
       }
-      console.log("✅ Consulta encontrada:", JSON.stringify(consultaData, null, 2));
+      console.log(
+        "✅ Consulta encontrada:",
+        JSON.stringify(consultaData, null, 2)
+      );
 
       //? 3. Calcular el nuevo FOLIO_SURTIMIENTO
       const queryNuevoFolio = `SELECT ISNULL(MAX(FOLIO_SURTIMIENTO), 0) + 1 AS newFolio FROM SURTIMIENTOS;`;
-      const nuevoFolioResult = await transaction.request().query(queryNuevoFolio);
+      const nuevoFolioResult = await transaction
+        .request()
+        .query(queryNuevoFolio);
       const newFolioSurtimiento = nuevoFolioResult.recordset[0].newFolio;
       console.log("✅ Nuevo FOLIO_SURTIMIENTO calculado:", newFolioSurtimiento);
 
@@ -146,7 +173,11 @@ export default async function handler(req, res) {
         .input("clavePaciente", sql.VarChar, consultaData.clavepaciente)
         .input("nombrePaciente", sql.VarChar, consultaData.nombrepaciente)
         .input("edad", sql.VarChar, consultaData.edad)
-        .input("epacienteEsEmpleado", sql.VarChar, consultaData.elpacienteesempleado)
+        .input(
+          "epacienteEsEmpleado",
+          sql.VarChar,
+          consultaData.elpacienteesempleado
+        )
         .input("claveMedico", sql.VarChar, String(consultaData.claveproveedor))
         .input("diagnostico", sql.NVarChar, consultaData.diagnostico)
         .input("departamento", sql.VarChar, consultaData.departamento)
@@ -185,7 +216,11 @@ export default async function handler(req, res) {
         await transaction
           .request()
           .input("folioSurtimiento", sql.Int, newFolioSurtimiento)
-          .input("claveMedicamento", sql.Int, parseInt(med.descMedicamento, 10))
+          .input(
+            "claveMedicamento",
+            sql.Int,
+            parseInt(med.descMedicamento, 10)
+          )
           .input("indicaciones", sql.NVarChar, med.indicaciones.trim())
           .input("cantidad", sql.NVarChar, med.cantidad.trim())
           .input("estatus", sql.Int, 1)
@@ -204,7 +239,9 @@ export default async function handler(req, res) {
             req.headers["x-forwarded-for"].split(",")[0].trim()) ||
           req.connection?.remoteAddress ||
           req.socket?.remoteAddress ||
-          (req.connection?.socket ? req.connection.socket.remoteAddress : null);
+          (req.connection?.socket
+            ? req.connection.socket.remoteAddress
+            : null);
 
         if (idUsuario !== null) {
           await pool
@@ -221,12 +258,14 @@ export default async function handler(req, res) {
             `);
           console.log("Actividad de asignación de medicamentos registrada.");
         } else {
-          console.log("Cookie 'claveusuario' no encontrada; actividad no registrada.");
+          console.log(
+            "Cookie 'claveusuario' no encontrada; actividad no registrada."
+          );
         }
       } catch (errorRegistro) {
         console.error("Error registrando actividad de asignación:", errorRegistro);
       }
-    } // fin de if decisionTomada !== "no"
+    } //! fin de if decisionTomada !== "no"
 
     //* Commit de la transacción: si todo se ejecutó sin errores, se confirman todos los cambios
     await transaction.commit();

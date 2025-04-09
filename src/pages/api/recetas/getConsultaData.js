@@ -170,7 +170,7 @@ export async function getConsultaData(claveConsulta) {
     const folioSurtimiento =
       folioSurtimientoResult.recordset[0]?.FOLIO_SURTIMIENTO || null;
 
-    console.log("✅ FOLIO_SURTIMIENTO obtenido:", folioSurtimiento);
+    //console.log("✅ FOLIO_SURTIMIENTO obtenido:", folioSurtimiento);
 
     return {
       consulta: consultaData,
@@ -180,7 +180,7 @@ export async function getConsultaData(claveConsulta) {
       folioSurtimiento, //* Enviar al frontend
     };
   } catch (error) {
-    console.error("❌ Error en getConsultaData:", error);
+    //console.error("❌ Error en getConsultaData:", error);
     throw error;
   }
 }

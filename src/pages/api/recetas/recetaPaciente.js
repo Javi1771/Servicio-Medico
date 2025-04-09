@@ -19,7 +19,7 @@ export default async function handler(req, res) {
       return res.status(404).json({ message: "Consulta no encontrada" });
     }
 
-    console.log("✅ Datos obtenidos correctamente:", consultaData);
+    //console.log("✅ Datos obtenidos correctamente:", consultaData);
     res.status(200).json(consultaData);
   } catch (error) {
     console.error("❌ Error en API recetaPaciente:", error);

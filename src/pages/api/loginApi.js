@@ -79,25 +79,35 @@ export default async function handler(req, res) {
       activo: user.activo,
     });
 
-    // Genera el token JWT (expiro en 1h)
+    // Genera el token JWT de acceso (expira en 1 hora)
     const token = jwt.sign(
       { rol: user.clavetipousuario, nombreproveedor: user.nombreproveedor },
       "clave_secreta",
       { expiresIn: "1h" }
     );
 
+    // Genera el refresh token (expira en 30 días)
+    const refreshToken = jwt.sign(
+      { rol: user.clavetipousuario, nombreproveedor: user.nombreproveedor },
+      "clave_secreta_refresh",
+      { expiresIn: "30d" }
+    );
+
     // Bandera Secure solo en producción
     const secureFlag = process.env.NODE_ENV === "production" ? "; Secure" : "";
-    const maxAge = 315360000; // 10 años en segundos
+    // Configuración de tiempos de expiración
+    const tokenMaxAge = 60 * 60; // 1 hora en segundos
+    const refreshTokenMaxAge = 30 * 24 * 60 * 60; // 30 días en segundos
 
-    // Establece las cookies
+    // Establece las cookies:
     res.setHeader("set-cookie", [
-      `token=${token}; Path=/; HttpOnly; SameSite=Lax${secureFlag}; Max-Age=${maxAge}`,
-      `rol=${user.clavetipousuario}; Path=/; SameSite=Lax${secureFlag}; Max-Age=${maxAge}`,
-      `nombreusuario=${encodeURIComponent(user.nombreproveedor)}; Path=/; SameSite=Lax${secureFlag}; Max-Age=${maxAge}`,
-      `claveespecialidad=${user.claveespecialidad}; Path=/; SameSite=Lax${secureFlag}; Max-Age=${maxAge}`,
-      `claveusuario=${user.claveproveedor}; Path=/; SameSite=Lax${secureFlag}; Max-Age=${maxAge}`,
-      `costo=${user.costo}; Path=/; SameSite=Lax${secureFlag}; Max-Age=${maxAge}`,
+      `token=${token}; Path=/; HttpOnly; SameSite=Lax${secureFlag}; Max-Age=${tokenMaxAge}`,
+      `rol=${user.clavetipousuario}; Path=/; SameSite=Lax${secureFlag}; Max-Age=${refreshTokenMaxAge}`,
+      `refreshToken=${refreshToken}; Path=/; HttpOnly; SameSite=Lax${secureFlag}; Max-Age=${refreshTokenMaxAge}`,
+      `nombreusuario=${encodeURIComponent(user.nombreproveedor)}; Path=/; SameSite=Lax${secureFlag}; Max-Age=${refreshTokenMaxAge}`,
+      `claveespecialidad=${user.claveespecialidad}; Path=/; SameSite=Lax${secureFlag}; Max-Age=${refreshTokenMaxAge}`,
+      `claveusuario=${user.claveproveedor}; Path=/; SameSite=Lax${secureFlag}; Max-Age=${refreshTokenMaxAge}`,
+      `costo=${user.costo}; Path=/; SameSite=Lax${secureFlag}; Max-Age=${refreshTokenMaxAge}`,
     ]);
 
     // Registrar la actividad (opcional)

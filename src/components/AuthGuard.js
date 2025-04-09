@@ -1,31 +1,37 @@
 import { useState, useEffect } from "react";
-import Cookies from "js-cookie";
 import PresidenteLayout from "../components/PresidenteLayout";
 
-const AuthGuard = ({ children }) => {
-  const [role, setRole] = useState(null);
+const AuthGuard = ({ children, user: initialUser }) => {
+  const [user, setUser] = useState(initialUser);
+  const [attemptedRefresh, setAttemptedRefresh] = useState(false);
 
   useEffect(() => {
-    const rolCookie = Cookies.get("rol");
-    // Actualiza el estado solo si se encontró un valor (puedes definir una lógica
-    // adicional para detectar que ya pasó cierto tiempo sin encontrar la cookie)
-    if (rolCookie) {
-      setRole(rolCookie);
-    } else {
-      // Se podría agregar un fallback o incluso redirigir a login
-      console.warn("La cookie 'rol' no se encontró");
+    // Si no hay usuario y aún no se intentó refrescar, se hace una única llamada.
+    if (!user && !attemptedRefresh) {
+      setAttemptedRefresh(true);
+      fetch("/api/refresh", { method: "POST", credentials: "include" })
+        .then((res) => {
+          if (res.ok) return res.json();
+          throw new Error("No se pudo refrescar token");
+        })
+        .then((data) => {
+          // Forzamos que el rol se guarde como cadena para la comparación
+          setUser({ role: String(data.rol) });
+        })
+        .catch((err) => {
+          console.error("Error al refrescar token en cliente:", err);
+          // En este caso, dejamos renderizar los children sin bloqueo.
+        });
     }
-  }, []);
+  }, [user, attemptedRefresh]);
 
-  if (role === null) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-900 via-gray-800 to-black text-white">
-        Verificando acceso...
-      </div>
-    );
+  // En lugar de bloquear el render con un spinner, permitimos la navegación normal si no hay usuario.
+  if (!user) {
+    return <>{children}</>;
   }
 
-  return role === "7" ? (
+  // Si hay usuario, aplicamos el layout especial para el rol "7" (presidente).
+  return user.role === "7" ? (
     <PresidenteLayout>{children}</PresidenteLayout>
   ) : (
     <>{children}</>
