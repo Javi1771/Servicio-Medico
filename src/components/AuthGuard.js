@@ -1,41 +1,51 @@
 import { useState, useEffect } from "react";
+import { useRouter } from "next/router";
 import PresidenteLayout from "../components/PresidenteLayout";
 
-const AuthGuard = ({ children, user: initialUser }) => {
+const AuthGuard = ({ children, user: initialUser = null }) => {
+  const router = useRouter();
   const [user, setUser] = useState(initialUser);
-  const [attemptedRefresh, setAttemptedRefresh] = useState(false);
+  const [isLoading, setIsLoading] = useState(!initialUser);
 
   useEffect(() => {
-    // Si no hay usuario y aún no se intentó refrescar, se hace una única llamada.
-    if (!user && !attemptedRefresh) {
-      setAttemptedRefresh(true);
-      fetch("/api/refresh", { method: "POST", credentials: "include" })
+    // Solo hacemos refresh si no tenemos un usuario ya definido
+    if (!user) {
+      setIsLoading(true);
+      fetch("/api/refresh", {
+        method: "POST",
+        credentials: "include",
+      })
         .then((res) => {
-          if (res.ok) return res.json();
+          if (res.ok) return res.json(); 
           throw new Error("No se pudo refrescar token");
         })
         .then((data) => {
-          // Forzamos que el rol se guarde como cadena para la comparación
+          // Actualizamos el estado con el rol recibido
           setUser({ role: String(data.rol) });
         })
         .catch((err) => {
-          console.error("Error al refrescar token en cliente:", err);
-          // En este caso, dejamos renderizar los children sin bloqueo.
+          console.warn("Token inválido o expirado:", err.message);
+          // Si no se pudo refrescar, redirigimos a /login
+          router.push("/login");
+        })
+        .finally(() => {
+          setIsLoading(false);
         });
     }
-  }, [user, attemptedRefresh]);
+  }, [user, router]);
 
-  // En lugar de bloquear el render con un spinner, permitimos la navegación normal si no hay usuario.
-  if (!user) {
-    return <>{children}</>;
+  // Mientras validamos/intentamos refresh, mostramos un loading
+  if (isLoading) {
+    return <div>Cargando sesión...</div>;
   }
 
-  // Si hay usuario, aplicamos el layout especial para el rol "7" (presidente).
-  return user.role === "7" ? (
-    <PresidenteLayout>{children}</PresidenteLayout>
-  ) : (
-    <>{children}</>
-  );
+  // Si el usuario existe y tiene rol 7, usa el layout de presidente
+  if (user?.role === "7") {
+    return <PresidenteLayout>{children}</PresidenteLayout>;
+  }
+
+  // Si no es rol 7, muestra directamente los children sin layout
+  return <>{children}</>;
 };
 
 export default AuthGuard;

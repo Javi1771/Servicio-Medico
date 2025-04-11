@@ -47,6 +47,7 @@
     "mssql": "^11.0.1",
     "mysql2": "^3.11.3",
     "next": "^14.2.15",
+    "next-auth": "^4.24.11",
     "next-cloudinary": "^6.16.0",
     "pdf-lib": "^1.17.1",
     "react": "^18",

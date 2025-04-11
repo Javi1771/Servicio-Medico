@@ -433,7 +433,7 @@ const AccionesConsulta = ({
       const encryptedClaveConsulta = btoa(claveConsulta.toString());
 
       //* Navegar a la otra pantalla enviando la claveConsulta cifrada
-      router.replace(
+      router.push(
         `/consultas/recetas/ver-recetas?claveconsulta=${encryptedClaveConsulta}`
       );
 

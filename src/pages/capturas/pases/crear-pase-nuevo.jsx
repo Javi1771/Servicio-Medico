@@ -135,7 +135,7 @@ const CrearPaseNuevo = () => {
   const router = useRouter();
 
   const handleRegresar = () => {
-    router.replace("/capturas/pases-a-especialidades"); //* Navegar a la pantalla anterior
+    router.push("/capturas/pases-a-especialidades"); //* Navegar a la pantalla anterior
   };
 
   const resetState = () => {
@@ -516,7 +516,7 @@ const CrearPaseNuevo = () => {
       const encryptedClaveConsulta = btoa(claveConsulta.toString());
 
       //* Navegar a la otra pantalla enviando la claveConsulta cifrada
-      router.replace(
+      router.push(
         `/capturas/recetas/ver-recetas-pases?claveconsulta=${encryptedClaveConsulta}`
       );
     } catch (error) {

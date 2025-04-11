@@ -138,7 +138,7 @@ const DetallesEspecialidad = () => {
       {/* Botón Regresar */}
       <div className="text-center mb-12">
         <button
-          onClick={() => router.replace("/especialista/consulta-especialista")}
+          onClick={() => router.push("/especialista/consulta-especialista")}
           className="bg-red-500 hover:bg-red-600 text-white font-semibold py-3 px-8 rounded-lg shadow-lg flex items-center gap-2 transition-all duration-300"
         >
           <FaChevronLeft /> Regresar

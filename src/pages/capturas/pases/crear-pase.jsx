@@ -152,7 +152,7 @@ const CrearPase = () => {
         const encryptedClaveConsulta = btoa(response.claveconsulta.toString());
 
         //* Navegar a la otra pantalla enviando la claveconsulta cifrada
-        router.replace(
+        router.push(
           `/capturas/recetas/ver-recetas-pases?claveconsulta=${encryptedClaveConsulta}`
         );
       } else {
@@ -465,7 +465,7 @@ const CrearPase = () => {
         <div className="flex justify-center space-x-8 mt-12">
           {/* Botón Salir */}
           <button
-            onClick={() => router.replace("/capturas/pases-a-especialidades")}
+            onClick={() => router.push("/capturas/pases-a-especialidades")}
             className="relative px-8 py-3 text-red-500 font-bold uppercase rounded-lg 
     bg-gray-900 border border-transparent 
     shadow-[0_0_20px_4px_rgba(255,0,0,0.7)] hover:shadow-[0_0_40px_8px_rgba(255,0,0,0.9)] 

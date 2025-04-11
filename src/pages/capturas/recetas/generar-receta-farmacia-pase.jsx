@@ -166,12 +166,7 @@ export default function GenerarReceta() {
           const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold); 
           const parentescoTexto = `- ${data.consulta?.parentescoNombre ?? "N/A"}`; 
         
-            firstPage.drawText(parentescoTexto, { 
-              x: 162, 
-              y: 601, 
-              size: 13, 
-              font: boldFont 
-            });
+            firstPage.drawText(parentescoTexto, { x: 162, y: 601, size: 13, font: boldFont });
           }
 
         //? Firmas

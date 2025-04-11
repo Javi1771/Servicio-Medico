@@ -14,7 +14,7 @@ export default async function handler(req, res) {
   try {
     const pool = await connectToDatabase();
 
-    //* Validar que el folio exista en la tabla CONSULTAS y clavestatus = 2
+    //* Verifica que la consulta existe
     const consultaResult = await pool
       .request()
       .input("folio", sql.VarChar, folio)
@@ -31,50 +31,57 @@ export default async function handler(req, res) {
       });
     }
 
-    //* Buscar en la tabla LABORATORIOS por CLAVECONSULTA
+    //* Obtener todas las órdenes de laboratorio relacionadas
     const labResult = await pool
       .request()
       .input("folio", sql.VarChar, folio)
       .query(`
         SELECT 
-          NOMBRE_PACIENTE, EDAD, DEPARTAMENTO, FOLIO_ORDEN_LABORATORIO 
-        FROM LABORATORIOS 
-        WHERE CLAVECONSULTA = @folio 
-          AND ESTATUS = 1
+          L.NOMBRE_PACIENTE, L.EDAD, L.DEPARTAMENTO, L.NOMINA,
+          L.FOLIO_ORDEN_LABORATORIO, p.nombreproveedor as laboratorio
+        FROM LABORATORIOS L
+        INNER JOIN proveedores p ON L.CLAVEMEDICO = p.claveproveedor
+        WHERE L.CLAVECONSULTA = @folio 
+          AND L.ESTATUS = 1
       `);
 
     if (!labResult.recordset.length) {
       return res.status(404).json({ message: "Orden de laboratorio no encontrada." });
     }
 
-    const lab = labResult.recordset[0];
-    //* Suponiendo que FOLIO_ORDEN_LABORATORIO es numérico, se usa como tal.
-    const folioOrden = lab.FOLIO_ORDEN_LABORATORIO;
+    const laboratorios = [];
 
-    //* Buscar en detalleLaboratorio todos los estudios asociados usando FOLIO_ORDEN_LABORATORIO
-    const estudiosResult = await pool
-      .request()
-      .input("folioOrden", sql.Int, folioOrden)
-      .query(`
-        SELECT E.estudio 
-        FROM detalleLaboratorio DL
-        JOIN ESTUDIOS E ON DL.claveEstudio = E.claveEstudio
-        WHERE DL.folio_orden_laboratorio = @folioOrden
-      `);
+    for (const row of labResult.recordset) {
+      const estudiosResult = await pool
+        .request()
+        .input("folioOrden", sql.Int, row.FOLIO_ORDEN_LABORATORIO)
+        .query(`
+          SELECT E.estudio 
+          FROM detalleLaboratorio DL
+          JOIN ESTUDIOS E ON DL.claveEstudio = E.claveEstudio
+          WHERE DL.folio_orden_laboratorio = @folioOrden
+        `);
+    
+      const estudios = estudiosResult.recordset.map(r => r.estudio);
+      laboratorios.push({
+        nombre: row.laboratorio,
+        estudios,
+        folioOrden: row.FOLIO_ORDEN_LABORATORIO,
+      });
+    }
 
-    //* Se arma un array con todos los nombres de estudios (puede estar vacío si no hay coincidencias)
-    const estudios = estudiosResult.recordset.map(row => row.estudio);
+    //* Tomamos los datos generales del primero (todos comparten esos campos)
+    const { NOMBRE_PACIENTE, EDAD, DEPARTAMENTO, NOMINA } = labResult.recordset[0];
 
-    //* Mostrar en log los estudios recibidos
-    console.log("Estudios recibidos:", estudios);
+    console.log("✅ Estudios por laboratorio:", laboratorios);
 
     return res.status(200).json({
       data: {
-        NOMBRE_PACIENTE: lab.NOMBRE_PACIENTE,
-        EDAD: lab.EDAD,
-        DEPARTAMENTO: lab.DEPARTAMENTO,
-        FOLIO_ORDEN_LABORATORIO: folioOrden,
-        estudios,
+        NOMBRE_PACIENTE,
+        EDAD,
+        NOMINA,
+        DEPARTAMENTO,
+        laboratorios,
       },
     });
   } catch (error) {

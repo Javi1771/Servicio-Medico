@@ -58,7 +58,7 @@ export default async function handler(req, res) {
         d.clavepaciente
       FROM detalleEspecialidad d
       LEFT JOIN especialidades e ON d.claveespecialidad = e.claveespecialidad
-      WHERE d.fecha_asignacion >= @oneMonthAgo AND d.estatus = 2
+      WHERE d.estatus = 2
     `;
 
     const inputs = [

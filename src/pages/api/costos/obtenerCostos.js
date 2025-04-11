@@ -69,6 +69,7 @@ export default async function handler(req, res) {
           con.diagnostico,
           con.fechaconsulta,
           con.edad,
+          c.url_factura,
           CASE 
             WHEN c.elpacienteesempleado = 'S' THEN 'Empleado'
             WHEN c.elpacienteesempleado = 'N' THEN par.PARENTESCO

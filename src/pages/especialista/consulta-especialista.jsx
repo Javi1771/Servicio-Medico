@@ -60,7 +60,7 @@ const PasesNuevoEspecialista = () => {
       const encryptedClaveConsulta = btoa(claveconsulta.toString());
   
       //* Redirigir con el valor cifrado
-      router.replace(
+      router.push(
         `/especialista/detalles-especialidad?claveconsulta=${encryptedClaveConsulta}`
       );
     }

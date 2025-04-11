@@ -15,10 +15,11 @@ import {
   FaArrowLeft,
   FaFileMedical,
   FaNotesMedical,
-  FaCalendarPlus 
+  FaCalendarPlus,
+  FaDownload,
+  FaPrint,
 } from "react-icons/fa";
-
-import { useRouter } from 'next/router';
+import { useRouter } from "next/router";
 
 const MySwal = withReactContent(Swal);
 
@@ -31,7 +32,6 @@ const playSound = (isSuccess) => {
   audio.play();
 };
 
-//* Helper para formatear números como moneda (pesos MXN)
 function formatCurrency(value) {
   if (!value) return "";
   const numericValue = parseFloat(value);
@@ -42,7 +42,6 @@ function formatCurrency(value) {
   });
 }
 
-//* Función auxiliar para mostrar alertas con formato neon
 const showAlert = (type, titleText, message) => {
   let icon = "info";
   let color = "#1976d2";
@@ -97,9 +96,11 @@ export default function Costos() {
   const [costo, setCosto] = useState("");
   const [numeroFactura, setNumeroFactura] = useState("");
   const [facturada, setFacturada] = useState(false);
-  const router = useRouter(); 
+  // Nuevo estado para almacenar el archivo PDF
+  const [pdfFile, setPdfFile] = useState(null);
+  const router = useRouter();
+  const [uploadProgress, setUploadProgress] = useState(0);
 
-  //* Búsqueda en el endpoint
   const handleSearch = async () => {
     if (!claveconsulta) return;
     try {
@@ -116,7 +117,6 @@ export default function Costos() {
           "❌ Error",
           "No se encontró registro para la claveconsulta proporcionada."
         );
-        //* Limpia todos los estados, incluyendo "facturada"
         setCostosData([]);
         setClaveconsulta("");
         setCosto("");
@@ -125,7 +125,6 @@ export default function Costos() {
         return;
       }
 
-      //* Verifica si ya existe factura y costo
       if (data[0].factura !== "" && Number(data[0].costo) !== 0) {
         playSound(false);
         MySwal.fire({
@@ -160,7 +159,6 @@ export default function Costos() {
           }
         });
       } else {
-        //! Si no está facturada, se muestran los datos para poder registrar
         setCostosData(data);
         setFacturada(false);
       }
@@ -175,7 +173,6 @@ export default function Costos() {
     }
   };
 
-  //* Guardar el costo (POST)
   const handleSubmitForm = async (e) => {
     e.preventDefault();
     if (!costo || !numeroFactura) {
@@ -195,19 +192,20 @@ export default function Costos() {
       return;
     }
     try {
+      // Se utiliza FormData para enviar el PDF junto a los demás campos
+      const formData = new FormData();
+      formData.append("costo", costo);
+      formData.append("numeroFactura", numeroFactura);
+      formData.append("pdfEvidence", pdfFile);
+
       const res = await fetch(
         `/api/costos/guardarCostos?claveconsulta=${encodeURIComponent(
           claveconsulta
         )}`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            costo,
-            numeroFactura,
-          }),
+          // No se establece Content-Type porque al usar FormData se maneja automáticamente
+          body: formData,
         }
       );
       if (!res.ok) {
@@ -231,6 +229,8 @@ export default function Costos() {
       setCosto("");
       setNumeroFactura("");
       setFacturada(true);
+      // Opcional: reiniciar el estado del PDF si se desea
+      setPdfFile(null);
       handleSearch();
     } catch (error) {
       console.error("Error al guardar el costo:", error);
@@ -238,9 +238,6 @@ export default function Costos() {
     }
   };
 
-  // ==================================================
-  //* Estilos y Paleta
-  // ==================================================
   const colors = {
     primary: "#37B874",
     primaryDark: "#2B8F60",
@@ -249,7 +246,6 @@ export default function Costos() {
     textLight: "#FAFAFA",
   };
 
-  //* Contenedor principal
   const containerStyle = {
     minHeight: "100vh",
     padding: "2rem",
@@ -263,7 +259,6 @@ export default function Costos() {
     position: "relative",
   };
 
-  //* Botón de "Regresar" como flotante en esquina superior izquierda
   const floatingBackButtonStyle = {
     position: "fixed",
     top: "1.5rem",
@@ -295,7 +290,6 @@ export default function Costos() {
     e.currentTarget.style.boxShadow = `0 0 5px ${colors.primaryDark}`;
   };
 
-  //* Título principal
   const headerStyle = {
     fontSize: "3rem",
     color: colors.primaryDark,
@@ -307,7 +301,6 @@ export default function Costos() {
     marginBottom: "1.5rem",
   };
 
-  //* Tarjetas con efecto "glass"
   const glassCard = {
     backdropFilter: "blur(12px)",
     backgroundColor: "rgba(255, 255, 255, 0.5)",
@@ -316,7 +309,6 @@ export default function Costos() {
     border: "1px solid rgba(255, 255, 255, 0.18)",
   };
 
-  //* Card de búsqueda
   const searchContainerStyle = {
     ...glassCard,
     width: "100%",
@@ -343,7 +335,6 @@ export default function Costos() {
     fontSize: "1.8rem",
   };
 
-  //* Sección interna de búsqueda (input + botón)
   const searchSectionStyle = {
     display: "flex",
     gap: "1rem",
@@ -361,7 +352,6 @@ export default function Costos() {
     boxShadow: `0 0 0px ${colors.primary}`,
   };
 
-  //* Botón "Buscar"
   const buttonStyle = {
     padding: "0.8rem 1.2rem",
     fontSize: "1.1rem",
@@ -379,7 +369,6 @@ export default function Costos() {
     fontWeight: 600,
   };
 
-  //* Contenedor de resultados
   const resultsContainerStyle = {
     width: "100%",
     maxWidth: "900px",
@@ -391,7 +380,6 @@ export default function Costos() {
     opacity: 0,
   };
 
-  //* Card individual de la consulta
   const cardStyle = {
     ...glassCard,
     padding: "2rem",
@@ -399,14 +387,12 @@ export default function Costos() {
     transition: "transform 0.3s, boxShadow 0.3s",
   };
 
-  //* Grid de 2 columnas para los campos
   const twoColumnGrid = {
     display: "grid",
     gridTemplateColumns: "1fr 1fr",
     gap: "1rem",
   };
 
-  //* Cada "campo" en la grid
   const fieldBoxStyle = {
     display: "flex",
     flexDirection: "column",
@@ -435,7 +421,6 @@ export default function Costos() {
     color: colors.primaryDark,
   };
 
-  //* Formulario
   const formContainerStyle = {
     ...glassCard,
     width: "100%",
@@ -477,7 +462,6 @@ export default function Costos() {
     justifyContent: "center",
   };
 
-  //* Efectos de focus/hover en inputs y tarjetas
   const handleInputFocus = (e) => {
     e.target.style.boxShadow = "inset 0 0 8px rgba(0, 0, 0, 0.2)";
     e.target.style.background = "linear-gradient(to right, #f2fff9, #dfffef)";
@@ -541,22 +525,19 @@ export default function Costos() {
         `}
       </style>
 
-      {/* Botón flotante para "Regresar" */}
       <button
         style={floatingBackButtonStyle}
         onMouseEnter={handleBackMouseEnter}
         onMouseLeave={handleBackMouseLeave}
         onClick={() => router.replace("/inicio-servicio-medico")}
-        >
+      >
         <FaArrowLeft />
         Regresar
       </button>
 
       <div style={containerStyle}>
-        {/* Título principal */}
         <h1 style={headerStyle}>Consulta de Costos</h1>
 
-        {/* Card de Búsqueda */}
         <div style={searchContainerStyle}>
           <div style={sectionTitleStyle}>
             <FaSearch style={sectionIconStyle} />
@@ -584,7 +565,6 @@ export default function Costos() {
           </div>
         </div>
 
-        {/* Resultados */}
         <div style={resultsContainerStyle}>
           {costosData.length === 0 ? (
             <p
@@ -606,7 +586,6 @@ export default function Costos() {
                 onMouseLeave={handleCardMouseLeave}
               >
                 <div style={twoColumnGrid}>
-                  {/* Proveedor */}
                   <div style={fieldBoxStyle}>
                     <div style={fieldLabelStyle}>
                       <FaHospital style={iconStyle} />
@@ -617,7 +596,6 @@ export default function Costos() {
                     </div>
                   </div>
 
-                  {/* Fecha de la consulta */}
                   <div style={fieldBoxStyle}>
                     <div style={fieldLabelStyle}>
                       <FaCalendarPlus style={iconStyle} />
@@ -628,7 +606,6 @@ export default function Costos() {
                     </div>
                   </div>
 
-                  {/* Nómina */}
                   <div style={fieldBoxStyle}>
                     <div style={fieldLabelStyle}>
                       <FaUser style={iconStyle} />
@@ -639,7 +616,6 @@ export default function Costos() {
                     </div>
                   </div>
 
-                  {/* Parentesco */}
                   <div style={fieldBoxStyle}>
                     <div style={fieldLabelStyle}>
                       <FaQuestionCircle style={iconStyle} />
@@ -650,7 +626,6 @@ export default function Costos() {
                     </div>
                   </div>
 
-                  {/* Departamento */}
                   <div style={fieldBoxStyle}>
                     <div style={fieldLabelStyle}>
                       <FaBuilding style={iconStyle} />
@@ -661,7 +636,6 @@ export default function Costos() {
                     </div>
                   </div>
 
-                  {/* Especialidad */}
                   <div style={fieldBoxStyle}>
                     <div style={fieldLabelStyle}>
                       <FaStethoscope style={iconStyle} />
@@ -672,7 +646,6 @@ export default function Costos() {
                     </div>
                   </div>
 
-                  {/* Paciente */}
                   <div style={fieldBoxStyle}>
                     <div style={fieldLabelStyle}>
                       <FaUserAlt style={iconStyle} />
@@ -683,7 +656,6 @@ export default function Costos() {
                     </div>
                   </div>
 
-                  {/* Edad */}
                   <div style={fieldBoxStyle}>
                     <div style={fieldLabelStyle}>
                       <FaBirthdayCake style={iconStyle} />
@@ -692,7 +664,6 @@ export default function Costos() {
                     <div style={fieldValueStyle}>{item.edad ?? "N/A"}</div>
                   </div>
 
-                  {/* Motivo de consulta */}
                   <div style={fieldBoxStyle}>
                     <div style={fieldLabelStyle}>
                       <FaNotesMedical style={iconStyle} />
@@ -703,7 +674,6 @@ export default function Costos() {
                     </div>
                   </div>
 
-                  {/* Diagnóstico */}
                   <div style={fieldBoxStyle}>
                     <div style={fieldLabelStyle}>
                       <FaFileMedical style={iconStyle} />
@@ -719,7 +689,6 @@ export default function Costos() {
           )}
         </div>
         <br />
-        {/* Mensaje si ya fue facturada */}
         {facturada && costosData.length > 0 && (
           <p style={{ color: "#2B8F60", fontSize: "1.2rem", fontWeight: 600 }}>
             Esta consulta ya fue facturada. No es posible actualizar los datos.
@@ -758,6 +727,53 @@ export default function Costos() {
                 placeholder="Ingresa el número de factura"
               />
             </div>
+            {/* Nuevo campo para subir el PDF de evidencia con barra de carga */}
+            <div style={formFieldStyle}>
+              <label style={labelStyle}>Evidencia de la Factura (PDF)</label>
+              <input
+                type="file"
+                accept=".pdf"
+                onChange={(e) => {
+                  if (e.target.files && e.target.files[0]) {
+                    setPdfFile(e.target.files[0]);
+                  }
+                }}
+                style={{
+                  ...fancyInputStyle,
+                  padding: "0.8rem",
+                  border: "2px dashed #37B874",
+                  borderRadius: "8px",
+                  cursor: "pointer",
+                  background: "linear-gradient(to right, #ffffff, #ecfdf4)",
+                }}
+              />
+              {uploadProgress > 0 && (
+                <div style={{ marginTop: "10px", textAlign: "center" }}>
+                  <label
+                    style={{
+                      color: "#2B8F60",
+                      fontWeight: "bold",
+                      marginBottom: "5px",
+                      display: "block",
+                    }}
+                  >
+                    Subiendo archivo: {uploadProgress}%
+                  </label>
+                  <progress
+                    value={uploadProgress}
+                    max="100"
+                    style={{
+                      width: "100%",
+                      height: "20px",
+                      borderRadius: "8px",
+                      overflow: "hidden",
+                      border: "1px solid #37B874",
+                    }}
+                  ></progress>
+                </div>
+              )}
+            </div>
+
             <button
               type="submit"
               style={submitButtonStyle}
@@ -772,47 +788,223 @@ export default function Costos() {
 
         {/* Formulario en modo lectura (si está facturada) */}
         {facturada && costosData.length > 0 && (
-          <form style={formContainerStyle}>
-            <div style={sectionTitleStyle}>
-              <FaFileInvoiceDollar style={sectionIconStyle} />
-              <span>Detalle de Facturación</span>
-            </div>
-            <div style={formFieldStyle}>
-              <label style={labelStyle}>Costo</label>
-              <input
-                type="text"
-                value={formatCurrency(costo)}
-                disabled
-                style={{
-                  ...fancyInputStyle,
-                  backgroundColor: "#e0e0e0",
-                  cursor: "not-allowed",
-                }}
-              />
-            </div>
-            <div style={formFieldStyle}>
-              <label style={labelStyle}>Número de Factura</label>
-              <input
-                type="text"
-                value={numeroFactura}
-                disabled
-                style={{
-                  ...fancyInputStyle,
-                  backgroundColor: "#e0e0e0",
-                  cursor: "not-allowed",
-                }}
-              />
-            </div>
-            <p
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: "2rem",
+              justifyContent: "center",
+              alignItems: "flex-start",
+              marginTop: "2rem",
+              background: "#ffffff",
+              borderRadius: "16px",
+              boxShadow: "0 3px 15px rgba(0, 0, 0, 0.07)",
+              padding: "2rem",
+              width: "100%",
+              maxWidth: "900px",
+              animation: "fadeInUp 0.9s ease forwards",
+              transform: "translateY(20px)",
+              opacity: 1,
+            }}
+          >
+            {/* Columna Izquierda: Datos de Facturación */}
+            <div
               style={{
-                textAlign: "center",
-                color: "#424242",
-                fontSize: "1rem",
+                flex: "1 1 320px",
+                minWidth: "280px",
+                display: "flex",
+                flexDirection: "column",
+                gap: "1rem",
               }}
             >
-              Consulta facturada. No se pueden actualizar los datos.
-            </p>
-          </form>
+              <div
+                style={{
+                  background: "linear-gradient(145deg, #dfffe9, #f4fff9)",
+                  borderRadius: "12px",
+                  padding: "1rem 1.5rem",
+                  boxShadow: "0 2px 6px rgba(0, 0, 0, 0.08)",
+                }}
+              >
+                <h2
+                  style={{
+                    fontSize: "1.8rem",
+                    color: "#2B8F60",
+                    margin: 0,
+                    textShadow: "1px 1px 2px rgba(0,0,0,0.1)",
+                    borderBottom: "2px solid #c2ead4",
+                    paddingBottom: "0.5rem",
+                  }}
+                >
+                  Detalle de Facturación
+                </h2>
+
+                {/* Costo */}
+                <div
+                  style={{
+                    marginTop: "1rem",
+                    padding: "0.8rem",
+                    borderRadius: "8px",
+                    background: "#f6f9f7",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "0.3rem",
+                  }}
+                >
+                  <strong style={{ color: "#2B8F60" }}>Costo</strong>
+                  <span style={{ color: "#444", fontSize: "1.1rem" }}>
+                    {formatCurrency(costo)}
+                  </span>
+                </div>
+
+                {/* Número de Factura */}
+                <div
+                  style={{
+                    marginTop: "1rem",
+                    padding: "0.8rem",
+                    borderRadius: "8px",
+                    background: "#f6f9f7",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "0.3rem",
+                  }}
+                >
+                  <strong style={{ color: "#2B8F60" }}>
+                    Número de Factura
+                  </strong>
+                  <span style={{ color: "#444", fontSize: "1.1rem" }}>
+                    {numeroFactura}
+                  </span>
+                </div>
+
+                <p
+                  style={{
+                    textAlign: "center",
+                    color: "#757575",
+                    fontSize: "0.95rem",
+                    marginTop: "1rem",
+                  }}
+                >
+                  Consulta facturada. No se pueden actualizar los datos.
+                </p>
+              </div>
+            </div>
+
+            {/* Columna Derecha: Previsualización y botones */}
+            {costosData[0].url_factura && (
+              <div
+                style={{
+                  flex: "1 1 320px",
+                  minWidth: "280px",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: "1rem",
+                }}
+              >
+                <div
+                  style={{
+                    background: "linear-gradient(145deg, #dfffe9, #f4fff9)",
+                    borderRadius: "12px",
+                    padding: "1rem 1.5rem",
+                    boxShadow: "0 2px 6px rgba(0, 0, 0, 0.08)",
+                    width: "100%",
+                    textAlign: "center",
+                  }}
+                >
+                  <h3
+                    style={{
+                      color: "#2B8F60",
+                      margin: 0,
+                      fontSize: "1.2rem",
+                      fontWeight: 600,
+                      textShadow: "1px 1px 2px rgba(0,0,0,0.1)",
+                      borderBottom: "2px solid #c2ead4",
+                      paddingBottom: "0.5rem",
+                    }}
+                  >
+                    Previsualización de la factura
+                  </h3>
+
+                  <div
+                    style={{
+                      width: "260px",
+                      height: "380px",
+                      background: "#f6f9f7",
+                      borderRadius: "8px",
+                      overflow: "hidden",
+                      boxShadow: "0 3px 10px rgba(0, 0, 0, 0.1)",
+                      border: "1px solid #e0e0e0",
+                      margin: "1rem auto 0",
+                    }}
+                  >
+                    <iframe
+                      id="invoiceIframe"
+                      src={costosData[0].url_factura}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        border: "none",
+                      }}
+                      title="Previsualización de la factura"
+                    />
+                  </div>
+
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: "1rem",
+                      marginTop: "1.2rem",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <a
+                      href={costosData[0].url_factura}
+                      download
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "0.4rem",
+                        background: "linear-gradient(145deg, #37B874, #2B8F60)",
+                        color: "#fff",
+                        border: "none",
+                        borderRadius: "8px",
+                        padding: "0.8rem 1.2rem",
+                        fontSize: "0.9rem",
+                        textDecoration: "none",
+                        boxShadow: "0 3px 8px rgba(0,0,0,0.15)",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <FaDownload /> Descargar
+                    </a>
+                    <button
+                      onClick={() => {
+                        const iframe = document.getElementById("invoiceIframe");
+                        if (iframe && iframe.contentWindow) {
+                          iframe.contentWindow.print();
+                        }
+                      }}
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "0.4rem",
+                        background: "linear-gradient(145deg, #37B874, #2B8F60)",
+                        color: "#fff",
+                        border: "none",
+                        borderRadius: "8px",
+                        padding: "0.8rem 1.2rem",
+                        fontSize: "0.9rem",
+                        cursor: "pointer",
+                        boxShadow: "0 3px 8px rgba(0,0,0,0.15)",
+                      }}
+                    >
+                      <FaPrint /> Imprimir
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         )}
       </div>
     </>

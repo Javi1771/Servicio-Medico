@@ -51,7 +51,7 @@ const HistorialOrdenes = () => {
 
   const handleRowClick = (item) => {
     const encryptedClaveConsulta = btoa(item.CLAVECONSULTA.toString().trim());
-    router.replace(
+    router.push(
       `/capturas/laboratorio/ver-ordenes?claveconsulta=${encryptedClaveConsulta}`
     );
   };

@@ -4,6 +4,8 @@ import React, { useState, useEffect, useContext } from "react";
 import withReactContent from "sweetalert2-react-content";
 import { FormularioContext } from "/src/context/FormularioContext";
 import EspecialidadDropdown from "../components/EspecialidadDropdown";
+import TablaHistorialEspecialidades from "../components/HistorialEspecialidades";
+
 
 const PaseEspecialidad = ({
   claveConsulta,
@@ -433,71 +435,10 @@ const PaseEspecialidad = ({
       )}
 
       {/* Tabla de Historial de Especialidades */}
-      <div className="bg-gray-900 p-6 md:p-8 rounded-xl shadow-2xl mb-6">
-        <h2 className="text-2xl md:text-4xl font-semibold mb-4 text-center text-purple-400">
-          Historial de Especialidades
-        </h2>
-        <div className="overflow-x-auto">
-          <table className="min-w-full rounded-lg text-left">
-            <thead>
-              <tr className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white border-b border-gray-700">
-                <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
-                  Especialidad Asignada
-                </th>
-                <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
-                  Prioridad
-                </th>
-                <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
-                  Observaciones
-                </th>
-                <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
-                  Fecha de Asignación
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {console.log(
-                "Datos que se renderizan en la tabla:",
-                historialEspecialidades
-              )}
-              {isLoading ? (
-                <tr>
-                  <td colSpan="6" className="text-center py-6 text-gray-400">
-                    Cargando historial...
-                  </td>
-                </tr>
-              ) : historialEspecialidades.length > 0 ? (
-                historialEspecialidades.map((item, i) => (
-                  <tr
-                    key={i}
-                    className="hover:bg-purple-600 hover:bg-opacity-50 transition-colors duration-300"
-                  >
-                    <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
-                      {item.especialidad || "N/A"}
-                    </td>
-                    <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
-                      {item.prioridad}
-                    </td>
-                    <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
-                      {item.observaciones}
-                    </td>
-                    <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
-                      {item.fecha_asignacion}
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="6" className="text-center py-6 text-gray-400">
-                    No hay especialidades registradas para el paciente
-                    seleccionado.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <TablaHistorialEspecialidades
+        historial={historialEspecialidades}
+        isLoading={isLoading}
+      />
     </div>
   );
 };

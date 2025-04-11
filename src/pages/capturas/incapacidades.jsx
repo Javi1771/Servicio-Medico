@@ -20,7 +20,7 @@ import {
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 
-// Componentes de historial
+//* Componentes de historial
 import HistorialIncapacidadesTable from "./incapacidades/historial-incapacidades-captura";
 import HistorialCompletoPage from "./incapacidades/historial-incapacidades-completo";
 
@@ -158,7 +158,7 @@ const CapturaIncapacidades = () => {
           }).then((result) => {
             if (result.isConfirmed) {
               const encryptedClaveConsulta = btoa(folioConsulta.trim());
-              router.replace(
+              router.push(
                 `/capturas/incapacidades/nueva-incapacidad?claveconsulta=${encryptedClaveConsulta}`
               );
             } else {
@@ -331,7 +331,7 @@ const CapturaIncapacidades = () => {
         },
       }).then(() => {
         const encryptedClaveConsulta = btoa(folioConsulta.trim());
-        router.replace(
+        router.push(
           `/capturas/incapacidades/ver-incapacidad?claveconsulta=${encryptedClaveConsulta}`
         );
       });

@@ -46,7 +46,7 @@ const TopMedicamentos = () => {
 
       {/* Mensaje inicial si no se ha hecho clic en "Consultar" */}
       {fetchDate === null ? (
-        <p>Por favor, seleccione una fecha y haga clic en "Consultar".</p>
+        <p>Por favor, seleccione una fecha y haga clic en Consultar.</p>
       ) : (
         <>
           {loadingTop && <p>Cargando top medicamentos...</p>}

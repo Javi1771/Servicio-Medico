@@ -6,7 +6,7 @@ import "react-calendar/dist/Calendar.css";
 import { FaCalendarAlt, FaArrowLeft } from "react-icons/fa";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
-import HistorialIncapacidadesTable from "../../consultas/datos-adicionales/historial-incapacidades";
+import HistorialIncapacidadesTable from "../../consultas/components/HistorialIncapacidades";
 import { motion } from "framer-motion";
 
 const MySwal = withReactContent(Swal);
@@ -291,7 +291,7 @@ const NuevaIncapacidad = () => {
   };
 
   const handleRegresar = () => {
-    router.replace("/capturas/incapacidades");
+    router.push("/capturas/incapacidades");
   };
 
   return (

@@ -7,7 +7,7 @@ export default function VerRecetas() {
   const [encryptedClave, setEncryptedClave] = useState("");
 
   const handleRegresar = () => {
-    router.replace("/capturas/incapacidades"); //* Navegar a la pantalla anterior
+    router.push("/capturas/incapacidades");
   };
 
   useEffect(() => {

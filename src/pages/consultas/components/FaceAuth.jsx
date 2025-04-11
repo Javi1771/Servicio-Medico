@@ -187,7 +187,7 @@ export default function FaceAuth({ beneficiaries }) {
           setLoadingMessage("Redirigiendo...");
           stopCamera();
           //* Redirigir con parámetros encriptados
-          router.replace(
+          router.push(
             `/consultas/signos-vitales-facial?nomina=${encryptedNomina}&idBeneficiario=${encryptedBeneficiario}`
           );
         } else {
@@ -216,7 +216,7 @@ export default function FaceAuth({ beneficiaries }) {
         if (result.isConfirmed) {
           capturePhoto();
         } else if (result.dismiss === Swal.DismissReason.cancel) {
-          router.replace("/consultas/signos-vitales");
+          router.push("/consultas/signos-vitales");
         }
       });
     }

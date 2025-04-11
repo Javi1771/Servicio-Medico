@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/router";
 import {
@@ -21,6 +21,19 @@ const IncapacidadesDashboard = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const router = useRouter();
 
+  const tapSound = useRef(null);
+
+  useEffect(() => {
+    tapSound.current = new Audio("/assets/tap.mp3");
+  }, []);
+
+  const playTapSound = () => {
+    if (tapSound.current) {
+      tapSound.current.currentTime = 0;
+      tapSound.current.play();
+    }
+  };
+
   useEffect(() => {
     const fetchIncapacidades = async () => {
       try {
@@ -38,7 +51,6 @@ const IncapacidadesDashboard = () => {
     fetchIncapacidades();
   }, []);
 
-  //* Función para filtrar por nómina o nombre del paciente
   useEffect(() => {
     const lowerSearch = searchTerm.toLowerCase();
     const filtered = incapacidades.filter((item) =>
@@ -54,11 +66,9 @@ const IncapacidadesDashboard = () => {
 
   return (
     <div className="relative min-h-screen bg-black text-white p-10 overflow-hidden">
-      {/* Fondo Animado */}
       <div className="absolute inset-0 z-0 bg-gradient-to-br from-black via-gray-900 to-black opacity-90"></div>
       <div className="absolute inset-0 bg-grid opacity-10 animate-grid-move"></div>
 
-      {/* Header con botón de regresar */}
       <div className="relative z-10 flex items-center justify-between mb-6">
         <button
           onClick={handleGoBack}
@@ -75,11 +85,9 @@ const IncapacidadesDashboard = () => {
         >
           🌟 Historial de Incapacidades 🌟
         </motion.h1>
-        {/* Espacio para balancear */}
         <div className="w-24" />
       </div>
 
-      {/* Input de Búsqueda */}
       <div className="relative z-10 flex justify-center mb-8">
         <div className="relative w-full max-w-md">
           <input
@@ -93,7 +101,6 @@ const IncapacidadesDashboard = () => {
         </div>
       </div>
 
-      {/* Carga y Errores */}
       {loading && (
         <p className="text-center text-lg animate-pulse text-cyan-400">
           Cargando incapacidades...
@@ -101,7 +108,6 @@ const IncapacidadesDashboard = () => {
       )}
       {error && <p className="text-red-500 text-center">{error}</p>}
 
-      {/* Grid de Tarjetas */}
       {!loading && !error && (
         <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filteredIncapacidades.length === 0 ? (
@@ -117,6 +123,7 @@ const IncapacidadesDashboard = () => {
               return (
                 <motion.div
                   key={index}
+                  onMouseEnter={playTapSound}
                   className={`relative rounded-2xl p-6 shadow-lg transition-all duration-300 overflow-hidden backdrop-blur-lg 
                     ${
                       isVencida
@@ -130,7 +137,6 @@ const IncapacidadesDashboard = () => {
                   transition={{ duration: 0.5, delay: index * 0.1 }}
                   whileHover={{ scale: 1.05 }}
                 >
-                  {/* Nombre del Paciente */}
                   <h2
                     className={`text-3xl font-bold flex items-center gap-2 
                       ${
@@ -143,48 +149,30 @@ const IncapacidadesDashboard = () => {
                   >
                     <FaUserMd /> {incapacidad.nombrepaciente}
                   </h2>
-
-                  {/* Nómina */}
                   <h2 className="text-xl text-gray-300 flex items-center gap-2 mt-2">
-                    <FaIdCard className="text-yellow-400" /> Nómina:{" "}
-                    {incapacidad.nomina}
+                    <FaIdCard className="text-yellow-400" /> Nómina: {incapacidad.nomina}
                   </h2>
-
-                  {/* Fechas */}
                   <p className="text-gray-300 text-md flex items-center gap-2 mt-3">
-                    <FaCalendarAlt className="text-yellow-400" /> <b>Inicio:</b>{" "}
-                    {incapacidad.fechainicio}
+                    <FaCalendarAlt className="text-yellow-400" /> <b>Inicio:</b> {incapacidad.fechainicio}
                   </p>
                   <p className="text-gray-300 text-md flex items-center gap-2">
-                    <FaClock className="text-red-400" /> <b>Fin:</b>{" "}
-                    {incapacidad.fechafin}
+                    <FaClock className="text-red-400" /> <b>Fin:</b> {incapacidad.fechafin}
                   </p>
-
-                  {/* Observaciones */}
                   <p className="text-gray-300 text-md flex items-center gap-2 mt-3">
-                    <FaNotesMedical className="text-green-400" />{" "}
-                    <b>Observaciones:</b> {incapacidad.observaciones || "N/A"}
+                    <FaNotesMedical className="text-green-400" /> <b>Observaciones:</b> {incapacidad.observaciones || "N/A"}
                   </p>
-
-                  {/* Médico y Especialidad */}
                   <div className="mt-4 text-md text-gray-400 border-t border-gray-500/50 pt-3">
                     <p className="flex items-center gap-2">
-                      <FaUserMd className="text-blue-400" /> <b>Médico:</b>{" "}
-                      {incapacidad.clavemedico_nombre || "Desconocido"}
+                      <FaUserMd className="text-blue-400" /> <b>Médico:</b> {incapacidad.clavemedico_nombre || "Desconocido"}
                     </p>
                     <p className="flex items-center gap-2">
-                      🏥 <b>Especialidad:</b>{" "}
-                      {incapacidad.especialidad_clavemedico || "N/A"}
+                      🏥 <b>Especialidad:</b> {incapacidad.especialidad_clavemedico || "N/A"}
                     </p>
                   </div>
-
-                  {/* Alertas */}
                   {isVencida && (
                     <motion.div className="absolute top-3 right-3 flex items-center gap-2 bg-red-600/40 text-white text-xs px-3 py-2 rounded-full shadow-lg backdrop-blur-xl">
                       <FaExclamationTriangle className="text-lg" />
-                      <span>
-                        Incapacidad vencida hace {incapacidad.alerta}
-                      </span>
+                      <span>Incapacidad vencida hace {incapacidad.alerta}</span>
                     </motion.div>
                   )}
                   {isActiva && (

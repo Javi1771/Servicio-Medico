@@ -1,30 +1,8 @@
 import React, { useState } from "react";
 
-const HistorialIncapacidadesTable = ({ historial, loading }) => {
+const TablaHistorialEspecialidades = ({ historial, isLoading }) => {
   const [paginaActual, setPaginaActual] = useState(1);
   const elementosPorPagina = 5;
-
-  if (loading) {
-    return (
-      <div className="bg-gray-900 p-6 md:p-8 rounded-xl shadow-2xl mt-8 flex justify-center items-center min-h-[200px]">
-        <svg className="animate-spin h-12 w-12 text-white" viewBox="0 0 24 24">
-          <circle
-            className="opacity-25"
-            cx="12"
-            cy="12"
-            r="10"
-            stroke="currentColor"
-            strokeWidth="4"
-          ></circle>
-          <path
-            className="opacity-75"
-            fill="currentColor"
-            d="M4 12a8 8 0 018-8v8H4z"
-          ></path>
-        </svg>
-      </div>
-    );
-  }
 
   const totalPaginas = Math.ceil(historial.length / elementosPorPagina);
 
@@ -40,79 +18,60 @@ const HistorialIncapacidadesTable = ({ historial, loading }) => {
   };
 
   return (
-    <div className="bg-gray-900 p-6 md:p-8 rounded-xl shadow-2xl mt-8">
+    <div className="bg-gray-900 p-6 md:p-8 rounded-xl shadow-2xl mb-6">
       <h2 className="text-2xl md:text-4xl font-semibold mb-4 text-center text-purple-400">
-        Historial de Incapacidades
+        Historial de Especialidades
       </h2>
-
-      <div className="overflow-x-auto w-full">
+      <div className="overflow-x-auto">
         <table className="min-w-full rounded-lg text-left">
           <thead>
             <tr className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white border-b border-gray-700">
               <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
-                Folio Consulta
+                Especialidad Asignada
+              </th>
+              <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
+                Prioridad
               </th>
               <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
                 Observaciones
               </th>
               <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
-                Fecha de Registro o Captura
-              </th>
-              <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
-                ¿Quién Capturó o Registró la Incapacidad?
-              </th>
-              <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
-                Fecha Inicio Incapacidad
-              </th>
-              <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
-                Fecha Fin Incapacidad
-              </th>
-              <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
-                Médico Que Asignó Incapacidad
-              </th>
-              <th className="p-3 md:p-4 text-sm md:text-base font-semibold text-left">
-                Especialidad Del Médico
+                Fecha de Asignación
               </th>
             </tr>
           </thead>
-
           <tbody>
-            {historial && historial.length > 0 ? (
-              historialPaginado.map((item, idx) => (
+            {isLoading ? (
+              <tr>
+                <td colSpan="4" className="text-center py-6 text-gray-400">
+                  Cargando historial...
+                </td>
+              </tr>
+            ) : historial.length > 0 ? (
+              historialPaginado.map((item, i) => (
                 <tr
-                  key={idx}
+                  key={i}
                   className="hover:bg-purple-600 hover:bg-opacity-50 transition-colors duration-300"
                 >
                   <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
-                    {item.claveconsulta || "Sin clave"}
+                    {item.especialidad || "N/A"}
                   </td>
                   <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
-                    {item.observaciones || "Sin observaciones"}
+                    {item.prioridad}
                   </td>
                   <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
-                    {item.fecha}
+                    {item.observaciones}
                   </td>
                   <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
-                    {item.quiencapturo_nombre}
-                  </td>
-                  <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
-                    {item.fechainicio}
-                  </td>
-                  <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
-                    {item.fechafin}
-                  </td>
-                  <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
-                    {item.clavemedico_nombre}
-                  </td>
-                  <td className="py-3 px-4 border-t border-gray-800 text-gray-300">
-                    {item.especialidad_clavemedico}
+                    {item.fecha_asignacion}
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan={8} className="text-center py-6 text-gray-400">
-                  No hay incapacidades registradas para el paciente.
+                <td colSpan="4" className="text-center py-6 text-gray-400">
+                  No hay especialidades registradas para el paciente
+                  seleccionado.
                 </td>
               </tr>
             )}
@@ -146,4 +105,4 @@ const HistorialIncapacidadesTable = ({ historial, loading }) => {
   );
 };
 
-export default HistorialIncapacidadesTable;
+export default TablaHistorialEspecialidades;

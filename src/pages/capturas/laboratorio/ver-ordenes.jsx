@@ -21,7 +21,7 @@ export default function VerOrdenes() {
   const [encryptedClave, setEncryptedClave] = useState("");
 
   const handleRegresar = () => {
-    router.replace("/capturas/orden-de-estudio-de-laboratorio");
+    router.push("/capturas/orden-de-estudio-de-laboratorio");
   };
 
   useEffect(() => {

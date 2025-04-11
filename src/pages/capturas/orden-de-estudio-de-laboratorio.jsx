@@ -2,7 +2,7 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useRef, useEffect } from "react";
 import StudySelector from "./components/EstudiosDropdown";
-import HistorialOrdenes from "./components/HistorialOrdenes"; // <-- Componente de historial
+import HistorialOrdenes from "./components/HistorialOrdenes"; 
 import { useRouter } from "next/router";
 import {
   FaSearch,
@@ -21,7 +21,7 @@ import {
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 import Calendar from "react-calendar";
-import "react-calendar/dist/Calendar.css"; // Asegúrate de importar los estilos de react-calendar
+import "react-calendar/dist/Calendar.css"; 
 
 const MySwal = withReactContent(Swal);
 
@@ -36,7 +36,7 @@ const EstudioLaboratorio = () => {
   const [consultaData, setConsultaData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [especialistas, setEspecialistas] = useState([]);
-  const [isSaving, setIsSaving] = useState(false); // Estado para evitar múltiples clics en guardar
+  const [isSaving, setIsSaving] = useState(false); //* Estado para evitar múltiples clics en guardar
 
   //* Estado para opciones de estudios
   const [studyOptions, setStudyOptions] = useState([]);
@@ -47,8 +47,8 @@ const EstudioLaboratorio = () => {
       selectedEspecialista: null,
       selectedStudies: [""],
       diagnosis: "",
-      selectedDate: "", // Fecha seleccionada en formato "YYYY-MM-DD"
-      isDatePickerOpen: false, // Controla si se muestra el selector de fecha
+      selectedDate: "", //* Fecha seleccionada en formato "YYYY-MM-DD"
+      isDatePickerOpen: false, //* Controla si se muestra el selector de fecha
     },
   ]);
 
@@ -328,7 +328,7 @@ const EstudioLaboratorio = () => {
     };
 
     console.log("Datos enviados:", body);
-    setIsSaving(true); // Deshabilitamos el botón y cambiamos el texto a "Guardando..."
+    setIsSaving(true); //! Deshabilitamos el botón y cambiamos el texto a "Guardando..."
     try {
       const res = await fetch("/api/laboratorio/insertarOrden", {
         method: "POST",
@@ -341,7 +341,7 @@ const EstudioLaboratorio = () => {
           "Los estudios se han registrado correctamente."
         );
         const encryptedClaveConsulta = btoa(folioConsulta.trim());
-        router.replace(
+        router.push(
           `/capturas/laboratorio/ver-ordenes?claveconsulta=${encryptedClaveConsulta}`
         );
       } else {
@@ -353,7 +353,7 @@ const EstudioLaboratorio = () => {
         "❌ Error al Guardar",
         "No se pudo guardar el estudio. Intenta nuevamente."
       );
-      setIsSaving(false); // Habilitamos nuevamente el botón si ocurrió un error
+      setIsSaving(false); //* Habilitamos nuevamente el botón si ocurrió un error
     }
   };
 

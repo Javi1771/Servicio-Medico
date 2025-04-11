@@ -7,7 +7,7 @@ export default function VerRecetas() {
   const [encryptedClave, setEncryptedClave] = useState("");
 
   const handleRegresar = () => {
-    router.replace("/consultas/signos-vitales"); //* Navegar a la pantalla anterior
+    router.push("/consultas/signos-vitales"); //* Navegar a la pantalla anterior
   };
 
   useEffect(() => {

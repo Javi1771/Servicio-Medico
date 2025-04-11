@@ -8,7 +8,7 @@ import { FaCalendarAlt } from "react-icons/fa";
 import "react-datepicker/dist/react-datepicker.css";
 import { FormularioContext } from "/src/context/FormularioContext";
 
-import HistorialIncapacidadesTable from "./historial-incapacidades";
+import HistorialIncapacidadesTable from "../components/HistorialIncapacidades"
 
 const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
   const { updateFormulario } = useContext(FormularioContext);

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import Swal from "sweetalert2";
@@ -8,7 +9,7 @@ import { jsPDF } from "jspdf";
 import { FaCamera } from "react-icons/fa";
 import * as faceapi from "face-api.js";
 import SignatureCanvas from "react-signature-canvas";
-import DeleteWithReasonModal from "./components/deleteWithReasonModal"; // Ajusta la ruta según tu estructura
+import DeleteWithReasonModal from "../components/DeleteWithReasonModal";
 
 
 import {

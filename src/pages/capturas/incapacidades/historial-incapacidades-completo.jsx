@@ -31,7 +31,7 @@ const HistorialCompletoPage = () => {
   //* Al hacer clic en una fila, encriptamos la clave y redirigimos
   const handleRowClick = (claveconsulta) => {
     const encryptedClaveConsulta = btoa(String(claveconsulta).trim());
-    router.replace(
+    router.push(
       `/capturas/incapacidades/ver-incapacidad?claveconsulta=${encryptedClaveConsulta}`
     );
   };

@@ -1,6 +1,22 @@
-import React from "react";
+import React, { useState } from "react";
 
 const HistorialIncapacidadesTable = ({ historial }) => {
+  const [paginaActual, setPaginaActual] = useState(1);
+  const elementosPorPagina = 5;
+
+  const totalPaginas = Math.ceil(historial.length / elementosPorPagina);
+
+  const historialPaginado = historial.slice(
+    (paginaActual - 1) * elementosPorPagina,
+    paginaActual * elementosPorPagina
+  );
+
+  const cambiarPagina = (nuevaPagina) => {
+    if (nuevaPagina >= 1 && nuevaPagina <= totalPaginas) {
+      setPaginaActual(nuevaPagina);
+    }
+  };
+
   return (
     <div className="bg-gray-900 p-6 md:p-8 rounded-xl shadow-2xl mt-8">
       <h2 className="text-2xl md:text-4xl font-semibold mb-4 text-center text-purple-400">
@@ -31,7 +47,7 @@ const HistorialIncapacidadesTable = ({ historial }) => {
 
           <tbody>
             {historial && historial.length > 0 ? (
-              historial.map((item, idx) => (
+              historialPaginado.map((item, idx) => (
                 <tr
                   key={idx}
                   className="hover:bg-purple-600 hover:bg-opacity-50 transition-colors duration-300"
@@ -55,7 +71,7 @@ const HistorialIncapacidadesTable = ({ historial }) => {
               ))
             ) : (
               <tr>
-                <td colSpan={6} className="text-center py-6 text-gray-400">
+                <td colSpan={5} className="text-center py-6 text-gray-400">
                   No hay incapacidades registradas para el paciente.
                 </td>
               </tr>
@@ -63,6 +79,29 @@ const HistorialIncapacidadesTable = ({ historial }) => {
           </tbody>
         </table>
       </div>
+
+      {/* Paginación */}
+      {historial.length > elementosPorPagina && (
+        <div className="flex justify-center items-center gap-4 mt-6">
+          <button
+            className="px-4 py-2 bg-purple-700 text-white rounded-lg hover:bg-purple-600 disabled:opacity-50"
+            onClick={() => cambiarPagina(paginaActual - 1)}
+            disabled={paginaActual === 1}
+          >
+            Anterior
+          </button>
+          <span className="text-white text-lg">
+            Página {paginaActual} de {totalPaginas}
+          </span>
+          <button
+            className="px-4 py-2 bg-purple-700 text-white rounded-lg hover:bg-purple-600 disabled:opacity-50"
+            onClick={() => cambiarPagina(paginaActual + 1)}
+            disabled={paginaActual === totalPaginas}
+          >
+            Siguiente
+          </button>
+        </div>
+      )}
     </div>
   );
 };

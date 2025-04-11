@@ -1,17 +1,43 @@
 import sql from "mssql";
 import { connectToDatabase } from "../connectToDatabase";
 
+//* Función para formatear la fecha con día de la semana
+function formatFecha(fecha) {
+  if (!fecha) return "N/A";
+  const date = new Date(fecha);
+
+  const diasSemana = [
+    "Domingo",
+    "Lunes",
+    "Martes",
+    "Miércoles",
+    "Jueves",
+    "Viernes",
+    "Sábado",
+  ];
+
+  const diaSemana = diasSemana[date.getUTCDay()];
+  const dia = String(date.getUTCDate()).padStart(2, "0");
+  const mes = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const año = date.getUTCFullYear();
+  const horas = date.getUTCHours();
+  const minutos = String(date.getUTCMinutes()).padStart(2, "0");
+  const periodo = horas >= 12 ? "p.m." : "a.m.";
+  const horas12 = horas % 12 === 0 ? 12 : horas % 12;
+
+  return `${diaSemana}, ${dia}/${mes}/${año}, ${horas12}:${minutos} ${periodo}`;
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ message: "Método no permitido" });
   }
 
-  const { folio, tipo } = req.body; //* tipo: se espera "paseEspecialidad"
+  const { folio, tipo } = req.body;
   if (!folio || !tipo) {
     return res.status(400).json({ message: "Folio y tipo son requeridos." });
   }
 
-  //* Si por alguna razón se recibe el tipo "consultaGeneral", se rechaza
   if (tipo === "consultaGeneral") {
     return res.status(400).json({
       message: "El tipo 'consultaGeneral' no es permitido. Use 'paseEspecialidad'."
@@ -21,9 +47,8 @@ export default async function handler(req, res) {
   try {
     const pool = await connectToDatabase();
 
-    //* Consulta base para pase a especialidad (se asume que la consulta debe tener diagnósticos, motivación, asignación y cita)
     let consultaQuery = `
-      SELECT nombrepaciente, edad, departamento, claveproveedor, especialidadinterconsulta
+      SELECT nombrepaciente, edad, departamento, claveproveedor, especialidadinterconsulta, fechacita
       FROM consultas
       WHERE claveconsulta = @folio
         AND clavestatus = 2
@@ -31,7 +56,6 @@ export default async function handler(req, res) {
         AND motivoconsulta IS NULL
         AND seasignoaespecialidad IS NOT NULL
     `;
-    //* Condición adicional para pase a especialidad: la especialidad y la cita deben existir
     if (tipo === "paseEspecialidad") {
       consultaQuery += " AND especialidadinterconsulta IS NOT NULL AND fechacita IS NOT NULL";
     }
@@ -49,7 +73,6 @@ export default async function handler(req, res) {
 
     const consulta = consultaResult.recordset[0];
 
-    //* Buscar nombre del proveedor en la tabla "proveedores"
     const proveedorResult = await pool
       .request()
       .input("claveproveedor", sql.Int, consulta.claveproveedor)
@@ -59,7 +82,6 @@ export default async function handler(req, res) {
       ? proveedorResult.recordset[0].nombreproveedor
       : null;
 
-    //* Buscar el nombre de la especialidad (ya que es pase a especialidad)
     let especialidad = null;
     if (consulta.especialidadinterconsulta) {
       const espResult = await pool
@@ -77,7 +99,8 @@ export default async function handler(req, res) {
         edad: consulta.edad,
         departamento: consulta.departamento,
         nombreproveedor,
-        especialidad, //* Sólo se asigna si es pase a especialidad
+        especialidad,
+        fechacita: formatFecha(consulta.fechacita),
       },
     });
   } catch (error) {

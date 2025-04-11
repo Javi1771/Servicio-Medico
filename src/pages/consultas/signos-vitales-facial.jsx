@@ -427,7 +427,7 @@ export default function SignosVitalesFacial() {
       }).then(() => {
         //* Después de la alerta, mostramos "Redirigiendo..." y navegamos
         setIsRedirecting(true);
-        router.replace("/consultas/signos-vitales");
+        router.push("/consultas/signos-vitales");
       });
     } catch (error) {
       console.error("Error al guardar la consulta:", error);

@@ -2,28 +2,30 @@ import { NextResponse } from 'next/server';
 
 //* Configuración de permisos por rol
 const rolePermissions = {
-  "7": ["/inicio-presidente", "/consultas", "/especialista", "/catalogos", "/estadisticas", "/capturas", "/reportes", "/farmacia", "/dashboard", "/cancelaciones"], //* Permisos para presidente
-  "6": ["/inicio-servicio-medico", "/consultas", "/catalogos", "/capturas", "/reportes", "/especialista", "/farmacia", "/cancelaciones"], //* Permisos para administrador
-  "1": ["/inicio-servicio-medico", "/consultas", "/especialista", "/capturas"], //* Permisos para médico
-  "2": ["/inicio-servicio-medico", "/consultas/signos-vitales", "/consultas/face-test", "consultas/signos-vitales-facial"], //* Permisos para enfermera
-  "3": ["/inicio-servicio-medico", "/capturas", "/consultas/recetas", "/cancelaciones", "/consultas/components/HistorialMedicamentos"], //* Permisos para capturista
-  "8": ["/inicio-servicio-medico", "/reportes", "/catalogos/beneficiarios"], //* Permisos para RRHH
-  "9": ["/inicio-servicio-medico", "/farmacia"], //* Permisos para farmacia 
-  "10": ["/inicio-servicio-medico", "/farmacia", "/catalogos/usuarios-y-proveedores"], //* Permisos para director de servicios médicos 
+  "7": ["/inicio-presidente", "/consultas", "/especialista", "/catalogos", "/estadisticas", "/capturas", "/reportes", "/farmacia", "/dashboard", "/cancelaciones"],
+  "6": ["/inicio-servicio-medico", "/consultas", "/catalogos", "/capturas", "/reportes", "/especialista", "/farmacia", "/cancelaciones"],
+  "1": ["/inicio-servicio-medico", "/consultas", "/especialista", "/capturas"],
+  "2": ["/inicio-servicio-medico", "/consultas/signos-vitales", "/consultas/face-test", "consultas/signos-vitales-facial"],
+  "3": ["/inicio-servicio-medico", "/capturas", "/consultas/recetas", "/cancelaciones", "/consultas/components/HistorialMedicamentos"],
+  "8": ["/inicio-servicio-medico", "/reportes", "/catalogos/beneficiarios"],
+  "9": ["/inicio-servicio-medico", "/farmacia"],
+  "10": ["/inicio-servicio-medico", "/farmacia", "/catalogos/usuarios-y-proveedores"]
 };
 
 export function middleware(request) {
   const { pathname } = request.nextUrl;
+  const lowerPath = pathname.toLowerCase();
 
-  //* Excluir rutas públicas y estáticas
-  if (pathname === '/' || pathname === '/login') {
+  //* Rutas públicas
+  if (lowerPath === '/' || lowerPath === '/login') {
     return NextResponse.next();
   }
 
+  //! Excluir rutas especiales
   if (
-    pathname.startsWith('/_next') ||
-    pathname.startsWith('/api') ||
-    pathname.startsWith('/static')
+    lowerPath.startsWith('/_next') ||
+    lowerPath.startsWith('/api') ||
+    lowerPath.startsWith('/static')
   ) {
     return NextResponse.next();
   }
@@ -32,27 +34,33 @@ export function middleware(request) {
   const rol = request.cookies.get('rol');
 
   if (!token || !rol) {
-    return NextResponse.redirect(new URL('/', request.url));
+    const redirectUrl = new URL('/', request.url);
+    redirectUrl.searchParams.set('redirected', 'true');
+    const response = NextResponse.redirect(redirectUrl);
+    response.headers.set('x-middleware-cache', 'no-cache');
+    return response;
   }
 
   const allowedRoutes = rolePermissions[rol] || [];
-  const isAllowed = allowedRoutes.some(route => pathname.startsWith(route));
+  const isAllowed = allowedRoutes.some(route => lowerPath.startsWith(route.toLowerCase()));
 
   if (!isAllowed) {
-    const defaultRoute = rol === "7" ? "/inicio-presidente" : "/inicio-servicio-medico";
-    //* Agrega un query param opcional para evitar bucles en caso de errores
+    const defaultRoute = "/login";
     const redirectUrl = new URL(defaultRoute, request.url);
+
     if (!redirectUrl.searchParams.has("redirected")) {
       redirectUrl.searchParams.set("redirected", "true");
-      return NextResponse.redirect(redirectUrl);
     }
+
+    const response = NextResponse.redirect(redirectUrl);
+    response.headers.set('x-middleware-cache', 'no-cache');
+    return response;
   }
 
   return NextResponse.next();
 }
 
-
-//* Configuración del matcher para que afecte todas las rutas salvo las excluidas
+//* Aplica el middleware a todas las rutas excepto las excluidas
 export const config = {
   matcher: ['/((?!api|_next/static|_next/image).*)'],
 };

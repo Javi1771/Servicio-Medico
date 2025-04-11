@@ -23,7 +23,6 @@ import {
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 import { useRouter } from "next/router";
-import ConsultasCanceladas from "./consultas-adicionales/consultas-canceladas";
 import ConsultasAtendidas from "./consultas-adicionales/consultas-atendidas";
 
 //* Inicializa SweetAlert2 con React
@@ -108,14 +107,13 @@ const SignosVitales = () => {
   const [empleadoEncontrado, setEmpleadoEncontrado] = useState(false);
 
   const [pacientes, setPacientes] = useState([]);
-  const [consultasCanceladas, setConsultasCanceladas] = useState([]);
   const [consultasAtendidas, setConsultasAtendidas] = useState([]);
   const [consultaSeleccionada, setConsultaSeleccionada] = useState("empleado");
 
   const [isSaving, setIsSaving] = useState(false);
 
   const handleFaceRecognition = () => {
-    router.replace("/consultas/face-test");
+    router.push("/consultas/face-test");
   };
 
   const handleBeneficiarySelect = (index) => {
@@ -690,9 +688,6 @@ const SignosVitales = () => {
         </div>
 
         {/* Renderizar cada tabla de estado específico con el mismo ancho y espaciado */}
-        <div className="w-full overflow-x-auto p-6 bg-gradient-to-b from-gray-900 to-gray-800 rounded-xl shadow-lg mb-8">
-          <ConsultasCanceladas data={consultasCanceladas} />
-        </div>
         <div className="w-full overflow-x-auto p-6 bg-gradient-to-b from-gray-900 to-gray-800 rounded-xl shadow-lg mb-8">
           <ConsultasAtendidas data={consultasAtendidas} />
         </div>

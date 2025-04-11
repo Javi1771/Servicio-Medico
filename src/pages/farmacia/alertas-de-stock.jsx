@@ -15,6 +15,7 @@ import {
 } from "react-icons/bi";
 import { GiMedicines } from "react-icons/gi";
 import { FaRegStopCircle } from "react-icons/fa";
+import { useRef } from "react";
 
 //? ====== IMPORTAMOS PDF-LIB ======
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
@@ -27,6 +28,7 @@ const Notificaciones = () => {
   const [fechaActualFormateada, setfechaActualFormateada] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const tapAudioRef = useRef(null);
 
   useEffect(() => {
     const fetchNotificaciones = async () => {
@@ -53,6 +55,10 @@ const Notificaciones = () => {
     fetchNotificaciones();
   }, []);
 
+  useEffect(() => {
+    tapAudioRef.current = new Audio("/assets/tap.mp3");
+  }, []);
+
   //* Funciones para filtrar por tipo de stock
   const stockMedio = useMemo(
     () =>
@@ -73,6 +79,15 @@ const Notificaciones = () => {
         : [],
     [notificaciones]
   );
+
+  const playTapSound = () => {
+    if (tapAudioRef.current) {
+      tapAudioRef.current.currentTime = 0;
+      tapAudioRef.current
+        .play()
+        .catch((error) => console.warn("Audio playback error:", error));
+    }
+  };  
 
   //* Función para dibujar texto en múltiples líneas, respetando un ancho máximo.
   const drawMultilineText = (
@@ -438,6 +453,7 @@ const Notificaciones = () => {
               return (
                 <motion.div
                   key={item.id}
+                  onMouseEnter={playTapSound}
                   className={`relative rounded-3xl p-4 border-4 ${cardStyle} transition-all duration-500 overflow-hidden backdrop-blur-md`}
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}

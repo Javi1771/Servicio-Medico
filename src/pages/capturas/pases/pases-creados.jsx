@@ -63,7 +63,7 @@ const PasesDashboard = () => {
   const handleCardClick = (folio, diagnostico) => {
     if (diagnostico === null) {
       const encryptedFolio = btoa(folio.toString());
-      router.replace(
+      router.push(
         `/capturas/recetas/ver-recetas-pases?claveconsulta=${encryptedFolio}`
       );
     }
@@ -71,7 +71,7 @@ const PasesDashboard = () => {
 
   // Botón para regresar
   const handleRegresar = () => {
-    router.replace("/capturas/pases-a-especialidades");
+    router.push("/capturas/pases-a-especialidades");
   };
 
   return (

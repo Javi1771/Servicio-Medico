@@ -37,7 +37,7 @@ const HistorialTable = () => {
   //* Encriptar y navegar con claveconsulta
   const handleRowClick = (claveconsulta) => {
     const encryptedConsulta = btoa(claveconsulta.toString());
-    router.replace(
+    router.push(
       `/capturas/recetas/ver-recetas-pases?claveconsulta=${encryptedConsulta}`
     );
   };

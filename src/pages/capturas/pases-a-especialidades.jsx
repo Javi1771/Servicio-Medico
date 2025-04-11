@@ -60,7 +60,7 @@ const PasesAEspecialidad = () => {
       //* Cifrar el folio con Base64
       const encryptedFolio = btoa(folio.toString());
       //* Redirigir a la pantalla para crear el pase con el folio encriptado
-      router.replace(
+      router.push(
         `/capturas/pases/crear-pase?claveconsulta=${encryptedFolio}`
       );
     }
@@ -71,7 +71,7 @@ const PasesAEspecialidad = () => {
   };
 
   const handleHistorial = () => {
-    router.replace("/capturas/pases/pases-creados"); //* Navegar a la pantalla anterior
+    router.push("/capturas/pases/pases-creados");
   };
 
   return (
@@ -97,7 +97,7 @@ const PasesAEspecialidad = () => {
           Pases a Especialidad
         </h1>
         <button
-          onClick={() => router.replace("/capturas/pases/crear-pase-nuevo")}
+          onClick={() => router.push("/capturas/pases/crear-pase-nuevo")}
           className="mt-6 px-8 py-3 bg-gradient-to-r from-blue-600 to-teal-500 text-white text-lg font-semibold rounded-full shadow-lg hover:scale-105 hover:shadow-2xl transition-all duration-300"
         >
           <FaPlus className="inline-block mr-2" /> Nuevo Pase
