@@ -2,14 +2,14 @@ import { NextResponse } from 'next/server';
 
 //* Configuración de permisos por rol
 const rolePermissions = {
-  "7": ["/inicio-presidente", "/consultas", "/especialista", "/catalogos", "/estadisticas", "/capturas", "/reportes", "/farmacia", "/dashboard", "/cancelaciones"],
-  "6": ["/inicio-servicio-medico", "/consultas", "/catalogos", "/capturas", "/reportes", "/especialista", "/farmacia", "/cancelaciones"],
-  "1": ["/inicio-servicio-medico", "/consultas", "/especialista", "/capturas"],
-  "2": ["/inicio-servicio-medico", "/consultas/signos-vitales", "/consultas/face-test", "consultas/signos-vitales-facial"],
-  "3": ["/inicio-servicio-medico", "/capturas", "/consultas/recetas", "/cancelaciones", "/consultas/components/HistorialMedicamentos"],
-  "8": ["/inicio-servicio-medico", "/reportes", "/catalogos/beneficiarios"],
-  "9": ["/inicio-servicio-medico", "/farmacia"],
-  "10": ["/inicio-servicio-medico", "/farmacia", "/catalogos/usuarios-y-proveedores"]
+  "7": ["/inicio-presidente", "/consultas", "/especialista", "/catalogos", "/estadisticas", "/capturas", "/reportes", "/farmacia", "/dashboard", "/cancelaciones"], //* Permisos para presidente
+  "6": ["/inicio-servicio-medico", "/consultas", "/catalogos", "/capturas", "/reportes", "/especialista", "/farmacia", "/cancelaciones"], //* Permisos para administrador
+  "1": ["/inicio-servicio-medico", "/consultas", "/especialista", "/capturas"], //* Permisos para médico
+  "2": ["/inicio-servicio-medico", "/consultas/signos-vitales", "/consultas/face-test", "consultas/signos-vitales-facial"], //* Permisos para enfermera
+  "3": ["/inicio-servicio-medico", "/capturas", "/consultas/recetas", "/cancelaciones", "/consultas/components/HistorialMedicamentos"], //* Permisos para capturista
+  "8": ["/inicio-servicio-medico", "/reportes", "/catalogos/beneficiarios"], //* Permisos para RRHH
+  "9": ["/inicio-servicio-medico", "/farmacia"], //* Permisos para farmacia 
+  "10": ["/inicio-servicio-medico", "/farmacia", "/catalogos/usuarios-y-proveedores"], //* Permisos para director de servicios médicos 
 };
 
 export function middleware(request) {
