@@ -60,6 +60,7 @@ export async function getConsultaData(claveconsulta) {
       claveusuario,
       CLAVEMEDICO,
       SINDICATO,
+      CLAVECONSULTA,
       FECHA_CITA
     FROM LABORATORIOS
     WHERE CLAVECONSULTA = @claveConsulta
@@ -199,6 +200,7 @@ export async function getConsultaData(claveconsulta) {
     NOMBRE_PACIENTE: firstLab.NOMBRE_PACIENTE,
     ESEMPLEADO: firstLab.ESEMPLEADO,
     DEPARTAMENTO: firstLab.DEPARTAMENTO,
+    CLAVECONSULTA: firstLabOriginal.CLAVECONSULTA,
     SINDICATO: firstLab.SINDICATO,
     FOLIO_ORDEN_LABORATORIO: firstLab.FOLIO_ORDEN_LABORATORIO,
     parentesco: parentesco || null,
