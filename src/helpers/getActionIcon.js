@@ -18,7 +18,9 @@ import {
   FaPrescriptionBottle,
   FaBalanceScale,
   FaVial,
-  FaFileInvoiceDollar // <--- Icono para "capturó un gasto y factura"
+  FaFileInvoiceDollar,
+  FaTimesCircle,
+  FaVials 
 } from "react-icons/fa";
 
 export function getActionIcon(action) {
@@ -102,10 +104,22 @@ export function getActionIcon(action) {
     //? Orden de estudio de laboratorio
     case normalized === "capturó una orden de estudio de laboratorio":
       return <FaVial />;
+    case normalized === "subió resultados de laboratorio":
+      return <FaVials />;
 
     //? Gastos
     case normalized === "capturó un gasto y factura":
       return <FaFileInvoiceDollar />;
+
+    //? Cancelaciones
+    case normalized === "canceló un pase":
+      return <FaTimesCircle />;
+    case normalized === "canceló una incapacidad":
+      return <FaTimesCircle />;
+    case normalized === "canceló una orden de laboratorio":
+      return <FaTimesCircle />;
+    case normalized === "canceló un surtimiento":
+      return <FaTimesCircle />;
 
     default:
       //! Por si no coincide con ninguna de las anteriores

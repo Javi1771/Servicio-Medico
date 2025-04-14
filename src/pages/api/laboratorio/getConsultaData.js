@@ -200,6 +200,7 @@ export async function getConsultaData(claveconsulta) {
     ESEMPLEADO: firstLab.ESEMPLEADO,
     DEPARTAMENTO: firstLab.DEPARTAMENTO,
     SINDICATO: firstLab.SINDICATO,
+    FOLIO_ORDEN_LABORATORIO: firstLab.FOLIO_ORDEN_LABORATORIO,
     parentesco: parentesco || null,
     laboratorios,
     nombreelaborador: cookieString,

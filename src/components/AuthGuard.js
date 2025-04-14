@@ -8,7 +8,7 @@ const AuthGuard = ({ children, user: initialUser = null }) => {
   const [isLoading, setIsLoading] = useState(!initialUser);
 
   useEffect(() => {
-    // Solo hacemos refresh si no tenemos un usuario ya definido
+    //* Solo hacemos refresh si no tenemos un usuario ya definido
     if (!user) {
       setIsLoading(true);
       fetch("/api/refresh", {
@@ -20,12 +20,12 @@ const AuthGuard = ({ children, user: initialUser = null }) => {
           throw new Error("No se pudo refrescar token");
         })
         .then((data) => {
-          // Actualizamos el estado con el rol recibido
+          //* Actualizamos el estado con el rol recibido
           setUser({ role: String(data.rol) });
         })
         .catch((err) => {
           console.warn("Token inválido o expirado:", err.message);
-          // Si no se pudo refrescar, redirigimos a /login
+          //* Si no se pudo refrescar, redirigimos a /login
           router.push("/login");
         })
         .finally(() => {
@@ -34,17 +34,17 @@ const AuthGuard = ({ children, user: initialUser = null }) => {
     }
   }, [user, router]);
 
-  // Mientras validamos/intentamos refresh, mostramos un loading
+  //* Mientras validamos/intentamos refresh, mostramos un loading
   if (isLoading) {
     return <div>Cargando sesión...</div>;
   }
 
-  // Si el usuario existe y tiene rol 7, usa el layout de presidente
+  //* Si el usuario existe y tiene rol 7, usa el layout de presidente
   if (user?.role === "7") {
     return <PresidenteLayout>{children}</PresidenteLayout>;
   }
 
-  // Si no es rol 7, muestra directamente los children sin layout
+  //* Si no es rol 7, muestra directamente los children sin layout
   return <>{children}</>;
 };
 

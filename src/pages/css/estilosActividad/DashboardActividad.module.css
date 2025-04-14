@@ -313,6 +313,16 @@
   font-size: 0.75rem;
 }
 
+/* Badge para Cancelaciones (cancelBadge) */
+.cancelBadge {
+  background-color: #ffebee; /* Rojo muy claro */
+  color: #c62828;           /* Rojo oscuro */
+  border: 1px solid #ef9a9a; /* Rojo intermedio */
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+}
+
 /* Badge para "Capturó un gasto y factura" (goldBadge) */
 .moneyBadge {
   background-color: #a8ff9e; /* Amarillo claro */
@@ -360,4 +370,48 @@
 /* Asegura que la fila de detalle no tenga ningún filtro */
 .detailRow {
   filter: none !important;
+}
+
+
+/* Contenedor para la paginación */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+/* Botones de paginación con diseño llamativo */
+.paginationButton {
+  background: linear-gradient(45deg, #ff6b6b, #f06595);
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 30px;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.2s, background 0.2s, box-shadow 0.2s;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.paginationButton:disabled {
+  background: #ddd;
+  color: #888;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.paginationButton:hover:not(:disabled) {
+  transform: scale(1.05);
+  background: linear-gradient(45deg, #f06595, #ff6b6b);
+  box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Información de la página */
+.paginationInfo {
+  font-size: 1.1rem;
+  color: #333;
+  font-weight: bold;
 }

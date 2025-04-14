@@ -4,7 +4,7 @@ import { connectToDatabase } from "../connectToDatabase";
 import sql from "mssql";
 import formidable from "formidable";
 
-// Desactivar el bodyParser para procesar multipart/form-data
+//* Desactivar el bodyParser para procesar multipart/form-data
 export const config = {
   api: {
     bodyParser: false,
@@ -17,7 +17,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ message: "Método no permitido" });
   }
 
-  // Configurar formidable para conservar extensiones y escribir en un directorio temporal
+  //* Configurar formidable para conservar extensiones y escribir en un directorio temporal
   const uploadTmpDir = path.join(process.cwd(), "tmp");
   if (!fs.existsSync(uploadTmpDir)) {
     fs.mkdirSync(uploadTmpDir, { recursive: true });
@@ -62,7 +62,7 @@ export default async function handler(req, res) {
         });
       }
 
-      // Si pdfEvidence es un array, tomar el primero
+      //* Si pdfEvidence es un array, tomar el primero
       let pdfFile = files.pdfEvidence;
       if (Array.isArray(pdfFile)) {
         pdfFile = pdfFile[0];
@@ -113,7 +113,7 @@ export default async function handler(req, res) {
         const idGasto = updateResult.recordset[0].idGasto;
         console.log("Costo actualizado. id_gasto obtenido:", idGasto);
 
-        // Procesar el archivo PDF
+        //* Procesar el archivo PDF
         const sourcePath = pdfFile.filepath || pdfFile.path;
         console.log("Ruta del archivo recibido:", sourcePath);
         if (!sourcePath) {
@@ -128,7 +128,7 @@ export default async function handler(req, res) {
           });
         }
 
-        // Obtener 'clavenomina'
+        //* Obtener 'clavenomina'
         let claveNominaFinal = fields.clavenomina;
         if (!claveNominaFinal) {
           const selectQuery = `SELECT clavenomina FROM costos WHERE id_gasto = @idGasto`;
@@ -166,7 +166,7 @@ export default async function handler(req, res) {
         console.log("Query para actualizar url_factura:", updateUrlQuery);
         console.log("Parámetros para actualizar url_factura:", { urlFactura, idGasto });
 
-        // Usar un nuevo objeto Request para evitar duplicidad de parámetros
+        //* Usar un nuevo objeto Request para evitar duplicidad de parámetros
         const requestUrl = new sql.Request(transaction);
         await requestUrl
           .input("urlFactura", sql.VarChar(255), urlFactura)
@@ -177,7 +177,7 @@ export default async function handler(req, res) {
         await transaction.commit();
         console.log("Transacción commit exitosa.");
 
-        // Registrar la actividad (fuera de la transacción)
+        //* Registrar la actividad (fuera de la transacción)
         const rawCookies = req.headers.cookie || "";
         const claveusuarioCookie = rawCookies.split("; ").find((row) => row.startsWith("claveusuario="))?.split("=")[1];
         const claveusuarioInt = claveusuarioCookie ? Number(claveusuarioCookie) : null;

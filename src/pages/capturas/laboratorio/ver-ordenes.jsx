@@ -37,7 +37,7 @@ export default function VerOrdenes() {
       <button
         onClick={handleRegresar}
         className="mb-6 self-start flex items-center gap-2 px-4 py-2 
-                   bg-[#00A7D0] text-[#EAFFFE] font-bold uppercase rounded-md 
+                   bg-[#00A7D0] text-[#EAFFFE] font-bold rounded-md 
                    border border-transparent shadow-lg hover:bg-[#0084A9] 
                    transition-all duration-300"
       >

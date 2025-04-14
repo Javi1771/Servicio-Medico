@@ -33,12 +33,20 @@ export default function DashboardActividad() {
     });
   };
 
-  // Estado para la fila expandida (índice)
+  // Estado para la fila expandida (índice global)
   const [expandedRow, setExpandedRow] = useState(null);
-
-  const handleVerDetalle = (index) => {
-    setExpandedRow(expandedRow === index ? null : index);
+  const handleVerDetalle = (globalIndex) => {
+    setExpandedRow(expandedRow === globalIndex ? null : globalIndex);
   };
+
+  // Estado para la paginación
+  const [page, setPage] = useState(1);
+  const itemsPerPage = 10;
+  const totalPages = Math.ceil(actividades.length / itemsPerPage);
+  const paginatedActivities = actividades.slice(
+    (page - 1) * itemsPerPage,
+    page * itemsPerPage
+  );
 
   return (
     <div className={styles.container}>
@@ -80,122 +88,140 @@ export default function DashboardActividad() {
 
         {/* Tabla de Actividades */}
         {actividades.length > 0 ? (
-          <div className={styles.tableContainer}>
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th>Usuario del sistema</th>
-                  <th>Acción</th>
-                  <th>Fecha y Hora</th>
-                  <th>Dirección IP</th>
-                  <th>Agente Usuario</th>
-                  <th>Detalles</th>
-                </tr>
-              </thead>
-              <tbody>
-                {actividades.map((act, index) => {
-                  const bgColor = getRandomColorForUser(act.nombreproveedor);
-                  const rowExpanded = expandedRow === index;
-                  const claveConsulta = act.ClaveConsulta;
-                  return (
-                    <React.Fragment key={index}>
-                      <tr
-                        className={styles.rowHover}
-                        onMouseEnter={playTapSound}
-                      >
-                        <td>
-                          <div
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: "0.5rem",
-                            }}
-                          >
+          <>
+            <div className={styles.tableContainer}>
+              <table className={styles.table}>
+                <thead>
+                  <tr>
+                    <th>Usuario del sistema</th>
+                    <th>Acción</th>
+                    <th>Fecha y Hora</th>
+                    <th>Dirección IP</th>
+                    <th>Agente Usuario</th>
+                    <th>Detalles</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {paginatedActivities.map((act, index) => {
+                    // Índice global para cada actividad
+                    const globalIndex = (page - 1) * itemsPerPage + index;
+                    const bgColor = getRandomColorForUser(act.nombreproveedor);
+                    const rowExpanded = expandedRow === globalIndex;
+                    const claveConsulta = act.ClaveConsulta;
+                    return (
+                      <React.Fragment key={globalIndex}>
+                        <tr
+                          className={styles.rowHover}
+                          onMouseEnter={playTapSound}
+                        >
+                          <td>
                             <div
                               style={{
                                 display: "flex",
-                                justifyContent: "center",
                                 alignItems: "center",
-                                width: "32px",
-                                height: "32px",
-                                borderRadius: "50%",
-                                backgroundColor: bgColor,
+                                gap: "0.5rem",
                               }}
                             >
-                              <FaUserCircle
-                                style={{ color: "#fff", fontSize: 16 }}
-                              />
+                              <div
+                                style={{
+                                  display: "flex",
+                                  justifyContent: "center",
+                                  alignItems: "center",
+                                  width: "32px",
+                                  height: "32px",
+                                  borderRadius: "50%",
+                                  backgroundColor: bgColor,
+                                }}
+                              >
+                                <FaUserCircle
+                                  style={{ color: "#fff", fontSize: 16 }}
+                                />
+                              </div>
+                              {act.nombreproveedor}
                             </div>
-                            {act.nombreproveedor}
-                          </div>
-                        </td>
-                        <td>
-                          <span
-                            className={`${styles.badgeHover} ${getBadgeClasses(
-                              act.Accion
-                            )}`}
-                            style={{
-                              display: "inline-flex",
-                              alignItems: "center",
-                              gap: "0.4rem",
-                            }}
-                          >
-                            {getActionIcon(act.Accion)}
-                            {act.Accion}
-                          </span>
-                        </td>
-                        <td>{act.FechaHora}</td>
-                        <td>{act.DireccionIP}</td>
-                        <td>
-                          {act.AgenteUsuario?.length > 40
-                            ? act.AgenteUsuario.slice(0, 40) + "..."
-                            : act.AgenteUsuario}
-                        </td>
-                        <td>
-                          {claveConsulta ? (
-                            <button
-                              onClick={() => handleVerDetalle(index)}
+                          </td>
+                          <td>
+                            <span
+                              className={`${styles.badgeHover} ${getBadgeClasses(
+                                act.Accion
+                              )}`}
                               style={{
-                                padding: "0.3rem 0.6rem",
-                                cursor: "pointer",
-                                borderRadius: "0.3rem",
-                                border: "1px solid #ccc",
-                                background: rowExpanded ? "#ccc" : "#eee",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "0.4rem",
                               }}
                             >
-                              {rowExpanded ? "Ocultar" : "Ver detalle"}
-                            </button>
-                          ) : (
-                            <span style={{ color: "#aaa" }}>N/A</span>
-                          )}
-                        </td>
-                      </tr>
-                      {rowExpanded && (
-                        <tr className={styles.detailRow}>
-                          <td
-                            colSpan={6}
-                            style={{
-                              background: "#f9fafb",
-                              animation: "expand 0.3s ease-out",
-                              padding: "1rem",
-                            }}
-                          >
+                              {getActionIcon(act.Accion)}
+                              {act.Accion}
+                            </span>
+                          </td>
+                          <td>{act.FechaHora}</td>
+                          <td>{act.DireccionIP}</td>
+                          <td>
+                            {act.AgenteUsuario?.length > 40
+                              ? act.AgenteUsuario.slice(0, 40) + "..."
+                              : act.AgenteUsuario}
+                          </td>
+                          <td>
                             {claveConsulta ? (
-                              <DetalleConsulta claveConsulta={claveConsulta} />
+                              <button
+                                onClick={() => handleVerDetalle(globalIndex)}
+                                className={styles.detailButton}
+                              >
+                                {rowExpanded ? "Ocultar" : "Ver detalle"}
+                              </button>
                             ) : (
-                              <p style={{ color: "#666" }}>
-                                No hay clave de consulta disponible.
-                              </p>
+                              <span style={{ color: "#aaa" }}>N/A</span>
                             )}
                           </td>
                         </tr>
-                      )}
-                    </React.Fragment>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                        {rowExpanded && (
+                          <tr className={styles.detailRow}>
+                            <td
+                              colSpan={6}
+                              style={{
+                                background: "#f9fafb",
+                                animation: "expand 0.3s ease-out",
+                                padding: "1rem",
+                              }}
+                            >
+                              {claveConsulta ? (
+                                <DetalleConsulta claveConsulta={claveConsulta} />
+                              ) : (
+                                <p style={{ color: "#666" }}>
+                                  No hay clave de consulta disponible.
+                                </p>
+                              )}
+                            </td>
+                          </tr>
+                        )}
+                      </React.Fragment>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            {/* Controles de paginación */}
+            <div className={styles.pagination}>
+              <button
+                onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+                disabled={page === 1}
+                className={styles.paginationButton}
+              >
+                Anterior
+              </button>
+              <span className={styles.paginationInfo}>
+                Página {page} de {totalPages}
+              </span>
+              <button
+                onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
+                disabled={page === totalPages}
+                className={styles.paginationButton}
+              >
+                Siguiente
+              </button>
+            </div>
+          </>
         ) : (
           <p
             style={{

@@ -93,6 +93,10 @@ export default function GenerarOrdenLaboratorio() {
     copiedPage.drawText(`${consulta.NOMINA || "N/A"}`, { x: 80, y: height - 20.6, size: 2, color: blackColor, });
     copiedPage.drawText(`${consulta.NOMINA || "N/A"}`, { x: 206.1, y: height - 20.6, size: 2, color: blackColor, });
 
+    //? Folio de orden
+    copiedPage.drawText(`${consulta.FOLIO_ORDEN_LABORATORIO || "N/A"}`, { x: 83, y: height - 24.2, size: 2, color: blackColor, });
+    copiedPage.drawText(`${consulta.FOLIO_ORDEN_LABORATORIO || "N/A"}`, { x: 209.1, y: height - 24.2, size: 2, color: blackColor, });
+
     //? Nombre del paciente
     copiedPage.drawText(`${consulta.NOMBRE_PACIENTE || "N/A"}`, { x: 25, y: height - 37.9, size: 2, color: blackColor, });
     copiedPage.drawText(`${consulta.NOMBRE_PACIENTE || "N/A"}`, { x: 151, y: height - 37.9, size: 2, color: blackColor, });

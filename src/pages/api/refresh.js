@@ -1,4 +1,3 @@
-// pages/api/refresh.js
 import jwt from "jsonwebtoken";
 import { parse } from "cookie";
 
@@ -7,7 +6,6 @@ export default async function handler(req, res) {
     return res.status(405).json({ message: "Método no permitido" });
   }
 
-  // Agrega logs para verificar el header de cookies recibido
   console.log("Cookies recibidas:", req.headers.cookie);
 
   const cookies = req.headers.cookie ? parse(req.headers.cookie) : {};

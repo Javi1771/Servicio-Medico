@@ -2,7 +2,7 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useRef, useEffect } from "react";
 import StudySelector from "./components/EstudiosDropdown";
-import HistorialOrdenes from "./components/HistorialOrdenes"; 
+import HistorialOrdenes from "./components/HistorialOrdenes";
 import { useRouter } from "next/router";
 import {
   FaSearch,
@@ -21,7 +21,7 @@ import {
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 import Calendar from "react-calendar";
-import "react-calendar/dist/Calendar.css"; 
+import "react-calendar/dist/Calendar.css";
 
 const MySwal = withReactContent(Swal);
 
@@ -401,13 +401,29 @@ const EstudioLaboratorio = () => {
           <>
             {/* Barra Superior */}
             <div className="flex justify-between items-center mb-6">
-              <button
-                onClick={() => router.back()}
-                className="flex items-center gap-2 px-4 py-2 bg-[#00A7D0] text-[#EAFFFE] rounded-lg hover:bg-[#0084A9] transition transform hover:scale-105"
-              >
-                <FaArrowLeft className="animate-bounce" />
-                <span>Regresar</span>
-              </button>
+              <div className="flex items-center justify-between w-full px-4">
+                <button
+                  type="button"
+                  onClick={() =>
+                    router.push("/inicio-servicio-medico")
+                  }
+                  className="flex items-center gap-2 px-4 py-2 bg-[#00A7D0] text-[#EAFFFE] rounded-lg hover:bg-[#0084A9] transition transform hover:scale-105"
+                >
+                  <FaArrowLeft className="animate-bounce" />
+                  <span>Regresar</span>
+                </button>
+
+                <button
+                  onClick={() =>
+                    router.push("/capturas/laboratorio/subir-resultados")
+                  }
+                  className="flex items-center gap-2 px-4 py-2 bg-[#00A7D0] text-[#EAFFFE] rounded-lg hover:bg-[#0084A9] transition transform hover:scale-105"
+                >
+                  <FaNotesMedical className="animate-bounce" />
+                  <span>Subir Resultados</span>
+                </button>
+              </div>
+
               {loading && (
                 <FaSpinner className="animate-spin text-[#0084A9] text-2xl" />
               )}
@@ -575,10 +591,10 @@ const EstudioLaboratorio = () => {
                   )}
                   {/* Calendario para seleccionar fecha */}
                   <div className="mb-4">
-                  <label className="block text-lg font-bold mb-2 text-[#00576A] flex items-center gap-2">
-                        <FaCalendarPlus className="text-xl" />
-                        Seleccionar Fecha:
-                      </label>
+                    <label className="block text-lg font-bold mb-2 text-[#00576A] flex items-center gap-2">
+                      <FaCalendarPlus className="text-xl" />
+                      Seleccionar Fecha:
+                    </label>
                     <div className="relative">
                       <div
                         className="flex items-center bg-[#00a7c0] rounded-full p-4 shadow-md cursor-pointer"

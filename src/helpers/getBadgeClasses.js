@@ -78,10 +78,22 @@ export function getBadgeClasses(action) {
     //? Orden de estudio de laboratorio
     case normalized === "capturó una orden de estudio de laboratorio":
       return styles.violetBadge;
+    case normalized === "subió resultados de laboratorio":
+      return styles.violetBadge;
 
     //? Gastos
     case normalized === "capturó un gasto y factura":
       return styles.moneyBadge;
+
+    //? Cancelaciones 
+    case normalized === "canceló un pase":
+      return styles.cancelBadge;
+    case normalized === "canceló una incapacidad":
+      return styles.cancelBadge;
+    case normalized === "canceló una orden de laboratorio":
+      return styles.cancelBadge;
+    case normalized === "canceló un surtimiento":
+      return styles.cancelBadge;
 
     //! Acción no definida en la lista
     default:
