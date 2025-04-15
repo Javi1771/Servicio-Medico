@@ -70,7 +70,7 @@ export default async function handler(req, res) {
       //* Se utiliza process.env.BASE_URL para tener una URL base.
       //* Si no se define, se construye a partir de las cabeceras de la petición.
       const baseUrl =
-        process.env.BASE_URL ||
+        process.env.NEXT_PUBLIC_BASE_URL ||
         `${req.headers["x-forwarded-proto"] || "http"}://${req.headers.host}`;
       const fullUrl = `${baseUrl}/estudios/${finalFileName}`;
 

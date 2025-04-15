@@ -158,7 +158,7 @@ export default async function handler(req, res) {
         fs.renameSync(sourcePath, filePath);
         console.log("Archivo movido a:", filePath);
 
-        const baseUrl = process.env.BASE_URL || `${req.headers["x-forwarded-proto"] || "http"}://${req.headers.host}`;
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || `${req.headers["x-forwarded-proto"] || "http"}://${req.headers.host}`;
         const urlFactura = `${baseUrl}/facturas/${fileName}`;
         console.log("URL que se guardará en la BD:", urlFactura);
 
