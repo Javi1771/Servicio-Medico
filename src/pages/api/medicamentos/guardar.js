@@ -22,7 +22,7 @@ export default async function handler(req, res) {
   }
 
   let transaction;
-  let consultaData = null; // Declaramos la variable de forma global en el endpoint
+  let consultaData = null; //* Declaramos la variable de forma global en el endpoint
 
   try {
     console.log("🌐 Conectando a la base de datos...");
@@ -262,7 +262,7 @@ export default async function handler(req, res) {
     res.status(200).json({
       message: "Datos guardados correctamente.",
       resultados,
-      consulta: consultaData, // Será null si decisionTomada es "no"
+      consulta: consultaData, //! Será null si decisionTomada es "no"
       surtimientos:
         decisionTomada !== "no"
           ? "Registro en SURTIMIENTOS insertado."

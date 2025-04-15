@@ -170,10 +170,10 @@ export default function GenerarReceta() {
       //? Bloque: DIAGNÓSTICO
       drawMultilineText(firstPage, String(data.consulta?.diagnostico ?? "N/A"), 45, 493, 600, 7);
 
-      //? Bloque: TRATAMIENTO en la primera hoja (primeros 4 medicamentos)
+      //? Bloque: TRATAMIENTO en la primera hoja (primeros 3 medicamentos)
       let currentMedicationY = 358;
       const extraSpacing = 10;
-      const medsFirstPage = data.receta.slice(0, 4);
+      const medsFirstPage = data.receta.slice(0, 3);
       medsFirstPage.forEach((item) => {
         const y1 = drawMultilineText(firstPage, String(item.nombreMedicamento ?? "No Asignado"), 40, currentMedicationY, 130, 8);
         const y2 = drawMultilineText(firstPage, String(item.indicaciones ?? "No Asignado"), 180, currentMedicationY, 200, 8);
@@ -201,8 +201,8 @@ export default function GenerarReceta() {
       firstPage.drawText(String(data.consulta?.nombreproveedor ?? "N/A"), { x: 110, y: 52, size: 10 });
       firstPage.drawText(String(data.consulta?.nombrepaciente ?? "N/A"), { x: 370, y: 52, size: 10 });
 
-      //* Si hay más de 4 medicamentos, se agrega una segunda hoja para mostrar el resto
-      if (data.receta.length > 4) {
+      //* Si hay más de 3 medicamentos, se agrega una segunda hoja para mostrar el resto
+      if (data.receta.length > 3) {
         const medPdfBytes = await fetch("/Receta-Paciente-Medicamentos.pdf").then(res => {
           if (!res.ok) throw new Error("Error al cargar el PDF Receta-Paciente-Medicamentos");
           return res.arrayBuffer();
@@ -216,7 +216,7 @@ export default function GenerarReceta() {
 
         //? Lista de medicamentos adicionales empezando en Y=640
         let currentMedY = 640;
-        const medsSecondPage = data.receta.slice(4); //* Medicamentos desde el quinto en adelante
+        const medsSecondPage = data.receta.slice(3); //* Medicamentos desde el quinto en adelante
         medsSecondPage.forEach((item) => {
           const y1 = drawMultilineText(secondPage, String(item.nombreMedicamento ?? "No Asignado"), 40, currentMedY, 130, 8);
           const y2 = drawMultilineText(secondPage, String(item.indicaciones ?? "No Asignado"), 180, currentMedY, 190, 8);
