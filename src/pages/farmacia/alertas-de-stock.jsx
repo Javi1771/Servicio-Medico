@@ -171,43 +171,33 @@ const Notificaciones = () => {
     return y;
   };
 
-  //* Función para generar el PDF con paginación (9 registros por columna)
+  //* Función para generar el PDF con paginación (8 registros por columna)
   const handleGeneratePDF = async () => {
     try {
       //? a) Cargar la plantilla PDF base
-      const templateBytes = await fetch("/Reporte-Medicamentos.pdf").then(
-        (res) => {
-          if (!res.ok)
-            throw new Error("No se pudo cargar Reporte-Medicamentos.pdf");
-          return res.arrayBuffer();
-        }
-      );
+      const templateBytes = await fetch("/Reporte-Medicamentos.pdf").then((res) => {
+        if (!res.ok)
+          throw new Error("No se pudo cargar Reporte-Medicamentos.pdf");
+        return res.arrayBuffer();
+      });
       const templateDoc = await PDFDocument.load(templateBytes);
       const [templatePage] = templateDoc.getPages();
       const { width, height } = templatePage.getSize();
-
+  
       //? b) Crear un nuevo documento PDF final
       const pdfDoc = await PDFDocument.create();
-
+  
       //? c) Incrustar la fuente en el nuevo documento
       const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
       const fontSize = 10;
       const color = rgb(0, 0, 0);
-
-      //? Función para dibujar texto en múltiples líneas
-      const drawMultilineText = (
-        page,
-        text,
-        x,
-        y,
-        maxWidth,
-        fontSize,
-        font,
-        color
-      ) => {
+  
+      //? d) Definir funciones internas que usen fontSize, font y color
+      const drawMultilineText = (page, text, x, y, maxWidth) => {
         const lines = text.split("\n");
         let currentY = y;
         const lineHeight = fontSize + 2; //* Espacio entre líneas
+        //* Estimación del número máximo de caracteres por línea
         const maxCharsPerLine = Math.floor(maxWidth / (fontSize * 0.6));
         lines.forEach((lineText) => {
           const words = lineText.split(" ");
@@ -215,13 +205,7 @@ const Notificaciones = () => {
           words.forEach((word) => {
             const testLine = line ? line + " " + word : word;
             if (testLine.length > maxCharsPerLine) {
-              page.drawText(line, {
-                x,
-                y: currentY,
-                size: fontSize,
-                font,
-                color,
-              });
+              page.drawText(line, { x, y: currentY, size: fontSize, font, color });
               currentY -= lineHeight;
               line = word;
             } else {
@@ -233,98 +217,85 @@ const Notificaciones = () => {
         });
         return currentY;
       };
-
-      //* Función para imprimir un ítem utilizando texto multilinea
+  
       const printItem = (page, x, y, item, maxWidth) => {
         let newY = y;
-        //? Bloque 1: Medicamento y EAN
+        //* Bloque 1: Medicamento y EAN
         const medicamentoText = `${item.medicamento} (EAN: ${item.ean})`;
-        newY = drawMultilineText(
-          page,
-          medicamentoText,
-          x,
-          newY,
-          maxWidth,
-          fontSize,
-          font,
-          color
-        );
-        newY -= 1; //* Margen adicional
-
-        //? Bloque 2: Presentación y piezas
-        const presentacionText = `Presentación: ${item.presentacion} ${
-          item.medida || ""
-        } | Piezas: ${item.piezas}`;
-        newY = drawMultilineText(
-          page,
-          presentacionText,
-          x,
-          newY,
-          maxWidth,
-          fontSize,
-          font,
-          color
-        );
-        newY -= 1; //* Margen adicional
-
-        //? Bloque 3: Mínimo y Máximo
+        newY = drawMultilineText(page, medicamentoText, x, newY, maxWidth);
+        newY -= 1; 
+  
+        //* Bloque 2: Presentación y piezas
+        const presentacionText = `Presentación: ${item.presentacion} ${item.medida || ""} | Piezas: ${item.piezas}`;
+        newY = drawMultilineText(page, presentacionText, x, newY, maxWidth);
+        newY -= 1; 
+  
+        //* Bloque 3: Mínimo y Máximo
         const minMaxText = `Mín: ${item.minimo} / Máx: ${item.maximo}`;
-        newY = drawMultilineText(
-          page,
-          minMaxText,
-          x,
-          newY,
-          maxWidth,
-          fontSize,
-          font,
-          color
-        );
+        newY = drawMultilineText(page, minMaxText, x, newY, maxWidth);
         return newY;
       };
-
-      //? d) Coordenadas originales
-      const leftColumnX = 15; //* Columna Stock Medio
-      const rightColumnX = 320; //* Columna Stock Bajo
-      const maxWidth = 280; //* Ancho máximo para el texto
-
-      //? e) Calcular la cantidad de páginas necesarias (7 registros por columna)
+  
+      //? e) Coordenadas para columnas
+      const leftColumnX = 15; 
+      const rightColumnX = 320; 
+      const maxWidth = 280; 
+  
+      //? f) Calcular la cantidad de páginas necesarias (8 registros por columna)
       const pagesCount = Math.max(
-        Math.ceil(stockMedio.length / 7),
-        Math.ceil(stockBajo.length / 7)
+        Math.ceil(stockMedio.length / 8),
+        Math.ceil(stockBajo.length / 8)
       );
-
-      //? f) Para cada página, copiar la plantilla y listar 7 registros por columna
+  
+      //? g) Generar cada página copiando la plantilla y listando 8 registros por columna
       for (let p = 0; p < pagesCount; p++) {
+        //* Extraer los ítems para la página actual (8 registros por columna)
+        const medioItems = stockMedio.slice(p * 8, p * 8 + 8);
+        const bajoItems = stockBajo.slice(p * 8, p * 8 + 8);
+  
+        //* Si en esta iteración no hay elementos en ninguna columna, omitir la página
+        if (medioItems.length === 0 && bajoItems.length === 0) {
+          continue;
+        }
+  
         const [copiedPage] = await pdfDoc.copyPages(templateDoc, [0]);
         const currentPage = copiedPage;
         pdfDoc.addPage(currentPage);
-
+  
         //* Cabecera: Nombre de usuario y fecha
-        currentPage.drawText(`${nombreUsuario}`, {x: 463, y: height - 758, size: 8, font, color, });
-        currentPage.drawText(`${fechaActualFormateada}`, {x: 460, y: height - 767.2, size: 8, font, color, });
-
-        let yStart = height - 175;
-
-        //* Para la columna Stock Medio
+        currentPage.drawText(`${nombreUsuario}`, {
+          x: 463,
+          y: height - 758,
+          size: 8,
+          font,
+          color,
+        });
+        currentPage.drawText(`${fechaActualFormateada}`, {
+          x: 460,
+          y: height - 767.2,
+          size: 8,
+          font,
+          color,
+        });
+  
+        const yStart = height - 175;
+  
+        //! Columna Stock Medio
         let yLeft = yStart;
-        const medioItems = stockMedio.slice(p * 9, p * 9 + 9);
         medioItems.forEach((item) => {
           yLeft = printItem(currentPage, leftColumnX, yLeft, item, maxWidth);
-          // *Agregar espacio extra para separar cada medicamento
-          yLeft -= 20;
+          yLeft -= 20; //* Espacio extra entre medicamentos
         });
-
-        //* Para la columna Stock Bajo
+  
+        //! Columna Stock Bajo
         let yRight = yStart;
-        const bajoItems = stockBajo.slice(p * 9, p * 9 + 9);
         bajoItems.forEach((item) => {
           yRight = printItem(currentPage, rightColumnX, yRight, item, maxWidth);
-          //* Agregar espacio extra para separar cada medicamento
-          yRight -= 20;
+          yRight -= 20; //* Espacio extra entre medicamentos
         });
       }
-
-      //? g) Guardar y descargar el PDF generado
+  
+      //? h) Guardar y descargar el PDF generado
       const pdfBytes = await pdfDoc.save();
       const blob = new Blob([pdfBytes], { type: "application/pdf" });
       saveAs(blob, "ReporteMedicamentos.pdf");
@@ -332,7 +303,7 @@ const Notificaciones = () => {
       console.error("Error al generar PDF:", error);
       alert("Ocurrió un error al generar el PDF.");
     }
-  };
+  };    
 
   //* Funciones para los estilos de las tarjetas (sin cambios)
   const getStatusIcon = (status) => {
