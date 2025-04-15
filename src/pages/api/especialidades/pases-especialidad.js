@@ -53,7 +53,7 @@ export default async function handler(req, res) {
         LEFT JOIN especialidades e ON de.claveespecialidad = e.claveespecialidad
         WHERE c.fechaconsulta >= @sevenDaysAgo
           AND de.claveespecialidad IS NOT NULL
-          AND de.estatus = 2
+          AND de.estatus = 1
         ORDER BY c.claveconsulta DESC
       `;
 
