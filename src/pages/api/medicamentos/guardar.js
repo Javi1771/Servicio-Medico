@@ -22,6 +22,8 @@ export default async function handler(req, res) {
   }
 
   let transaction;
+  let consultaData = null; // Declaramos la variable de forma global en el endpoint
+
   try {
     console.log("🌐 Conectando a la base de datos...");
     const pool = await connectToDatabase();
@@ -122,7 +124,7 @@ export default async function handler(req, res) {
         .input("folioReceta", sql.Int, parseInt(folioReceta, 10))
         .query(consultaQuery);
 
-      const consultaData = consultaResult.recordset[0] || null;
+      consultaData = consultaResult.recordset[0] || null;
       if (!consultaData) {
         console.error("❌ No se encontró consulta con la clave proporcionada.");
         await transaction.rollback();
@@ -173,11 +175,7 @@ export default async function handler(req, res) {
         .input("clavePaciente", sql.VarChar, consultaData.clavepaciente)
         .input("nombrePaciente", sql.VarChar, consultaData.nombrepaciente)
         .input("edad", sql.VarChar, consultaData.edad)
-        .input(
-          "epacienteEsEmpleado",
-          sql.VarChar,
-          consultaData.elpacienteesempleado
-        )
+        .input("epacienteEsEmpleado", sql.VarChar, consultaData.elpacienteesempleado)
         .input("claveMedico", sql.VarChar, String(consultaData.claveproveedor))
         .input("diagnostico", sql.NVarChar, consultaData.diagnostico)
         .input("departamento", sql.VarChar, consultaData.departamento)
@@ -210,17 +208,12 @@ export default async function handler(req, res) {
           @entregado
         )
       `;
-      let medsForDetalle = medicamentos; //* Se asignaron medicamentos
-      for (const med of medsForDetalle) {
+      for (const med of medicamentos) {
         console.log("📝 Insertando detalleSurtimiento:", med);
         await transaction
           .request()
           .input("folioSurtimiento", sql.Int, newFolioSurtimiento)
-          .input(
-            "claveMedicamento",
-            sql.Int,
-            parseInt(med.descMedicamento, 10)
-          )
+          .input("claveMedicamento", sql.Int, parseInt(med.descMedicamento, 10))
           .input("indicaciones", sql.NVarChar, med.indicaciones.trim())
           .input("cantidad", sql.NVarChar, med.cantidad.trim())
           .input("estatus", sql.Int, 1)
@@ -239,9 +232,7 @@ export default async function handler(req, res) {
             req.headers["x-forwarded-for"].split(",")[0].trim()) ||
           req.connection?.remoteAddress ||
           req.socket?.remoteAddress ||
-          (req.connection?.socket
-            ? req.connection.socket.remoteAddress
-            : null);
+          (req.connection?.socket ? req.connection.socket.remoteAddress : null);
 
         if (idUsuario !== null) {
           await pool
@@ -258,14 +249,12 @@ export default async function handler(req, res) {
             `);
           console.log("Actividad de asignación de medicamentos registrada.");
         } else {
-          console.log(
-            "Cookie 'claveusuario' no encontrada; actividad no registrada."
-          );
+          console.log("Cookie 'claveusuario' no encontrada; actividad no registrada.");
         }
       } catch (errorRegistro) {
         console.error("Error registrando actividad de asignación:", errorRegistro);
       }
-    } //! fin de if decisionTomada !== "no"
+    } //! Fin de if (decisionTomada !== "no")
 
     //* Commit de la transacción: si todo se ejecutó sin errores, se confirman todos los cambios
     await transaction.commit();
@@ -273,7 +262,7 @@ export default async function handler(req, res) {
     res.status(200).json({
       message: "Datos guardados correctamente.",
       resultados,
-      consulta: decisionTomada !== "no" ? consultaData : null,
+      consulta: consultaData, // Será null si decisionTomada es "no"
       surtimientos:
         decisionTomada !== "no"
           ? "Registro en SURTIMIENTOS insertado."
