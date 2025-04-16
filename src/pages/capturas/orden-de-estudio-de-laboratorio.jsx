@@ -593,7 +593,7 @@ const EstudioLaboratorio = () => {
                   <div className="mb-4">
                     <label className="block text-lg font-bold mb-2 text-[#00576A] flex items-center gap-2">
                       <FaCalendarPlus className="text-xl" />
-                      Seleccionar Fecha:
+                      Fecha Programada Para la Realización el Estudio:
                     </label>
                     <div className="relative">
                       <div
@@ -610,7 +610,7 @@ const EstudioLaboratorio = () => {
                           className="text-[#9effff] mr-4"
                           size={28}
                         />
-                        <span className="text-[#9effff] font-medium">
+                        <span className="text-[#ebfffd] font-medium">
                           {lab.selectedDate
                             ? lab.selectedDate
                             : "Selecciona una fecha"}
