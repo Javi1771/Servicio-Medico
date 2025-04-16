@@ -332,7 +332,7 @@ export default function UsuariosTable() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("handleSubmit fue llamado");
+    //console.log("handleSubmit fue llamado");
 
     if (!isUsuarioValido) {
       playSound(false); //! Reproducir sonido de error
@@ -395,7 +395,7 @@ export default function UsuariosTable() {
         }
 
         const result = await response.json();
-        console.log("Usuario actualizado:", result);
+        //console.log("Usuario actualizado:", result);
 
         //* Actualizar la lista de usuarios después de editar
         const usuariosResponse = await fetch(
@@ -468,7 +468,7 @@ export default function UsuariosTable() {
         }
 
         const result = await response.json();
-        console.log("Usuario agregado:", result);
+        //console.log("Usuario agregado:", result);
 
         //* Actualizar la lista de usuarios después de agregar
         const usuariosResponse = await fetch(

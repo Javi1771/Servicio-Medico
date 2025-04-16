@@ -34,7 +34,7 @@ export default async function handler(req, res) {
         const publicId = extractCloudinaryPublicId(FOTO_URL);
         if (publicId) {
           await cloudinary.uploader.destroy(publicId, { invalidate: true });
-          console.log(`Imagen eliminada de Cloudinary: ${publicId}`);
+          //console.log(`Imagen eliminada de Cloudinary: ${publicId}`);
         }
       }
 
@@ -65,7 +65,7 @@ export default async function handler(req, res) {
       const claveusuario = claveusuarioCookie
         ? Number(claveusuarioCookie)
         : null;
-      console.log("Cookie claveusuario:", claveusuario);
+      //console.log("Cookie claveusuario:", claveusuario);
 
       if (claveusuario !== null) {
         let ip =
@@ -91,11 +91,9 @@ export default async function handler(req, res) {
               (@userId, @accion, DATEADD(MINUTE, -4, GETDATE()), @direccionIP, @agenteUsuario, @claveConsulta, @idBeneficiario)
           `);
 
-        console.log(
-          "Actividad 'Eliminó un beneficiario' registrada en ActividadUsuarios."
-        );
+        //console.log("Actividad 'Eliminó un beneficiario' registrada en ActividadUsuarios." );
       } else {
-        console.log("No se pudo registrar la actividad: falta claveusuario.");
+        //console.log("No se pudo registrar la actividad: falta claveusuario.");
       }
 
       return res.status(200).json({

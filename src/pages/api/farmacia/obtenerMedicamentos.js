@@ -4,7 +4,7 @@ export default async function handler(req, res) {
   if (req.method === 'GET') {
     try {
       const pool = await connectToDatabase();
-      console.log('Conexión a la base de datos exitosa');
+      //console.log('Conexión a la base de datos exitosa');
 
       const result = await pool
         .request()

@@ -42,7 +42,7 @@ export default async function handler(req, res) {
       .input("folioPase", sql.Int, folioPase)
       .query(query);
 
-    console.log("Resultados obtenidos:", result.recordset);
+    //console.log("Resultados obtenidos:", result.recordset);
 
     if (!result.recordset.length) {
       return res.status(404).json({

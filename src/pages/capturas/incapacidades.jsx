@@ -127,7 +127,7 @@ const CapturaIncapacidades = () => {
     if (!folioConsulta) return;
     setIsLoading(true);
     try {
-      console.log("Enviando folio de consulta:", folioConsulta);
+      //console.log("Enviando folio de consulta:", folioConsulta);
       const response = await fetch("/api/incapacidades/obtenerConsulta", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -135,7 +135,7 @@ const CapturaIncapacidades = () => {
       });
       if (response.ok) {
         const data = await response.json();
-        console.log("✅ Respuesta de obtenerConsulta:", data);
+        //console.log("✅ Respuesta de obtenerConsulta:", data);
         if (data.seAsignoIncapacidad === null) {
           playSound(false);
           MySwal.fire({
@@ -179,7 +179,7 @@ const CapturaIncapacidades = () => {
           throw new Error("Error al buscar la nómina del empleado.");
         }
         const empleadoData = await responseEmpleado.json();
-        console.log("✅ Datos del empleado:", empleadoData);
+        //console.log("✅ Datos del empleado:", empleadoData);
         if (!empleadoData || !empleadoData.nombre) {
           playSound(false);
           MySwal.fire({
@@ -244,7 +244,7 @@ const CapturaIncapacidades = () => {
       return;
     }
     try {
-      console.log("🔍 Buscando incapacidad para:", nomina, folioConsulta);
+      //console.log("🔍 Buscando incapacidad para:", nomina, folioConsulta);
       const bodyData = { noNomina: nomina, folioConsulta };
       const response = await fetch("/api/incapacidades/captura", {
         method: "POST",
@@ -255,7 +255,7 @@ const CapturaIncapacidades = () => {
         throw new Error("No se encontró incapacidad (folio atendido).");
       }
       const data = await response.json();
-      console.log("✅ Respuesta de 'captura':", data);
+      //console.log("✅ Respuesta de 'captura':", data);
       setIncapacidadData(data);
     } catch (error) {
       console.error("Error en fetchIncapacidad:", error);
@@ -306,7 +306,7 @@ const CapturaIncapacidades = () => {
         claveConsulta: incapacidadData.claveConsulta,
         claveMedico: incapacidadData.claveMedico,
       };
-      console.log("Enviando a /api/incapacidades/guardarCaptura:", payload);
+      //console.log("Enviando a /api/incapacidades/guardarCaptura:", payload);
       const response = await fetch("/api/incapacidades/guardarCaptura", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -369,7 +369,7 @@ const CapturaIncapacidades = () => {
       setHistorialIncapacidades([]);
       return;
     }
-    console.log(`Cargando historial para clavenomina: ${nomina}`);
+    //console.log(`Cargando historial para clavenomina: ${nomina}`);
     const fetchHistorialIncapacidades = async () => {
       try {
         const queryParams = new URLSearchParams({ clavenomina: nomina });
@@ -383,7 +383,7 @@ const CapturaIncapacidades = () => {
         }
         const data = await response.json();
         if (data && Array.isArray(data.historial)) {
-          console.log("Historial obtenido:", data.historial);
+          //console.log("Historial obtenido:", data.historial);
           setHistorialIncapacidades(data.historial);
         } else {
           console.warn("El historial no es un array válido:", data);

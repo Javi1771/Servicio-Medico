@@ -7,10 +7,10 @@ export default async function handler(req, res) {
   }
 
   const { folio, medicamentos, diagnostico } = req.body;
-  console.log("📡 Recibiendo solicitud para guardar receta...");
-  console.log("📌 Folio recibido:", folio);
-  console.log("📌 Diagnóstico recibido en API:", diagnostico); //* ✅ Depuración clave
-  console.log("📌 Medicamentos recibidos:", medicamentos);
+  //console.log("📡 Recibiendo solicitud para guardar receta...");
+  //console.log("📌 Folio recibido:", folio);
+  //console.log("📌 Diagnóstico recibido en API:", diagnostico); //* ✅ Depuración clave
+  //console.log("📌 Medicamentos recibidos:", medicamentos);
 
   //* Validación de datos recibidos
   if (
@@ -40,7 +40,7 @@ export default async function handler(req, res) {
     `;
     const folioResult = await pool.request().query(folioQuery);
     const nuevoFolio = folioResult.recordset[0].nuevoFolio;
-    console.log("Nuevo folio generado:", nuevoFolio);
+    //console.log("Nuevo folio generado:", nuevoFolio);
 
     //* Obtener los datos del folio de consulta
     const consultaQuery = `
@@ -62,7 +62,7 @@ export default async function handler(req, res) {
     }
 
     const consulta = consultaResult.recordset[0];
-    console.log("Datos de la consulta encontrados:", consulta);
+    //console.log("Datos de la consulta encontrados:", consulta);
 
     //? Determinar el sindicato con base en clavenomina
     //* getSindicato recibe la "claveconsulta" (folioReceta)
@@ -92,7 +92,7 @@ export default async function handler(req, res) {
     };
 
     const sindicato = await getSindicato(consulta.clavenomina, pool);
-    console.log("Sindicato determinado:", sindicato);
+    //console.log("Sindicato determinado:", sindicato);
 
     //* Si sindicato es null o undefined, asigna un valor predeterminado
     const sindicatoFinal = sindicato || "N/A"; // Valor por defecto
@@ -107,10 +107,10 @@ export default async function handler(req, res) {
     if (departamento && departamento.length > 100) {
       departamento = departamento.substring(0, 100);
     }
-    console.log(
-      "Longitud del valor del campo departamento después de normalizar:",
-      departamento ? departamento.length : 0
-    );
+    // console.log(
+    //   "Longitud del valor del campo departamento después de normalizar:",
+    //   departamento ? departamento.length : 0
+    // );
 
     //* Insertar en la tabla SURTIMIENTOS
     const insertSurtimientoQuery = `
@@ -125,20 +125,20 @@ export default async function handler(req, res) {
       )
     `;
 
-    console.log("Insertando en SURTIMIENTOS con los siguientes datos:");
-    console.log("nuevoFolio:", nuevoFolio);
-    console.log("folioPase:", folio);
-    console.log("nomina:", consulta.clavenomina);
-    console.log("clavePaciente:", consulta.clavepaciente);
-    console.log("nombrePaciente:", consulta.nombrepaciente);
-    console.log("edad:", consulta.edad);
-    console.log("esEmpleado:", consulta.elpacienteesempleado);
-    console.log("claveMedico:", consulta.claveproveedor);
-    console.log("diagnostico:", diagnostico);
-    console.log("departamento:", departamento);
-    console.log("estatus:", consulta.clavestatus);
-    console.log("sindicato:", sindicato);
-    console.log("claveUsuario:", consulta.claveusuario);
+    // console.log("Insertando en SURTIMIENTOS con los siguientes datos:");
+    // console.log("nuevoFolio:", nuevoFolio);
+    // console.log("folioPase:", folio);
+    // console.log("nomina:", consulta.clavenomina);
+    // console.log("clavePaciente:", consulta.clavepaciente);
+    // console.log("nombrePaciente:", consulta.nombrepaciente);
+    // console.log("edad:", consulta.edad);
+    // console.log("esEmpleado:", consulta.elpacienteesempleado);
+    // console.log("claveMedico:", consulta.claveproveedor);
+    // console.log("diagnostico:", diagnostico);
+    // console.log("departamento:", departamento);
+    // console.log("estatus:", consulta.clavestatus);
+    // console.log("sindicato:", sindicato);
+    // console.log("claveUsuario:", consulta.claveusuario);
 
     // **Mapear 'clavestatus' a BIT**
     //* Si 'clavestatus' es mayor que 0, asigna 1, de lo contrario 0
@@ -162,7 +162,7 @@ export default async function handler(req, res) {
       .input("estado", sql.Bit, 1)
       .query(insertSurtimientoQuery);
 
-    console.log("Surtimiento insertado exitosamente.");
+    //console.log("Surtimiento insertado exitosamente.");
 
     //* Insertar medicamentos en la tabla detalleSurtimientos
     const insertDetalleQuery = `
@@ -182,7 +182,7 @@ export default async function handler(req, res) {
         continue;
       }
 
-      console.log("Insertando medicamento:", medicamento);
+      //console.log("Insertando medicamento:", medicamento);
 
       await pool
         .request()
@@ -199,7 +199,7 @@ export default async function handler(req, res) {
         .query(insertDetalleQuery);
     }
 
-    console.log("Todos los medicamentos insertados exitosamente.");
+    //console.log("Todos los medicamentos insertados exitosamente.");
 
     //* Actualizar el diagnóstico en la tabla consultas
     const updateConsultaQuery = `
@@ -213,7 +213,7 @@ export default async function handler(req, res) {
       .input("folio", sql.Int, folio)
       .query(updateConsultaQuery);
 
-    console.log("Diagnóstico actualizado exitosamente.");
+    //console.log("Diagnóstico actualizado exitosamente.");
 
     res.status(200).json({ message: "Receta guardada exitosamente." });
   } catch (error) {

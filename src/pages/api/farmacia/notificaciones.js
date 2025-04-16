@@ -42,7 +42,7 @@ export default async function handler(req, res) {
   if (req.method === "GET") {
     try {
       const pool = await connectToDatabase();
-      console.log("Conexión a la base de datos exitosa");
+      //console.log("Conexión a la base de datos exitosa");
 
       const result = await pool.request().query(`
         SELECT 
@@ -80,13 +80,13 @@ export default async function handler(req, res) {
       const nombreusuario = decodeURIComponent(req.cookies.nombreusuario);
 
       const fechaServidor = obtenerFechaServidor();
-      console.log("Fecha del servidor obtenida:", fechaServidor);
+      //console.log("Fecha del servidor obtenida:", fechaServidor);
 
       const fechaActualFormateada = formatFecha(fechaServidor);
 
-      console.log("Cookie obtenida:", nombreusuario);
-      console.log("Medicamentos enviados:", medicamentos);
-      console.log("Fecha enviada:", fechaActualFormateada);
+      //console.log("Cookie obtenida:", nombreusuario);
+      //console.log("Medicamentos enviados:", medicamentos);
+      //console.log("Fecha enviada:", fechaActualFormateada);
 
       res.status(200).json({
         usuario: nombreusuario,

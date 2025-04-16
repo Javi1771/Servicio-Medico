@@ -73,7 +73,7 @@ export default async function handler(req, res) {
     //* Tomamos los datos generales del primero (todos comparten esos campos)
     const { NOMBRE_PACIENTE, EDAD, DEPARTAMENTO, NOMINA } = labResult.recordset[0];
 
-    console.log("✅ Estudios por laboratorio:", laboratorios);
+    //console.log("✅ Estudios por laboratorio:", laboratorios);
 
     return res.status(200).json({
       data: {

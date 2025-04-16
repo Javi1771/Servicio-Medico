@@ -22,7 +22,7 @@ export default function GenerarReceta() {
     //* Función para obtener el nombre del empleado
     const fetchNombreEmpleado = async (clavenomina) => {
         try {
-            console.log(`📡 Consultando nombre del empleado con clavenomina: ${clavenomina}`);
+            //console.log(`📡 Consultando nombre del empleado con clavenomina: ${clavenomina}`);
             const response = await fetch("/api/empleado", {
                 method: "POST",
                 headers: {
@@ -32,7 +32,7 @@ export default function GenerarReceta() {
             });
     
             const data = await response.json();
-            console.log("👤 Datos del empleado recibidos:", data);
+            //console.log("👤 Datos del empleado recibidos:", data);
     
             if (!data || Object.keys(data).length === 0 || !data.nombre) {
                 return "No encontrado";
@@ -40,7 +40,7 @@ export default function GenerarReceta() {
     
             //* Concatenar nombre completo
             const nombreCompleto = `${data.nombre ?? ""} ${data.a_paterno ?? ""} ${data.a_materno ?? ""}`.trim();
-            console.log("✅ Nombre completo obtenido:", nombreCompleto);
+            //console.log("✅ Nombre completo obtenido:", nombreCompleto);
             
             return nombreCompleto;  //* Retorna el nombre en lugar de modificar el estado
         } catch (error) {
@@ -86,7 +86,7 @@ export default function GenerarReceta() {
             return null;
         }
 
-        console.log("📡 Consultando API con claveconsulta:", claveconsulta);
+        //console.log("📡 Consultando API con claveconsulta:", claveconsulta);
 
         const response = await fetch(`/api/recetas/recetaPaciente?claveconsulta=${claveconsulta}`);
 
@@ -104,8 +104,8 @@ export default function GenerarReceta() {
             nombreCompleto = await fetchNombreEmpleado(data.consulta.clavenomina);
         }        
 
-        console.log("✅ Datos de la receta recibidos:", data);
-        console.log("✅ Folio surtimiento obtenido:", folioSurtimiento);
+        //console.log("✅ Datos de la receta recibidos:", data);
+        //console.log("✅ Folio surtimiento obtenido:", folioSurtimiento);
 
         return { ...data, nombreEmpleado: nombreCompleto, folioSurtimiento,  };
     };    
@@ -113,7 +113,7 @@ export default function GenerarReceta() {
     //* Genera el PDF con pdf-lib
     const generatePdf = async (nombreEmpleado, ) => {
         try {
-        console.log("🖨️ Iniciando la generación del PDF...");
+        //console.log("🖨️ Iniciando la generación del PDF...");
         setLoading(true);
 
         //* Obtener la información desde el endpoint
@@ -123,7 +123,7 @@ export default function GenerarReceta() {
             return;
         }
 
-        console.log("📥 Cargando el PDF base...");
+        //console.log("📥 Cargando el PDF base...");
         const existingPdfBytes = await fetch("/Receta-Doctor.pdf").then(res => {
             if (!res.ok) {
             throw new Error("Error al cargar el PDF base");
@@ -131,7 +131,7 @@ export default function GenerarReceta() {
             return res.arrayBuffer();
         });
 
-        console.log("✅ PDF base cargado correctamente.");
+        //console.log("✅ PDF base cargado correctamente.");
 
         //* Obtener la cookie con el nombre del usuario
         const nombreUsuario = getCookie("nombreusuario") || "N/A";
@@ -140,7 +140,7 @@ export default function GenerarReceta() {
         const pdfDoc = await PDFDocument.load(existingPdfBytes);
         const firstPage = pdfDoc.getPages()[0];
 
-        console.log("✏️ Dibujando datos en el PDF...");
+        //console.log("✏️ Dibujando datos en el PDF...");
 
         //? Bloque: DATOS DE LA CONSULTA
         firstPage.drawText(data.consulta?.especialidadinterconsulta === null ? "General" : `Especialidad - ${data.consulta?.especialidadNombre}`, { x: 110, y: 645, size: 10 });
@@ -184,7 +184,7 @@ export default function GenerarReceta() {
         const pdfBlobUrl = URL.createObjectURL(pdfBlob);
         setPdfUrl(pdfBlobUrl); //* Guardar la URL del PDF para previsualización
 
-        console.log("✅ PDF generado y listo para previsualización.");
+        //console.log("✅ PDF generado y listo para previsualización.");
         } catch (error) {
         console.error("❌ Error al generar PDF:", error);
         } finally {

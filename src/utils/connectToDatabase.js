@@ -23,8 +23,8 @@ export const connectToDatabase = async () => {
   try {
     if (!pool || !pool.connected) {
       pool = await sql.connect(dbConfig);
-      console.log('Conexión a la base de datos exitosa');
-      console.log('Servidor:', process.env.DB_SERVER);
+      //console.log('Conexión a la base de datos exitosa');
+      //console.log('Servidor:', process.env.DB_SERVER);
     }
     return pool;
   } catch (error) {
@@ -37,7 +37,7 @@ export const connectToDatabase = async () => {
 export const closeDatabaseConnection = async () => {
   if (pool) {
     await pool.close();
-    console.log('Conexión a la base de datos cerrada');
+    //console.log('Conexión a la base de datos cerrada');
   }
 };
 
@@ -46,7 +46,7 @@ export default async function handler(req, res) {
   try {
     const dbPool = await connectToDatabase(); //* Conexión al pool
     if (dbPool.connected) {
-      console.log('Pool conectado correctamente');
+      //console.log('Pool conectado correctamente');
     }
     res.status(200).json({ message: 'Conexión exitosa' });
   } catch (error) {

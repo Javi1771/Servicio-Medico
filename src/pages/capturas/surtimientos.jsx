@@ -114,7 +114,7 @@ const SurtimientosBanner = () => {
       const newReceta = prevReceta.filter(
         (med) => med.claveMedicamento !== medicamento.claveMedicamento
       );
-      console.log("Nueva receta después de quitar:", newReceta);
+      //console.log("Nueva receta después de quitar:", newReceta);
       return newReceta;
     });
   };
@@ -183,7 +183,7 @@ const SurtimientosBanner = () => {
 
   const handleSave = (medicamentosRestantes) => {
     // Aquí puedes manejar el proceso de guardar los medicamentos restantes
-    console.log("Medicamentos a guardar:", medicamentosRestantes);
+    //console.log("Medicamentos a guardar:", medicamentosRestantes);
   };
 
   // Guardar la receta en la BD o generar surtimiento
@@ -273,7 +273,7 @@ const SurtimientosBanner = () => {
   const isFolioValido = empleado || paciente || sindicato || especialista;
 
   useEffect(() => {
-    console.log("Medicamentos Recetados:", medicamentosReceta);
+    //console.log("Medicamentos Recetados:", medicamentosReceta);
   }, [medicamentosReceta]);
 
   return (
@@ -364,10 +364,10 @@ const SurtimientosBanner = () => {
               <InformacionEspecialista
                 especialista={especialista}
                 onDiagnosticoChange={(value) => {
-                  console.log(
-                    "📝 Diagnóstico actualizado en `SurtimientosBanner`:",
-                    value
-                  );
+                  // console.log(
+                  //   "📝 Diagnóstico actualizado en `SurtimientosBanner`:",
+                  //   value
+                  // );
                   setDiagnostico(value);
                 }}
               />

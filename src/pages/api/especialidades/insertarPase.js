@@ -3,7 +3,7 @@ import { connectToDatabase } from "../connectToDatabase";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
-    console.log("❌ Método no permitido:", req.method);
+    //console.log("❌ Método no permitido:", req.method);
     return res.status(405).json({ error: "Método no permitido" });
   }
 
@@ -38,23 +38,23 @@ export default async function handler(req, res) {
       .json({ error: "Falta 'claveusuario' en las cookies." });
   }
 
-  console.log("📥 Datos recibidos:", {
-    clavenomina,
-    clavepaciente,
-    nombrepaciente,
-    edad,
-    claveespecialidad,
-    claveproveedor,
-    costo,
-    fechacita,
-    sindicato,
-    clavestatus,
-    elpacienteesempleado,
-    parentesco,
-    departamento,
-    folio,
-    claveusuario,
-  });
+  // console.log("📥 Datos recibidos:", {
+  //   clavenomina,
+  //   clavepaciente,
+  //   nombrepaciente,
+  //   edad,
+  //   claveespecialidad,
+  //   claveproveedor,
+  //   costo,
+  //   fechacita,
+  //   sindicato,
+  //   clavestatus,
+  //   elpacienteesempleado,
+  //   parentesco,
+  //   departamento,
+  //   folio,
+  //   claveusuario,
+  // });
 
   if (!clavenomina || !clavepaciente || !claveespecialidad || !folio) {
     console.error("❌ Faltan datos obligatorios para la inserción.");
@@ -63,7 +63,7 @@ export default async function handler(req, res) {
 
   try {
     const pool = await connectToDatabase();
-    console.log("✅ Conexión establecida");
+    //console.log("✅ Conexión establecida");
 
     //* 1. Inserción en la tabla "consultas" con OUTPUT para obtener la claveconsulta generada.
     const insertQuery = `
@@ -77,22 +77,22 @@ export default async function handler(req, res) {
         @costo, @fechacita, @sindicato, @clavestatus, @elpacienteesempleado, @parentesco, @departamento, DATEADD(MINUTE, -4, GETDATE()), @claveusuario
       )
     `;
-    console.log("📋 Insert Query valores:", {
-      clavenomina,
-      clavepaciente,
-      nombrepaciente,
-      edad,
-      claveespecialidad,
-      claveproveedor,
-      costo,
-      fechacita,
-      sindicato,
-      clavestatus,
-      elpacienteesempleado,
-      parentesco,
-      departamento,
-      claveusuario,
-    });
+    // console.log("📋 Insert Query valores:", {
+    //   clavenomina,
+    //   clavepaciente,
+    //   nombrepaciente,
+    //   edad,
+    //   claveespecialidad,
+    //   claveproveedor,
+    //   costo,
+    //   fechacita,
+    //   sindicato,
+    //   clavestatus,
+    //   elpacienteesempleado,
+    //   parentesco,
+    //   departamento,
+    //   claveusuario,
+    // });
 
     const insertResult = await pool
       .request()
@@ -116,11 +116,11 @@ export default async function handler(req, res) {
       console.error("⚠️ No se insertó el pase en consultas");
       return res.status(500).json({ error: "Error al insertar el pase." });
     }
-    console.log("✅ Pase insertado en consultas");
+    //console.log("✅ Pase insertado en consultas");
 
     //* 2. Obtener la claveconsulta generada
     const claveconsulta = insertResult.recordset[0].claveconsulta;
-    console.log("Claveconsulta obtenida:", claveconsulta);
+    //console.log("Claveconsulta obtenida:", claveconsulta);
 
     //* 3. INSERT EN LA TABLA "costos"
     await pool
@@ -168,29 +168,29 @@ export default async function handler(req, res) {
             @claveConsulta
           );
         `);
-    console.log("✅ Registro insertado en la tabla 'costos'");
+    //console.log("✅ Registro insertado en la tabla 'costos'");
 
     //* 4. Actualización en detalleEspecialidad (se mantiene el update usando folio)
-    console.log("📄 Actualizando estatus en detalleEspecialidad...");
+    //console.log("📄 Actualizando estatus en detalleEspecialidad...");
     const updateQuery = `
       UPDATE detalleEspecialidad
       SET estatus = 2
       WHERE claveconsulta = @folio
     `;
-    console.log("📋 Valores enviados para update:", { folio });
+    //console.log("📋 Valores enviados para update:", { folio });
     const updateResult = await pool
       .request()
       .input("folio", sql.Int, folio)
       .query(updateQuery);
 
     if (updateResult.rowsAffected[0] > 0) {
-      console.log(
-        `✅ Estatus actualizado en detalleEspecialidad (filas afectadas: ${updateResult.rowsAffected[0]})`
-      );
+      // console.log(
+      //   `✅ Estatus actualizado en detalleEspecialidad (filas afectadas: ${updateResult.rowsAffected[0]})`
+      // );
     } else {
-      console.log(
-        "⚠️ No se encontró ninguna fila para actualizar en detalleEspecialidad"
-      );
+      // console.log(
+      //   "⚠️ No se encontró ninguna fila para actualizar en detalleEspecialidad"
+      // );
     }
 
     //* 5. Registrar la actividad "Creó un pase de especialidad" usando la claveconsulta generada
@@ -225,11 +225,11 @@ export default async function handler(req, res) {
           VALUES 
             (@userId, @accion, DATEADD(MINUTE, -4, GETDATE()), @direccionIP, @agenteUsuario, @claveConsulta)
         `);
-      console.log(
-        "Actividad 'Creó un pase de especialidad' registrada en ActividadUsuarios."
-      );
+      // console.log(
+      //   "Actividad 'Creó un pase de especialidad' registrada en ActividadUsuarios."
+      // );
     } else {
-      console.log("No se pudo registrar la actividad: falta claveusuario.");
+      //console.log("No se pudo registrar la actividad: falta claveusuario.");
     }
 
     res.status(200).json({

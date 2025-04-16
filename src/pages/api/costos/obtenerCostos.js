@@ -36,7 +36,7 @@ export default async function handler(req, res) {
     const { claveconsulta } = req.query;
 
     if (!claveconsulta) {
-      console.log("Falta la claveconsulta en la petición.");
+      //console.log("Falta la claveconsulta en la petición.");
       return res
         .status(400)
         .json({ message: "Falta la claveconsulta en la petición." });
@@ -93,10 +93,7 @@ export default async function handler(req, res) {
         .query(query);
 
       if (result.recordset.length === 0) {
-        console.log(
-          "No se encontró ningún registro para la claveconsulta proporcionada:",
-          claveconsulta
-        );
+        //console.log( "No se encontró ningún registro para la claveconsulta proporcionada:", claveconsulta );
         return res
           .status(404)
           .json({
@@ -113,10 +110,7 @@ export default async function handler(req, res) {
       }
 
       // * Log para ver qué datos se enviarán al front
-      console.log(
-        "Datos enviados al front:",
-        JSON.stringify(result.recordset, null, 2)
-      );
+      //console.log( "Datos enviados al front:", JSON.stringify(result.recordset, null, 2) );
 
       res.status(200).json(result.recordset);
     } catch (error) {

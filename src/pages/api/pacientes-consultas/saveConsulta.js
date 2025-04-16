@@ -16,17 +16,17 @@ export default async function handler(req, res) {
     const consultaData = req.body;
 
     try {
-      console.log("📥 Datos recibidos en el backend:", consultaData);
+      //console.log("📥 Datos recibidos en el backend:", consultaData);
 
       //* Conexión a la base de datos
       const pool = await connectToDatabase();
-      console.log("✅ Conexión a la base de datos establecida.");
+      //console.log("✅ Conexión a la base de datos establecida.");
 
       //* Si clavepaciente es nulo, usa clavenomina como valor predeterminado y conviértelo a string
       const clavePaciente = (
         consultaData.clavepaciente ?? consultaData.clavenomina
       ).toString();
-      console.log("🔑 Valor de clavePaciente (como cadena):", clavePaciente);
+      //console.log("🔑 Valor de clavePaciente (como cadena):", clavePaciente);
 
       //* Preparación de la inserción. Para campos numéricos se valida si es cadena vacía y se asigna null.
       const request = pool.request();
@@ -93,10 +93,10 @@ export default async function handler(req, res) {
         .input("departamento", sql.VarChar, consultaData.departamento)
         .input("sindicato", sql.VarChar, consultaData.sindicato);
 
-      console.log(
-        "📤 Datos preparados para la consulta SQL:",
-        request.parameters
-      );
+      // console.log(
+      //   "📤 Datos preparados para la consulta SQL:",
+      //   request.parameters
+      // );
 
       const result = await request.query(`
         INSERT INTO consultas (
@@ -113,10 +113,10 @@ export default async function handler(req, res) {
         SELECT SCOPE_IDENTITY() AS claveConsulta;
       `);
 
-      console.log("✅ Consulta ejecutada exitosamente. Resultados:", result);
+      //console.log("✅ Consulta ejecutada exitosamente. Resultados:", result);
 
       const claveConsulta = result.recordset[0].claveConsulta;
-      console.log("🔑 Nueva clave de consulta generada:", claveConsulta);
+      //console.log("🔑 Nueva clave de consulta generada:", claveConsulta);
 
       //* Registrar la actividad (por ejemplo, "Consulta de signos vitales guardada")
       try {
@@ -143,7 +143,7 @@ export default async function handler(req, res) {
             INSERT INTO dbo.ActividadUsuarios (IdUsuario, Accion, FechaHora, DireccionIP, AgenteUsuario, ClaveConsulta)
             VALUES (@userId, @accion, DATEADD(MINUTE, -4, GETDATE()), @direccionIP, @agenteUsuario, @claveConsulta)
           `);
-        console.log("Actividad registrada en la base de datos.");
+        //console.log("Actividad registrada en la base de datos.");
       } catch (errorRegistro) {
         console.error("Error registrando actividad:", errorRegistro);
       }
@@ -155,9 +155,9 @@ export default async function handler(req, res) {
           accion: "Consulta de signos vitales guardada",
           time: new Date().toISOString(),
         });
-        console.log("Evento 'consulta-guardada' emitido.");
+        //console.log("Evento 'consulta-guardada' emitido.");
       } else {
-        console.log("Socket.io no está disponible en res.socket.server.io");
+        //console.log("Socket.io no está disponible en res.socket.server.io");
       }
 
       res.status(200).json({
@@ -169,7 +169,7 @@ export default async function handler(req, res) {
       res.status(500).json({ message: "Error al guardar la consulta." });
     }
   } else {
-    console.log("❌ Método no permitido:", req.method);
+    //console.log("❌ Método no permitido:", req.method);
     res.status(405).json({ message: "Método no permitido." });
   }
 }

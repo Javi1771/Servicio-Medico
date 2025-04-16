@@ -21,7 +21,7 @@ export default async function handler(req, res) {
       .find((row) => row.startsWith("claveusuario="))
       ?.split("=")[1];
     const claveusuario = claveusuarioCookie || null;
-    console.log("Cookie claveusuario:", claveusuario);
+    //console.log("Cookie claveusuario:", claveusuario);
 
     //? 2) Verificar datos obligatorios
     if (
@@ -45,14 +45,14 @@ export default async function handler(req, res) {
     //* Si no se recibe calificación, se establece por defecto
     const finalCalificacion = calificacion || "SIN CALIFICAR";
 
-    console.log("Datos individuales recibidos en el servidor:");
-    console.log("id_kpi:", id_kpi);
-    console.log("id_enf_cronica:", id_enf_cronica);
-    console.log("clavenomina:", clavenomina);
-    console.log("clavepaciente:", clavepaciente);
-    console.log("valor_actual:", valor_actual);
-    console.log("valor_objetivo:", valor_objetivo);
-    console.log("calificacion:", finalCalificacion);
+    //console.log("Datos individuales recibidos en el servidor:");
+    //console.log("id_kpi:", id_kpi);
+    //console.log("id_enf_cronica:", id_enf_cronica);
+    //console.log("clavenomina:", clavenomina);
+    //console.log("clavepaciente:", clavepaciente);
+    //console.log("valor_actual:", valor_actual);
+    //console.log("valor_objetivo:", valor_objetivo);
+    //console.log("calificacion:", finalCalificacion);
     console.log("valor_alcanzado:", valor_alcanzado);
 
     try {
@@ -115,7 +115,7 @@ export default async function handler(req, res) {
           .json({ message: "No se encontró consulta asociada" });
       }
       const fetchedClaveConsulta = consultaResult.recordset[0].claveConsulta;
-      console.log("🔑 ClaveConsulta obtenida:", fetchedClaveConsulta);
+      //console.log("🔑 ClaveConsulta obtenida:", fetchedClaveConsulta);
 
       //* Registrar la actividad en la tabla ActividadUsuarios
       try {
@@ -137,7 +137,7 @@ export default async function handler(req, res) {
             INSERT INTO dbo.ActividadUsuarios (IdUsuario, Accion, FechaHora, DireccionIP, AgenteUsuario, ClaveConsulta)
             VALUES (@userId, @accion, DATEADD(MINUTE, -4, GETDATE()), @direccionIP, @agenteUsuario, @claveConsulta)
           `);
-        console.log("Actividad registrada en la base de datos.");
+        //console.log("Actividad registrada en la base de datos.");
       } catch (errorRegistro) {
         console.error("Error registrando actividad:", errorRegistro);
       }

@@ -26,23 +26,23 @@ export default function GenerarReceta() {
 
   const fetchNombreEmpleado = async (clavenomina) => {
     try {
-      console.log(
-        `📡 Consultando nombre del empleado con clavenomina: ${clavenomina}`
-      );
+      // console.log(
+      //   `📡 Consultando nombre del empleado con clavenomina: ${clavenomina}`
+      // );
       const response = await fetch("/api/empleado", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ num_nom: clavenomina }),
       });
       const data = await response.json();
-      console.log("👤 Datos del empleado recibidos:", data);
+      //console.log("👤 Datos del empleado recibidos:", data);
       if (!data || Object.keys(data).length === 0 || !data.nombre) {
         return "No encontrado";
       }
       const nombreCompleto = `${data.nombre ?? ""} ${data.a_paterno ?? ""} ${
         data.a_materno ?? ""
       }`.trim();
-      console.log("✅ Nombre completo obtenido:", nombreCompleto);
+      //console.log("✅ Nombre completo obtenido:", nombreCompleto);
       return nombreCompleto;
     } catch (error) {
       console.error("❌ Error al obtener el nombre del empleado:", error);
@@ -66,7 +66,7 @@ export default function GenerarReceta() {
       return;
     }
     const codigo = `${clavenomina} ${claveproveedor} ${claveconsulta} ${folioSurtimiento}`;
-    console.log("El código generado es:", codigo);
+    //console.log("El código generado es:", codigo);
     setCodigoBarras(codigo);
     const canvas = document.createElement("canvas");
     JsBarcode(canvas, codigo, {
@@ -116,7 +116,7 @@ export default function GenerarReceta() {
       console.error("⚠️ Clave de consulta no está definida.");
       return null;
     }
-    console.log("📡 Consultando API con claveconsulta:", claveconsulta);
+    //console.log("📡 Consultando API con claveconsulta:", claveconsulta);
     const response = await fetch(
       `/api/recetas/recetaPaciente?claveconsulta=${claveconsulta}`
     );
@@ -125,7 +125,7 @@ export default function GenerarReceta() {
       throw new Error("Error al obtener los datos de la receta");
     }
     const data = await response.json();
-    console.log("✅ Datos de la receta recibidos:", data);
+    //console.log("✅ Datos de la receta recibidos:", data);
     const medicamentoInvalido = data.receta?.some(
       (item) => item.idMedicamento === "0"
     );
@@ -344,7 +344,7 @@ export default function GenerarReceta() {
 
   const generatePdf = async () => {
     try {
-      console.log("🖨️ Iniciando la generación del PDF...");
+      //console.log("🖨️ Iniciando la generación del PDF...");
       setLoading(true);
       const data = await fetchRecetaData();
       if (!data) {
@@ -417,7 +417,7 @@ export default function GenerarReceta() {
       const pdfBlob = new Blob([pdfBytes], { type: "application/pdf" });
       const finalUrl = URL.createObjectURL(pdfBlob);
       setPdfUrl(finalUrl);
-      console.log("✅ Final PDF generado correctamente.");
+      //console.log("✅ Final PDF generado correctamente.");
     } catch (error) {
       console.error("❌ Error al generar PDF:", error);
     } finally {

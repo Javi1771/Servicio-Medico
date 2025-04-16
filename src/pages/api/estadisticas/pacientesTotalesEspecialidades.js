@@ -60,11 +60,11 @@ export const getConsultasPorEspecialidad = async (
       ORDER BY c.fechaconsulta ASC;
     `;
 
-    console.log("Ejecutando consulta con parámetros:", {
-      claveEspecialidad,
-      startDate,
-      endDate,
-    });
+    // console.log("Ejecutando consulta con parámetros:", {
+    //   claveEspecialidad,
+    //   startDate,
+    //   endDate,
+    // });
 
     const request = pool.request().input("claveEspecialidad", claveEspecialidad);
 
@@ -76,14 +76,14 @@ export const getConsultasPorEspecialidad = async (
 
     //* Formatear fechas en los resultados
     const formattedResults = result.recordset.map((record) => {
-      console.log("Fecha original (fechaconsulta):", record.fechaconsulta);
+      //console.log("Fecha original (fechaconsulta):", record.fechaconsulta);
       const formattedConsulta = formatFecha(record.fechaconsulta);
-      console.log("Fecha formateada (fechaconsulta):", formattedConsulta);
+      //console.log("Fecha formateada (fechaconsulta):", formattedConsulta);
 
-      console.log("Fecha original (fechacita):", record.fechacita);
+      //console.log("Fecha original (fechacita):", record.fechacita);
       const formattedCita = record.fechacita ? formatFecha(record.fechacita) : null;
       if (formattedCita) {
-        console.log("Fecha formateada (fechacita):", formattedCita);
+        //console.log("Fecha formateada (fechacita):", formattedCita);
       }
 
       return {
@@ -129,14 +129,14 @@ export default async function handler(req, res) {
 
   try {
     if (!claveespecialidad) {
-      console.log("Obteniendo especialidades...");
+      //console.log("Obteniendo especialidades...");
       const especialidades = await getEspecialidades();
       return res.status(200).json({ especialidades });
     }
 
-    console.log(
-      `Obteniendo consultas para especialidad ${claveespecialidad}...`
-    );
+    // console.log(
+    //   `Obteniendo consultas para especialidad ${claveespecialidad}...`
+    // );
     const consultas = await getConsultasPorEspecialidad(
       claveespecialidad,
       startDate,

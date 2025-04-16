@@ -37,19 +37,19 @@ const ModalPdf = ({ folio, onClose }) => {
   // Obtener el nombre completo del empleado
   const fetchNombreEmpleado = async (num_nom) => {
     try {
-      console.log(`📡 Consultando nombre del empleado con num_nom: ${num_nom}`);
+      //console.log(`📡 Consultando nombre del empleado con num_nom: ${num_nom}`);
       const response = await fetch("/api/empleado", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ num_nom }),
       });
       const data = await response.json();
-      console.log("👤 Datos del empleado recibidos:", data);
+      //console.log("👤 Datos del empleado recibidos:", data);
       if (!data || Object.keys(data).length === 0 || !data.nombre) {
         return "No encontrado";
       }
       const nombreCompleto = `${data.nombre ?? ""} ${data.a_paterno ?? ""} ${data.a_materno ?? ""}`.trim();
-      console.log("✅ Nombre completo obtenido:", nombreCompleto);
+      //console.log("✅ Nombre completo obtenido:", nombreCompleto);
       return nombreCompleto;
     } catch (error) {
       console.error("❌ Error al obtener el nombre del empleado:", error);
@@ -337,7 +337,7 @@ function formatFecha(fecha) {
       return;
     }
 
-    console.log("📌 Solicitando PDF para folio:", folio);
+    //console.log("📌 Solicitando PDF para folio:", folio);
     const fetchPdf = async () => {
       try {
         // 1. Obtener la receta de la API
@@ -349,7 +349,7 @@ function formatFecha(fecha) {
           throw new Error("No se encontraron datos para este folio.");
         }
 
-        console.log("📌 Datos recibidos de la API:", data);
+        //console.log("📌 Datos recibidos de la API:", data);
         setDataReceta(data);
 
         // 2. (Opcional) obtener nombre del doctor

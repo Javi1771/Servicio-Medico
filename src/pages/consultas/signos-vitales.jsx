@@ -191,7 +191,7 @@ const SignosVitales = () => {
           if (
             JSON.stringify(prevPacientes) !== JSON.stringify(consultasOrdenadas)
           ) {
-            console.log("Actualizando lista de pacientes...");
+            //console.log("Actualizando lista de pacientes...");
             return consultasOrdenadas;
           }
           return prevPacientes; //! No actualiza si los datos son iguales
@@ -217,7 +217,7 @@ const SignosVitales = () => {
         throw new Error("Error al actualizar el estatus");
       }
 
-      console.log("Clave de estatus actualizada correctamente a 2");
+      //console.log("Clave de estatus actualizada correctamente a 2");
       playSound(true);
       MySwal.fire({
         icon: "success",

@@ -13,16 +13,16 @@ export default async function handler(req, res) {
     } = req.body;
 
     //* Log para verificar los datos recibidos
-    console.log(
-      "Datos recibidos en el servidor al guardar enfermedad crónica:",
-      {
-        id_enf_cronica,
-        clavenomina,
-        observaciones_cronica,
-        fecha_registro,
-        clavepaciente,
-      }
-    );
+    // console.log(
+    //   "Datos recibidos en el servidor al guardar enfermedad crónica:",
+    //   {
+    //     id_enf_cronica,
+    //     clavenomina,
+    //     observaciones_cronica,
+    //     fecha_registro,
+    //     clavepaciente,
+    //   }
+    // );
 
     //* Validación de datos requeridos
     if (
@@ -53,7 +53,7 @@ export default async function handler(req, res) {
         .input("estatus", 1) //* Siempre insertar un 1 en la columna 'estatus'
         .query(query);
 
-      console.log("✅ Enfermedad crónica registrada exitosamente");
+      //console.log("✅ Enfermedad crónica registrada exitosamente");
 
       //* -------------------------------
       //* Registrar actividad en ActividadUsuarios
@@ -65,9 +65,9 @@ export default async function handler(req, res) {
           ? Number(cookies.claveusuario)
           : null;
         if (!claveusuario) {
-          console.log(
-            "Cookie 'claveusuario' no encontrada; actividad no registrada."
-          );
+          // console.log(
+          //   "Cookie 'claveusuario' no encontrada; actividad no registrada."
+          // );
         } else {
           //* Consultar la tabla 'consultas' para obtener el último registro que coincida con clavenomina y clavepaciente
           const consultaQuery = `
@@ -85,7 +85,7 @@ export default async function handler(req, res) {
           if (consultaResult.recordset.length > 0) {
             const fetchedClaveConsulta =
               consultaResult.recordset[0].claveConsulta;
-            console.log("🔑 ClaveConsulta obtenida:", fetchedClaveConsulta);
+            //console.log("🔑 ClaveConsulta obtenida:", fetchedClaveConsulta);
 
             //* Insertar en ActividadUsuarios con la claveConsulta obtenida
             let ip =
@@ -106,13 +106,13 @@ export default async function handler(req, res) {
                 INSERT INTO dbo.ActividadUsuarios (IdUsuario, Accion, FechaHora, DireccionIP, AgenteUsuario, ClaveConsulta)
                 VALUES (@userId, @accion, DATEADD(MINUTE, -4, GETDATE()), @direccionIP, @agenteUsuario, @claveConsulta)
               `);
-            console.log(
-              "Actividad de asignación de enfermedad crónica registrada en la base de datos."
-            );
+            // console.log(
+            //   "Actividad de asignación de enfermedad crónica registrada en la base de datos."
+            // );
           } else {
-            console.log(
-              "No se encontró consulta asociada para registrar la actividad."
-            );
+            // console.log(
+            //   "No se encontró consulta asociada para registrar la actividad."
+            // );
           }
         }
       } catch (errorActividad) {

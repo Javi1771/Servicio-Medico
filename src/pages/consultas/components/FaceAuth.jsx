@@ -39,13 +39,13 @@ export default function FaceAuth({ beneficiaries }) {
   //* Inicia la cámara
   const startCamera = async () => {
     try {
-      console.log("🎥 Intentando activar la cámara...");
+      //console.log("🎥 Intentando activar la cámara...");
       const stream = await navigator.mediaDevices.getUserMedia({ video: true });
 
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         videoRef.current.onloadedmetadata = async () => {
-          console.log("✅ Cámara lista, reproduciendo video...");
+          //console.log("✅ Cámara lista, reproduciendo video...");
           await videoRef.current.play();
           setCameraActive(true);
         };
@@ -60,7 +60,7 @@ export default function FaceAuth({ beneficiaries }) {
 
   //* Detiene la cámara
   const stopCamera = () => {
-    console.log("🛑 Apagando cámara...");
+    //console.log("🛑 Apagando cámara...");
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((track) => track.stop());
     }
@@ -191,7 +191,7 @@ export default function FaceAuth({ beneficiaries }) {
             `/consultas/signos-vitales-facial?nomina=${encryptedNomina}&idBeneficiario=${encryptedBeneficiario}`
           );
         } else {
-          console.log("🔄 Escaneando nuevamente...");
+          //console.log("🔄 Escaneando nuevamente...");
           capturePhoto();
         }
       });

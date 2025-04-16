@@ -13,14 +13,14 @@ export default async function handler(req, res) {
       clavepaciente,
     } = req.body;
 
-    console.log("🟢 Datos recibidos en la solicitud:", {
-      claveConsulta,
-      claveEspecialidad,
-      observaciones,
-      clavenomina,
-      prioridad,
-      clavepaciente,
-    });
+    // console.log("🟢 Datos recibidos en la solicitud:", {
+    //   claveConsulta,
+    //   claveEspecialidad,
+    //   observaciones,
+    //   clavenomina,
+    //   prioridad,
+    //   clavepaciente,
+    // });
 
     //* Validación de datos obligatorios
     if (!claveConsulta || !clavenomina || !clavepaciente) {
@@ -72,18 +72,18 @@ export default async function handler(req, res) {
         estatus = 0;
       }
 
-      console.log("🟠 Insertando en detalleEspecialidad con datos:", {
-        claveconsulta: parseInt(claveConsulta, 10),
-        clavenomina,
-        claveespecialidad: claveEspecialidadFinal
-          ? parseInt(claveEspecialidadFinal, 10)
-          : null,
-        observaciones: observacionesFinal,
-        prioridad: prioridad || "N/A",
-        estatus,
-        fecha_asignacion: fechaRegistro,
-        clavepaciente,
-      });
+      // console.log("🟠 Insertando en detalleEspecialidad con datos:", {
+      //   claveconsulta: parseInt(claveConsulta, 10),
+      //   clavenomina,
+      //   claveespecialidad: claveEspecialidadFinal
+      //     ? parseInt(claveEspecialidadFinal, 10)
+      //     : null,
+      //   observaciones: observacionesFinal,
+      //   prioridad: prioridad || "N/A",
+      //   estatus,
+      //   fecha_asignacion: fechaRegistro,
+      //   clavepaciente,
+      // });
 
       //? Inserción en la tabla detalleEspecialidad
       await transaction
@@ -107,10 +107,10 @@ export default async function handler(req, res) {
             (@claveconsulta, @clavenomina, @claveespecialidad, @observaciones, @prioridad, @estatus, @fecha_asignacion, @clavepaciente)
         `);
 
-      console.log("🟢 Registro insertado en la tabla detalleEspecialidad.");
+      //console.log("🟢 Registro insertado en la tabla detalleEspecialidad.");
 
       //? Actualización en la tabla consultas
-      console.log("🟠 Actualizando la tabla consultas...");
+      //console.log("🟠 Actualizando la tabla consultas...");
       await transaction
         .request()
         .input("claveconsulta", sql.Int, parseInt(claveConsulta, 10))
@@ -131,7 +131,7 @@ export default async function handler(req, res) {
           WHERE claveconsulta = @claveconsulta;
         `);
 
-      console.log("🟢 Tabla consultas actualizada.");
+      //console.log("🟢 Tabla consultas actualizada.");
 
       //? Registrar la actividad de asignación de especialidad solo si se asignó (es decir, observacionesFinal es distinto al mensaje predeterminado)
       if (
@@ -168,11 +168,11 @@ export default async function handler(req, res) {
                 VALUES 
                   (@userId, @accion, DATEADD(MINUTE, -4, GETDATE()), @direccionIP, @agenteUsuario, @claveConsulta)
               `);
-            console.log("Actividad de asignación de especialidad registrada.");
+            //console.log("Actividad de asignación de especialidad registrada.");
           } else {
-            console.log(
-              "Cookie 'claveusuario' no encontrada; actividad no registrada."
-            );
+            // console.log(
+            //   "Cookie 'claveusuario' no encontrada; actividad no registrada."
+            // );
           }
         } catch (errorRegistro) {
           console.error(
@@ -184,7 +184,7 @@ export default async function handler(req, res) {
 
       //* Confirmación de la transacción
       await transaction.commit();
-      console.log("🟢 Transacción confirmada.");
+      //console.log("🟢 Transacción confirmada.");
 
       //? (Opcional) Consulta para obtener el historial actualizado
       const result = await pool
@@ -206,7 +206,7 @@ export default async function handler(req, res) {
           ORDER BY d.fecha_asignacion DESC
         `);
       const historial = result.recordset;
-      console.log("🟢 Historial actualizado (último mes):", historial);
+      //console.log("🟢 Historial actualizado (último mes):", historial);
 
       res.status(200).json({
         message: "Especialidad guardada correctamente.",

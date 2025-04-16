@@ -68,7 +68,7 @@ export default function EspecialidadesTable() {
       especialidad: newEspecialidad.especialidad,
     };
 
-    console.log("Datos enviados al backend:", especialidadData);
+    //console.log("Datos enviados al backend:", especialidadData);
 
     try {
       const url = selectedEspecialidad
@@ -136,10 +136,10 @@ export default function EspecialidadesTable() {
   };
 
   const handleDeleteEspecialidad = async (claveespecialidad) => {
-    console.log(
-      "Clave de especialidad enviada para eliminar:",
-      claveespecialidad
-    ); // Agregamos un log para depuración
+    // console.log(
+    //   "Clave de especialidad enviada para eliminar:",
+    //   claveespecialidad
+    // ); // Agregamos un log para depuración
 
     playSound(false);
     const confirmDelete = await Swal.fire({

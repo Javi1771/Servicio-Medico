@@ -4,7 +4,7 @@ import sql from "mssql";
 export default async function handler(req, res) {
   if (req.method === "POST") {
     const { nomina } = req.body;
-    console.log("Nomina recibida:", nomina);
+    //console.log("Nomina recibida:", nomina);
 
     try {
       const pool = await connectToDatabase();
@@ -30,38 +30,30 @@ export default async function handler(req, res) {
           WHERE B.NO_NOMINA = @nomina
         `);
 
-      console.log("Resultados de la consulta:", result.recordset);
+      //console.log("Resultados de la consulta:", result.recordset);
 
       if (result.recordset.length > 0) {
         const beneficiaries = result.recordset
           .filter((beneficiary) => {
-            console.log("Validando beneficiario:", beneficiary);
+            //console.log("Validando beneficiario:", beneficiary);
 
             //* Validar que el beneficiario esté activo
             if (beneficiary.ACTIVO !== "A") {
-              console.log(
-                `Beneficiario ${beneficiary.ID_BENEFICIARIO} no está activo`
-              );
+              //console.log( `Beneficiario ${beneficiary.ID_BENEFICIARIO} no está activo` );
               return false;
             }
 
             //* Si el parentesco es 2, aplicar validaciones adicionales
             if (beneficiary.ID_PARENTESCO === 2) {
-              console.log(
-                `Beneficiario ${beneficiary.ID_BENEFICIARIO} tiene parentesco 2, aplicando validaciones adicionales`
-              );
+              //console.log( `Beneficiario ${beneficiary.ID_BENEFICIARIO} tiene parentesco 2, aplicando validaciones adicionales` );
 
               //* Validar si es discapacitado
               if (beneficiary.ESDISCAPACITADO === 0) {
-                console.log(
-                  `Beneficiario ${beneficiary.ID_BENEFICIARIO} no es discapacitado`
-                );
+                //console.log( `Beneficiario ${beneficiary.ID_BENEFICIARIO} no es discapacitado` );
 
                 //* Validar si es estudiante
                 if (beneficiary.ESESTUDIANTE === 0) {
-                  console.log(
-                    `Beneficiario ${beneficiary.ID_BENEFICIARIO} no es estudiante`
-                  );
+                  //console.log( `Beneficiario ${beneficiary.ID_BENEFICIARIO} no es estudiante` );
                   return false; //! No pasa la validación si no es estudiante
                 }
 
@@ -71,15 +63,10 @@ export default async function handler(req, res) {
                 ); //* Convertir a Date
                 const fechaActual = new Date(); //* Obtener fecha actual como objeto Date
 
-                console.log(
-                  `Validando vigencia de estudios para el beneficiario ${beneficiary.ID_BENEFICIARIO}:`,
-                  vigenciaEstudios
-                );
+                //console.log(`Validando vigencia de estudios para el beneficiario ${beneficiary.ID_BENEFICIARIO}:`, vigenciaEstudios );
 
                 if (vigenciaEstudios < fechaActual) {
-                  console.log(
-                    `Beneficiario ${beneficiary.ID_BENEFICIARIO} tiene vigencia de estudios expirada: ${vigenciaEstudios}`
-                  );
+                  //console.log( `Beneficiario ${beneficiary.ID_BENEFICIARIO} tiene vigencia de estudios expirada: ${vigenciaEstudios}`);
                   return false; //! No pasa la validación si la vigencia ha expirado
                 }
               }
@@ -122,14 +109,11 @@ export default async function handler(req, res) {
               EDAD: `${years} años, ${months} meses, ${days} días`,
             };
 
-            console.log("Beneficiario final procesado:", beneficiarioFinal);
+            //console.log("Beneficiario final procesado:", beneficiarioFinal);
             return beneficiarioFinal;
           });
 
-        console.log(
-          "Lista de beneficiarios después de procesar:",
-          beneficiaries
-        );
+        //console.log("Lista de beneficiarios después de procesar:", beneficiaries );
         res.status(200).json({ beneficiarios: beneficiaries });
       } else {
         res

@@ -3,25 +3,25 @@ import sql from "mssql";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
-    console.log(`Método no permitido: ${req.method}`);
+    //console.log(`Método no permitido: ${req.method}`);
     return res.status(405).json({ message: "Método no permitido" });
   }
 
   const { folioReceta, medicamentos, diagnostico } = req.body;
-  console.log("Recibiendo solicitud con folioReceta:", folioReceta);
+  //console.log("Recibiendo solicitud con folioReceta:", folioReceta);
 
   if (!folioReceta) {
-    console.log("folioReceta no proporcionado en el cuerpo de la solicitud.");
+    //console.log("folioReceta no proporcionado en el cuerpo de la solicitud.");
     return res.status(400).json({ message: "folioReceta es requerido" });
   }
 
   if (!medicamentos || medicamentos.length === 0) {
-    console.log("No hay medicamentos proporcionados.");
+    //console.log("No hay medicamentos proporcionados.");
     return res.status(400).json({ message: "Medicamentos son requeridos" });
   }
 
   if (!diagnostico) {
-    console.log("Diagnóstico no proporcionado.");
+    //console.log("Diagnóstico no proporcionado.");
     return res.status(400).json({ message: "Diagnóstico es requerido" });
   }
 
@@ -30,12 +30,12 @@ export default async function handler(req, res) {
 
   try {
     pool = await connectToDatabase();
-    console.log("Conexión a la base de datos establecida.");
+    //console.log("Conexión a la base de datos establecida.");
 
     // Iniciar una transacción
     transaction = new sql.Transaction(pool);
     await transaction.begin();
-    console.log("Transacción iniciada.");
+    //console.log("Transacción iniciada.");
 
     // 1. Verificar si ya se ha generado un surtimiento para este folio
     const verificaRequest = new sql.Request(transaction);
@@ -48,13 +48,13 @@ export default async function handler(req, res) {
       .input("folioReceta", sql.Int, folioReceta)
       .query(verificaQuery);
 
-    console.log(
-      "Resultado de la verificación de surtimiento:",
-      verificaResult.recordset[0]
-    );
+    //console.log(
+    //   "Resultado de la verificación de surtimiento:",
+    //   verificaResult.recordset[0]
+    // );
 
     if (verificaResult.recordset[0].count > 0) {
-      console.log("Ya se ha generado un surtimiento para este folio.");
+      //console.log("Ya se ha generado un surtimiento para este folio.");
       await transaction.rollback();
       return res
         .status(400)
@@ -69,7 +69,7 @@ export default async function handler(req, res) {
     `;
     const folioResult = await folioRequest.query(folioQuery);
     const nuevoFolio = folioResult.recordset[0].nuevoFolio;
-    console.log("Nuevo folio generado:", nuevoFolio);
+    //console.log("Nuevo folio generado:", nuevoFolio);
 
     // 3. Obtener los datos del folio de consulta
     const consultaRequest = new sql.Request(transaction);
@@ -92,7 +92,7 @@ export default async function handler(req, res) {
     }
 
     const consulta = consultaResult.recordset[0];
-    console.log("Datos de la consulta encontrados:", consulta);
+    //console.log("Datos de la consulta encontrados:", consulta);
 
     //? 4. Determinar el sindicato con base en clavenomina
     //* getSindicato recibe la "claveconsulta" (folioReceta)
@@ -122,7 +122,7 @@ export default async function handler(req, res) {
     };
 
     const sindicato = await getSindicato(consulta.clavenomina, pool);
-    console.log("Sindicato determinado:", sindicato);
+    //console.log("Sindicato determinado:", sindicato);
     
     // Si sindicato es null o undefined, asigna un valor predeterminado
     const sindicatoFinal = sindicato || "N/A"; // Valor por defecto
@@ -138,10 +138,10 @@ export default async function handler(req, res) {
     if (departamento && departamento.length > 100) {
       departamento = departamento.substring(0, 100);
     }
-    console.log(
-      "Longitud del valor del campo departamento después de normalizar:",
-      departamento ? departamento.length : 0
-    );
+    // console.log(
+    //   "Longitud del valor del campo departamento después de normalizar:",
+    //   departamento ? departamento.length : 0
+    // );
 
     // 6. Verificar que los campos necesarios no sean NULL
     if (!consulta.clavenomina) {
@@ -189,20 +189,20 @@ export default async function handler(req, res) {
       )
     `;
 
-    console.log("Insertando en SURTIMIENTOS con los siguientes datos:");
-    console.log("nuevoFolio:", nuevoFolio);
-    console.log("folioPase:", folioReceta);
-    console.log("nomina:", consulta.clavenomina);
-    console.log("clavePaciente:", consulta.clavepaciente);
-    console.log("nombrePaciente:", consulta.nombrepaciente);
-    console.log("edad:", consulta.edad);
-    console.log("esEmpleado:", consulta.elpacienteesempleado);
-    console.log("claveMedico:", consulta.claveproveedor);
-    console.log("diagnostico:", diagnostico);
-    console.log("departamento:", departamento);
-    console.log("estatus:", consulta.clavestatus);
-    console.log("sindicato:", sindicato);
-    console.log("claveUsuario:", consulta.claveusuario);
+    //console.log("Insertando en SURTIMIENTOS con los siguientes datos:");
+    //console.log("nuevoFolio:", nuevoFolio);
+    //console.log("folioPase:", folioReceta);
+    //console.log("nomina:", consulta.clavenomina);
+    //console.log("clavePaciente:", consulta.clavepaciente);
+    //console.log("nombrePaciente:", consulta.nombrepaciente);
+    //console.log("edad:", consulta.edad);
+    //console.log("esEmpleado:", consulta.elpacienteesempleado);
+    //console.log("claveMedico:", consulta.claveproveedor);
+    //console.log("diagnostico:", diagnostico);
+    //console.log("departamento:", departamento);
+    //console.log("estatus:", consulta.clavestatus);
+    //console.log("sindicato:", sindicato);
+    //console.log("claveUsuario:", consulta.claveusuario);
 
     // **Mapear 'clavestatus' a BIT**
     // Si 'clavestatus' es mayor que 0, asigna 1, de lo contrario 0
@@ -226,7 +226,7 @@ export default async function handler(req, res) {
 
       .query(insertSurtimientoQuery);
 
-    console.log("Surtimiento insertado exitosamente.");
+    //console.log("Surtimiento insertado exitosamente.");
 
     // 8. Insertar medicamentos en la tabla detalleSurtimientos
     // Se agregó el campo "entregado" que se guardará en 0
@@ -239,7 +239,7 @@ export default async function handler(req, res) {
     `;
 
     for (const medicamento of medicamentos) {
-      console.log("Insertando medicamento:", medicamento);
+      //console.log("Insertando medicamento:", medicamento);
 
       const insertDetalleRequest = new sql.Request(transaction);
 
@@ -256,7 +256,7 @@ export default async function handler(req, res) {
         .query(insertDetalleQuery);
     }
 
-    console.log("Todos los medicamentos insertados exitosamente.");
+    //console.log("Todos los medicamentos insertados exitosamente.");
 
     // 9. Actualizar el diagnóstico en la tabla consultas
     const updateConsultaRequest = new sql.Request(transaction);
@@ -270,11 +270,11 @@ export default async function handler(req, res) {
       .input("folioReceta", sql.Int, folioReceta)
       .query(updateConsultaQuery);
 
-    console.log("Diagnóstico actualizado exitosamente.");
+    //console.log("Diagnóstico actualizado exitosamente.");
 
     // 10. Confirmar la transacción
     await transaction.commit();
-    console.log("Transacción confirmada exitosamente.");
+    //console.log("Transacción confirmada exitosamente.");
 
     res.status(200).json({ message: "Receta guardada exitosamente." });
   } catch (error) {
@@ -282,7 +282,7 @@ export default async function handler(req, res) {
     if (transaction) {
       try {
         await transaction.rollback();
-        console.log("Transacción revertida debido a un error.");
+        //console.log("Transacción revertida debido a un error.");
       } catch (rollbackError) {
         console.error("Error al revertir la transacción:", rollbackError);
       }

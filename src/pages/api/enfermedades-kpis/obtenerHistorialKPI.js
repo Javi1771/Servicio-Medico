@@ -8,11 +8,11 @@ export default async function handler(req, res) {
   const { clavenomina, clavepaciente, idRegistro } = req.query;
 
   //* Log de parámetros recibidos
-  console.log("Parámetros recibidos:", {
-    clavenomina,
-    clavepaciente,
-    idRegistro,
-  });
+  // console.log("Parámetros recibidos:", {
+  //   clavenomina,
+  //   clavepaciente,
+  //   idRegistro,
+  // });
 
   //* Verifica que se proporcionen los parámetros necesarios
   if (!idRegistro && (!clavenomina || !clavepaciente)) {
@@ -111,8 +111,8 @@ export default async function handler(req, res) {
 
     const result = await request.query(query);
 
-    console.log("Consulta ejecutada:", query, "Parámetros:", inputParams);
-    console.log("Resultados obtenidos:", result.recordset);
+    // console.log("Consulta ejecutada:", query, "Parámetros:", inputParams);
+    // console.log("Resultados obtenidos:", result.recordset);
 
     if (result.recordset.length === 0) {
       console.warn("Consulta sin resultados para los parámetros:", {

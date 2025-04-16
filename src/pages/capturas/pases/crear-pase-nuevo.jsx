@@ -412,7 +412,7 @@ const CrearPaseNuevo = () => {
         fechaActual.getMinutes()
       ).padStart(2, "0")}:${String(fechaActual.getSeconds()).padStart(2, "0")}`;
 
-      console.log("Fecha y hora en formato 24 hrs:", fechaconsulta);
+      //console.log("Fecha y hora en formato 24 hrs:", fechaconsulta);
 
       let claveproveedor = selectedProveedor;
       let clavenomina = nomina;
@@ -505,7 +505,7 @@ const CrearPaseNuevo = () => {
         claveConsulta
       );
 
-      console.log("Clave consulta generada:", claveConsulta);
+      //console.log("Clave consulta generada:", claveConsulta);
 
       //* Restablecer formulario
       setNomina("");

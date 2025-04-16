@@ -166,7 +166,7 @@ export default function Laboratorio({ datos, onCancelSuccess }) {
         <div className="text-right">
           <button
             onClick={() => {
-              console.log("Folio que se enviará al backend:", lab.folioOrden);
+              //console.log("Folio que se enviará al backend:", lab.folioOrden);
               showConfirmCancel(lab.folioOrden);
             }}
             className="px-6 py-2 text-white font-bold rounded-full shadow-lg"

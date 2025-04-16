@@ -35,10 +35,10 @@ export default async function handler(req, res) {
 
       //* Verificamos si se afectó al menos un registro
       if (result.rowsAffected[0] > 0) {
-        console.log(
-          "✅ Medicamento marcado como inactivo (borrado lógico), ID:",
-          id
-        );
+        // console.log(
+        //   "✅ Medicamento marcado como inactivo (borrado lógico), ID:",
+        //   id
+        // );
 
         //* ===========================
         //* Registrar la actividad
@@ -71,13 +71,13 @@ export default async function handler(req, res) {
                   (@idUsuario, @accion, GETDATE(), @direccionIP, @agenteUsuario, @idMedicamento)
               `);
 
-            console.log(
-              "✅ Actividad de ‘Eliminó un medicamento’ registrada en ActividadUsuarios."
-            );
+            // console.log(
+            //   "✅ Actividad de ‘Eliminó un medicamento’ registrada en ActividadUsuarios."
+            // );
           } else {
-            console.log(
-              "⚠️ No se pudo registrar la actividad: falta idUsuario (cookie)."
-            );
+            // console.log(
+            //   "⚠️ No se pudo registrar la actividad: falta idUsuario (cookie)."
+            // );
           }
         } catch (errorAct) {
           console.error("❌ Error registrando actividad:", errorAct);

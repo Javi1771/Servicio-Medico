@@ -10,7 +10,7 @@ export default async function handler(req, res) {
       .find((row) => row.startsWith("claveusuario="))
       ?.split("=")[1];
     const claveusuario = claveusuarioCookie || null;
-    console.log("Cookie claveusuario:", claveusuario);
+    //console.log("Cookie claveusuario:", claveusuario);
 
     //? 2) Desestructuramos los datos del body
     //* Se intenta también leer de req.query en caso de que se envíen como parámetros
@@ -28,16 +28,7 @@ export default async function handler(req, res) {
     const clavepaciente = bodyClavepaciente || req.query.clavepaciente;
     let claveConsulta = bodyClaveConsulta || req.query.claveConsulta || null;
 
-    console.log("Datos recibidos en el backend:", {
-      id_registro_kpi,
-      valor_alcanzado,
-      calificacion,
-      observaciones,
-      fecha_evaluacion,
-      clavenomina,
-      clavepaciente,
-      claveConsulta,
-    });
+    //console.log("Datos recibidos en el backend:", { id_registro_kpi, valor_alcanzado, calificacion, observaciones, fecha_evaluacion, clavenomina, clavepaciente, claveConsulta, });
 
     //? 3) Validar datos obligatorios
     if (
@@ -71,14 +62,7 @@ export default async function handler(req, res) {
             clave_evaluo = @clave_evaluo
         WHERE id_registro_kpi = @id_registro_kpi
       `;
-      console.log("Ejecutando consulta SQL con datos:", {
-        id_registro_kpi,
-        valor_alcanzado,
-        calificacion,
-        observaciones,
-        fecha_evaluacion,
-        claveusuario,
-      });
+      //console.log("Ejecutando consulta SQL con datos:", { id_registro_kpi, valor_alcanzado, calificacion, observaciones, fecha_evaluacion, claveusuario, });
 
       const result = await pool
         .request()
@@ -112,14 +96,12 @@ export default async function handler(req, res) {
           .query(consultaQuery);
         if (consultaResult.recordset.length > 0) {
           claveConsulta = consultaResult.recordset[0].claveConsulta;
-          console.log("🔑 ClaveConsulta obtenida:", claveConsulta);
+          //console.log("🔑 ClaveConsulta obtenida:", claveConsulta);
         } else {
-          console.log(
-            "No se encontró consulta asociada a clavenomina y clavepaciente."
-          );
+          //console.log( "No se encontró consulta asociada a clavenomina y clavepaciente." );
         }
       } else {
-        console.log("ClaveConsulta recibida desde el front:", claveConsulta);
+        //console.log("ClaveConsulta recibida desde el front:", claveConsulta);
       }
 
       //? 6) Registrar la actividad con el mensaje "KPI calificado" e insertar la claveConsulta obtenida
@@ -144,7 +126,7 @@ export default async function handler(req, res) {
             VALUES 
               (@userId, @accion, DATEADD(MINUTE, -4, GETDATE()), @direccionIP, @agenteUsuario, @claveConsulta)
           `);
-        console.log("Actividad de KPI calificado registrada.");
+        //console.log("Actividad de KPI calificado registrada.");
       } catch (errorRegistro) {
         console.error("Error registrando actividad:", errorRegistro);
       }
@@ -158,7 +140,7 @@ export default async function handler(req, res) {
       res.status(500).json({ message: "Error interno del servidor.", error });
     }
   } else {
-    console.log("❌ Método no permitido:", req.method);
+    //console.log("❌ Método no permitido:", req.method);
     res.status(405).json({ message: "Método no permitido." });
   }
 }

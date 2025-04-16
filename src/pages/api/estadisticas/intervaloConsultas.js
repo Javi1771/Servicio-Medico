@@ -12,7 +12,7 @@ export const getConsultasData = async () => {
         AND clavestatus = 2
     `;
 
-    console.log("Ejecutando consulta SQL...");
+    //console.log("Ejecutando consulta SQL...");
     const result = await pool.request().query(query);
 
     const fechasRaw = result.recordset
@@ -20,7 +20,7 @@ export const getConsultasData = async () => {
     .map((row) => new Date(row.fechaconsulta));
   
     if (fechasRaw.length === 0) {
-      console.log("No se encontraron fechas.");
+      //console.log("No se encontraron fechas.");
       return {
         hours: {},
         days: {},
@@ -85,7 +85,7 @@ export const getConsultasData = async () => {
 
 export default async function handler(req, res) {
   try {
-    console.log("Recibiendo solicitud en el handler...");
+    //console.log("Recibiendo solicitud en el handler...");
 
     const data = await getConsultasData();
 
@@ -99,21 +99,21 @@ export default async function handler(req, res) {
         return acc;
       }, {});
 
-      console.log(`\n=== Datos filtrados para horas en ${dia} ===`);
-      console.log(filteredData);
+      //console.log(`\n=== Datos filtrados para horas en ${dia} ===`);
+      //console.log(filteredData);
 
       res.status(200).json({ hours: filteredData });
     } else if (interval === "días") {
-      console.log("\n=== Datos por días ===");
-      console.log(data.days);
+      //console.log("\n=== Datos por días ===");
+      //console.log(data.days);
       res.status(200).json({ days: data.days });
     } else if (interval === "meses") {
-      console.log("\n=== Datos por meses ===");
-      console.log(data.months);
+      //console.log("\n=== Datos por meses ===");
+      //console.log(data.months);
       res.status(200).json({ months: data.months });
     } else if (interval === "años") {
-      console.log("\n=== Datos por años ===");
-      console.log(data.years);
+      //console.log("\n=== Datos por años ===");
+      //console.log(data.years);
       res.status(200).json({ years: data.years });
     } else {
       res.status(200).json(data);

@@ -18,14 +18,14 @@ export default async function handler(req, res) {
     const pool = await connectToDatabase();
 
     // Depurar los datos que se están enviando
-    console.log("Datos que se están enviando a la tabla DETALLE_SURTIMIENTOS:");
-    console.log({
-      folioSurtimiento,
-      claveMedicamento,
-      indicaciones,
-      cantidad,
-      estatus
-    });
+    // console.log("Datos que se están enviando a la tabla DETALLE_SURTIMIENTOS:");
+    // console.log({
+    //   folioSurtimiento,
+    //   claveMedicamento,
+    //   indicaciones,
+    //   cantidad,
+    //   estatus
+    // });
 
     const query = `
       INSERT INTO detalleSurtimientos

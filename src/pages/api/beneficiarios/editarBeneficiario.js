@@ -37,7 +37,7 @@ export default async function handler(req, res) {
     firma, // Aquí recibimos la firma (puede ser cadena vacía o base64)
   } = req.body;
 
-  console.log("Datos recibidos en el backend para actualizar:", req.body);
+  //console.log("Datos recibidos en el backend para actualizar:", req.body);
 
   // Validar campos obligatorios
   if (
@@ -73,7 +73,7 @@ export default async function handler(req, res) {
 
   try {
     const pool = await connectToDatabase();
-    console.log("Conexión a la base de datos exitosa");
+    //console.log("Conexión a la base de datos exitosa");
 
     // Convertir valores booleanos
     const estudianteValue = esEstudiante ? 1 : 0;
@@ -150,7 +150,7 @@ export default async function handler(req, res) {
         WHERE ID_BENEFICIARIO = @idBeneficiario
       `);
 
-    console.log("Filas afectadas por la consulta:", result.rowsAffected[0]);
+    //console.log("Filas afectadas por la consulta:", result.rowsAffected[0]);
 
     if (result.rowsAffected[0] === 0) {
       return res
@@ -165,7 +165,7 @@ export default async function handler(req, res) {
       .find((row) => row.startsWith("claveusuario="))
       ?.split("=")[1];
     const claveusuario = claveusuarioCookie ? Number(claveusuarioCookie) : null;
-    console.log("Cookie claveusuario:", claveusuario);
+    //console.log("Cookie claveusuario:", claveusuario);
 
     if (claveusuario !== null) {
       let ip =
@@ -190,11 +190,9 @@ export default async function handler(req, res) {
           VALUES 
             (@userId, @accion, DATEADD(MINUTE, -4, GETDATE()), @direccionIP, @agenteUsuario, @claveConsulta, @idBeneficiario)
         `);
-      console.log(
-        "Actividad 'Editó un beneficiario' registrada en ActividadUsuarios."
-      );
+      //console.log( "Actividad 'Editó un beneficiario' registrada en ActividadUsuarios." );
     } else {
-      console.log("No se pudo registrar la actividad: falta claveusuario.");
+      //console.log("No se pudo registrar la actividad: falta claveusuario.");
     }
 
     return res

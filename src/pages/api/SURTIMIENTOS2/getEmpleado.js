@@ -17,7 +17,7 @@ export default async function handler(req, res) {
 
   try {
     const pool = await connectToDatabase();
-    console.log("Conectado a la base de datos. Buscando clave nómina...");
+    //console.log("Conectado a la base de datos. Buscando clave nómina...");
 
     const result = await pool
       .request()
@@ -33,7 +33,7 @@ export default async function handler(req, res) {
     }
 
     const clavenomina = result.recordset[0].clavenomina;
-    console.log("Clave nómina encontrada:", clavenomina);
+    //console.log("Clave nómina encontrada:", clavenomina);
 
     const client = await createClientAsync(soapUrl);
     const empObject = { emp: { num_nom: clavenomina } };
@@ -46,7 +46,7 @@ export default async function handler(req, res) {
     const empleado = resultSOAP.GetEmpleadoResult;
     const nombreCompleto = `${empleado.nombre} ${empleado.a_paterno} ${empleado.a_materno}`.trim();
 
-    console.log("Empleado encontrado:", { nombreCompleto, clavenomina });
+    //console.log("Empleado encontrado:", { nombreCompleto, clavenomina });
 
     res.status(200).json({ nombreCompleto, clavenomina });
   } catch (error) {

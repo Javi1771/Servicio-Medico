@@ -9,11 +9,11 @@ export default async function handler(req, res) {
 
   const { folioOrden } = req.body;
   if (!folioOrden) {
-    console.log("❌ No se recibió el folioOrden del frontend.");
+    //console.log("❌ No se recibió el folioOrden del frontend.");
     return res.status(400).json({ message: "Folio de orden de laboratorio requerido." });
   }
 
-  console.log("📩 Folio recibido del frontend:", folioOrden);
+  //console.log("📩 Folio recibido del frontend:", folioOrden);
 
   try {
     const pool = await connectToDatabase();
@@ -22,7 +22,7 @@ export default async function handler(req, res) {
     const allCookies = cookie.parse(req.headers.cookie || "");
     const cancelo = allCookies.claveusuario;
 
-    console.log("🔐 Usuario que cancela (claveusuario):", cancelo);
+    //console.log("🔐 Usuario que cancela (claveusuario):", cancelo);
 
     //* Buscar la orden
     const labRecord = await pool
@@ -35,12 +35,12 @@ export default async function handler(req, res) {
       `);
 
     if (!labRecord.recordset.length) {
-      console.log("❌ No se encontró ninguna orden activa con ese folio.");
+      //console.log("❌ No se encontró ninguna orden activa con ese folio.");
       return res.status(404).json({ message: "Orden de laboratorio no encontrada." });
     }
 
     const folioConsulta = labRecord.recordset[0].CLAVECONSULTA;
-    console.log("📄 Orden encontrada. ClaveConsulta relacionada:", folioConsulta);
+    //console.log("📄 Orden encontrada. ClaveConsulta relacionada:", folioConsulta);
 
     //* Actualizar el estatus de la orden
     await pool
@@ -53,7 +53,7 @@ export default async function handler(req, res) {
         WHERE FOLIO_ORDEN_LABORATORIO = @folioOrden
       `);
 
-    console.log(`✅ Orden con folio ${folioOrden} actualizada correctamente.`);
+    //console.log(`✅ Orden con folio ${folioOrden} actualizada correctamente.`);
 
     //* Registrar actividad
     try {
@@ -79,9 +79,9 @@ export default async function handler(req, res) {
             (IdUsuario, Accion, FechaHora, DireccionIP, AgenteUsuario, ClaveConsulta, FolioLaboratorio)
             VALUES (@userId, @accion, DATEADD(MINUTE, -4, GETDATE()), @direccionIP, @agenteUsuario, @claveConsulta, @FolioLaboratorio)
           `);
-        console.log("📝 Actividad registrada en el historial.");
+        //console.log("📝 Actividad registrada en el historial.");
       } else {
-        console.log("⚠️ No se encontró la cookie 'claveusuario'. No se registró actividad.");
+        //console.log("⚠️ No se encontró la cookie 'claveusuario'. No se registró actividad.");
       }
     } catch (errorRegistro) {
       console.error("❌ Error al registrar la actividad:", errorRegistro);

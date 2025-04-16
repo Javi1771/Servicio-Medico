@@ -47,7 +47,7 @@ export default function GenerarOrdenLaboratorio() {
       return null;
     }
     try {
-      console.log("📡 Consultando API con claveconsulta:", claveconsulta);
+      //console.log("📡 Consultando API con claveconsulta:", claveconsulta);
       const response = await fetch(
         `/api/laboratorio/estudioLaboratorio?claveconsulta=${claveconsulta}`
       );
@@ -57,7 +57,7 @@ export default function GenerarOrdenLaboratorio() {
         throw new Error("Error al obtener los datos de la consulta");
       }
       const data = await response.json();
-      console.log("✅ Datos de consulta recibidos:", data);
+      //console.log("✅ Datos de consulta recibidos:", data);
       return data;
     } catch (error) {
       console.error("❌ Error al obtener datos de consulta:", error);
@@ -81,7 +81,7 @@ export default function GenerarOrdenLaboratorio() {
     nuevoPdfDoc.addPage(copiedPage);
 
     const { width, height } = copiedPage.getSize();
-    console.log(`Página copiada: ${width} x ${height}`);
+    //console.log(`Página copiada: ${width} x ${height}`);
 
     const blackColor = rgb(0, 0, 0);
 
@@ -174,19 +174,19 @@ export default function GenerarOrdenLaboratorio() {
         return;
       }
 
-      console.log("📥 Cargando PDF base...");
+      //console.log("📥 Cargando PDF base...");
       const basePdfArrayBuffer = await fetch("/Laboratorio.pdf").then((res) => {
         if (!res.ok) throw new Error("Error al cargar PDF base");
         return res.arrayBuffer();
       });
-      console.log("✅ PDF base cargado.");
+      //console.log("✅ PDF base cargado.");
       const basePdfDoc = await PDFDocument.load(basePdfArrayBuffer);
 
       const nuevoPdfDoc = await PDFDocument.create();
 
       for (let i = 0; i < consulta.laboratorios.length; i++) {
         const lab = consulta.laboratorios[i];
-        console.log(`Generando página para laboratorio #${i + 1}...`);
+        //console.log(`Generando página para laboratorio #${i + 1}...`);
         await agregarPaginaEscalada(
           nuevoPdfDoc,
           basePdfDoc,
@@ -202,7 +202,7 @@ export default function GenerarOrdenLaboratorio() {
       const pdfBlobUrl = URL.createObjectURL(pdfBlob);
 
       setPdfUrl(pdfBlobUrl);
-      console.log("✅ PDF con múltiples páginas generado correctamente.");
+      //console.log("✅ PDF con múltiples páginas generado correctamente.");
     } catch (err) {
       console.error("❌ Error al generar PDFs:", err);
       setErrorMessage("Error al generar PDFs.");

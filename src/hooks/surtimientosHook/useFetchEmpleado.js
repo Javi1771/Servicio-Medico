@@ -7,7 +7,7 @@ export default function useFetchEmpleado() {
   const [empleadoLoading, setEmpleadoLoading] = useState(false);
 
   const fetchEmpleado = useCallback(async (numNom) => {
-    console.log("Realizando consulta al web service con numNom:", numNom);
+    //console.log("Realizando consulta al web service con numNom:", numNom);
     setEmpleadoLoading(true);
     setEmpleadoError(null);
     setEmpleadoData(null);
@@ -21,7 +21,7 @@ export default function useFetchEmpleado() {
         body: JSON.stringify({ num_nom: numNom }), // Cuerpo con número de nómina
       });
 
-      console.log("Respuesta del servidor:", response);
+      //console.log("Respuesta del servidor:", response);
 
       if (!response.ok) {
         throw new Error(`Error al obtener empleado: ${response.statusText}`);

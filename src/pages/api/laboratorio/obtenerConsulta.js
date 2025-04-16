@@ -3,17 +3,17 @@ import { connectToDatabase } from "../connectToDatabase";
 
 export default async function handler(req, res) {
   const { folio } = req.query;
-  console.log("🔍 Endpoint - obtenerConsultaEspecialidad");
-  console.log("📌 Parámetro recibido - Folio:", folio);
+  //console.log("🔍 Endpoint - obtenerConsultaEspecialidad");
+  //console.log("📌 Parámetro recibido - Folio:", folio);
 
   if (req.method !== "GET") {
-    console.log("❌ Método no permitido:", req.method);
+    //console.log("❌ Método no permitido:", req.method);
     return res.status(405).json({ error: "Método no permitido" });
   }
 
   const folioInt = parseInt(folio, 10);
   if (isNaN(folioInt)) {
-    console.log("❌ El parámetro 'folio' no es un número válido:", folio);
+    //console.log("❌ El parámetro 'folio' no es un número válido:", folio);
     return res
       .status(400)
       .json({ error: "El parámetro 'folio' debe ser un número válido" });
@@ -21,10 +21,10 @@ export default async function handler(req, res) {
 
   try {
     const pool = await connectToDatabase();
-    console.log("✅ Conexión exitosa a la base de datos");
+    //console.log("✅ Conexión exitosa a la base de datos");
 
     //? 1. Obtener datos de "consultas"
-    console.log("📄 Ejecutando consulta a 'consultas'");
+    //console.log("📄 Ejecutando consulta a 'consultas'");
     const consultaQuery = `
       SELECT c.claveconsulta, c.nombrepaciente, c.edad, c.parentesco, 
       c.sindicato, c.clavenomina, c.clavepaciente, c.elpacienteesempleado, 
@@ -40,9 +40,9 @@ export default async function handler(req, res) {
       .input("folio", sql.Int, folioInt)
       .query(consultaQuery);
 
-    console.log("📊 Resultado de 'consultas':", consultaResult.recordset);
+    //console.log("📊 Resultado de 'consultas':", consultaResult.recordset);
     if (consultaResult.recordset.length === 0) {
-      console.log("⚠️ No se encontró ninguna consulta con el folio:", folio);
+      //console.log("⚠️ No se encontró ninguna consulta con el folio:", folio);
       return res.status(404).json({ error: "Consulta no encontrada" });
     }
 
@@ -52,7 +52,7 @@ export default async function handler(req, res) {
       console.warn("⚠️ El campo 'parentesco' se recibió como un arreglo. Corrigiendo...");
       consulta.parentesco = consulta.parentesco[0];
     }
-    console.log("📋 Consulta después de procesar el parentesco:", consulta);
+    //console.log("📋 Consulta después de procesar el parentesco:", consulta);
 
     //* Definir las queries que se pueden ejecutar en paralelo
     const parentescoQuery = `
@@ -128,30 +128,30 @@ export default async function handler(req, res) {
     //? 3. Procesar resultado del parentesco
     let parentescoNombre = "EMPLEADO"; //! Valor por defecto
     if (consulta.parentesco === 0 || consulta.parentesco === "Empleado") {
-      console.log("ℹ️ Parentesco identificado directamente como EMPLEADO");
+      //console.log("ℹ️ Parentesco identificado directamente como EMPLEADO");
     } else if (parentescoResult && parentescoResult.recordset.length > 0) {
       parentescoNombre = parentescoResult.recordset[0].PARENTESCO;
     } else {
-      console.log("⚠️ No se encontró un parentesco para el ID proporcionado");
+      //console.log("⚠️ No se encontró un parentesco para el ID proporcionado");
     }
 
     //? 4. Procesar el tipo de consulta según especialidadinterconsulta
     let tipoConsulta = {};
     if (consulta.especialidadinterconsulta == null) {
-      console.log("ℹ️ especialidadinterconsulta es NULL. Se asigna 'Consulta General'");
+      //console.log("ℹ️ especialidadinterconsulta es NULL. Se asigna 'Consulta General'");
       tipoConsulta = {
         mensaje: "Consulta General",
         especialidad: "Consulta General",
         claveespecialidad: null,
       };
     } else if (tipoConsultaResult && tipoConsultaResult.recordset.length > 0) {
-      console.log("ℹ️ Se encontró la especialidad para la consulta");
+      //console.log("ℹ️ Se encontró la especialidad para la consulta");
       tipoConsulta = {
         ...tipoConsultaResult.recordset[0],
         mensaje: "Consulta Especialidad",
       };
     } else {
-      console.log("⚠️ No se encontró una especialidad para el valor:", consulta.especialidadinterconsulta);
+      //console.log("⚠️ No se encontró una especialidad para el valor:", consulta.especialidadinterconsulta);
       tipoConsulta = {
         mensaje: "Consulta General",
         especialidad: "Consulta General",
@@ -160,16 +160,16 @@ export default async function handler(req, res) {
     }
 
     //? 5. Procesar la especialidad asignada por el médico
-    console.log("📊 Resultado de 'especialidad_medico':", especialidadMedicoResult.recordset);
+    //console.log("📊 Resultado de 'especialidad_medico':", especialidadMedicoResult.recordset);
     let especialidadMedico = null;
     if (especialidadMedicoResult.recordset.length > 0) {
       especialidadMedico = especialidadMedicoResult.recordset[0];
     } else {
-      console.log("⚠️ No se encontró la especialidad asignada por el médico");
+      //console.log("⚠️ No se encontró la especialidad asignada por el médico");
     }
 
     //? 6. Procesar especialistas
-    console.log("📊 Resultado de 'proveedores':", especialistasResult.recordset);
+    //console.log("📊 Resultado de 'proveedores':", especialistasResult.recordset);
 
     res.status(200).json({
       paciente: consulta,

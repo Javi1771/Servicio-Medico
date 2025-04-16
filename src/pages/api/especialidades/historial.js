@@ -79,7 +79,7 @@ export default async function handler(req, res) {
 
     query += ` ORDER BY d.fecha_asignacion DESC`;
 
-    console.log("Consulta SQL ejecutada:", query);
+    //console.log("Consulta SQL ejecutada:", query);
 
     const request = pool.request();
     inputs.forEach((input) => {

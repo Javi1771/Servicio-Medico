@@ -24,7 +24,7 @@ export default async function handler(req, res) {
   const { folio } = req.body;
 
   //* Log de lo que recibimos en el body
-  console.log("Request body:", req.body);
+  //console.log("Request body:", req.body);
 
   if (!folio) {
     return res.status(400).json({ message: "Folio es requerido." });
@@ -45,7 +45,7 @@ export default async function handler(req, res) {
       `);
 
     //* Log de lo que devuelve consultaResult
-    console.log("consultaResult.recordset:", consultaResult.recordset);
+    //console.log("consultaResult.recordset:", consultaResult.recordset);
 
     if (!consultaResult.recordset.length) {
       return res.status(404).json({
@@ -64,14 +64,14 @@ export default async function handler(req, res) {
       `);
 
     //* Log de lo que devuelve incapResult
-    console.log("incapResult.recordset:", incapResult.recordset);
+    //console.log("incapResult.recordset:", incapResult.recordset);
 
     if (!incapResult.recordset.length) {
       return res.status(404).json({ message: "Incapacidad no encontrada." });
     }
 
     const incap = incapResult.recordset[0];
-    console.log("Incapacidad obtenida:", incap);
+    //console.log("Incapacidad obtenida:", incap);
 
     const fechaFormateada = formatFecha(incap.fecha);
     const fechainicioFormateada = formatFecha(incap.fechainicio);
@@ -82,7 +82,7 @@ export default async function handler(req, res) {
       .input("claveMedico", sql.Int, incap.claveMedico)
       .query(`SELECT nombreproveedor FROM proveedores WHERE claveproveedor = @claveMedico`);
 
-    console.log("proveedorResult.recordset:", proveedorResult.recordset);
+    //console.log("proveedorResult.recordset:", proveedorResult.recordset);
 
     const nombreproveedor = proveedorResult.recordset.length
       ? proveedorResult.recordset[0].nombreproveedor

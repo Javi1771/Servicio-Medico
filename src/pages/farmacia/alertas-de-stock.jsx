@@ -38,14 +38,14 @@ const Notificaciones = () => {
           throw new Error("Error al obtener notificaciones de stock.");
         }
         const data = await response.json();
-        console.log("Datos recibidos:", data);
+        //console.log("Datos recibidos:", data);
         //* Suponemos que la respuesta contiene { medicamentos: [...], usuario: "..." }
         setNotificaciones(
           Array.isArray(data.medicamentos) ? data.medicamentos : []
         );
         setNombreUsuario(data.usuario || "Usuario no definido");
         setfechaActualFormateada(data.fecha || "Usuario no definido");
-        console.log("Usuario recibido:", data.usuario);
+        //console.log("Usuario recibido:", data.usuario);
       } catch (err) {
         setError(err.message);
       } finally {

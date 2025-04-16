@@ -13,7 +13,7 @@ export const config = {
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
-    console.log("Método no permitido:", req.method);
+    //console.log("Método no permitido:", req.method);
     return res.status(405).json({ message: "Método no permitido" });
   }
 
@@ -34,9 +34,9 @@ export default async function handler(req, res) {
       return res.status(500).json({ message: "Error al parsear el formulario" });
     }
 
-    console.log("Campos recibidos:", fields);
-    console.log("Archivos recibidos:", files);
-    console.log("Query string:", req.query);
+    //console.log("Campos recibidos:", fields);
+    //console.log("Archivos recibidos:", files);
+    //console.log("Query string:", req.query);
 
     try {
       const { costo, numeroFactura } = fields;
@@ -69,10 +69,10 @@ export default async function handler(req, res) {
       }
 
       const pool = await connectToDatabase();
-      console.log("Conexión a la base de datos exitosa");
+      //console.log("Conexión a la base de datos exitosa");
       const transaction = new sql.Transaction(pool);
       await transaction.begin();
-      console.log("Transacción iniciada");
+      //console.log("Transacción iniciada");
 
       try {
         const request = new sql.Request(transaction);
@@ -85,12 +85,8 @@ export default async function handler(req, res) {
           OUTPUT INSERTED.id_gasto AS idGasto
           WHERE claveconsulta = @claveconsulta
         `;
-        console.log("Query de actualización:", updateQuery);
-        console.log("Parámetros de actualización:", {
-          costo,
-          factura: numeroFactura ? numeroFactura.toString() : "",
-          claveconsulta: Number(claveconsulta),
-        });
+        //console.log("Query de actualización:", updateQuery);
+        //console.log("Parámetros de actualización:", { costo, factura: numeroFactura ? numeroFactura.toString() : "", claveconsulta: Number(claveconsulta), });
         const updateResult = await request
           .input("costo", sql.Decimal(10, 2), costo)
           .input("factura", sql.VarChar(50), numeroFactura ? numeroFactura.toString() : "")
@@ -111,11 +107,11 @@ export default async function handler(req, res) {
         }
 
         const idGasto = updateResult.recordset[0].idGasto;
-        console.log("Costo actualizado. id_gasto obtenido:", idGasto);
+        //console.log("Costo actualizado. id_gasto obtenido:", idGasto);
 
         //* Procesar el archivo PDF
         const sourcePath = pdfFile.filepath || pdfFile.path;
-        console.log("Ruta del archivo recibido:", sourcePath);
+        //console.log("Ruta del archivo recibido:", sourcePath);
         if (!sourcePath) {
           console.error("No se encontró la ruta del archivo subido.");
           try {
@@ -132,39 +128,39 @@ export default async function handler(req, res) {
         let claveNominaFinal = fields.clavenomina;
         if (!claveNominaFinal) {
           const selectQuery = `SELECT clavenomina FROM costos WHERE id_gasto = @idGasto`;
-          console.log("Query para obtener clavenomina:", selectQuery);
+          //console.log("Query para obtener clavenomina:", selectQuery);
           const selectResult = await request.input("idGasto", sql.Int, idGasto).query(selectQuery);
-          console.log("Resultado de clavenomina:", selectResult.recordset);
+          //console.log("Resultado de clavenomina:", selectResult.recordset);
           if (selectResult.recordset.length > 0) {
             claveNominaFinal = selectResult.recordset[0].clavenomina;
           } else {
             claveNominaFinal = "undefined";
           }
         }
-        console.log("Valor de clavenomina a usar:", claveNominaFinal);
+        //console.log("Valor de clavenomina a usar:", claveNominaFinal);
 
         const fileName = `${idGasto}_${claveNominaFinal}.pdf`;
-        console.log("Nombre de archivo generado:", fileName);
+        //console.log("Nombre de archivo generado:", fileName);
 
         const folderPath = path.join(process.cwd(), "public", "facturas");
-        console.log("Carpeta destino:", folderPath);
+        //console.log("Carpeta destino:", folderPath);
         if (!fs.existsSync(folderPath)) {
           fs.mkdirSync(folderPath, { recursive: true });
-          console.log("Carpeta creada:", folderPath);
+          //console.log("Carpeta creada:", folderPath);
         }
         const filePath = path.join(folderPath, fileName);
-        console.log("Ruta completa para guardar el archivo:", filePath);
+        //console.log("Ruta completa para guardar el archivo:", filePath);
 
         fs.renameSync(sourcePath, filePath);
-        console.log("Archivo movido a:", filePath);
+        //console.log("Archivo movido a:", filePath);
 
         const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || `${req.headers["x-forwarded-proto"] || "http"}://${req.headers.host}`;
         const urlFactura = `${baseUrl}/facturas/${fileName}`;
-        console.log("URL que se guardará en la BD:", urlFactura);
+        //console.log("URL que se guardará en la BD:", urlFactura);
 
         const updateUrlQuery = `UPDATE costos SET url_factura = @urlFactura WHERE id_gasto = @idGasto`;
-        console.log("Query para actualizar url_factura:", updateUrlQuery);
-        console.log("Parámetros para actualizar url_factura:", { urlFactura, idGasto });
+        //console.log("Query para actualizar url_factura:", updateUrlQuery);
+        //console.log("Parámetros para actualizar url_factura:", { urlFactura, idGasto });
 
         //* Usar un nuevo objeto Request para evitar duplicidad de parámetros
         const requestUrl = new sql.Request(transaction);
@@ -172,16 +168,16 @@ export default async function handler(req, res) {
           .input("urlFactura", sql.VarChar(255), urlFactura)
           .input("idGasto", sql.Int, idGasto)
           .query(updateUrlQuery);
-        console.log("url_factura actualizada en la BD.");
+        //console.log("url_factura actualizada en la BD.");
 
         await transaction.commit();
-        console.log("Transacción commit exitosa.");
+        //console.log("Transacción commit exitosa.");
 
         //* Registrar la actividad (fuera de la transacción)
         const rawCookies = req.headers.cookie || "";
         const claveusuarioCookie = rawCookies.split("; ").find((row) => row.startsWith("claveusuario="))?.split("=")[1];
         const claveusuarioInt = claveusuarioCookie ? Number(claveusuarioCookie) : null;
-        console.log("Cookie claveusuario:", claveusuarioInt);
+        //console.log("Cookie claveusuario:", claveusuarioInt);
 
         if (claveusuarioInt !== null) {
           let ip = (req.headers["x-forwarded-for"] && req.headers["x-forwarded-for"].split(",")[0].trim()) ||
@@ -195,14 +191,8 @@ export default async function handler(req, res) {
             VALUES 
               (@userId, @accion, DATEADD(MINUTE, -4, GETDATE()), @direccionIP, @agenteUsuario, @idGasto)
           `;
-          console.log("Query para registrar actividad:", actividadQuery);
-          console.log("Parámetros de actividad:", {
-            userId: claveusuarioInt,
-            accion: "Capturó un Gasto y Factura",
-            direccionIP: ip,
-            agenteUsuario: userAgent,
-            idGasto,
-          });
+          //console.log("Query para registrar actividad:", actividadQuery);
+          //console.log("Parámetros de actividad:", { userId: claveusuarioInt, accion: "Capturó un Gasto y Factura", direccionIP: ip, agenteUsuario: userAgent , idGasto });
           await pool
             .request()
             .input("userId", sql.Int, claveusuarioInt)
@@ -211,9 +201,9 @@ export default async function handler(req, res) {
             .input("agenteUsuario", sql.VarChar, userAgent)
             .input("idGasto", sql.Int, idGasto)
             .query(actividadQuery);
-          console.log("Actividad registrada en ActividadUsuarios.");
+          //console.log("Actividad registrada en ActividadUsuarios.");
         } else {
-          console.log("No se pudo registrar la actividad: falta claveusuario.");
+          //console.log("No se pudo registrar la actividad: falta claveusuario.");
         }
 
         return res.status(200).json({

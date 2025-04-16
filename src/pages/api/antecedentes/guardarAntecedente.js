@@ -62,17 +62,9 @@ export default async function handler(req, res) {
         let fetchedClaveConsulta = null;
         if (consultaResult.recordset.length > 0) {
           fetchedClaveConsulta = consultaResult.recordset[0].claveConsulta;
-          console.log(
-            "🔑 ClaveConsulta obtenida de la tabla consultas:",
-            fetchedClaveConsulta
-          );
+          //console.log("🔑 ClaveConsulta obtenida de la tabla consultas:", fetchedClaveConsulta );
         } else {
-          console.log(
-            "No se encontró claveConsulta en consultas para clavenomina:",
-            clavenomina,
-            "y clavepaciente:",
-            clavepaciente
-          );
+          //console.log( "No se encontró claveConsulta en consultas para clavenomina:", clavenomina, "y clavepaciente:", clavepaciente );
         }
 
         //* Obtener la cookie "claveusuario"
@@ -84,7 +76,7 @@ export default async function handler(req, res) {
         const claveusuario = claveusuarioCookie
           ? Number(claveusuarioCookie)
           : null;
-        console.log("Cookie claveusuario:", claveusuario);
+        //console.log("Cookie claveusuario:", claveusuario);
 
         if (claveusuario !== null && fetchedClaveConsulta !== null) {
           let ip =
@@ -109,13 +101,9 @@ export default async function handler(req, res) {
               VALUES 
                 (@userId, @accion, DATEADD(MINUTE, -4, GETDATE()), @direccionIP, @agenteUsuario, @claveConsulta)
             `);
-          console.log(
-            "Actividad 'Asignó antecedente' registrada en ActividadUsuarios."
-          );
+          //console.log( "Actividad 'Asignó antecedente' registrada en ActividadUsuarios." );
         } else {
-          console.log(
-            "No se pudo registrar la actividad: falta claveusuario o claveConsulta."
-          );
+          //console.log( "No se pudo registrar la actividad: falta claveusuario o claveConsulta." );
         }
       } catch (errorRegistro) {
         console.error("Error registrando actividad:", errorRegistro);

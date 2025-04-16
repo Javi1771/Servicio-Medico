@@ -8,7 +8,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    console.log("Solicitud recibida:", req.body);
+    //console.log("Solicitud recibida:", req.body);
 
     const {
       fechaInicio,
@@ -29,8 +29,8 @@ export default async function handler(req, res) {
     const cookies = parse(req.headers.cookie || "");
     const quienCapturo = cookies.claveusuario || null;
 
-    console.log("Cookies recibidas:", cookies);
-    console.log("Usuario que capturó:", quienCapturo);
+    //console.log("Cookies recibidas:", cookies);
+    //console.log("Usuario que capturó:", quienCapturo);
 
     if (!quienCapturo) {
       console.error("Error: No se encontró la clave del usuario en la cookie");
@@ -55,21 +55,21 @@ export default async function handler(req, res) {
       now.getSeconds()
     ).padStart(2, "0")}.${String(now.getMilliseconds()).padStart(3, "0")}`;
 
-    console.log("Datos a insertar en la base de datos:", {
-      fecha: fechaActual,
-      fechaInicio,
-      fechaFin,
-      nomina,
-      nombreEmpleado,
-      departamento,
-      observaciones,
-      edad,
-      claveConsulta,
-      claveMedico,
-      estatus: 1,
-      cancelo: null,
-      quienCapturo,
-    });
+    //console.log("Datos a insertar en la base de datos:", {
+    //   fecha: fechaActual,
+    //   fechaInicio,
+    //   fechaFin,
+    //   nomina,
+    //   nombreEmpleado,
+    //   departamento,
+    //   observaciones,
+    //   edad,
+    //   claveConsulta,
+    //   claveMedico,
+    //   estatus: 1,
+    //   cancelo: null,
+    //   quienCapturo,
+    // });
 
     //* Insertar en la tabla 'incapacidades' y obtener la clave generada
     const insertResult = await request
@@ -100,7 +100,7 @@ export default async function handler(req, res) {
 
     //* Recuperamos la clave generada
     const claveIncapacidad = insertResult.recordset[0].claveIncapacidad;
-    console.log("Se generó la clave de incapacidad:", claveIncapacidad);
+    //console.log("Se generó la clave de incapacidad:", claveIncapacidad);
 
     //* Actualizar el estatus en la tabla detalleIncapacidad
     const updateResult = await request
@@ -119,7 +119,7 @@ export default async function handler(req, res) {
         .json({ error: "No se encontraron registros para actualizar." });
     }
 
-    console.log("Actualización de estatus completada.");
+    //console.log("Actualización de estatus completada.");
 
     //* Insertar el registro de actividad en la tabla ActividadUsuarios,
     //* almacenando la claveIncapacidad en la columna IdCapIncapacidad
@@ -146,7 +146,7 @@ export default async function handler(req, res) {
           (@idUsuario, @accion, @fechaHora, @direccionIP, @agenteUsuario, @idCapIncapacidad)
       `);
 
-    console.log("Registro de actividad insertado en ActividadUsuarios.");
+    //console.log("Registro de actividad insertado en ActividadUsuarios.");
 
     res.status(200).json({
       message: "Incapacidad guardada correctamente y estatus actualizado.",

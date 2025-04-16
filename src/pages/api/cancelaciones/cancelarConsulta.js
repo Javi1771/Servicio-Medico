@@ -61,9 +61,9 @@ export default async function handler(req, res) {
             (IdUsuario, Accion, FechaHora, DireccionIP, AgenteUsuario, ClaveConsulta)
             VALUES (@userId, @accion, DATEADD(MINUTE, -4, GETDATE()), @direccionIP, @agenteUsuario, @claveConsulta)
           `);
-        console.log("Actividad de cancelación registrada.");
+        //console.log("Actividad de cancelación registrada.");
       } else {
-        console.log("Cookie 'claveusuario' no encontrada; actividad no registrada.");
+        //console.log("Cookie 'claveusuario' no encontrada; actividad no registrada.");
       }
     } catch (errorRegistro) {
       console.error("Error registrando actividad de cancelación:", errorRegistro);

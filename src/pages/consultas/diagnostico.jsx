@@ -83,19 +83,19 @@ const Diagnostico = () => {
   //* Leer nombre del médico desde las cookies
   useEffect(() => {
     const nombre = Cookies.get("nombreusuario"); //* Obtén el valor desde las cookies
-    console.log("Nombre del médico desde cookies:", nombre);
+    //console.log("Nombre del médico desde cookies:", nombre);
     setNombreMedico(nombre || "No especificado");
 
     const especialidad = Cookies.get("claveespecialidad");
-    console.log("Clave especialidad: ", especialidad);
+    //console.log("Clave especialidad: ", especialidad);
     setClaveEspecialidad(especialidad || "No especificado");
 
     const costo = Cookies.get("costo");
-    console.log("Costo: ", costo);
+    //console.log("Costo: ", costo);
     setCosto(costo || "No especificado");
 
     const claveusuario = Cookies.get("claveusuario");
-    console.log("Clave claveusuario: ", claveusuario);
+    //console.log("Clave claveusuario: ", claveusuario);
     setClaveusuario(claveusuario || "No especificado");
   }, []);
 
@@ -110,7 +110,7 @@ const Diagnostico = () => {
   }, []);
 
   useEffect(() => {
-    console.log("Estado de validación del formulario:", formCompleto);
+    //console.log("Estado de validación del formulario:", formCompleto);
   }, [formCompleto]);
 
   //* Función para cargar pacientes del día
@@ -233,7 +233,7 @@ const Diagnostico = () => {
   };
 
   const handlePacienteClick = async (paciente) => {
-    console.log("Datos del paciente seleccionado:", paciente);
+    //console.log("Datos del paciente seleccionado:", paciente);
     setPacienteSeleccionado(paciente);
     setMostrarEmergente(true);
     setClaveConsulta(paciente.claveconsulta);

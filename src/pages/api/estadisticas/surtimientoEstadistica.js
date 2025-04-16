@@ -66,9 +66,9 @@ export default async function handler(req, res) {
 
     //* Formatear la fecha de emisión en los resultados
     const formattedResults = result.recordset.map((record) => {
-      console.log("Fecha original (FECHA_EMISION):", record.FECHA_EMISION);
+      //console.log("Fecha original (FECHA_EMISION):", record.FECHA_EMISION);
       const formattedDate = formatFecha(record.FECHA_EMISION);
-      console.log("Fecha formateada (FECHA_EMISION):", formattedDate);
+      //console.log("Fecha formateada (FECHA_EMISION):", formattedDate);
 
       return {
         ...record,

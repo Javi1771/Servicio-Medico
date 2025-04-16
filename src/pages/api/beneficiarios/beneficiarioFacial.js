@@ -4,7 +4,7 @@ import sql from "mssql";
 export default async function handler(req, res) {
   if (req.method === "POST") {
     const { nomina, ID_BENEFICIARIO } = req.body;
-    console.log("Datos recibidos - Nómina:", nomina, "ID Beneficiario:", ID_BENEFICIARIO);
+    //console.log("Datos recibidos - Nómina:", nomina, "ID Beneficiario:", ID_BENEFICIARIO);
 
     try {
       const pool = await connectToDatabase();
@@ -34,7 +34,7 @@ export default async function handler(req, res) {
             AND B.ACTIVO = 'A'
         `);
 
-      console.log("Resultados de la consulta:", result.recordset);
+      //console.log("Resultados de la consulta:", result.recordset);
 
       if (result.recordset.length > 0) {
         const beneficiaries = result.recordset.map((beneficiary) => {
@@ -65,7 +65,7 @@ export default async function handler(req, res) {
           };
         });
 
-        console.log("Lista de beneficiarios procesados:", beneficiaries);
+        //console.log("Lista de beneficiarios procesados:", beneficiaries);
         res.status(200).json({ beneficiarios: beneficiaries });
       } else {
         res.status(404).json({ message: "No se encontraron beneficiarios con los datos proporcionados." });

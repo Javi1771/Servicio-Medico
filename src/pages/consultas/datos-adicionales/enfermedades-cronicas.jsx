@@ -67,7 +67,7 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
       }
 
       const data = await response.json();
-      console.log("Detalles del KPI seleccionados:", data);
+      //console.log("Detalles del KPI seleccionados:", data);
 
       //* Validar que se obtuvieron datos
       if (!Array.isArray(data) || data.length === 0) {
@@ -103,7 +103,7 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
         id_registro_kpi: detalleSeleccionado.idRegistro,
       };
 
-      console.log("Detalle seleccionado con ID KPI:", detalleConIDKPI);
+      //console.log("Detalle seleccionado con ID KPI:", detalleConIDKPI);
 
       //* Actualizar el estado con los detalles seleccionados
       setEditKPIDetails(detalleConIDKPI);
@@ -144,7 +144,7 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
 
       const data = await response.json();
 
-      console.log("Datos recibidos del servidor:", data);
+      //console.log("Datos recibidos del servidor:", data);
 
       if (!Array.isArray(data) || data.length === 0) {
         console.warn("No se encontraron registros en el historial.");
@@ -229,7 +229,7 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
       valor_alcanzado: false,
     };
 
-    console.log("Datos que se enviarán para el registro del KPI:", kpiData);
+    //console.log("Datos que se enviarán para el registro del KPI:", kpiData);
 
     try {
       const response = await fetch("/api/enfermedades-kpis/registrarKPI", {
@@ -325,7 +325,7 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
       fecha_evaluacion: fechaEvaluacion,
     };
 
-    console.log("Enviando datos al backend para actualizar el KPI:", kpiData);
+    //console.log("Enviando datos al backend para actualizar el KPI:", kpiData);
 
     try {
       //* Construir los query parameters con los datos adicionales
@@ -353,7 +353,7 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
       }
 
       const responseData = await response.json();
-      console.log("Respuesta del servidor al actualizar KPI:", responseData);
+      //console.log("Respuesta del servidor al actualizar KPI:", responseData);
 
       //* Cerrar la ventana y limpiar el formulario
       setMostrarVentanaKPI(false);
@@ -376,11 +376,11 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
       });
 
       //* Refrescar el historial después de actualizar
-      console.log(
-        "Actualizando historial después de guardar detalles del KPI..."
-      );
+      //console.log(
+      //   "Actualizando historial después de guardar detalles del KPI..."
+      // );
       await fetchHistorialKPI();
-      console.log("Historial actualizado correctamente.");
+      //console.log("Historial actualizado correctamente.");
     } catch (error) {
       console.error("Error al actualizar KPI:", error);
 

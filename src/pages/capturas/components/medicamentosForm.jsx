@@ -112,7 +112,7 @@ const MedicamentosForm = ({
   };
 
   const handleAddToReceta = () => {
-    console.log("Medicamento seleccionado:", selectedMedicamento); // Aquí debe ser la clave
+    //console.log("Medicamento seleccionado:", selectedMedicamento); // Aquí debe ser la clave
     if (!selectedMedicamento || !indicaciones || !cantidad) {
       Swal.fire({
         title: "Campos incompletos",
@@ -335,7 +335,7 @@ const MedicamentosForm = ({
   };
 
   const handleSaveMedicamento = async (nombre, tipo) => {
-    console.log("Enviando datos al servidor:", { nombre, tipo });
+    //console.log("Enviando datos al servidor:", { nombre, tipo });
 
     try {
       const response = await fetch("/api/surtimientos/addNuevoMedicamento", {
@@ -396,7 +396,7 @@ const MedicamentosForm = ({
       }
 
       const data = await response.json();
-      console.log("Medicamentos obtenidos:", data); // Verifica el resultado aquí
+      //console.log("Medicamentos obtenidos:", data); // Verifica el resultado aquí
 
       setMedicamentos(
         data.map((item) => ({

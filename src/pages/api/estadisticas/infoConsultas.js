@@ -60,10 +60,10 @@ export const getDetallesConsultas = async (fechaHoraInicio, fechaHoraFin) => {
     ORDER BY c.fechaconsulta ASC;
     `;
 
-    console.log("Ejecutando consulta con parámetros:", {
-      fechaHoraInicio,
-      fechaHoraFin,
-    });
+    // console.log("Ejecutando consulta con parámetros:", {
+    //   fechaHoraInicio,
+    //   fechaHoraFin,
+    // });
 
     //* Usa las cadenas directamente sin convertirlas a UTC
     const result = await pool
@@ -74,9 +74,9 @@ export const getDetallesConsultas = async (fechaHoraInicio, fechaHoraFin) => {
 
     //* Formatear la fecha en los resultados
     const formattedResults = result.recordset.map((record) => {
-      console.log("Fecha original:", record.fechaconsulta);
+      //console.log("Fecha original:", record.fechaconsulta);
       const formattedDate = formatFecha(record.fechaconsulta);
-      console.log("Fecha formateada:", formattedDate);
+      //console.log("Fecha formateada:", formattedDate);
       return {
         ...record,
         fechaconsulta: formattedDate, //* Reemplazar con la fecha formateada
@@ -102,12 +102,12 @@ export default async function handler(req, res) {
 
   try {
     //! No convierte a UTC, utiliza las fechas directamente
-    console.log(`Obteniendo detalles de consultas entre ${start} y ${end}`);
+    //console.log(`Obteniendo detalles de consultas entre ${start} y ${end}`);
 
     //* Pasar directamente las fechas recibidas
     const detalles = await getDetallesConsultas(start, end);
 
-    console.log("Cantidad de registros obtenidos:", detalles.length);
+    //console.log("Cantidad de registros obtenidos:", detalles.length);
 
     res.status(200).json({ detalles });
   } catch (error) {

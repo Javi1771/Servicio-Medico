@@ -327,7 +327,7 @@ const EstudioLaboratorio = () => {
       })),
     };
 
-    console.log("Datos enviados:", body);
+    //console.log("Datos enviados:", body);
     setIsSaving(true); //! Deshabilitamos el botón y cambiamos el texto a "Guardando..."
     try {
       const res = await fetch("/api/laboratorio/insertarOrden", {
@@ -635,7 +635,7 @@ const EstudioLaboratorio = () => {
                                 fechaSeleccionada
                               );
                               actualizarLab(index, "isDatePickerOpen", false);
-                              console.log("Fecha Inicial:", fechaSeleccionada);
+                              //console.log("Fecha Inicial:", fechaSeleccionada);
                             }}
                             value={
                               lab.selectedDate

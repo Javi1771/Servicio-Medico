@@ -162,7 +162,7 @@ export default function RegistroBeneficiario() {
         await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
         await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
         setModelsLoaded(true);
-        console.log("[face-api] Modelos cargados correctamente en el front");
+        //console.log("[face-api] Modelos cargados correctamente en el front");
       } catch (err) {
         console.error("[face-api] Error al cargar modelos:", err);
       }
@@ -247,10 +247,10 @@ export default function RegistroBeneficiario() {
       const data = await response.json();
 
       if (response.ok) {
-        console.log(
-          "Acta de Concubinato Manual subida exitosamente:",
-          data.url
-        );
+        //console.log(
+        //   "Acta de Concubinato Manual subida exitosamente:",
+        //   data.url
+        // );
         setFormData((prev) => ({
           ...prev,
           actaConcubinatoUrl: data.url, // Guardar la URL del archivo
@@ -307,7 +307,7 @@ export default function RegistroBeneficiario() {
       const data = await response.json();
 
       if (response.ok) {
-        console.log("Acta de Matrimonio subida manualmente:", data.url);
+        //console.log("Acta de Matrimonio subida manualmente:", data.url);
         setFormData((prev) => ({
           ...prev,
           actaMatrimonioUrl: data.url, // Guardar la URL del Acta de Matrimonio
@@ -361,7 +361,7 @@ export default function RegistroBeneficiario() {
       const data = await response.json();
 
       if (response.ok) {
-        console.log("Acta de Incapacidad subida exitosamente:", data.url);
+        //console.log("Acta de Incapacidad subida exitosamente:", data.url);
         setFormData((prev) => ({
           ...prev,
           urlIncap: data.url, // Guardar la URL en el estado
@@ -500,7 +500,7 @@ export default function RegistroBeneficiario() {
           ...prev,
           descriptorFacial: descriptorJSON,
         }));
-        console.log("Descriptor facial calculado:", descriptorJSON);
+        //console.log("Descriptor facial calculado:", descriptorJSON);
 
         // 3. Subir la imagen a tu servidor
         await uploadImage(base64Image);
@@ -584,7 +584,7 @@ export default function RegistroBeneficiario() {
       const data = await response.json();
 
       if (response.ok) {
-        console.log("INE subida exitosamente:", data.url);
+        //console.log("INE subida exitosamente:", data.url);
         setFormData((prev) => ({
           ...prev,
           ineUrl: data.url, // Guardar la URL del INE en el estado
@@ -629,7 +629,7 @@ export default function RegistroBeneficiario() {
       const data = await response.json();
 
       if (response.ok) {
-        console.log("Carta de No Afiliación subida exitosamente:", data.url);
+        //console.log("Carta de No Afiliación subida exitosamente:", data.url);
         setFormData((prev) => ({
           ...prev,
           cartaNoAfiliacionUrl: data.url, // Guardar la URL correcta
@@ -675,7 +675,7 @@ export default function RegistroBeneficiario() {
       const data = await response.json();
 
       if (response.ok) {
-        console.log("CURP subida exitosamente:", data.url);
+        //console.log("CURP subida exitosamente:", data.url);
         setFormData((prev) => ({
           ...prev,
           urlCurp: data.url, // Guardar la URL resultante en el estado
@@ -718,7 +718,7 @@ export default function RegistroBeneficiario() {
       const data = await response.json();
 
       if (response.ok) {
-        console.log("Acta de Nacimiento subida exitosamente:", data.url);
+        //console.log("Acta de Nacimiento subida exitosamente:", data.url);
         setFormData((prev) => ({
           ...prev,
           urlActaNac: data.url, // Guardar la URL del Acta de Nacimiento
@@ -760,7 +760,7 @@ export default function RegistroBeneficiario() {
       const data = await response.json();
 
       if (response.ok) {
-        console.log("Constancia de Estudios subida exitosamente:", data.url);
+        //console.log("Constancia de Estudios subida exitosamente:", data.url);
         setFormData((prev) => ({
           ...prev,
           urlConstancia: data.url, // Guardar la URL pública del archivo
@@ -874,16 +874,16 @@ export default function RegistroBeneficiario() {
       ESDISCAPACITADO, // Nuevo campo para verificar discapacidad
     } = beneficiary;
 
-    console.log("Datos recibidos del beneficiario:", {
-      NO_NOMINA,
-      PARENTESCO,
-      NOMBRE,
-      A_PATERNO,
-      A_MATERNO,
-      F_NACIMIENTO,
-      VIGENCIA_ESTUDIOS,
-      ESDISCAPACITADO,
-    });
+    // console.log("Datos recibidos del beneficiario:", {
+    //   NO_NOMINA,
+    //   PARENTESCO,
+    //   NOMBRE,
+    //   A_PATERNO,
+    //   A_MATERNO,
+    //   F_NACIMIENTO,
+    //   VIGENCIA_ESTUDIOS,
+    //   ESDISCAPACITADO,
+    // });
 
     // Función para obtener la descripción del parentesco
     const getParentescoDescripcion = (parentescoId) => {
@@ -895,7 +895,7 @@ export default function RegistroBeneficiario() {
 
     const parentescoDescripcion = getParentescoDescripcion(PARENTESCO);
     const edad = calculateAge(F_NACIMIENTO); // Calcular la edad
-    console.log("Edad calculada:", edad);
+    //console.log("Edad calculada:", edad);
 
     const edadConAnios = `${edad} años`; // Texto para la edad
 
@@ -907,14 +907,14 @@ export default function RegistroBeneficiario() {
       F_NACIMIENTO,
       ESDISCAPACITADO
     );
-    console.log("Parámetros para calcularVigencia:", {
-      parentesco: PARENTESCO,
-      edad,
-      vigenciaEstudios: VIGENCIA_ESTUDIOS,
-      fechaNacimiento: F_NACIMIENTO,
-      ESDISCAPACITADO,
-    });
-    console.log("Vigencia final:", vigencia);
+    //console.log("Parámetros para calcularVigencia:", {
+    //   parentesco: PARENTESCO,
+    //   edad,
+    //   vigenciaEstudios: VIGENCIA_ESTUDIOS,
+    //   fechaNacimiento: F_NACIMIENTO,
+    //   ESDISCAPACITADO,
+    // });
+    // console.log("Vigencia final:", vigencia);
 
     try {
       const response = await fetch("/api/empleado", {
@@ -926,7 +926,7 @@ export default function RegistroBeneficiario() {
       if (!response.ok) throw new Error("Empleado no encontrado");
 
       const employeeData = await response.json();
-      console.log("Datos del empleado obtenidos:", employeeData);
+      //console.log("Datos del empleado obtenidos:", employeeData);
 
       const EMPLEADO_NOMBRE = employeeData?.nombre
         ? `${employeeData.nombre} ${employeeData.a_paterno || ""} ${
@@ -936,11 +936,11 @@ export default function RegistroBeneficiario() {
       const NUM_NOMINA = employeeData?.num_nom || "N/A";
       const DEPARTAMENTO = employeeData?.departamento || "N/A";
 
-      console.log("Datos del empleado para carnet:", {
-        EMPLEADO_NOMBRE,
-        NUM_NOMINA,
-        DEPARTAMENTO,
-      });
+      //console.log("Datos del empleado para carnet:", {
+      //   EMPLEADO_NOMBRE,
+      //   NUM_NOMINA,
+      //   DEPARTAMENTO,
+      // });
 
       // Configuración de jsPDF
       const doc = new jsPDF({
@@ -986,7 +986,7 @@ export default function RegistroBeneficiario() {
 
       // Guardar el PDF
       doc.save(`Carnet_${NOMBRE}_${A_PATERNO}.pdf`);
-      console.log("Carnet generado exitosamente");
+      //console.log("Carnet generado exitosamente");
     } catch (error) {
       console.error("Error al generar el carnet:", error.message);
       playSound(false);
@@ -1025,7 +1025,7 @@ export default function RegistroBeneficiario() {
         FIRMA: firma, // Renombramos FIRMA a firma para usarla posteriormente
       } = beneficiary;
 
-      console.log("Datos recibidos del beneficiario:", beneficiary);
+      //console.log("Datos recibidos del beneficiario:", beneficiary);
 
       // Función para obtener la descripción del parentesco
       const getParentescoDescripcion = (parentescoId) => {
@@ -1045,8 +1045,8 @@ export default function RegistroBeneficiario() {
 
       const parentescoDescripcion = getParentescoDescripcion(PARENTESCO);
       const edad = calculateAge(F_NACIMIENTO);
-      console.log("Descripción del parentesco:", parentescoDescripcion);
-      console.log("Edad calculada:", edad);
+      //console.log("Descripción del parentesco:", parentescoDescripcion);
+      //console.log("Edad calculada:", edad);
 
       // Calcular vigencia
       const vigencia = calcularVigencia(
@@ -1056,7 +1056,7 @@ export default function RegistroBeneficiario() {
         F_NACIMIENTO,
         ESDISCAPACITADO
       );
-      console.log("Vigencia final asignada:", vigencia);
+      //console.log("Vigencia final asignada:", vigencia);
 
       // Consumir la API para obtener datos del empleado
       const response = await fetch("/api/empleado", {
@@ -1067,7 +1067,7 @@ export default function RegistroBeneficiario() {
       if (!response.ok) throw new Error("Empleado no encontrado");
       const employeeData = await response.json();
       const DEPARTAMENTO = employeeData?.departamento || "N/A";
-      console.log("Datos del empleado obtenidos:", employeeData);
+      //console.log("Datos del empleado obtenidos:", employeeData);
 
       // Configuración de jsPDF
       const doc = new jsPDF({
@@ -1254,7 +1254,7 @@ export default function RegistroBeneficiario() {
 
       // Guardar el PDF
       doc.save(`Credencial_${NOMBRE || ""}_${A_PATERNO || ""}.pdf`);
-      console.log("Credencial generada exitosamente");
+      //console.log("Credencial generada exitosamente");
     } catch (error) {
       console.error("Error al generar la credencial:", error.message);
       playSound(false);
@@ -1474,7 +1474,7 @@ export default function RegistroBeneficiario() {
       );
 
       const data = await response.json();
-      console.log("Datos de beneficiarios desde la API:", data);
+      //console.log("Datos de beneficiarios desde la API:", data);
 
       // Filtrar beneficiarios localmente si es necesario
       const beneficiariosActualizados = data.map((beneficiario) => {
@@ -1672,7 +1672,7 @@ export default function RegistroBeneficiario() {
       return; // Detenemos el proceso si falta algún documento obligatorio
     }
 
-    console.log("Enviando formulario...");
+    //console.log("Enviando formulario...");
 
     // Validar campos obligatorios según el backend
     if (
@@ -1858,7 +1858,7 @@ export default function RegistroBeneficiario() {
         firma: formData.firma,
       };
 
-      console.log("Datos enviados al backend (antes del fetch):", payload);
+      //console.log("Datos enviados al backend (antes del fetch):", payload);
 
       const response = await fetch(endpoint, {
         method,
@@ -1879,7 +1879,7 @@ export default function RegistroBeneficiario() {
       }
 
       const responseData = await response.json();
-      console.log("Respuesta del backend:", responseData);
+      //console.log("Respuesta del backend:", responseData);
 
       playSound(true);
       Swal.fire({
@@ -1954,14 +1954,14 @@ export default function RegistroBeneficiario() {
 
     // 3. Convierto el parentesco a número (por si llega como string)
     const parentescoNum = Number(beneficiario.PARENTESCO);
-    console.log(
-      "Parentesco del beneficiario (antes de setFormData):",
-      beneficiario.PARENTESCO,
-      "tipo:",
-      typeof beneficiario.PARENTESCO,
-      "-> usando parentescoNum:",
-      parentescoNum
-    );
+    //console.log(
+    //   "Parentesco del beneficiario (antes de setFormData):",
+    //   beneficiario.PARENTESCO,
+    //   "tipo:",
+    //   typeof beneficiario.PARENTESCO,
+    //   "-> usando parentescoNum:",
+    //   parentescoNum
+    // );
 
     // 4. Determina el tipo de parentesco de manera numérica
     const isHijo = parentescoNum === 2; // Hijo(a)
@@ -2586,9 +2586,9 @@ const [deleteReason, setDeleteReason] = useState("");
                                 }
 
                                 try {
-                                  console.log(
-                                    `[INFO] Solicitando acta de matrimonio para nómina: ${numNomina}`
-                                  );
+                                  //console.log(
+                                  //   `[INFO] Solicitando acta de matrimonio para nómina: ${numNomina}`
+                                  // );
 
                                   const response = await fetch(
                                     "/api/beneficiarios/validarActaMatrimonio",
@@ -2602,10 +2602,10 @@ const [deleteReason, setDeleteReason] = useState("");
                                   );
 
                                   const result = await response.json();
-                                  console.log(
-                                    "[DEBUG] Respuesta de la API:",
-                                    result
-                                  );
+                                  //console.log(
+                                  //   "[DEBUG] Respuesta de la API:",
+                                  //   result
+                                  // );
 
                                   if (!response.ok) {
                                     console.error(
@@ -2820,9 +2820,9 @@ const [deleteReason, setDeleteReason] = useState("");
                           }
 
                           try {
-                            console.log(
-                              `[INFO] Solicitando acta de concubinato para nómina: ${numNomina}`
-                            );
+                            //console.log(
+                            //   `[INFO] Solicitando acta de concubinato para nómina: ${numNomina}`
+                            // );
                             const response = await fetch(
                               "/api/beneficiarios/validarActaConcubinato",
                               {
@@ -2835,7 +2835,7 @@ const [deleteReason, setDeleteReason] = useState("");
                             );
 
                             const result = await response.json();
-                            console.log("[DEBUG] Respuesta de la API:", result);
+                            //console.log("[DEBUG] Respuesta de la API:", result);
 
                             if (!response.ok) {
                               console.error(
@@ -2959,10 +2959,10 @@ const [deleteReason, setDeleteReason] = useState("");
                       checked={formData.esDiscapacitado}
                       onChange={(e) => {
                         const isChecked = e.target.checked;
-                        console.log(
-                          "Checkbox 'Es Discapacitado' actualizado:",
-                          isChecked
-                        );
+                        //console.log(
+                        //   "Checkbox 'Es Discapacitado' actualizado:",
+                        //   isChecked
+                        // );
 
                         setFormData((prev) => ({
                           ...prev,

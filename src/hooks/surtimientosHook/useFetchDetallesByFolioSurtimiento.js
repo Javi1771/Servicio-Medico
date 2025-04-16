@@ -20,7 +20,7 @@ export default function useFetchDetallesByFolioSurtimiento() {
       }
 
       const result = await response.json();
-      console.log("Detalles recibidos del API:", result); // Depuración
+      //console.log("Detalles recibidos del API:", result); // Depuración
       setDetalles(result); // Actualiza el estado con los resultados obtenidos
     } catch (err) {
       console.error("Error al obtener los detalles:", err.message);

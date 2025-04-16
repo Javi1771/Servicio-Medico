@@ -57,7 +57,7 @@ export default async function handler(req, res) {
         ORDER BY c.claveconsulta DESC
       `;
 
-      console.log("📄 Query ejecutado:", query);
+      //console.log("📄 Query ejecutado:", query);
 
       const result = await pool.request()
         .input("sevenDaysAgo", sql.DateTime, sevenDaysAgo)
@@ -69,7 +69,7 @@ export default async function handler(req, res) {
         fecha: formatFecha(item.fecha)
       }));
 
-      console.log("✅ Resultado del query:", recordset);
+      //console.log("✅ Resultado del query:", recordset);
 
       res.status(200).json(recordset);
     } catch (error) {

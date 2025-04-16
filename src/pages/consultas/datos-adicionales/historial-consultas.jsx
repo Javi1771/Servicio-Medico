@@ -7,8 +7,8 @@ const HistorialConsultas = ({ clavepaciente, clavenomina }) => {
   const [consultas, setConsultas] = useState([]);
   const [hasFetched, setHasFetched] = useState(false);
 
-  console.log("Clavepaciente recibido en HistorialConsultas:", clavepaciente);
-  console.log("Clavenomina recibido en HistorialConsultas:", clavenomina);
+  //console.log("Clavepaciente recibido en HistorialConsultas:", clavepaciente);
+  //console.log("Clavenomina recibido en HistorialConsultas:", clavenomina);
 
   const cargarHistorialConsultas = async () => {
     const params = new URLSearchParams();
@@ -16,14 +16,14 @@ const HistorialConsultas = ({ clavepaciente, clavenomina }) => {
     if (clavenomina) params.append("clavenomina", clavenomina);
 
     const url = `/api/historial-consultas/historialConsultas?${params.toString()}`;
-    console.log("URL que se está solicitando:", url);
+    //console.log("URL que se está solicitando:", url);
 
     try {
       const response = await fetch(url);
-      console.log("Respuesta del servidor (status):", response.status);
+      //console.log("Respuesta del servidor (status):", response.status);
 
       const data = await response.json();
-      console.log("Datos recibidos del servidor:", data);
+      //console.log("Datos recibidos del servidor:", data);
 
       if (response.ok) {
         setConsultas(data);
@@ -41,20 +41,20 @@ const HistorialConsultas = ({ clavepaciente, clavenomina }) => {
 
   useEffect(() => {
     if (!hasFetched) {
-      console.log("Disparando la carga de historial de consultas...");
+      //console.log("Disparando la carga de historial de consultas...");
       cargarHistorialConsultas();
     }
   }, [clavepaciente, clavenomina, hasFetched]);
 
-  // Función para redirigir usando la propiedad "claveconsulta" de cada registro
+  //* Función para redirigir usando la propiedad "claveconsulta" de cada registro
   const handleRowClick = (consulta) => {
-    console.log("Fila clickeada:", consulta);
+    //console.log("Fila clickeada:", consulta);
     if (!consulta.claveconsulta) {
       console.error("La consulta no tiene 'claveconsulta' definida:", consulta);
       return;
     }
     const encryptedClaveConsulta = btoa(consulta.claveconsulta.toString());
-    console.log("Clave encriptada:", encryptedClaveConsulta);
+    //console.log("Clave encriptada:", encryptedClaveConsulta);
     router.push(
       `/consultas/recetas/ver-recetas?claveconsulta=${encryptedClaveConsulta}`
     );

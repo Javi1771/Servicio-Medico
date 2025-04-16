@@ -49,7 +49,7 @@ export default async function handler(req, res) {
 
     //* Responder con los resultados
     res.status(200).json({ consultas });
-    console.log(`Consultas obtenidas con clavestatus=${clavestatus}:`, consultas.length);
+    //console.log(`Consultas obtenidas con clavestatus=${clavestatus}:`, consultas.length);
   } catch (error) {
     console.error("Error al cargar consultas del día:", error);
     res.status(500).json({ message: "Error al cargar consultas del día" });

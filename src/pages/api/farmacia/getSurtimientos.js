@@ -112,7 +112,7 @@ export default async function handler(req, res) {
         : "Receta surtida";
     }
 
-    console.log("Resultado de SURTIMIENTOS:", surtimiento);
+    //console.log("Resultado de SURTIMIENTOS:", surtimiento);
 
     const detalleQuery = `
       SELECT

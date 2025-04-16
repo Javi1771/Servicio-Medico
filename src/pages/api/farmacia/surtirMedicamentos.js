@@ -21,12 +21,12 @@ export default async function handler(req, res) {
   const { folioSurtimiento, detalle, recetaCompletada, cost, fechaDespacho } =
     req.body;
 
-  console.log("📌 Datos recibidos en la API:");
-  console.log(`   🔹 Folio: ${folioSurtimiento}`);
-  console.log(`   🔹 Receta Completada: ${recetaCompletada}`);
-  console.log(`   🔹 Costo: ${cost}`);
-  console.log(`   🔹 Fecha Despacho Recibida: ${fechaDespacho}`);
-  console.log("   🔹 Detalle recibido:", detalle);
+  //console.log("📌 Datos recibidos en la API:");
+  //console.log(`   🔹 Folio: ${folioSurtimiento}`);
+  //console.log(`   🔹 Receta Completada: ${recetaCompletada}`);
+  //console.log(`   🔹 Costo: ${cost}`);
+  //console.log(`   🔹 Fecha Despacho Recibida: ${fechaDespacho}`);
+  //console.log("   🔹 Detalle recibido:", detalle);
 
   if (!folioSurtimiento || !detalle) {
     return res
@@ -45,10 +45,10 @@ export default async function handler(req, res) {
         const delta = item.delta;
 
         if (delta > 0) {
-          console.log(
-            `📌 Actualizando stock de medicamento ${item.claveMedicamento}`
-          );
-          console.log(`   🔹 Descontando ${delta} piezas`);
+          // console.log(
+          //   `📌 Actualizando stock de medicamento ${item.claveMedicamento}`
+          // );
+          // console.log(`   🔹 Descontando ${delta} piezas`);
 
           const updateMed = `
             UPDATE medicamentos
@@ -62,11 +62,11 @@ export default async function handler(req, res) {
             .query(updateMed);
         }
 
-        console.log(
-          `📌 Actualizando detalleSurtimientos ID ${item.idSurtimiento}`
-        );
-        console.log(`   🔹 Nuevo estatus: ${item.estatus}`);
-        console.log(`   🔹 Cantidad entregada: ${item.delivered}`);
+        // console.log(
+        //   `📌 Actualizando detalleSurtimientos ID ${item.idSurtimiento}`
+        // );
+        // console.log(`   🔹 Nuevo estatus: ${item.estatus}`);
+        // console.log(`   🔹 Cantidad entregada: ${item.delivered}`);
 
         const updateDetalle = `
           UPDATE detalleSurtimientos
@@ -84,12 +84,12 @@ export default async function handler(req, res) {
 
       //* 🔹 Si la receta está completada, actualizar el estatus del surtimiento
       if (recetaCompletada) {
-        console.log(
-          `📌 Actualizando SURTIMIENTOS - Folio: ${folioSurtimiento}`
-        );
-        console.log(`   🔹 Nuevo estatus: 0`);
-        console.log(`   🔹 Fecha despacho a guardar: ${fechaDespacho}`);
-        console.log(`   🔹 Costo: ${cost || 0}`);
+        // console.log(
+        //   `📌 Actualizando SURTIMIENTOS - Folio: ${folioSurtimiento}`
+        // );
+        // console.log(`   🔹 Nuevo estatus: 0`);
+        // console.log(`   🔹 Fecha despacho a guardar: ${fechaDespacho}`);
+        // console.log(`   🔹 Costo: ${cost || 0}`);
 
         const updateSurtimiento = `
           UPDATE SURTIMIENTOS
@@ -99,7 +99,7 @@ export default async function handler(req, res) {
           WHERE FOLIO_SURTIMIENTO = @folio
         `;
 
-        console.log("🟢 Ejecutando UPDATE en SURTIMIENTOS...");
+        //console.log("🟢 Ejecutando UPDATE en SURTIMIENTOS...");
 
         const updateResult = await transaction
           .request()
@@ -110,14 +110,14 @@ export default async function handler(req, res) {
 
         console.log("✅ Resultado del UPDATE en SURTIMIENTOS:", updateResult);
       } else {
-        console.log("⚠️ Receta NO completada, no se actualizó SURTIMIENTOS.");
+        //console.log("⚠️ Receta NO completada, no se actualizó SURTIMIENTOS.");
       }
 
       //* 👇 Finaliza la transacción con éxito
       await transaction.commit();
-      console.log(
-        `✅ Transacción completada con éxito para folio ${folioSurtimiento}`
-      );
+      // console.log(
+      //   `✅ Transacción completada con éxito para folio ${folioSurtimiento}`
+      // );
 
       //* ======================
       //* Registrar la actividad
@@ -148,11 +148,11 @@ export default async function handler(req, res) {
               VALUES
                 (@IdUsuario, @Accion, GETDATE(), @DireccionIP, @AgenteUsuario, @IdSurtimiento)
             `);
-          console.log("✅ Actividad registrada en la tabla ActividadUsuarios.");
+          //console.log("✅ Actividad registrada en la tabla ActividadUsuarios.");
         } else {
-          console.log(
-            "⚠️ No se pudo registrar la actividad: falta idUsuario (cookie)."
-          );
+          // console.log(
+          //   "⚠️ No se pudo registrar la actividad: falta idUsuario (cookie)."
+          // );
         }
       } catch (errorAct) {
         console.error("❌ Error al registrar la actividad:", errorAct);

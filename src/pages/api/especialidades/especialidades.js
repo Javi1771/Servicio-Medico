@@ -38,7 +38,7 @@ export default async function handler(req, res) {
 
     const result = await queryWithRetries(pool, query);
 
-    console.log('Resultados de la consulta:', result);
+    //console.log('Resultados de la consulta:', result);
 
     res.status(200).json(result);
   } catch (error) {

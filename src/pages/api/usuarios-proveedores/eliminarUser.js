@@ -40,7 +40,7 @@ export default async function handler(req, res) {
     }
 
     const idProveedor = selectResult.recordset[0].claveproveedor;
-    console.log("Proveedor desactivado, claveproveedor:", idProveedor);
+    //console.log("Proveedor desactivado, claveproveedor:", idProveedor);
 
     //* Registrar la actividad "Eliminó un proveedor"
     const rawCookies = req.headers.cookie || "";
@@ -49,7 +49,7 @@ export default async function handler(req, res) {
       .find((row) => row.startsWith("claveusuario="))
       ?.split("=")[1];
     const claveusuario = claveusuarioCookie ? Number(claveusuarioCookie) : null;
-    console.log("Cookie claveusuario:", claveusuario);
+    //console.log("Cookie claveusuario:", claveusuario);
 
     if (claveusuario !== null) {
       let ip =
@@ -72,11 +72,11 @@ export default async function handler(req, res) {
           VALUES 
             (@userId, @accion, DATEADD(MINUTE, -4, GETDATE()), @direccionIP, @agenteUsuario, @idProveedor)
         `);
-      console.log(
-        "Actividad 'Eliminó un proveedor' registrada en ActividadUsuarios."
-      );
+      //console.log(
+      //   "Actividad 'Eliminó un proveedor' registrada en ActividadUsuarios."
+      // );
     } else {
-      console.log("No se pudo registrar la actividad: falta claveusuario.");
+      //console.log("No se pudo registrar la actividad: falta claveusuario.");
     }
 
     return res

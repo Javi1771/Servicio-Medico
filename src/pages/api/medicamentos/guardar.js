@@ -1,6 +1,5 @@
 import { connectToDatabase } from "../connectToDatabase";
 import sql from "mssql";
-import cookie from "cookie"; //* Para parsear las cookies
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -225,14 +224,19 @@ export default async function handler(req, res) {
 
       //? Registrar la actividad de asignación de medicamentos
       try {
-        const allCookies = cookie.parse(req.headers.cookie || "");
-        const idUsuario = allCookies.claveusuario;
+        //* Extraer la cookie usando regex, similar al código funcional
+        const cookies = req.headers.cookie || "";
+        const claveusuarioMatch = cookies.match(/claveusuario=([^;]+)/);
+        const idUsuario = claveusuarioMatch ? Number(claveusuarioMatch[1]) : null;
+
         let ip =
           (req.headers["x-forwarded-for"] &&
             req.headers["x-forwarded-for"].split(",")[0].trim()) ||
           req.connection?.remoteAddress ||
           req.socket?.remoteAddress ||
-          (req.connection?.socket ? req.connection.socket.remoteAddress : null);
+          (req.connection?.socket
+            ? req.connection.socket.remoteAddress
+            : null);
 
         if (idUsuario !== null) {
           await pool
@@ -241,9 +245,9 @@ export default async function handler(req, res) {
             .input("accion", sql.VarChar, "Asignó medicamentos")
             .input("direccionIP", sql.VarChar, ip)
             .input("agenteUsuario", sql.VarChar, req.headers["user-agent"] || "")
-            .input("claveConsulta", sql.Int, folioReceta)
+            .input("claveConsulta", sql.Int, parseInt(folioReceta, 10))
             .query(`
-              INSERT INTO dbo.ActividadUsuarios 
+              INSERT INTO ActividadUsuarios 
               (IdUsuario, Accion, FechaHora, DireccionIP, AgenteUsuario, ClaveConsulta)
               VALUES (@userId, @accion, DATEADD(MINUTE, -4, GETDATE()), @direccionIP, @agenteUsuario, @claveConsulta)
             `);

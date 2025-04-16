@@ -23,7 +23,7 @@ export default async function handler(req, res) {
   try {
     const pool = await connectToDatabase();
 
-    console.log("📋 Verificando estado actual de la consulta...");
+    //console.log("📋 Verificando estado actual de la consulta...");
     const consultaActual = await pool
       .request()
       .input("claveconsulta", sql.Int, claveConsulta)
@@ -38,7 +38,7 @@ export default async function handler(req, res) {
       return res.status(404).json({ message: "Consulta no encontrada." });
     }
 
-    console.log("📋 Estado actual:", consultaActual.recordset[0]?.clavestatus);
+    //console.log("📋 Estado actual:", consultaActual.recordset[0]?.clavestatus);
 
     const updateResult = await pool
       .request()
@@ -50,7 +50,7 @@ export default async function handler(req, res) {
         WHERE claveconsulta = @claveconsulta
       `);
 
-    console.log("📋 Resultado del UPDATE:", updateResult);
+    //console.log("📋 Resultado del UPDATE:", updateResult);
 
     if (updateResult.rowsAffected[0] === 0) {
       console.error("⚠️ No se actualizó ninguna fila. Verifica los datos enviados.");

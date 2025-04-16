@@ -62,14 +62,14 @@ export default async function handler(req, res) {
     const result = await request.query(query);
     let historial = result.recordset;
 
-    // Formatear la columna "fechacita" usando la función formatFecha
+    //* Formatear la columna "fechacita" usando la función formatFecha
     historial = historial.map((row) => ({
       ...row,
       fechacita: formatFecha(row.fechacita)
     }));
 
-    // Aquí hacemos el log en el servidor
-    console.log("[DEBUG] Datos que se envían al front:", historial);
+    //* Aquí hacemos el log en el servidor
+    //console.log("[DEBUG] Datos que se envían al front:", historial);
 
     return res.status(200).json({ historial });
   } catch (error) {

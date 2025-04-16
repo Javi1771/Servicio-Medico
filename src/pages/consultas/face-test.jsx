@@ -10,7 +10,7 @@ export default function FaceTestPage({ initialBeneficiaries }) {
    * 🔍 Buscar beneficiarios después del reconocimiento facial
    */
   const fetchBeneficiariesByRecognition = async (nomina) => {
-    console.log(`🔍 Buscando beneficiarios para la nómina reconocida: ${nomina}`);
+    //console.log(`🔍 Buscando beneficiarios para la nómina reconocida: ${nomina}`);
 
     //* Filtrar beneficiarios obtenidos previamente sin hacer una nueva consulta
     const matchedBeneficiaries = initialBeneficiaries.filter(
@@ -18,10 +18,10 @@ export default function FaceTestPage({ initialBeneficiaries }) {
     );
 
     if (matchedBeneficiaries.length > 0) {
-      console.log("✅ Beneficiario encontrado:", matchedBeneficiaries);
+      //console.log("✅ Beneficiario encontrado:", matchedBeneficiaries);
       setBeneficiaries(matchedBeneficiaries);
     } else {
-      console.log("❌ No se encontró beneficiario para la nómina:", nomina);
+      //console.log("❌ No se encontró beneficiario para la nómina:", nomina);
       setBeneficiaries([]); //* Limpiar lista si no hay coincidencia
     }
   };

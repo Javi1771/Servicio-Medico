@@ -14,7 +14,7 @@ export default async function handler(req, res) {
 
   try {
     const pool = await connectToDatabase();
-    console.log("Conectado a la base de datos. Realizando consultas...");
+    //console.log("Conectado a la base de datos. Realizando consultas...");
 
     // Consulta 1: Obtener claveproveedor, especialidadinterconsulta y diagnostico
     const consultaBase = await pool

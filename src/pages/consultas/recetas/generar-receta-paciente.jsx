@@ -24,7 +24,7 @@ export default function GenerarReceta() {
   //* Función para obtener el nombre del empleado
   const fetchNombreEmpleado = async (clavenomina) => {
     try {
-      console.log(`📡 Consultando nombre del empleado con clavenomina: ${clavenomina}`);
+      //console.log(`📡 Consultando nombre del empleado con clavenomina: ${clavenomina}`);
       const response = await fetch("/api/empleado", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -32,7 +32,7 @@ export default function GenerarReceta() {
       });
 
       const data = await response.json();
-      console.log("👤 Datos del empleado recibidos:", data);
+      //console.log("👤 Datos del empleado recibidos:", data);
 
       if (!data || Object.keys(data).length === 0 || !data.nombre) {
         return "No encontrado";
@@ -40,7 +40,7 @@ export default function GenerarReceta() {
 
       //* Concatenar nombre completo
       const nombreCompleto = `${data.nombre ?? ""} ${data.a_paterno ?? ""} ${data.a_materno ?? ""}`.trim();
-      console.log("✅ Nombre completo obtenido:", nombreCompleto);
+      //console.log("✅ Nombre completo obtenido:", nombreCompleto);
       return nombreCompleto;
     } catch (error) {
       console.error("❌ Error al obtener el nombre del empleado:", error);
@@ -98,7 +98,7 @@ export default function GenerarReceta() {
       console.error("⚠️ Clave de consulta no está definida.");
       return null;
     }
-    console.log("📡 Consultando API con claveconsulta:", claveconsulta);
+    //console.log("📡 Consultando API con claveconsulta:", claveconsulta);
     const response = await fetch(`/api/recetas/recetaPaciente?claveconsulta=${claveconsulta}`);
     if (!response.ok) {
       console.error("❌ Error en la API:", await response.text());
@@ -117,29 +117,29 @@ export default function GenerarReceta() {
         folioSurtimiento
       );
     }
-    console.log("✅ Datos de la receta recibidos:", data);
-    console.log("✅ Folio surtimiento obtenido:", folioSurtimiento);
+    //console.log("✅ Datos de la receta recibidos:", data);
+    //console.log("✅ Folio surtimiento obtenido:", folioSurtimiento);
     return { ...data, nombreEmpleado: nombreCompleto, folioSurtimiento, codigoBarrasBase64 };
   };
 
   //* Genera el PDF con pdf-lib
   const generatePdf = async () => {
     try {
-      console.log("🖨️ Iniciando la generación del PDF...");
+      //console.log("🖨️ Iniciando la generación del PDF...");
       setLoading(true);
       const data = await fetchRecetaData();
       if (!data) {
         console.error("❌ Error: No se recibieron datos de la API.");
         return;
       }
-      console.log("📥 Cargando el PDF base...");
+      //console.log("📥 Cargando el PDF base...");
       const existingPdfBytes = await fetch("/Receta-Paciente.pdf").then(res => {
         if (!res.ok) throw new Error("Error al cargar el PDF base");
         return res.arrayBuffer();
       });
       const pdfDoc = await PDFDocument.load(existingPdfBytes);
       const firstPage = pdfDoc.getPages()[0];
-      console.log("✅ PDF base cargado correctamente.");
+      //console.log("✅ PDF base cargado correctamente.");
 
       //? Bloque: DATOS DE LA CONSULTA
       firstPage.drawText(data.consulta?.especialidadinterconsulta === null ? "General" : "Especialidad", { x: 114, y: 665, size: 10 });
@@ -240,7 +240,7 @@ export default function GenerarReceta() {
       const pdfBlob = new Blob([pdfBytes], { type: "application/pdf" });
       const pdfBlobUrl = URL.createObjectURL(pdfBlob);
       setPdfUrl(pdfBlobUrl);
-      console.log("✅ PDF generado y listo para previsualización.");
+      //console.log("✅ PDF generado y listo para previsualización.");
     } catch (error) {
       console.error("❌ Error al generar PDF:", error);
     } finally {

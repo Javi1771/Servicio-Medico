@@ -14,7 +14,7 @@ export default async function handler(req, res) {
   try {
     const pool = await connectToDatabase();
     
-    console.log(`🔍 Buscando consulta con claveconsulta: ${folioConsulta}`);
+    //console.log(`🔍 Buscando consulta con claveconsulta: ${folioConsulta}`);
 
     //* Buscar la consulta en la base de datos
     const consultaResult = await pool
@@ -29,13 +29,13 @@ export default async function handler(req, res) {
       `);
 
     if (consultaResult.recordset.length === 0) {
-      console.log("⚠️ No se encontró la consulta.");
+      //console.log("⚠️ No se encontró la consulta.");
       return res.status(404).json({ message: "No se encontró una consulta con el folio proporcionado." });
     }
 
     const consulta = consultaResult.recordset[0];
 
-    console.log("✅ Consulta encontrada:", consulta);
+    //console.log("✅ Consulta encontrada:", consulta);
 
     return res.status(200).json(consulta);
   } catch (error) {

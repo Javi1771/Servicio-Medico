@@ -112,10 +112,10 @@ export default async function handler(req, res) {
         )
       `);
 
-    console.log("Resultado de la inserción:", insertResult);
+    //console.log("Resultado de la inserción:", insertResult);
     //* Verifica el objeto insertResult para confirmar la propiedad exacta del ID
     const insertedId = insertResult.recordset[0].ID_BENEFICIARIO;
-    console.log("Beneficiario insertado, ID:", insertedId);
+    //console.log("Beneficiario insertado, ID:", insertedId);
 
     //* Obtener la cookie "claveusuario"
     const rawCookies = req.headers.cookie || "";
@@ -124,7 +124,7 @@ export default async function handler(req, res) {
       .find((row) => row.startsWith("claveusuario="))
       ?.split("=")[1];
     const claveusuario = claveusuarioCookie ? Number(claveusuarioCookie) : null;
-    console.log("Cookie claveusuario:", claveusuario);
+    //console.log("Cookie claveusuario:", claveusuario);
 
     //* Registrar la actividad en ActividadUsuarios incluyendo el ID del beneficiario
     if (claveusuario !== null) {

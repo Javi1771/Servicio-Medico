@@ -37,12 +37,12 @@ const AccionesConsulta = ({
 
   //* Verificación de props
   useEffect(() => {
-    console.log("Props recibidas en AccionesConsulta:", {
-      claveConsulta,
-      limpiarFormulario,
-      clavepaciente,
-      clavenomina,
-    });
+    // console.log("Props recibidas en AccionesConsulta:", {
+    //   claveConsulta,
+    //   limpiarFormulario,
+    //   clavepaciente,
+    //   clavenomina,
+    // });
 
     if (!claveConsulta) console.warn("⚠️ claveConsulta no está definido.");
     if (!clavepaciente) console.warn("⚠️ clavepaciente no está definido.");
@@ -88,7 +88,7 @@ const AccionesConsulta = ({
 
   //* Limpieza de localStorage
   const limpiarCacheLocalStorage = () => {
-    console.log("🧹 Limpiando localStorage...");
+    //console.log("🧹 Limpiando localStorage...");
     localStorage.removeItem("diagnosticoTexto");
     localStorage.removeItem("motivoConsultaTexto");
     localStorage.removeItem("PaseEspecialidad");
@@ -99,7 +99,7 @@ const AccionesConsulta = ({
   //* Guardar datos adicionales
   const guardarDatosAdicionales = async () => {
     try {
-      console.log("📤 Guardando datos adicionales...");
+      //console.log("📤 Guardando datos adicionales...");
       const diagnostico = localStorage.getItem("diagnosticoTexto") || "";
       const motivoConsulta = localStorage.getItem("motivoConsultaTexto") || "";
       const claveUsuarioCookie = Cookies.get("claveusuario");
@@ -113,12 +113,12 @@ const AccionesConsulta = ({
         );
       }
 
-      console.log("🔍 Datos enviados al backend (datos adicionales):", {
-        claveConsulta,
-        diagnostico,
-        motivoConsulta,
-        claveusuario,
-      });
+      //console.log("🔍 Datos enviados al backend (datos adicionales):", {
+      //   claveConsulta,
+      //   diagnostico,
+      //   motivoConsulta,
+      //   claveusuario,
+      // });
 
       const response = await fetch(
         "/api/pacientes-consultas/diagnostico_observaciones_guardar",
@@ -141,7 +141,7 @@ const AccionesConsulta = ({
         );
       }
 
-      console.log("✅ Datos adicionales guardados correctamente.");
+      //console.log("✅ Datos adicionales guardados correctamente.");
     } catch (error) {
       console.error("❌ Error al guardar datos adicionales:", error);
       throw error;
@@ -150,19 +150,13 @@ const AccionesConsulta = ({
 
   const guardarMedicamentos = async () => {
     try {
-      console.log("📤 Guardando medicamentos...");
+      //console.log("📤 Guardando medicamentos...");
 
       const cachedMedicamentos = localStorage.getItem("medicamentos") || "[]";
       const decisionTomada = localStorage.getItem("decisionTomada");
 
-      console.log(
-        "🛠️ Decisión tomada al guardar medicamentos:",
-        decisionTomada
-      );
-      console.log(
-        "📦 Medicamentos cargados del localStorage:",
-        cachedMedicamentos
-      );
+      //console.log("🛠️ Decisión tomada al guardar medicamentos:", decisionTomada );
+      //console.log("📦 Medicamentos cargados del localStorage:", cachedMedicamentos );
 
       let medicamentos = [];
       try {
@@ -201,7 +195,7 @@ const AccionesConsulta = ({
         };
       }
 
-      console.log("📡 Payload preparado para el backend:", medicamentosPayload);
+      //console.log("📡 Payload preparado para el backend:", medicamentosPayload);
 
       const response = await fetch("/api/medicamentos/guardar", {
         method: "POST",
@@ -209,7 +203,7 @@ const AccionesConsulta = ({
         body: JSON.stringify(medicamentosPayload),
       });
 
-      console.log("🔄 Respuesta recibida:", response);
+      //console.log("🔄 Respuesta recibida:", response);
 
       const contentType = response.headers.get("content-type");
       if (!contentType || !contentType.includes("application/json")) {
@@ -222,7 +216,7 @@ const AccionesConsulta = ({
       }
 
       const responseData = await response.json();
-      console.log("✅ Respuesta JSON recibida correctamente:", responseData);
+      //console.log("✅ Respuesta JSON recibida correctamente:", responseData);
     } catch (error) {
       console.error("❌ Error al guardar medicamentos:", error);
       throw error;
@@ -237,10 +231,10 @@ const AccionesConsulta = ({
     if (cachedEspecialidad) {
       const parsedEspecialidad = JSON.parse(cachedEspecialidad);
       if (parsedEspecialidad.prioridad) {
-        console.log(
-          "🔄 Sincronizando prioridad al montar:",
-          parsedEspecialidad.prioridad
-        );
+        // console.log(
+        //   "🔄 Sincronizando prioridad al montar:",
+        //   parsedEspecialidad.prioridad
+        // );
         setPrioridad(parsedEspecialidad.prioridad);
       } else {
         console.warn("⚠️ Prioridad no encontrada en localStorage.");
@@ -251,7 +245,7 @@ const AccionesConsulta = ({
   //* Guardar pase a especialidad
   const guardarPaseEspecialidad = async () => {
     try {
-      console.log("📤 Guardando pase a especialidad...");
+      //console.log("📤 Guardando pase a especialidad...");
 
       const cachedEspecialidad = JSON.parse(
         localStorage.getItem(`PaseEspecialidad:${claveConsulta}`) || "{}"
@@ -277,10 +271,10 @@ const AccionesConsulta = ({
         clavepaciente: String(clavepaciente),
       };
 
-      console.log(
-        "🔍 Datos preparados para el backend (pase a especialidad):",
-        paseEspecialidadPayload
-      );
+      // console.log(
+      //   "🔍 Datos preparados para el backend (pase a especialidad):",
+      //   paseEspecialidadPayload
+      // );
 
       const response = await fetch("/api/especialidades/guardarEspecialidad", {
         method: "POST",
@@ -299,7 +293,7 @@ const AccionesConsulta = ({
         );
       }
 
-      console.log("✅ Pase a especialidad guardado correctamente.");
+      //console.log("✅ Pase a especialidad guardado correctamente.");
     } catch (error) {
       console.error("❌ Error al guardar pase a especialidad:", error);
       throw error;
@@ -309,7 +303,7 @@ const AccionesConsulta = ({
   //* Actualizar clavestatus
   const actualizarClavestatus = async (nuevoEstatus) => {
     try {
-      console.log("📤 Actualizando clavestatus a:", nuevoEstatus);
+      //console.log("📤 Actualizando clavestatus a:", nuevoEstatus);
       const response = await fetch(
         "/api/pacientes-consultas/actualizarClavestatus",
         {
@@ -324,7 +318,7 @@ const AccionesConsulta = ({
         throw new Error(error.message || "Error al actualizar el estatus.");
       }
 
-      console.log(`✅ Clavestatus actualizado exitosamente a ${nuevoEstatus}.`);
+      //console.log(`✅ Clavestatus actualizado exitosamente a ${nuevoEstatus}.`);
     } catch (error) {
       console.error("❌ Error al actualizar clavestatus:", error);
       throw error;
@@ -334,7 +328,7 @@ const AccionesConsulta = ({
   //* Guardar incapacidad
   const guardarIncapacidad = async () => {
     try {
-      console.log("📤 Guardando incapacidad...");
+      //console.log("📤 Guardando incapacidad...");
       const cachedIncapacidad = localStorage.getItem("Incapacidad") || "{}";
       const { fechaInicio, fechaFin, diagnostico } =
         JSON.parse(cachedIncapacidad);
@@ -351,7 +345,7 @@ const AccionesConsulta = ({
         clavepaciente,
       };
 
-      console.log("Payload preparado para guardar incapacidad:", payload);
+      //console.log("Payload preparado para guardar incapacidad:", payload);
 
       const response = await fetch("/api/incapacidades/guardar", {
         method: "POST",
@@ -365,7 +359,7 @@ const AccionesConsulta = ({
         throw new Error(error.message || "Error al guardar incapacidad.");
       }
 
-      console.log("✅ Incapacidad guardada correctamente.");
+      //console.log("✅ Incapacidad guardada correctamente.");
     } catch (error) {
       console.error("❌ Error al guardar incapacidad:", error);
       throw error;
@@ -375,7 +369,7 @@ const AccionesConsulta = ({
   //* Guardado global
   const handleGuardarGlobal = async () => {
     setLoading(true);
-    console.log("🔄 Guardando globalmente...");
+    //console.log("🔄 Guardando globalmente...");
 
     try {
       //* Mostrar alerta de confirmación si todas las respuestas son "NO"
@@ -407,12 +401,12 @@ const AccionesConsulta = ({
         });
 
         if (!result.isConfirmed) {
-          console.log("🚫 Guardado cancelado por el usuario.");
+          //console.log("🚫 Guardado cancelado por el usuario.");
           return;
         }
       }
 
-      console.log("📤 Iniciando guardado global...");
+      //console.log("📤 Iniciando guardado global...");
 
       //* Realizar cada operación de guardado de forma secuencial para detenerse en caso de error
       await guardarDatosAdicionales();

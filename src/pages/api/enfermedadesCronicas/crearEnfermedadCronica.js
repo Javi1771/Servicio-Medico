@@ -16,9 +16,9 @@ export default async function handler(req, res) {
     }
 
     try {
-      console.log("Intentando conectar a la base de datos...");
+      //console.log("Intentando conectar a la base de datos...");
       const pool = await connectToDatabase();
-      console.log("Conexión a la base de datos establecida.");
+      //console.log("Conexión a la base de datos establecida.");
 
       // Inserción en CRONICAS con OUTPUT para obtener el id_enf_cronica generado
       const insertResult = await pool
@@ -33,7 +33,7 @@ export default async function handler(req, res) {
 
       // Se asume que el resultado devuelve el id en recordset[0].id_enf_cronica
       const insertedId = insertResult.recordset[0].id_enf_cronica;
-      console.log("Enfermedad crónica insertada, id_enf_cronica:", insertedId);
+      //console.log("Enfermedad crónica insertada, id_enf_cronica:", insertedId);
 
       // Registrar la actividad "Agregó una enfermedad crónica"
       const rawCookies = req.headers.cookie || "";
@@ -44,7 +44,7 @@ export default async function handler(req, res) {
       const claveusuario = claveusuarioCookie
         ? Number(claveusuarioCookie)
         : null;
-      console.log("Cookie claveusuario:", claveusuario);
+      //console.log("Cookie claveusuario:", claveusuario);
 
       if (claveusuario !== null) {
         let ip =
@@ -70,11 +70,11 @@ export default async function handler(req, res) {
             VALUES 
               (@userId, @accion, DATEADD(MINUTE, -4, GETDATE()), @direccionIP, @agenteUsuario, @claveConsulta, @idBeneficiario, @idEnfCronica)
           `);
-        console.log(
-          "Actividad 'Agregó una enfermedad crónica' registrada en ActividadUsuarios."
-        );
+        // console.log(
+        //   "Actividad 'Agregó una enfermedad crónica' registrada en ActividadUsuarios."
+        // );
       } else {
-        console.log("No se pudo registrar la actividad: falta claveusuario.");
+        //console.log("No se pudo registrar la actividad: falta claveusuario.");
       }
 
       return res.status(201).json({

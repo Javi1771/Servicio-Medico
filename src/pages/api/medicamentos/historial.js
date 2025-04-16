@@ -72,7 +72,7 @@ export default async function handler(req, res) {
       fechaEmision: formatFecha(item.FECHA_EMISION),
     }));
 
-    console.log("Historial:", historial);
+    //console.log("Historial:", historial);
     return res.status(200).json({ ok: true, historial });
   } catch (error) {
     console.error("Error al obtener historial:", error);

@@ -15,7 +15,7 @@ export default async function handler(req, res) {
   try {
     const pool = await connectToDatabase();
 
-    console.log("🔍 Buscando en SURTIMIENTOS con FOLIO_PASE:", folio);
+    //console.log("🔍 Buscando en SURTIMIENTOS con FOLIO_PASE:", folio);
 
     // 1️⃣ Obtener el FOLIO_SURTIMIENTO, NOMINA, CLAVEMEDICO y CLAVEUSUARIO
     const querySurtimientos = `
@@ -37,13 +37,13 @@ export default async function handler(req, res) {
     const { FOLIO_SURTIMIENTO: folioSurtimiento, NOMINA, CLAVEMEDICO, CLAVEUSUARIO } =
       resultSurtimientos.recordset[0];
 
-    console.log("✅ Se encontró el FOLIO_SURTIMIENTO más reciente:", folioSurtimiento);
+    //console.log("✅ Se encontró el FOLIO_SURTIMIENTO más reciente:", folioSurtimiento);
     console.log("📌 Número de nómina (NOMINA):", NOMINA);
-    console.log("🩺 Clave del médico:", CLAVEMEDICO);
-    console.log("✍ Clave del usuario que elaboró:", CLAVEUSUARIO);
+    //console.log("🩺 Clave del médico:", CLAVEMEDICO);
+    //console.log("✍ Clave del usuario que elaboró:", CLAVEUSUARIO);
 
     // 2️⃣ Obtener los medicamentos del detalleSurtimientos, incluyendo la CLASIFICACION
-    console.log("🔍 Buscando medicamentos en detalleSurtimientos...");
+    //console.log("🔍 Buscando medicamentos en detalleSurtimientos...");
     const queryDetalle = `
       SELECT 
         ds.claveMedicamento, 
@@ -63,7 +63,7 @@ export default async function handler(req, res) {
       .query(queryDetalle);
 
     const medicamentos = resultDetalle.recordset;
-    console.log("📌 Medicamentos obtenidos con nombres:", medicamentos);
+    //console.log("📌 Medicamentos obtenidos con nombres:", medicamentos);
 
     // 3️⃣ Obtener información general del SURTIMIENTOS
     const querySurtimientoData = `
@@ -96,7 +96,7 @@ export default async function handler(req, res) {
     let cedulaDoctor = "Cédula no disponible";
 
     if (CLAVEMEDICO) {
-      console.log("🔍 Buscando datos del doctor en proveedores...");
+      //console.log("🔍 Buscando datos del doctor en proveedores...");
       const queryDoctor = `
         SELECT nombreproveedor, cedulaproveedor
         FROM proveedores
@@ -112,15 +112,15 @@ export default async function handler(req, res) {
         cedulaDoctor = resultDoctor.recordset[0].cedulaproveedor ?? "Cédula no disponible";
       }
 
-      console.log("🩺 Nombre del doctor obtenido:", nombreDoctor);
-      console.log("📜 Cédula del doctor obtenida:", cedulaDoctor);
+      //console.log("🩺 Nombre del doctor obtenido:", nombreDoctor);
+      //console.log("📜 Cédula del doctor obtenida:", cedulaDoctor);
     }
 
     // 5️⃣ Obtener el nombre del usuario que elaboró la receta
     let nombreElaboro = "Desconocido";
 
     if (CLAVEUSUARIO) {
-      console.log("🔍 Buscando quién elaboró en proveedores...");
+      //console.log("🔍 Buscando quién elaboró en proveedores...");
       const queryElaboro = `
         SELECT nombreproveedor
         FROM proveedores
@@ -135,7 +135,7 @@ export default async function handler(req, res) {
         nombreElaboro = resultElaboro.recordset[0].nombreproveedor;
       }
 
-      console.log("✍ Nombre del usuario que elaboró la receta:", nombreElaboro);
+      //console.log("✍ Nombre del usuario que elaboró la receta:", nombreElaboro);
     }
 
     // 6️⃣ Enviar la respuesta con los datos actualizados

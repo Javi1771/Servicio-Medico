@@ -9,11 +9,11 @@ export default async function handler(req, res) {
 
   const { folio } = req.body;
   if (!folio) {
-    console.log("❌ No se recibió el folio para cancelar el surtimiento.");
+    //console.log("❌ No se recibió el folio para cancelar el surtimiento.");
     return res.status(400).json({ message: "Folio es requerido." });
   }
 
-  console.log("📩 Folio recibido:", folio);
+  //console.log("📩 Folio recibido:", folio);
 
   try {
     const pool = await connectToDatabase();
@@ -21,7 +21,7 @@ export default async function handler(req, res) {
     //* Obtener cookie
     const allCookies = cookie.parse(req.headers.cookie || "");
     const cancelo = allCookies.claveusuario;
-    console.log("🔐 Usuario que cancela (claveusuario):", cancelo);
+    //console.log("🔐 Usuario que cancela (claveusuario):", cancelo);
 
     //* Actualizar surtimiento: se marca como cancelado (ESTATUS = 0)
     //* y se obtiene el FOLIO_SURTIMIENTO con OUTPUT.
@@ -36,12 +36,12 @@ export default async function handler(req, res) {
       `);
 
     if (!result.recordset || result.recordset.length === 0) {
-      console.log("❌ No se encontró surtimiento activo con ese folio.");
+      //console.log("❌ No se encontró surtimiento activo con ese folio.");
       return res.status(404).json({ message: "Surtimiento no encontrado." });
     }
 
     const folioSurtimiento = result.recordset[0].FOLIO_SURTIMIENTO;
-    console.log("📄 Surtimiento actualizado. FolioSurtimiento:", folioSurtimiento);
+    //console.log("📄 Surtimiento actualizado. FolioSurtimiento:", folioSurtimiento);
 
     //* Registrar actividad
     try {
@@ -70,9 +70,9 @@ export default async function handler(req, res) {
             VALUES 
               (@userId, @accion, DATEADD(MINUTE, -4, GETDATE()), @direccionIP, @agenteUsuario, @claveConsulta, @folioSurtimiento)
           `);
-        console.log("📝 Actividad registrada en el historial.");
+        //console.log("📝 Actividad registrada en el historial.");
       } else {
-        console.log("⚠️ No se encontró la cookie 'claveusuario'. No se registró actividad.");
+        //console.log("⚠️ No se encontró la cookie 'claveusuario'. No se registró actividad.");
       }
     } catch (errorRegistro) {
       console.error("❌ Error al registrar la actividad:", errorRegistro);

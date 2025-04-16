@@ -329,7 +329,7 @@ export default function LaboratorioScreen() {
         <div className="text-right">
           <button
             onClick={() => {
-              console.log("Cancelar orden con folio:", lab.folioOrden);
+              //console.log("Cancelar orden con folio:", lab.folioOrden);
             }}
             className="px-6 py-2 text-black font-bold rounded-full shadow-[0_4px_8px_rgba(0,0,0,0.3)] transition-transform hover:scale-105 bg-gradient-to-br from-orange-300 to-orange-500"
           >

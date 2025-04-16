@@ -64,11 +64,11 @@ export default async function handler(req, res) {
             (@userId, @accion, DATEADD(MINUTE, -4, GETDATE()), @direccionIP, @agenteUsuario, @idEspecialidad)
         `);
 
-      console.log(
-        "Actividad 'Editó una especialidad' registrada en ActividadUsuarios."
-      );
+      // console.log(
+      //   "Actividad 'Editó una especialidad' registrada en ActividadUsuarios."
+      // );
     } else {
-      console.log("No se pudo registrar la actividad: falta claveusuario.");
+      //console.log("No se pudo registrar la actividad: falta claveusuario.");
     }
 
     return res

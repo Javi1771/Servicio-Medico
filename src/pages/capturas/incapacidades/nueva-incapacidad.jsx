@@ -385,7 +385,7 @@ const NuevaIncapacidad = () => {
                     setFechaInicio(fechaSeleccionada);
                     setFechaFin(null);
                     setIsFechaInicioOpen(false);
-                    console.log("Fecha Inicial:", fechaSeleccionada);
+                    //console.log("Fecha Inicial:", fechaSeleccionada);
                   }}
                   value={
                     fechaInicio
@@ -455,7 +455,7 @@ const NuevaIncapacidad = () => {
                     const fechaFinalSeleccionada = `${year}-${month}-${day} 23:59:59.000`;
                     setFechaFin(fechaFinalSeleccionada);
                     setIsFechaFinOpen(false);
-                    console.log("Fecha Final:", fechaFinalSeleccionada);
+                    //console.log("Fecha Final:", fechaFinalSeleccionada);
                   }}
                   value={
                     fechaFin

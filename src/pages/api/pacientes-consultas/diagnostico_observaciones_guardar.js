@@ -94,7 +94,7 @@ export default async function handler(req, res) {
       }
 
       await transaction.commit(); //* Si todo sale bien, se confirma la transacción
-      console.log("✅ Consulta actualizada y actividad registrada exitosamente. ClaveConsulta:", claveConsulta);
+      //console.log("✅ Consulta actualizada y actividad registrada exitosamente. ClaveConsulta:", claveConsulta);
 
       //* Emitir el evento de Socket.io (esta parte no afecta la transacción)
       if (res.socket && res.socket.server && res.socket.server.io) {
@@ -103,9 +103,9 @@ export default async function handler(req, res) {
           accion: "Consulta atendida",
           time: new Date().toISOString(),
         });
-        console.log("Evento 'consulta-guardada' emitido.");
+        //console.log("Evento 'consulta-guardada' emitido.");
       } else {
-        console.log("Socket.io no está disponible en res.socket.server.io");
+        //console.log("Socket.io no está disponible en res.socket.server.io");
       }
 
       res.status(200).json({
@@ -117,7 +117,7 @@ export default async function handler(req, res) {
       if (transaction && !transaction._aborted) {
         try {
           await transaction.rollback();
-          console.log("❌ Transacción revertida debido a un error.");
+          //console.log("❌ Transacción revertida debido a un error.");
         } catch (rollbackError) {
           console.error("Error durante el rollback:", rollbackError);
         }
@@ -125,7 +125,7 @@ export default async function handler(req, res) {
       res.status(500).json({ message: "Error al procesar la consulta." });
     }
   } else {
-    console.log("❌ Método no permitido:", req.method);
+    //console.log("❌ Método no permitido:", req.method);
     res.status(405).json({ message: "Método no permitido." });
   }
 }

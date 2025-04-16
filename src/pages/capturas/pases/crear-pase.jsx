@@ -120,7 +120,7 @@ const CrearPase = () => {
       folio,
     };
 
-    console.log("📤 Datos enviados al backend:", body);
+    //console.log("📤 Datos enviados al backend:", body);
 
     try {
       const res = await fetch("/api/especialidades/insertarPase", {
@@ -131,7 +131,7 @@ const CrearPase = () => {
 
       if (res.ok) {
         const response = await res.json();
-        console.log("✅ Respuesta del servidor:", response);
+        //console.log("✅ Respuesta del servidor:", response);
         playSound(true);
         MySwal.fire({
           icon: "success",

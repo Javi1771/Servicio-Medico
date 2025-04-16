@@ -42,7 +42,7 @@ const InsertarUnidadForm = () => {
       try {
         const res = await fetch("/api/farmacia/unidades");
         const data = await res.json();
-        console.log("Respuesta del endpoint en el cliente:", data);
+        //console.log("Respuesta del endpoint en el cliente:", data);
         if (res.ok && Array.isArray(data)) {
           //* El endpoint retorna un array con { code, label }
           setUnidades(data);

@@ -11,15 +11,15 @@ const ConsultasAtendidas = () => {
 
   const router = useRouter();
 
-  // Ordenar pacientes por fecha de consulta (descendente)
+  //* Ordenar pacientes por fecha de consulta (descendente)
   const ordenarPacientes = (pacientes) =>
     pacientes.sort(
       (a, b) => new Date(b.fechaconsulta) - new Date(a.fechaconsulta)
     );
 
-  // Cargar datos iniciales
+  //* Cargar datos iniciales
   const cargarAtendidas = async () => {
-    if (isLoading) return; // Evitar llamadas simultáneas
+    if (isLoading) return; //! Evitar llamadas simultáneas
     setIsLoading(true);
     try {
       const response = await fetch("/api/pacientes-consultas/consultasHoy?clavestatus=2");
@@ -28,7 +28,7 @@ const ConsultasAtendidas = () => {
         const consultasOrdenadas = ordenarPacientes(data.consultas || []);
         setPacientes((prevPacientes) => {
           if (JSON.stringify(prevPacientes) !== JSON.stringify(consultasOrdenadas)) {
-            console.log("[INFO] Actualizando consultas atendidas:", consultasOrdenadas);
+            //console.log("[INFO] Actualizando consultas atendidas:", consultasOrdenadas);
             return consultasOrdenadas;
           }
           return prevPacientes;
@@ -44,28 +44,28 @@ const ConsultasAtendidas = () => {
   };
 
   useEffect(() => {
-    console.log("[INFO] Montando componente ConsultasAtendidas");
+    //console.log("[INFO] Montando componente ConsultasAtendidas");
     cargarAtendidas();
   }, []);
 
-  // Navegar a la página de recetas al hacer clic en una fila
+  //* Navegar a la página de recetas al hacer clic en una fila
   const handleRowClick = (claveConsulta) => {
-    const encryptedClaveConsulta = btoa(claveConsulta.toString()); // "Cifrar" la claveConsulta
+    const encryptedClaveConsulta = btoa(claveConsulta.toString()); //* "Cifrar" la claveConsulta
     router.push(`/consultas/recetas/ver-recetas?claveconsulta=${encryptedClaveConsulta}`);
   };
 
-  // Manejar el cambio en el input de búsqueda
+  //* Manejar el cambio en el input de búsqueda
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
-    setCurrentPage(1); // Reiniciar a la página 1 al filtrar
+    setCurrentPage(1); //! Reiniciar a la página 1 al filtrar
   };
 
-  // Filtrar pacientes por nombre (ignorando mayúsculas/minúsculas)
+  //* Filtrar pacientes por nombre (ignorando mayúsculas/minúsculas)
   const pacientesFiltrados = pacientes.filter((paciente) =>
     paciente.nombrepaciente.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Paginación
+  //* Paginación
   const indexUltimoPaciente = currentPage * pacientesPorPagina;
   const indexPrimerPaciente = indexUltimoPaciente - pacientesPorPagina;
   const pacientesActuales = pacientesFiltrados.slice(indexPrimerPaciente, indexUltimoPaciente);

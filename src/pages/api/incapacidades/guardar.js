@@ -53,7 +53,7 @@ export default async function handler(req, res) {
       const pool = await connectToDatabase();
       transaction = new sql.Transaction(pool);
       await transaction.begin();
-      console.log("Transacción iniciada.");
+      //console.log("Transacción iniciada.");
 
       //? 1. Inserción en detalleIncapacidad
       await transaction
@@ -72,7 +72,7 @@ export default async function handler(req, res) {
           VALUES 
             (@claveConsulta, @clavenomina, CONVERT(datetime2(7), @fechaInicial, 126), CONVERT(datetime2(7), @fechaFinal, 126), @diagnostico, @estatus, @clavepaciente, @claveMedico)
         `);
-      console.log(`Incapacidad guardada exitosamente en la base de datos con estatus: ${estatus}`);
+      //console.log(`Incapacidad guardada exitosamente en la base de datos con estatus: ${estatus}`);
 
       //? 2. Actualización en la tabla consultas
       await transaction
@@ -84,7 +84,7 @@ export default async function handler(req, res) {
           SET seAsignoIncapacidad = @seAsignoIncapacidad
           WHERE claveConsulta = @claveConsulta
         `);
-      console.log(`Columna seAsignoIncapacidad actualizada con valor: ${seAsignoIncapacidad}`);
+      //console.log(`Columna seAsignoIncapacidad actualizada con valor: ${seAsignoIncapacidad}`);
 
       //? 3. Registro de actividad (solo si se asignó incapacidad)
       if (seAsignoIncapacidad === 1) {
@@ -112,9 +112,9 @@ export default async function handler(req, res) {
                 VALUES 
                   (@userId, @accion, DATEADD(MINUTE, -4, GETDATE()), @direccionIP, @agenteUsuario, @claveConsulta)
               `);
-            console.log("Actividad de asignación de incapacidad registrada.");
+            //console.log("Actividad de asignación de incapacidad registrada.");
           } else {
-            console.log("Cookie 'claveusuario' no encontrada; actividad no registrada.");
+            //console.log("Cookie 'claveusuario' no encontrada; actividad no registrada.");
           }
         } catch (errorRegistro) {
           console.error("Error registrando actividad de asignación:", errorRegistro);
@@ -123,7 +123,7 @@ export default async function handler(req, res) {
 
       //* Confirmar la transacción
       await transaction.commit();
-      console.log("Transacción confirmada.");
+      //console.log("Transacción confirmada.");
 
       //* (Opcional) Consulta para obtener el historial actualizado
       const result = await pool
@@ -145,7 +145,7 @@ export default async function handler(req, res) {
           ORDER BY d.fecha_asignacion DESC
         `);
       const historial = result.recordset;
-      console.log("Historial actualizado (último mes):", historial);
+      //console.log("Historial actualizado (último mes):", historial);
 
       res.status(200).json({
         message: "Incapacidad guardada correctamente.",
@@ -155,7 +155,7 @@ export default async function handler(req, res) {
       console.error("❌ Error durante la transacción:", error);
       try {
         await transaction.rollback();
-        console.log("Transacción revertida debido a un error.");
+        //console.log("Transacción revertida debido a un error.");
       } catch (rollbackError) {
         console.error("❌ Error al hacer rollback:", rollbackError);
       }

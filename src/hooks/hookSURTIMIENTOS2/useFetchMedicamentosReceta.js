@@ -25,7 +25,7 @@ export default function useFetchMedicamentosReceta() {
       if (!response.ok) throw new Error("Error al obtener medicamentos");
   
       const data = await response.json();
-      console.log("📌 Medicamentos recibidos en hook:", data);
+      //console.log("📌 Medicamentos recibidos en hook:", data);
       setMedicamentos(data);
     } catch (err) {
       console.error("❌ Error en fetchMedicamentosReceta:", err);

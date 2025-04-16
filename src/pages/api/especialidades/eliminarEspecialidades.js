@@ -8,7 +8,7 @@ export default async function handler(req, res) {
 
   const { claveespecialidad } = req.body;
 
-  console.log("Valor recibido para claveespecialidad:", claveespecialidad);
+  //console.log("Valor recibido para claveespecialidad:", claveespecialidad);
 
   // Validación: se requiere que claveespecialidad sea un número válido
   if (!claveespecialidad || isNaN(claveespecialidad)) {
@@ -21,9 +21,9 @@ export default async function handler(req, res) {
   try {
     const pool = await connectToDatabase();
 
-    console.log(
-      `Ejecutando UPDATE para desactivar la especialidad con clave: ${claveespecialidad}`
-    );
+    // console.log(
+    //   `Ejecutando UPDATE para desactivar la especialidad con clave: ${claveespecialidad}`
+    // );
 
     // Actualizar la especialidad: se marca como inactiva (estatus = 0)
     const result = await pool
@@ -47,7 +47,7 @@ export default async function handler(req, res) {
       .find((row) => row.startsWith("claveusuario="))
       ?.split("=")[1];
     const claveusuario = claveusuarioCookie ? Number(claveusuarioCookie) : null;
-    console.log("Cookie claveusuario:", claveusuario);
+    //console.log("Cookie claveusuario:", claveusuario);
 
     if (claveusuario !== null) {
       let ip =
@@ -73,11 +73,11 @@ export default async function handler(req, res) {
           VALUES 
             (@userId, @accion, DATEADD(MINUTE, -4, GETDATE()), @direccionIP, @agenteUsuario, @claveConsulta, @idBeneficiario, @idEspecialidad)
         `);
-      console.log(
-        "Actividad 'Eliminó una especialidad' registrada en ActividadUsuarios."
-      );
+      // console.log(
+      //   "Actividad 'Eliminó una especialidad' registrada en ActividadUsuarios."
+      // );
     } else {
-      console.log("No se pudo registrar la actividad: falta claveusuario.");
+      //console.log("No se pudo registrar la actividad: falta claveusuario.");
     }
 
     return res

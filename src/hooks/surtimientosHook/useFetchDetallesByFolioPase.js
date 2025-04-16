@@ -16,7 +16,7 @@ export default function useFetchDetallesByFolioPase() {
       if (!responseFolio.ok) throw new Error("No se pudo obtener el FOLIO_SURTIMIENTO");
 
       const { folioSurtimiento } = await responseFolio.json();
-      console.log("FOLIO_SURTIMIENTO obtenido:", folioSurtimiento);
+      //console.log("FOLIO_SURTIMIENTO obtenido:", folioSurtimiento);
 
       // Segunda consulta: Obtener registros de detalleSurtimientos
       const responseDetalles = await fetch(`/api/surtimientos/getDetallesSurtimiento?folioSurtimiento=${folioSurtimiento}`);

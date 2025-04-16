@@ -2,8 +2,8 @@ import { connectToDatabase } from "../connectToDatabase";
 import sql from "mssql";
 
 export default async function handler(req, res) {
-  console.log("Solicitud recibida en la ruta:", req.url);
-  console.log("Parámetros recibidos:", req.query);
+  //console.log("Solicitud recibida en la ruta:", req.url);
+  //console.log("Parámetros recibidos:", req.query);
 
   const { clavepaciente, clavenomina } = req.query;
 
@@ -43,7 +43,7 @@ export default async function handler(req, res) {
       ORDER BY c.fechaconsulta DESC
     `;
 
-    console.log("Consulta SQL ejecutada:", query);
+    //console.log("Consulta SQL ejecutada:", query);
 
     const result = await pool
       .request()
@@ -61,7 +61,7 @@ export default async function handler(req, res) {
         : null,
     }));
 
-    console.log("Consultas formateadas para el frontend:", consultasFormateadas);
+    //console.log("Consultas formateadas para el frontend:", consultasFormateadas);
 
     res.status(200).json(consultasFormateadas);
   } catch (error) {

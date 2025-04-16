@@ -48,7 +48,7 @@ export default async function handler(req, res) {
 
       //* Se asume que el resultado devuelve la clave en recordset[0].claveproveedor
       const insertedId = insertResult.recordset[0].claveproveedor;
-      console.log("Proveedor insertado, claveproveedor:", insertedId);
+      //console.log("Proveedor insertado, claveproveedor:", insertedId);
 
       //* Registrar la actividad "Agregó un nuevo proveedor"
       const rawCookies = req.headers.cookie || "";
@@ -59,7 +59,7 @@ export default async function handler(req, res) {
       const claveusuario = claveusuarioCookie
         ? Number(claveusuarioCookie)
         : null;
-      console.log("Cookie claveusuario:", claveusuario);
+      //console.log("Cookie claveusuario:", claveusuario);
 
       if (claveusuario !== null) {
         let ip =
@@ -82,11 +82,11 @@ export default async function handler(req, res) {
             VALUES 
               (@userId, @accion, DATEADD(MINUTE, -4, GETDATE()), @direccionIP, @agenteUsuario, @idProveedor)
           `);
-        console.log(
-          "Actividad 'Agregó un nuevo proveedor' registrada en ActividadUsuarios."
-        );
+        //console.log(
+        //   "Actividad 'Agregó un nuevo proveedor' registrada en ActividadUsuarios."
+        // );
       } else {
-        console.log("No se pudo registrar la actividad: falta claveusuario.");
+        //console.log("No se pudo registrar la actividad: falta claveusuario.");
       }
 
       return res.status(201).json({

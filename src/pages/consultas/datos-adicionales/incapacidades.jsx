@@ -32,7 +32,7 @@ const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
       return;
     }
 
-    console.log(`Cargando historial para clavenomina: ${clavenomina}`);
+    //console.log(`Cargando historial para clavenomina: ${clavenomina}`);
 
     const fetchHistorialIncapacidades = async () => {
       try {
@@ -57,10 +57,7 @@ const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
             (item) => item.claveincapacidad
           );
 
-          console.log(
-            "Historial recibido (sin formatear):",
-            historialSinFormatear
-          );
+          console.log( "Historial recibido (sin formatear):", historialSinFormatear );
           setHistorialIncapacidades(historialSinFormatear);
         } else {
           console.warn("El historial no es un array válido:", data.historial);
@@ -95,7 +92,7 @@ const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
         diagnostico: diagnostico.trim() || null,
       };
 
-      console.log("Guardando en localStorage:", incapacidadData);
+      //console.log("Guardando en localStorage:", incapacidadData);
       localStorage.setItem("Incapacidad", JSON.stringify(incapacidadData));
     }
   }, [autorizarIncapacidad, fechaInicio, fechaFin, diagnostico]);
@@ -150,7 +147,7 @@ const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
         diagnostico: null,
       };
 
-      console.log("Guardando 'No' en localStorage:", incapacidadData);
+      //console.log("Guardando 'No' en localStorage:", incapacidadData);
       localStorage.setItem("Incapacidad", JSON.stringify(incapacidadData));
     }
   }, [autorizarIncapacidad]);
@@ -264,7 +261,7 @@ const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
                       setFechaInicio(fechaSeleccionada);
                       setFechaFin(null);
                       setIsFechaInicioOpen(false);
-                      console.log("Fecha Inicial:", fechaSeleccionada);
+                      //console.log("Fecha Inicial:", fechaSeleccionada);
                     }}
                     value={
                       fechaInicio
@@ -337,7 +334,7 @@ const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
                       const fechaFinalSeleccionada = `${year}-${month}-${day} 23:59:00.000`;
                       setFechaFin(fechaFinalSeleccionada);
                       setIsFechaFinOpen(false);
-                      console.log("Fecha Final:", fechaFinalSeleccionada);
+                      //console.log("Fecha Final:", fechaFinalSeleccionada);
                     }}
                     value={
                       fechaFin

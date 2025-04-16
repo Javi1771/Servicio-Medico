@@ -51,9 +51,9 @@ export default async function handler(req, res) {
   try {
     const pool = await connectToDatabase();
 
-    console.log(
-      `🔍 Buscando datos en detalleIncapacidad para noNomina: ${noNomina}`
-    );
+    // console.log(
+    //   `🔍 Buscando datos en detalleIncapacidad para noNomina: ${noNomina}`
+    // );
 
     //* Asegúrate de usar el nombre correcto para la variable en la consulta
     const incapacidadResult = await pool
@@ -72,7 +72,7 @@ export default async function handler(req, res) {
       `);
 
     if (incapacidadResult.recordset.length === 0) {
-      console.log("⚠️ No se encontraron registros válidos.");
+      //console.log("⚠️ No se encontraron registros válidos.");
       return res
         .status(404)
         .json({
@@ -91,9 +91,9 @@ export default async function handler(req, res) {
 
     //* Buscar nombre del médico y claveEspecialidad en proveedores
     if (incapacidad.claveMedico) {
-      console.log(
-        `🔎 Buscando proveedor con claveMedico: ${incapacidad.claveMedico}`
-      );
+      // console.log(
+      //   `🔎 Buscando proveedor con claveMedico: ${incapacidad.claveMedico}`
+      // );
 
       const medicoResult = await pool
         .request()
@@ -111,9 +111,9 @@ export default async function handler(req, res) {
 
     //* Buscar la especialidad en la tabla especialidades
     if (claveEspecialidad) {
-      console.log(
-        `🔎 Buscando especialidad con claveEspecialidad: ${claveEspecialidad}`
-      );
+      // console.log(
+      //   `🔎 Buscando especialidad con claveEspecialidad: ${claveEspecialidad}`
+      // );
 
       const especialidadResult = await pool
         .request()
@@ -128,17 +128,17 @@ export default async function handler(req, res) {
       }
     }
 
-    console.log("✅ Datos obtenidos con éxito:", {
-      fechaInicialFormato,
-      fechaFinalFormato,
-      fechaInicial: incapacidad.fechaInicial,
-      fechaFinal: incapacidad.fechaFinal,
-      diagnostico: incapacidad.diagnostico,
-      medico: nombreProveedor,
-      especialidad,
-      claveConsulta: incapacidad.claveConsulta,
-      claveMedico: incapacidad.claveMedico,
-    });
+    // console.log("✅ Datos obtenidos con éxito:", {
+    //   fechaInicialFormato,
+    //   fechaFinalFormato,
+    //   fechaInicial: incapacidad.fechaInicial,
+    //   fechaFinal: incapacidad.fechaFinal,
+    //   diagnostico: incapacidad.diagnostico,
+    //   medico: nombreProveedor,
+    //   especialidad,
+    //   claveConsulta: incapacidad.claveConsulta,
+    //   claveMedico: incapacidad.claveMedico,
+    // });
 
     return res.status(200).json({
       fechaInicialFormato,

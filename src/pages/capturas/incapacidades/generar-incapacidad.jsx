@@ -48,7 +48,7 @@ export default function GenerarIncapacidad() {
   //* Función para obtener los datos de incapacidad desde la API
   const fetchIncapacidadData = async () => {
     try {
-      console.log("📡 Consultando API con claveconsulta:", claveconsulta);
+      //console.log("📡 Consultando API con claveconsulta:", claveconsulta);
       const response = await fetch(
         `/api/incapacidades/obtenerImpresion?claveconsulta=${claveconsulta}`
       );
@@ -141,7 +141,7 @@ export default function GenerarIncapacidad() {
       const pdfBlob = new Blob([pdfBytes], { type: "application/pdf" });
       const pdfBlobUrl = URL.createObjectURL(pdfBlob);
       setPdfUrl(pdfBlobUrl);
-      console.log("✅ PDF generado correctamente");
+      //console.log("✅ PDF generado correctamente");
     } catch (error) {
       console.error("❌ Error al generar el PDF:", error);
     } finally {

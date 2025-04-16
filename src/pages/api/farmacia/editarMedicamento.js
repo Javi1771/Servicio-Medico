@@ -63,18 +63,18 @@ export default async function handler(req, res) {
     }
 
     try {
-      console.log("Iniciando actualización con los siguientes datos:", {
-        id,
-        medicamento,
-        clasificacion,
-        presentacion,
-        ean,
-        piezas,
-        maximo,
-        minimo,
-        medida,
-        precio
-      });
+      // console.log("Iniciando actualización con los siguientes datos:", {
+      //   id,
+      //   medicamento,
+      //   clasificacion,
+      //   presentacion,
+      //   ean,
+      //   piezas,
+      //   maximo,
+      //   minimo,
+      //   medida,
+      //   precio
+      // });
 
       const pool = await connectToDatabase();
 
@@ -110,12 +110,12 @@ export default async function handler(req, res) {
       // ====================================================================
       request.input("precio", sql.Decimal(18, 2), precio);
 
-      console.log("Ejecutando query de actualización:", query);
+      //console.log("Ejecutando query de actualización:", query);
       const result = await request.query(query);
-      console.log("Resultado de la actualización:", result);
+      //console.log("Resultado de la actualización:", result);
 
       if (result.rowsAffected[0] > 0) {
-        console.log("✅ Medicamento actualizado correctamente, ID:", id);
+        //console.log("✅ Medicamento actualizado correctamente, ID:", id);
 
         // ===========================
         // Registrar la actividad
@@ -148,11 +148,11 @@ export default async function handler(req, res) {
                   (@idUsuario, @accion, GETDATE(), @direccionIP, @agenteUsuario, @idMedicamento)
               `);
 
-            console.log("✅ Actividad registrada en la tabla ActividadUsuarios.");
+            //console.log("✅ Actividad registrada en la tabla ActividadUsuarios.");
           } else {
-            console.log(
-              "⚠️ No se pudo registrar la actividad: falta idUsuario (cookie)."
-            );
+            // console.log(
+            //   "⚠️ No se pudo registrar la actividad: falta idUsuario (cookie)."
+            // );
           }
         } catch (errorAct) {
           console.error("❌ Error al registrar la actividad:", errorAct);

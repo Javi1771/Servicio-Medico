@@ -38,7 +38,7 @@ export default async function handler(req, res) {
 
       //* Tomamos el nuevo id_medida
       const newIdMedida = insertResult.recordset[0].newIdMedida;
-      console.log("Se generó un nuevo id_medida:", newIdMedida);
+      //console.log("Se generó un nuevo id_medida:", newIdMedida);
 
       //* Registrar la actividad en la tabla ActividadUsuarios
       try {
@@ -66,14 +66,14 @@ export default async function handler(req, res) {
                 (@IdUsuario, @Accion, GETDATE(), @DireccionIP, @AgenteUsuario, @IdMedida)
             `);
 
-          console.log(
-            "✅ Actividad registrada en la tabla ActividadUsuarios con el IdMedida:",
-            newIdMedida
-          );
+          //console.log(
+          //   "✅ Actividad registrada en la tabla ActividadUsuarios con el IdMedida:",
+          //   newIdMedida
+          // );
         } else {
-          console.log(
-            "⚠️ No se pudo registrar la actividad: falta la cookie 'claveusuario'."
-          );
+          // console.log(
+          //   "⚠️ No se pudo registrar la actividad: falta la cookie 'claveusuario'."
+          // );
         }
       } catch (activityError) {
         console.error("❌ Error al registrar la actividad:", activityError);

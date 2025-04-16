@@ -1,6 +1,4 @@
-// /pages/api/enfermedadesCronicas/listarEnfermedades.js
-
-import { connectToDatabase } from '../../api/connectToDatabase'; // Ajusta la ruta según tu proyecto
+import { connectToDatabase } from '../connectToDatabase'; // Ajusta la ruta según tu proyecto
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -13,7 +11,7 @@ export default async function handler(req, res) {
     // Conexión a la base de datos
     const pool = await connectToDatabase();
 
-    console.log("Ejecutando consulta de enfermedades crónicas...");
+    //console.log("Ejecutando consulta de enfermedades crónicas...");
     const result = await pool.request()
       .query(`
         SELECT id_enf_cronica, cronica, estatus 
@@ -21,7 +19,7 @@ export default async function handler(req, res) {
         WHERE estatus = 1 -- Solo enfermedades activas
       `);
 
-    console.log("Enfermedades crónicas recuperadas exitosamente.");
+    //console.log("Enfermedades crónicas recuperadas exitosamente.");
     res.status(200).json(result.recordset); // Retorna el resultado al cliente
   } catch (error) {
     console.error('Error en la consulta de enfermedades crónicas:', {

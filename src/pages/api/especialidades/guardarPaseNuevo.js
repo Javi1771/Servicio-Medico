@@ -5,8 +5,8 @@ export default async function handler(req, res) {
   if (req.method === "POST") {
     const consultaData = req.body;
 
-    console.log("=== DUMP DE DATOS ANTES DE GUARDAR ===");
-    console.log("consultaData:", consultaData);
+    //console.log("=== DUMP DE DATOS ANTES DE GUARDAR ===");
+    //console.log("consultaData:", consultaData);
 
     try {
       //? 1. Validar la fecha de consulta
@@ -36,7 +36,7 @@ export default async function handler(req, res) {
       //? 3. Conexión a la base de datos
       const pool = await connectToDatabase();
 
-      console.log("Realizando inserción en la base de datos...");
+      //console.log("Realizando inserción en la base de datos...");
 
       //? 4. Insertar en la tabla consultas y recuperar la clave generada
       const result = await pool
@@ -186,7 +186,7 @@ export default async function handler(req, res) {
       const claveusuarioInt = claveusuarioCookie
         ? Number(claveusuarioCookie)
         : null;
-      console.log("Cookie claveusuario:", claveusuarioInt);
+      //console.log("Cookie claveusuario:", claveusuarioInt);
 
       if (claveusuarioInt !== null) {
         let ip =
@@ -211,11 +211,11 @@ export default async function handler(req, res) {
               (@userId, @accion, DATEADD(MINUTE, -4, GETDATE()), @direccionIP, @agenteUsuario, @claveConsulta)
           `);
 
-        console.log(
-          "Actividad 'Creó un nuevo pase de especialidad' registrada en ActividadUsuarios."
-        );
+        // console.log(
+        //   "Actividad 'Creó un nuevo pase de especialidad' registrada en ActividadUsuarios."
+        // );
       } else {
-        console.log("No se pudo registrar la actividad: falta claveusuario.");
+        //console.log("No se pudo registrar la actividad: falta claveusuario.");
       }
 
       //? 6. Retornar respuesta exitosa

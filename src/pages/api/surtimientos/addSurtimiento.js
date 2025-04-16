@@ -35,27 +35,27 @@ export default async function handler(req, res) {
     const nuevoFolio = folioResult.recordset[0].nuevoFolio;
 
     // Depurar los datos que se están enviando
-    console.log("Datos que se están enviando a la tabla SURTIMIENTOS:");
-    console.log({
-      nuevoFolio,
-      folioPase,
-      fechaEmision,
-      nomina,
-      clavePaciente,
-      nombrePaciente,
-      esEmpleado,
-      edad,
-      claveMedico,
-      diagnostico,
-      departamento,
-      estatus,
-      fechaDespacho,
-      sindicato,
-      claveUsuario
-    });
+    // console.log("Datos que se están enviando a la tabla SURTIMIENTOS:");
+    // console.log({
+    //   nuevoFolio,
+    //   folioPase,
+    //   fechaEmision,
+    //   nomina,
+    //   clavePaciente,
+    //   nombrePaciente,
+    //   esEmpleado,
+    //   edad,
+    //   claveMedico,
+    //   diagnostico,
+    //   departamento,
+    //   estatus,
+    //   fechaDespacho,
+    //   sindicato,
+    //   claveUsuario
+    // });
 
     // Depurar la longitud del campo departamento
-    console.log("Longitud del campo departamento:", departamento.length);
+    //console.log("Longitud del campo departamento:", departamento.length);
 
     const query = `
       INSERT INTO SURTIMIENTOS

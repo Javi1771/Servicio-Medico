@@ -26,8 +26,8 @@ const DatosAdicionales = ({
   observaciones,
   setObservaciones,
 }) => {
-  console.log("Prop pasarEspecialidad en DatosAdicionales:", pasarEspecialidad);
-  console.log("Prop claveConsulta en DatosAdicionales:", claveConsulta);
+  //console.log("Prop pasarEspecialidad en DatosAdicionales:", pasarEspecialidad);
+  //console.log("Prop claveConsulta en DatosAdicionales:", claveConsulta);
   const { formulariosCompletos, updateFormulario } =
     useContext(FormularioContext);
   const [diagnosticoTexto, setDiagnosticoTexto] = useState("");

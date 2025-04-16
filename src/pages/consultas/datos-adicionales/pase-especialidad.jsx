@@ -50,7 +50,7 @@ const PaseEspecialidad = ({
     );
     if (cachedData) {
       const parsedData = JSON.parse(cachedData);
-      console.log("Restaurando datos desde localStorage:", parsedData);
+      //console.log("Restaurando datos desde localStorage:", parsedData);
 
       if (parsedData.hasOwnProperty("prioridad"))
         setPrioridad(parsedData.prioridad);

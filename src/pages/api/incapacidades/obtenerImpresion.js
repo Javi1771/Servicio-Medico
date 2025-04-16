@@ -41,7 +41,7 @@ export default async function handler(req, res) {
 
     const pool = await connectToDatabase();
     
-    console.log("🔍 Obteniendo registros de incapacidades para claveconsulta:", claveconsulta);
+    //console.log("🔍 Obteniendo registros de incapacidades para claveconsulta:", claveconsulta);
 
     const result = await pool
       .request()
@@ -68,7 +68,7 @@ export default async function handler(req, res) {
       `);
 
     if (result.recordset.length === 0) {
-      console.log("⚠️ No se encontraron registros de incapacidades para la claveconsulta:", claveconsulta);
+      //console.log("⚠️ No se encontraron registros de incapacidades para la claveconsulta:", claveconsulta);
       return res.status(404).json({ message: "No se encontraron registros de incapacidades." });
     }
 
@@ -95,8 +95,8 @@ export default async function handler(req, res) {
       };
     });
 
-    console.log("✅ Registros obtenidos:", dataFormateada.length);
-    console.log("📦 Datos enviados al front:", JSON.stringify(dataFormateada, null, 2));
+    //console.log("✅ Registros obtenidos:", dataFormateada.length);
+    //console.log("📦 Datos enviados al front:", JSON.stringify(dataFormateada, null, 2));
 
     return res.status(200).json(dataFormateada);
   } catch (error) {

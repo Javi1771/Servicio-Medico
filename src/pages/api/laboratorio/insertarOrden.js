@@ -3,7 +3,7 @@ import sql from "mssql";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
-    console.log("Método no permitido:", req.method);
+    //console.log("Método no permitido:", req.method);
     return res.status(405).json({ message: "Method not allowed" });
   }
 
@@ -20,7 +20,7 @@ export default async function handler(req, res) {
     laboratorios,
   } = req.body;
 
-  console.log("Datos recibidos desde el front:", req.body);
+  //console.log("Datos recibidos desde el front:", req.body);
 
   //? 2. Extraer 'claveusuario' de la cookie
   let claveusuario = "";
@@ -31,23 +31,23 @@ export default async function handler(req, res) {
       claveusuario = match[1];
     }
   }
-  console.log("Clave de usuario extraída de la cookie:", claveusuario);
+  //console.log("Clave de usuario extraída de la cookie:", claveusuario);
 
   try {
     const pool = await connectToDatabase();
-    console.log("Conexión a la base de datos establecida.");
+    //console.log("Conexión a la base de datos establecida.");
 
     //? 3. Iterar sobre cada laboratorio a guardar
     for (let i = 0; i < laboratorios.length; i++) {
-      // Extraemos los datos de cada laboratorio.
-      // Nota: Se espera que la fecha venga en la propiedad "fecha" (según lo que se ve en los logs del front)
+      //* Extraemos los datos de cada laboratorio.
+      //* Nota: Se espera que la fecha venga en la propiedad "fecha" (según lo que se ve en los logs del front)
       const { claveproveedor, diagnostico, estudios, fecha } = laboratorios[i];
-      console.log(`Datos del laboratorio ${i + 1}:`, {
-        claveproveedor,
-        diagnostico,
-        estudios,
-        fecha,
-      });
+      //console.log(`Datos del laboratorio ${i + 1}:`, {
+      //   claveproveedor,
+      //   diagnostico,
+      //   estudios,
+      //   fecha,
+      // });
 
       //* ======================================
       //? 3.1 Obtener el último valor de FOLIO_ORDEN_LABORATORIO y sumarle 1
@@ -63,38 +63,38 @@ export default async function handler(req, res) {
       ) {
         nuevoFolio = Number(maxResult.recordset[0].maxFolio) + 1;
       }
-      console.log(
-        `Nuevo folio calculado para laboratorio ${i + 1}:`,
-        nuevoFolio
-      );
+      //console.log(
+      //   `Nuevo folio calculado para laboratorio ${i + 1}:`,
+      //   nuevoFolio
+      // );
 
       //* ======================================
       //? 3.2 Insertar en la tabla [LABORATORIOS]
       //* ======================================
-      console.log("Parámetros de inserción en [LABORATORIOS]:", {
-        folioOrden: nuevoFolio,
-        claveconsulta,
-        fechaEmision: new Date(),
-        fechaCita: fecha,
-        clavenomina,
-        clavepaciente,
-        nombrepaciente,
-        edad,
-        elpacienteesempleado,
-        claveproveedor,
-        diagnostico,
-        departamento,
-        sindicato,
-        claveusuario,
-      });
+      //console.log("Parámetros de inserción en [LABORATORIOS]:", {
+      //   folioOrden: nuevoFolio,
+      //   claveconsulta,
+      //   fechaEmision: new Date(),
+      //   fechaCita: fecha,
+      //   clavenomina,
+      //   clavepaciente,
+      //   nombrepaciente,
+      //   edad,
+      //   elpacienteesempleado,
+      //   claveproveedor,
+      //   diagnostico,
+      //   departamento,
+      //   sindicato,
+      //   claveusuario,
+      // });
 
       await pool
         .request()
         .input("folioOrden", sql.Int, nuevoFolio)
         .input("claveconsulta", sql.VarChar, claveconsulta)
-        // Se guarda la fecha de emisión con DATEADD(MINUTE, -1, GETDATE())
+        //* Se guarda la fecha de emisión con DATEADD(MINUTE, -1, GETDATE())
         .input("fechaEmision", sql.DateTime, new Date())
-        // Se agrega la fecha de cita proveniente del laboratorio (fecha)
+        //* Se agrega la fecha de cita proveniente del laboratorio (fecha)
         .input("fechaCita", sql.VarChar, fecha)
         .input("clavenomina", sql.VarChar, clavenomina)
         .input("clavepaciente", sql.VarChar, clavepaciente)
@@ -142,9 +142,9 @@ export default async function handler(req, res) {
           )
         `);
 
-      console.log(
-        `LABORATORIO INSERTADO: FOLIO ${nuevoFolio}, CLAVEPROVEEDOR ${claveproveedor}, FECHA_CITA: ${fecha}`
-      );
+      //console.log(
+      //   `LABORATORIO INSERTADO: FOLIO ${nuevoFolio}, CLAVEPROVEEDOR ${claveproveedor}, FECHA_CITA: ${fecha}`
+      // );
 
       //* ======================================
       //? 3.3 Registrar la actividad en ActividadUsuarios
@@ -167,12 +167,12 @@ export default async function handler(req, res) {
 
       const userAgent = req.headers["user-agent"] || "";
 
-      console.log("Parámetros para registrar actividad:", {
-        claveusuarioInt,
-        ip,
-        userAgent,
-        nuevoFolio,
-      });
+      //console.log("Parámetros para registrar actividad:", {
+      //   claveusuarioInt,
+      //   ip,
+      //   userAgent,
+      //   nuevoFolio,
+      // });
 
       if (claveusuarioInt !== null) {
         await pool
@@ -191,9 +191,9 @@ export default async function handler(req, res) {
             VALUES 
               (@userId, @accion, DATEADD(MINUTE, -1, GETDATE()), @direccionIP, @agenteUsuario, @idLaboratorio)
           `);
-        console.log("Actividad registrada en ActividadUsuarios.");
+        //console.log("Actividad registrada en ActividadUsuarios.");
       } else {
-        console.log("No se pudo registrar la actividad: falta claveusuario.");
+        //console.log("No se pudo registrar la actividad: falta claveusuario.");
       }
 
       //* ======================================
@@ -203,11 +203,11 @@ export default async function handler(req, res) {
       if (Array.isArray(estudios)) {
         for (let j = 0; j < estudios.length; j++) {
           const claveEstudio = Number(estudios[j]);
-          console.log(
-            `Insertando estudio ${
-              j + 1
-            } para laboratorio ${nuevoFolio}: CLAVE ESTUDIO ${claveEstudio}`
-          );
+          //console.log(
+          //   `Insertando estudio ${
+          //     j + 1
+          //   } para laboratorio ${nuevoFolio}: CLAVE ESTUDIO ${claveEstudio}`
+          // );
           await pool
             .request()
             .input("folioOrden", sql.Int, nuevoFolio)
@@ -215,14 +215,14 @@ export default async function handler(req, res) {
               INSERT INTO detalleLaboratorio (folio_orden_laboratorio, claveEstudio, estatus)
               VALUES (@folioOrden, @claveEstudio, 1)
             `);
-          console.log(
-            `DETALLE INSERTADO: FOLIO ${nuevoFolio}, CLAVE ESTUDIO ${claveEstudio}`
-          );
+          //console.log(
+          //   `DETALLE INSERTADO: FOLIO ${nuevoFolio}, CLAVE ESTUDIO ${claveEstudio}`
+          // );
         }
       }
     }
 
-    console.log("Todas las órdenes se insertaron correctamente");
+    //console.log("Todas las órdenes se insertaron correctamente");
     res
       .status(200)
       .json({ message: "Todas las órdenes se insertaron correctamente" });

@@ -41,7 +41,7 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
   // incluyendo el precio si existe
   useEffect(() => {
     if (medicamento) {
-      console.log("📌 Medicamento recibido:", medicamento);
+      //console.log("📌 Medicamento recibido:", medicamento);
       setFormData({
         id: medicamento.id || "",
         medicamento: medicamento.medicamento || "",

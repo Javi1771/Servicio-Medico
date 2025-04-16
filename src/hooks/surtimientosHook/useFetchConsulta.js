@@ -6,21 +6,21 @@ export default function useFetchConsulta() {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const fetchConsulta = async (folio) => {
-    console.log("Folio recibido en fetchConsulta:", folio);
+    //console.log("Folio recibido en fetchConsulta:", folio);
     setLoading(true);
     setError(null);
     setData(null);
   
     try {
       const response = await fetch(`/api/surtimientos/getConsultaByFolio?folio=${folio}`);
-      console.log("Respuesta del servidor:", response);
+      //console.log("Respuesta del servidor:", response);
   
       if (!response.ok) {
         throw new Error(`Error: ${response.statusText}`);
       }
   
       const result = await response.json();
-      console.log("Resultado de la consulta:", result);
+      //console.log("Resultado de la consulta:", result);
       setData(result);
       return result;
     } catch (err) {

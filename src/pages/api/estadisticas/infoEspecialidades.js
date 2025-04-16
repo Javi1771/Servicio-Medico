@@ -66,10 +66,10 @@ export const getDetallesConsultas = async (fechaHoraInicio, fechaHoraFin) => {
       ORDER BY c.fechaconsulta ASC;
     `;
 
-    console.log("Ejecutando consulta con parámetros:", {
-      fechaHoraInicio,
-      fechaHoraFin,
-    });
+    // console.log("Ejecutando consulta con parámetros:", {
+    //   fechaHoraInicio,
+    //   fechaHoraFin,
+    // });
 
     const result = await pool
       .request()
@@ -79,14 +79,14 @@ export const getDetallesConsultas = async (fechaHoraInicio, fechaHoraFin) => {
 
     //* Formatear las fechas en los resultados
     const formattedResults = result.recordset.map((record) => {
-      console.log("Fecha original (fechaconsulta):", record.fechaconsulta);
+      //console.log("Fecha original (fechaconsulta):", record.fechaconsulta);
       const formattedConsulta = formatFecha(record.fechaconsulta);
-      console.log("Fecha formateada (fechaconsulta):", formattedConsulta);
+      //console.log("Fecha formateada (fechaconsulta):", formattedConsulta);
 
-      console.log("Fecha original (fechacita):", record.fechacita);
+      //console.log("Fecha original (fechacita):", record.fechacita);
       const formattedCita = record.fechacita ? formatFecha(record.fechacita) : null;
       if (formattedCita) {
-        console.log("Fecha formateada (fechacita):", formattedCita);
+        //console.log("Fecha formateada (fechacita):", formattedCita);
       }
 
       return {
@@ -114,11 +114,11 @@ export default async function handler(req, res) {
   }
 
   try {
-    console.log(`Obteniendo detalles de consultas entre ${start} y ${end}`);
+    //console.log(`Obteniendo detalles de consultas entre ${start} y ${end}`);
 
     const detalles = await getDetallesConsultas(start, end);
 
-    console.log("Cantidad de registros obtenidos:", detalles.length);
+    //console.log("Cantidad de registros obtenidos:", detalles.length);
 
     res.status(200).json({ detalles });
   } catch (error) {

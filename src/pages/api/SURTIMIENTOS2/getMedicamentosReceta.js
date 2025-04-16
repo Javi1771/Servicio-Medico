@@ -7,7 +7,7 @@ export default async function handler(req, res) {
   }
 
   let { folioReceta } = req.body;
-  console.log("🔹 Folio recibido en la API:", folioReceta);
+  //console.log("🔹 Folio recibido en la API:", folioReceta);
 
   // Validación de folioReceta
   if (!folioReceta || isNaN(folioReceta) || parseInt(folioReceta, 10) <= 0) {
@@ -16,14 +16,14 @@ export default async function handler(req, res) {
   }
 
   folioReceta = parseInt(folioReceta, 10); // Convertir a número
-  console.log("✅ Folio convertido a número:", folioReceta);
+  //console.log("✅ Folio convertido a número:", folioReceta);
 
   try {
     const pool = await connectToDatabase();
-    console.log("🔹 Conexión a la base de datos exitosa");
+    //console.log("🔹 Conexión a la base de datos exitosa");
 
     // Buscar en la tabla SURTIMIENTOS para obtener el FOLIO_SURTIMIENTO más reciente
-    console.log("🔍 Buscando en SURTIMIENTOS con FOLIO_PASE:", folioReceta);
+    //console.log("🔍 Buscando en SURTIMIENTOS con FOLIO_PASE:", folioReceta);
     const surtimientoResult = await pool
       .request()
       .input("folioReceta", sql.Int, folioReceta)
@@ -35,14 +35,14 @@ export default async function handler(req, res) {
         ORDER BY FOLIO_SURTIMIENTO DESC
       `);
 
-    console.log("📌 Resultado de SURTIMIENTOS:", surtimientoResult.recordset);
+    //console.log("📌 Resultado de SURTIMIENTOS:", surtimientoResult.recordset);
 
     if (surtimientoResult.recordset.length > 0) {
       const folioSurtimiento = surtimientoResult.recordset[0].FOLIO_SURTIMIENTO;
-      console.log("✅ Se encontró el FOLIO_SURTIMIENTO más reciente:", folioSurtimiento);
+      //console.log("✅ Se encontró el FOLIO_SURTIMIENTO más reciente:", folioSurtimiento);
 
       // Si existe el surtimiento, obtenemos los medicamentos de detalleSurtimientos
-      console.log("🔍 Buscando medicamentos en detalleSurtimientos...");
+      //console.log("🔍 Buscando medicamentos en detalleSurtimientos...");
       const medicamentosSurtidos = await pool
         .request()
         .input("folioSurtimiento", sql.Int, folioSurtimiento)
@@ -60,7 +60,7 @@ export default async function handler(req, res) {
             AND m.estatus = 1
         `);
 
-      console.log("📌 Medicamentos obtenidos de detalleSurtimientos:", medicamentosSurtidos.recordset);
+      //console.log("📌 Medicamentos obtenidos de detalleSurtimientos:", medicamentosSurtidos.recordset);
 
       if (medicamentosSurtidos.recordset.length === 0) {
         console.warn("⚠️ No se encontraron medicamentos en detalleSurtimientos.");
@@ -70,7 +70,7 @@ export default async function handler(req, res) {
     }
 
     // Si no existe en SURTIMIENTOS, buscamos en detalleReceta
-    console.log("🔍 No se encontró en SURTIMIENTOS, buscando en detalleReceta...");
+    //console.log("🔍 No se encontró en SURTIMIENTOS, buscando en detalleReceta...");
     const medicamentosReceta = await pool
       .request()
       .input("folioReceta", sql.Int, folioReceta)
@@ -87,7 +87,7 @@ export default async function handler(req, res) {
         WHERE dr.folioReceta = @folioReceta
       `);
 
-    console.log("📌 Medicamentos obtenidos de detalleReceta:", medicamentosReceta.recordset);
+    //console.log("📌 Medicamentos obtenidos de detalleReceta:", medicamentosReceta.recordset);
 
     if (medicamentosReceta.recordset.length === 0) {
       console.warn("⚠️ No se encontraron medicamentos en detalleReceta.");

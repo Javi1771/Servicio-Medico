@@ -36,7 +36,7 @@ export default async function handler(req, res) {
     precio // <-- Nuevo campo
   } = req.body;
 
-  console.log("📌 Datos recibidos en la solicitud:", req.body);
+  //console.log("📌 Datos recibidos en la solicitud:", req.body);
 
   //* Validar que todos los campos estén presentes
   //   Incluyendo "precio" si es obligatorio
@@ -68,12 +68,12 @@ export default async function handler(req, res) {
   }
 
   try {
-    console.log("🔗 Conectando a la base de datos...");
+    //console.log("🔗 Conectando a la base de datos...");
     const dbPool = await connectToDatabase();
-    console.log("✅ Conexión exitosa a la base de datos");
+    //console.log("✅ Conexión exitosa a la base de datos");
 
     //* Verificar si ya existe el medicamento por EAN o nombre
-    console.log("🔍 Verificando si el medicamento ya existe...");
+    //console.log("🔍 Verificando si el medicamento ya existe...");
     const checkQuery = `
       SELECT COUNT(*) AS count 
       FROM MEDICAMENTOS 
@@ -85,7 +85,7 @@ export default async function handler(req, res) {
       .input("medicamento", sql.VarChar, medicamento)
       .query(checkQuery);
 
-    console.log("📊 Resultado de verificación:", checkResult.recordset);
+    //console.log("📊 Resultado de verificación:", checkResult.recordset);
 
     if (checkResult.recordset[0].count > 0) {
       console.warn("⚠️ El medicamento ya está registrado:", medicamento, ean);
@@ -95,7 +95,7 @@ export default async function handler(req, res) {
     }
 
     //* Consultar el último valor de claveMedicamento convirtiéndolo a int
-    console.log("🔢 Obteniendo la última claveMedicamento...");
+    //console.log("🔢 Obteniendo la última claveMedicamento...");
     const claveQuery = `
       SELECT TOP 1 CONVERT(int, claveMedicamento) AS claveInt
       FROM MEDICAMENTOS
@@ -107,22 +107,22 @@ export default async function handler(req, res) {
     //* Convertir a string para almacenarlo en la BD
     const newClaveMedicamento = newClaveMedicamentoInt.toString();
 
-    console.log("🆕 Nueva claveMedicamento asignada:", newClaveMedicamento);
+    //console.log("🆕 Nueva claveMedicamento asignada:", newClaveMedicamento);
 
     //* Insertar el medicamento (claveMedicamento se inserta como string)
-    console.log("📝 Insertando medicamento en la base de datos...");
-    console.log("📦 Datos a insertar:", {
-      claveMedicamento: newClaveMedicamento,
-      medicamento,
-      clasificacion,
-      presentacion,
-      ean,
-      piezas,
-      maximo,
-      minimo,
-      medida,
-      precio // <-- Incluimos precio
-    });
+    //console.log("📝 Insertando medicamento en la base de datos...");
+    //console.log("📦 Datos a insertar:", {
+    //   claveMedicamento: newClaveMedicamento,
+    //   medicamento,
+    //   clasificacion,
+    //   presentacion,
+    //   ean,
+    //   piezas,
+    //   maximo,
+    //   minimo,
+    //   medida,
+    //   precio // <-- Incluimos precio
+    // });
 
     // ======================================================
     // AÑADIMOS LA COLUMNA "precio" AL INSERT Y AL VALUES
@@ -152,7 +152,7 @@ export default async function handler(req, res) {
       .input("estatus", sql.Bit, 1)
       .query(insertQuery);
 
-    console.log("✅ Medicamento registrado exitosamente:", medicamento);
+    //console.log("✅ Medicamento registrado exitosamente:", medicamento);
 
     //* =========================
     //* Insertar la actividad en la tabla ActividadUsuarios
@@ -183,11 +183,11 @@ export default async function handler(req, res) {
               (@idUsuario, @accion, GETDATE(), @direccionIP, @agenteUsuario, @idMedicamento)
           `);
 
-        console.log("✅ Actividad registrada en la tabla ActividadUsuarios.");
+        //console.log("✅ Actividad registrada en la tabla ActividadUsuarios.");
       } else {
-        console.log(
-          "⚠️ No se pudo registrar la actividad: falta idUsuario en la cookie."
-        );
+        // console.log(
+        //   "⚠️ No se pudo registrar la actividad: falta idUsuario en la cookie."
+        // );
       }
     } catch (errorAct) {
       console.error("❌ Error al registrar la actividad:", errorAct);
