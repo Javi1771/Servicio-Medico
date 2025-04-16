@@ -233,12 +233,6 @@ const Home = () => {
         <div className="relative w-full flex flex-col items-center pt-10 pb-10 z-10">
           {/* Header/Banner */}
           <div className="relative w-full h-48 sm:h-60 md:h-80 lg:h-96 overflow-hidden rounded-md shadow-md mb-6">
-            <Image
-              src="/baner_sjr.png"
-              alt="Banner"
-              fill
-              className="object-cover opacity-50"
-            />
             <div className="absolute inset-0 bg-black bg-opacity-50 flex flex-col items-center justify-center">
               <div className="flex flex-col items-center space-y-3">
                 <div className="relative w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 lg:w-56 lg:h-56 border-4 border-cyan-400 rounded-full overflow-hidden transform transition-transform duration-300 hover:scale-105 shadow-[0_0_15px_5px_rgba(0,255,255,0.7)]">
