@@ -148,7 +148,7 @@ const SurtimientosBanner = () => {
       // Luego, realiza la llamada para obtener los medicamentos de la receta
       try {
         const response = await fetch(
-        "/api/SURTIMIENTOS2/getMedicamentosReceta", 
+          "/api/SURTIMIENTOS2/getMedicamentosReceta",
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -195,11 +195,12 @@ const SurtimientosBanner = () => {
 
     try {
       // Verificar si ya existe el surtimiento para este folio
-      const response = await fetch("/api/SURTIMIENTOS2/getMedicamentosReceta", {
+      const response =await fetch("/api/SURTIMIENTOS2/getMedicamentosReceta", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ folio: folioNumero }),
+        body: JSON.stringify({ folioReceta: folioNumero }),
       });
+      
       const medicamentosExistentes = await response.json();
 
       if (medicamentosExistentes.length > 0) {
@@ -411,14 +412,12 @@ const SurtimientosBanner = () => {
             </div>
 
             {/* Llamada al componente HistorialMedicamentos */}
-       
-            <HistorialMedicamentos
-  key={folio}
-  clavenomina={claveData?.NOMINA || ""}
-  clavepaciente={claveData?.CLAVE_PACIENTE || ""}
-/>
 
-          
+            <HistorialMedicamentos
+              key={folio}
+              clavenomina={claveData?.NOMINA || ""}
+              clavepaciente={claveData?.CLAVE_PACIENTE || ""}
+            />
           </div>
         )}
       </div>
