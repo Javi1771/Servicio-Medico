@@ -122,8 +122,8 @@ export default function GenerarOrdenLaboratorio() {
     copiedPage.drawText(`${lab.FECHA_EMISION || "N/A"}`, { x: 161.5, y: height - 20.6, size: 2, color: blackColor, });
 
     //? Fecha de cita
-    copiedPage.drawText(`${lab.FECHA_CITA || "N/A"}`, { x: 29, y: height - 24.2, size: 2, color: blackColor, });
-    copiedPage.drawText(`${lab.FECHA_CITA || "N/A"}`, { x: 155.5, y: height - 24.2, size: 2, color: blackColor, });
+    copiedPage.drawText(`${lab.FECHA_CITA || "N/A"}`, { x: 32, y: height - 24.2, size: 2, color: blackColor, });
+    copiedPage.drawText(`${lab.FECHA_CITA || "N/A"}`, { x: 157.5, y: height - 24.2, size: 2, color: blackColor, });
 
     //? Diagnóstico
     copiedPage.drawText(`${lab.DIAGNOSTICO || "N/A"}`, { x: 13, y: height - 49, size: 2, color: blackColor, });

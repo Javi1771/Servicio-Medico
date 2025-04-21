@@ -593,7 +593,7 @@ const EstudioLaboratorio = () => {
                   <div className="mb-4">
                     <label className="block text-lg font-bold mb-2 text-[#00576A] flex items-center gap-2">
                       <FaCalendarPlus className="text-xl" />
-                      Fecha Programada Para la Realización del Estudio:
+                      Fecha Programada Para la Entrega del Estudio:
                     </label>
                     <div className="relative">
                       <div
