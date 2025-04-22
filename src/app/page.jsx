@@ -85,8 +85,8 @@ export default function Login() {
     if (userTrim.length < 3) {
       return showErrorAlert("Usuario muy corto", "Debe tener al menos 3 caracteres.");
     }
-    if (password.length < 8) {
-      return showErrorAlert("Contraseña muy corta", "Debe tener al menos 8 caracteres.");
+    if (password.length < 3) {
+      return showErrorAlert("Contraseña muy corta", "Debe tener al menos 3 caracteres.");
     }
 
     setIsSubmitting(true);
