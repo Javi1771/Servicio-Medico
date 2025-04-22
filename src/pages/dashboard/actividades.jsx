@@ -1,5 +1,5 @@
 // src/components/DashboardActividad.jsx
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { FaUserCircle } from "react-icons/fa";
 import { useActividades } from "../../hooks/hookActividades/useActividades";
 import { getBadgeClasses } from "../../helpers/getBadgeClasses";
@@ -9,7 +9,6 @@ import styles from "../../pages/css/estilosActividad/DashboardActividad.module.c
 
 // Diccionario para colores de usuario (caché en memoria)
 const userColors = {};
-
 function getRandomColorForUser(username) {
   const key = (username || "desconocido").toLowerCase().trim();
   if (userColors[key]) return userColors[key];
@@ -39,11 +38,27 @@ export default function DashboardActividad() {
     setExpandedRow(expandedRow === globalIndex ? null : globalIndex);
   };
 
+  /* -------------------- BÚSQUEDA -------------------- */
+  const [searchTerm, setSearchTerm] = useState("");
+
   // Estado para la paginación
   const [page, setPage] = useState(1);
   const itemsPerPage = 10;
-  const totalPages = Math.ceil(actividades.length / itemsPerPage);
-  const paginatedActivities = actividades.slice(
+
+  // Reinicia a la primera página cuando cambia el término de búsqueda
+  useEffect(() => {
+    setPage(1);
+  }, [searchTerm]);
+
+  // Filtra actividades por usuario o acción
+  const filteredActivities = actividades.filter(
+    (a) =>
+      a.nombreproveedor?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      a.Accion?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const totalPages = Math.ceil(filteredActivities.length / itemsPerPage);
+  const paginatedActivities = filteredActivities.slice(
     (page - 1) * itemsPerPage,
     page * itemsPerPage
   );
@@ -62,13 +77,16 @@ export default function DashboardActividad() {
       <div className={styles.card}>
         <div className={styles.cardHeader}>
           <h2 className={styles.title}>Actividad de Usuarios</h2>
+
           {/* Barra de búsqueda */}
           <div style={{ position: "relative" }}>
             <input
               type="search"
               name="search"
-              placeholder="Search..."
+              placeholder="Buscar por usuario o acción…"
               className={styles.searchInput}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
             />
             <svg
               fill="none"
@@ -87,7 +105,7 @@ export default function DashboardActividad() {
         </div>
 
         {/* Tabla de Actividades */}
-        {actividades.length > 0 ? (
+        {filteredActivities.length > 0 ? (
           <>
             <div className={styles.tableContainer}>
               <table className={styles.table}>
@@ -201,6 +219,7 @@ export default function DashboardActividad() {
                 </tbody>
               </table>
             </div>
+
             {/* Controles de paginación */}
             <div className={styles.pagination}>
               <button
