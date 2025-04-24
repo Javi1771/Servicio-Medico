@@ -17,14 +17,14 @@ const PasesDashboard = () => {
   const [busqueda, setBusqueda] = useState("");
   const router = useRouter();
 
-  // Cargar datos desde el endpoint
+  //* Cargar datos desde el endpoint
   const fetchData = async () => {
     try {
       const response = await fetch("/api/especialidades/obtenerFolioNuevo");
       if (!response.ok) throw new Error("Error al cargar los datos");
       const data = await response.json();
 
-      // Procesar los datos para asignar folio, nomina y estatus
+      //* Procesar los datos para asignar folio, nomina y estatus
       const processedData = data.map((item) => ({
         ...item,
         folio: item.claveconsulta,
@@ -44,7 +44,7 @@ const PasesDashboard = () => {
     fetchData();
   }, []);
 
-  // Filtrado por nómina o folio
+  //* Filtrado por nómina o folio
   const handleBusqueda = (e) => {
     const value = e.target.value.toLowerCase();
     setBusqueda(value);
@@ -59,7 +59,7 @@ const PasesDashboard = () => {
     setFilteredData(filtered);
   };
 
-  // Si diagnóstico es null, se permite clic y se redirige a ver recetas
+  //* Si diagnóstico es null, se permite clic y se redirige a ver recetas
   const handleCardClick = (folio, diagnostico) => {
     if (diagnostico === null) {
       const encryptedFolio = btoa(folio.toString());
@@ -69,7 +69,7 @@ const PasesDashboard = () => {
     }
   };
 
-  // Botón para regresar
+  //* Botón para regresar
   const handleRegresar = () => {
     router.push("/capturas/pases-a-especialidades");
   };
@@ -133,7 +133,7 @@ const PasesDashboard = () => {
                   ? "cursor-pointer hover:shadow-2xl"
                   : "cursor-default opacity-70"
               }`}
-              style={{ minHeight: "420px" }} // Ajusta si deseas más alto
+              style={{ minHeight: "420px" }} 
             >
               {/* Círculo interior (top-right) */}
               {item.diagnostico === null && (

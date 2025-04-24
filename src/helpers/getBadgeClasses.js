@@ -4,15 +4,15 @@ export function getBadgeClasses(action) {
   const normalized = action.toLowerCase().trim();
 
   switch (true) {
-    //? Sesión
+    /* ───── Sesión ───── */
     case normalized === "inicio de sesión":
       return styles.greenBadge;
 
-    //? Antecedentes
+    /* ───── Antecedentes ───── */
     case normalized === "guardó un antecedente":
       return styles.lavenderBadge;
 
-    //? Beneficiarios
+    /* ───── Beneficiarios ───── */
     case normalized === "guardó un beneficiario":
       return styles.pinkBadge;
     case normalized === "editó un beneficiario":
@@ -20,19 +20,19 @@ export function getBadgeClasses(action) {
     case normalized === "eliminó un beneficiario":
       return styles.darkRedBadge;
 
-    //? KPI
+    /* ───── KPI ───── */
     case normalized === "calificó un kpi":
       return styles.cyanBadge;
     case normalized === "registró un kpi":
     case normalized === "agregó un nuevo kpi":
       return styles.pinkBadge;
 
-    //? Enfermedad crónica
+    /* ───── Enfermedad crónica ───── */
     case normalized === "asignó enfermedad crónica":
     case normalized === "agregó una enfermedad crónica":
       return styles.brownBadge;
 
-    //? Especialidades / Pases
+    /* ───── Especialidades / Pases ───── */
     case normalized === "agregó una especialidad":
     case normalized === "editó una especialidad":
     case normalized === "eliminó una especialidad":
@@ -41,33 +41,33 @@ export function getBadgeClasses(action) {
     case normalized === "capturó un pase de especialidad":
       return styles.purpleBadge;
 
-    //? Medicamentos
+    /* ───── Medicamentos ───── */
     case normalized === "creó un nuevo medicamento":
     case normalized === "editó un medicamento":
     case normalized === "eliminó un medicamento":
     case normalized === "asignó medicamentos":
       return styles.blueBadge;
 
-    //? Unidades de medida
+    /* ───── Unidades de medida ───── */
     case normalized === "agregó una nueva unidad de medida":
       return styles.indigoBadge;
 
-    //? Recetas
+    /* ───── Recetas ───── */
     case normalized === "surtió una receta":
       return styles.orangeBadge;
 
-    //? Incapacidades
+    /* ───── Incapacidades ───── */
     case normalized === "asignó una incapacidad":
     case normalized === "capturó una incapacidad":
       return styles.redBadge;
 
-    //? Consultas
+    /* ───── Consultas ───── */
     case normalized === "atendió una consulta":
       return styles.yellowBadge;
     case normalized === "consulta de signos vitales guardada":
       return styles.orangeBadge;
 
-    //? Proveedores
+    /* ───── Proveedores ───── */
     case normalized === "agregó un nuevo proveedor":
       return styles.greenBadge;
     case normalized === "editó un proveedor":
@@ -75,27 +75,32 @@ export function getBadgeClasses(action) {
     case normalized === "eliminó un proveedor":
       return styles.darkRedBadge;
 
-    //? Orden de estudio de laboratorio
+    /* ───── Orden de estudio de laboratorio ───── */
     case normalized === "capturó una orden de estudio de laboratorio":
       return styles.violetBadge;
     case normalized === "subió resultados de laboratorio":
       return styles.violetBadge;
 
-    //? Gastos
+    /* ───── Gastos ───── */
     case normalized === "capturó un gasto y factura":
       return styles.moneyBadge;
 
-    //? Cancelaciones 
+    /* ───── Cancelaciones ───── */
     case normalized === "canceló un pase":
-      return styles.cancelBadge;
     case normalized === "canceló una incapacidad":
-      return styles.cancelBadge;
     case normalized === "canceló una orden de laboratorio":
-      return styles.cancelBadge;
     case normalized === "canceló un surtimiento":
       return styles.cancelBadge;
 
-    //! Acción no definida en la lista
+    /* ───── NUEVAS ACCIONES (Avisos / Propuestas) ───── */
+    case normalized === "subió un aviso":
+      return styles.avisoBadge;
+    case normalized === "subió una propuesta":
+      return styles.propuestaBadge;
+    case normalized === "dió like a una propuesta":
+      return styles.likeBadge;
+
+    /* ───── Fallback ───── */
     default:
       return styles.grayBadge;
   }

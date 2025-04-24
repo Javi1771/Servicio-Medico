@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import AuthGuard from "../components/AuthGuard";
 import Cookies from "js-cookie";
+import NotificationBell from "@/components/NotificationBell";
 
 import {
   FaStethoscope,
@@ -188,7 +189,13 @@ const Home = () => {
     if (rol === "9") {
       menuOptions.push({
         title: "Farmacia",
-        options: ["Medicamentos", "Farmacia Surtimientos", "Alertas de Stock", "Unidades de Medida", "Recetas Pendientes"],
+        options: [
+          "Medicamentos",
+          "Farmacia Surtimientos",
+          "Alertas de Stock",
+          "Unidades de Medida",
+          "Recetas Pendientes",
+        ],
         icon: <FaCapsules className="inline-block mr-2" />,
       });
     }
@@ -246,6 +253,12 @@ const Home = () => {
                 <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold text-cyan-300 tracking-wide whitespace-nowrap drop-shadow-[0_0_5px_rgba(0,255,255,0.8)]">
                   Servicio Médico SJR
                 </h1>
+
+                {/* Campana flotante */}
+                <div className="absolute top-5 right-5 z-20">
+                  <NotificationBell />
+                </div>
+                
               </div>
             </div>
           </div>

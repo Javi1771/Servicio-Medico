@@ -8,7 +8,20 @@ import { FaCalendarAlt } from "react-icons/fa";
 import "react-datepicker/dist/react-datepicker.css";
 import { FormularioContext } from "/src/context/FormularioContext";
 
-import HistorialIncapacidadesTable from "../components/HistorialIncapacidades"
+import HistorialIncapacidadesTable from "../components/HistorialIncapacidades";
+
+/* ============  🔹 HELPER PARA FORMATEAR FECHAS 🔹  ============ */
+const normalizeDateForSQL = (value, start) => {
+  if (!value) return null; // null → null
+  if (typeof value === "string" && !value.includes("T")) return value; // ya OK
+  const d = new Date(value); // acepta Date o ISO
+  const pad = (n) => String(n).padStart(2, "0");
+  return (
+    `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}` +
+    ` ${start ? "00:00:00.000" : "23:59:00.000"}`
+  );
+};
+/* ============================================================= */
 
 const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
   const { updateFormulario } = useContext(FormularioContext);
@@ -57,7 +70,10 @@ const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
             (item) => item.claveincapacidad
           );
 
-          console.log( "Historial recibido (sin formatear):", historialSinFormatear );
+          console.log(
+            "Historial recibido (sin formatear):",
+            historialSinFormatear
+          );
           setHistorialIncapacidades(historialSinFormatear);
         } else {
           console.warn("El historial no es un array válido:", data.historial);
@@ -89,10 +105,10 @@ const Incapacidades = ({ clavepaciente, claveConsulta, clavenomina }) => {
             ? fechaFin
             : fechaFin.toISOString()
           : null,
+        fechaInicio: normalizeDateForSQL(fechaInicio, true),
+        fechaFin: normalizeDateForSQL(fechaFin, false),
         diagnostico: diagnostico.trim() || null,
       };
-
-      //console.log("Guardando en localStorage:", incapacidadData);
       localStorage.setItem("Incapacidad", JSON.stringify(incapacidadData));
     }
   }, [autorizarIncapacidad, fechaInicio, fechaFin, diagnostico]);
