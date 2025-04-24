@@ -7,17 +7,17 @@ import Cookies from "js-cookie";
 import Swal from "sweetalert2";
 import Image from "next/image";
 import {
-  FiImage,
   FiSend,
   FiFileText,
   FiX,
-  FiAlertCircle,
+  FiImage,
   FiArrowLeft,
   FiClock,
   FiEdit3,
 } from "react-icons/fi";
+import { MdImageNotSupported } from "react-icons/md";
 
-/* ░░░ AUDIO + ALERTA CON DISEÑO NEÓN ░░░ */
+//* ░░░ AUDIO + ALERTA CON DISEÑO NEÓN ░░░ */
 const successSound = "/assets/applepay.mp3";
 const errorSound = "/assets/error.mp3";
 
@@ -75,10 +75,10 @@ const showAlert = (type, title, html = "") => {
     },
   });
 };
-/* ░░░ FIN helper ░░░ */
+//* ░░░ FIN helper ░░░ */
 
 export default function AvisosDesarrolladores() {
-  /* ────────── state & router ────────── */
+  //* ────────── state & router ────────── */
   const [avisos, setAvisos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [file, setFile] = useState(null);
@@ -92,7 +92,7 @@ export default function AvisosDesarrolladores() {
   const rol = Cookies.get("rol");
   const router = useRouter();
 
-  /* ===== helpers de color / gradiente ===== */
+  //* ===== helpers de color / gradiente ===== */
   const gradientForUrgency = (u) =>
     u === "URGENTE"
       ? "from-red-600 to-orange-500"
@@ -100,7 +100,7 @@ export default function AvisosDesarrolladores() {
   const colorForUrgency = (u) =>
     u === "URGENTE" ? "text-orange-400" : "text-teal-400";
 
-  /* ────────── fetch avisos ────────── */
+  //* ────────── fetch avisos ────────── */
   useEffect(() => {
     const ctrl = new AbortController();
     (async () => {
@@ -118,13 +118,16 @@ export default function AvisosDesarrolladores() {
     return () => ctrl.abort();
   }, []);
 
-  /* ────────── post aviso ────────── */
+  //* ────────── post aviso ────────── */
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.aviso.trim()) return showAlert("warning", "Escribe un aviso");
+
+    //* ① Definir avisoTxt
+    const avisoTxt = form.aviso.trim();
+    if (!avisoTxt) return showAlert("warning", "Escribe un aviso");
 
     const body = new FormData();
-    body.append("aviso", form.aviso);
+    body.append("aviso", avisoTxt.toUpperCase());
     body.append("motivo", form.motivo);
     body.append("urgencia", form.urgencia);
     if (file) body.append("imagen", file);
@@ -141,7 +144,7 @@ export default function AvisosDesarrolladores() {
     }
   };
 
-  /* ────────── view ────────── */
+  //* ────────── view ────────── */
   return (
     <>
       {/* fondo & estrellas */}
@@ -194,22 +197,25 @@ export default function AvisosDesarrolladores() {
                 <FiFileText /> Publicar aviso
               </h2>
 
-              {/* AVISO – ocupa ambas columnas */}
+              {/* AVISO ─ ocupa ambas columnas */}
               <textarea
-                rows={4}
-                placeholder="ESCRIBE EL AVISO…"
-                className="col-span-full w-full resize-none rounded-lg bg-white/10 p-4 uppercase tracking-wide outline-none focus:ring-2 focus:ring-teal-500"
+                rows={6}
+                placeholder="ESCRIBE EL AVISO… (pulsa Enter para nueva línea)"
+                className="col-span-full w-full resize-none rounded-lg bg-white/10 p-4
+             tracking-wide uppercase  /* solo estilo visual */
+             outline-none focus:ring-2 focus:ring-teal-500
+             whitespace-pre-wrap" //* muestra saltos al volver a editar */
                 value={form.aviso}
-                onChange={(e) =>
-                  setForm({ ...form, aviso: e.target.value.toUpperCase() })
-                }
+                onChange={(e) => setForm({ ...form, aviso: e.target.value })}
               />
 
-              {/* Motivo */}
-              <input
-                type="text"
-                placeholder="Motivo"
-                className="w-full rounded-lg bg-white/10 p-4 outline-none focus:ring-2 focus:ring-purple-500"
+              {/* Motivo – ocupa columna individual */}
+              <textarea
+                rows={2}
+                placeholder="Motivo (pulsa Enter para nueva línea)"
+                className="w-full resize-none rounded-lg bg-white/10 p-4
+             outline-none focus:ring-2 focus:ring-purple-500
+             whitespace-pre-wrap"
                 value={form.motivo}
                 onChange={(e) => setForm({ ...form, motivo: e.target.value })}
               />
@@ -284,7 +290,7 @@ export default function AvisosDesarrolladores() {
           ) : avisos.length === 0 ? (
             <p className="text-center text-slate-400">No hay avisos aún.</p>
           ) : (
-            <div className="grid gap-12 sm:grid-cols-2 lg:grid-cols-3 group">
+            <div className="grid gap-12 sm:grid-cols-2 lg:grid-cols-3">
               {avisos.map((a) => {
                 const grad = gradientForUrgency(a.Urgencia || "NORMAL");
                 const ringHover =
@@ -300,11 +306,15 @@ export default function AvisosDesarrolladores() {
                   <div
                     key={a.IdAviso}
                     onClick={() => setModal(a)}
-                    className={`relative cursor-pointer rounded-2xl p-[1px] bg-gradient-to-r ${grad} transition
-                                group-hover:blur-sm group-hover:scale-95 group-hover:opacity-40
-                                hover:!blur-none hover:!scale-100 hover:!opacity-100 hover:ring-2 ${ringHover} ${shadowHover} shadow-lg`}
+                    className={`
+              relative flex rounded-2xl p-[1px] bg-gradient-to-r ${grad}
+              transition shadow-lg hover:shadow-xl hover:!scale-100
+              hover:ring-2 ${ringHover} ${shadowHover}
+            `}
                   >
-                    <article className="rounded-[inherit] bg-[#101826]/80 backdrop-blur-lg p-6">
+                    {/* Hacemos que <article> ocupe todo el alto y sea flex-col */}
+                    <article className="flex flex-1 flex-col rounded-[inherit] bg-[#101826]/80 backdrop-blur-lg">
+                      {/* Imagen */}
                       {a.Url_Imagen ? (
                         <Image
                           src={a.Url_Imagen}
@@ -312,26 +322,52 @@ export default function AvisosDesarrolladores() {
                           width={400}
                           height={400}
                           unoptimized={a.Url_Imagen.startsWith("http")}
-                          className="mb-4 h-48 w-full rounded-xl object-cover"
+                          className="h-48 w-full rounded-t-[inherit] object-cover"
                           placeholder="empty"
                         />
                       ) : (
-                        <div className="mb-4 flex h-48 w-full items-center justify-center rounded-xl bg-white/10">
-                          <FiAlertCircle className="text-5xl text-purple-400" />
+                        <div className="flex h-48 w-full items-center justify-center rounded-t-[inherit] bg-white/10">
+                          <MdImageNotSupported className="text-5xl text-purple-400" />
                         </div>
                       )}
 
-                      <p className="mb-3 whitespace-pre-wrap leading-relaxed">
-                        {a.Aviso}
-                      </p>
-                      {a.Motivo && (
-                        <p className="mb-2 text-sm text-purple-300">
-                          <strong>Motivo:</strong> {a.Motivo}
+                      {/* Contenido con flex-1 para igualar altura */}
+                      <div className="flex-1 p-6 flex flex-col">
+                        {/* Aviso truncado a 3 líneas */}
+                        <p
+                          className="mb-3 leading-relaxed text-sm"
+                          style={{
+                            display: "-webkit-box",
+                            WebkitLineClamp: 3,
+                            WebkitBoxOrient: "vertical",
+                            overflow: "hidden",
+                          }}
+                        >
+                          {a.Aviso}
                         </p>
-                      )}
-                      <p className="text-xs text-slate-400">
-                        {new Date(a.Fecha).toLocaleString()}
-                      </p>
+
+                        {/* Motivo truncado a 2 líneas */}
+                        {a.Motivo && (
+                          <p
+                            className="mb-4 text-sm text-purple-300"
+                            style={{
+                              display: "-webkit-box",
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: "vertical",
+                              overflow: "hidden",
+                            }}
+                          >
+                            <strong>Motivo:</strong> {a.Motivo}
+                          </p>
+                        )}
+
+                        {/* Fecha siempre al fondo */}
+                        <div className="mt-auto">
+                          <p className="text-xs text-slate-400">
+                            {new Date(a.Fecha).toLocaleString()}
+                          </p>
+                        </div>
+                      </div>
                     </article>
                   </div>
                 );
@@ -354,49 +390,63 @@ export default function AvisosDesarrolladores() {
             )} shadow-xl`}
           >
             <section className="rounded-[inherit] bg-[#0e1524]/90 backdrop-blur-lg">
-            <header
+              <header
                 className={`flex items-center gap-3 px-8 py-4 rounded-t-[inherit] border-b
-                  ${modal.Urgencia === "URGENTE"
-                    ? "bg-red-700/30 border-orange-400/40"
-                    : "bg-teal-800/30 border-teal-500/30"}`}
+                  ${
+                    modal.Urgencia === "URGENTE"
+                      ? "bg-red-700/30 border-orange-400/40"
+                      : "bg-teal-800/30 border-teal-500/30"
+                  }`}
               >
                 <FiFileText
                   className={`text-xl shrink-0
-                    ${modal.Urgencia === "URGENTE" ? "text-orange-400" : "text-teal-400"}`}
+                    ${
+                      modal.Urgencia === "URGENTE"
+                        ? "text-orange-400"
+                        : "text-teal-400"
+                    }`}
                 />
-                <h3 className="text-lg font-semibold text-slate-100">Detalle del aviso</h3>
+                <h3 className="text-lg font-semibold text-slate-100">
+                  Detalle del aviso
+                </h3>
 
                 <button
                   onClick={() => setModal(null)}
                   className={`ml-auto text-2xl transition 
-                    ${modal.Urgencia === "URGENTE"
-                      ? "text-orange-300 hover:text-orange-400"
-                      : "text-teal-300 hover:text-teal-400"}`}
+                    ${
+                      modal.Urgencia === "URGENTE"
+                        ? "text-orange-300 hover:text-orange-400"
+                        : "text-teal-300 hover:text-teal-400"
+                    }`}
                 >
                   <FiX />
                 </button>
               </header>
 
               <div className="p-8 space-y-6">
-              {modal.Url_Imagen ? (
-                <Image
-                  src={modal.Url_Imagen}
-                  alt="zoom"
-                  width={1200}
-                  height={700}
-                  unoptimized={modal.Url_Imagen.startsWith("http")}
-                  className="w-full max-h-[50vh] rounded-xl object-contain mb-4"
-                  placeholder="empty"
-                />
-              ) : (
-                <div className="mb-4 flex h-52 w-full items-center justify-center rounded-xl bg-white/10">
-                  <FiAlertCircle className="text-6xl text-purple-400" />
-                </div>
-              )}
+                {modal.Url_Imagen ? (
+                  <Image
+                    src={modal.Url_Imagen}
+                    alt="zoom"
+                    width={1200}
+                    height={700}
+                    unoptimized={modal.Url_Imagen.startsWith("http")}
+                    className="w-full max-h-[50vh] rounded-xl object-contain mb-4"
+                    placeholder="empty"
+                  />
+                ) : (
+                  <div className="mb-4 flex h-52 w-full items-center justify-center rounded-xl bg-white/10">
+                    <MdImageNotSupported className="text-6xl text-purple-400" />
+                  </div>
+                )}
 
                 <div
                   className={`flex items-start gap-3 text-sm
-                    ${modal.Urgencia === "URGENTE" ? "text-orange-300" : "text-teal-300"}`}
+                    ${
+                      modal.Urgencia === "URGENTE"
+                        ? "text-orange-300"
+                        : "text-teal-300"
+                    }`}
                 >
                   <FiClock className="shrink-0 mt-0.5" />
                   <time className="font-medium">
@@ -405,7 +455,7 @@ export default function AvisosDesarrolladores() {
                 </div>
 
                 <div className="flex items-start gap-3">
-                  <FiAlertCircle className="shrink-0 mt-0.5 text-purple-400 text-xl" />
+                  <MdImageNotSupported className="shrink-0 mt-0.5 text-purple-400 text-xl" />
                   <p className="whitespace-pre-wrap leading-relaxed text-base text-slate-200">
                     {modal.Aviso}
                   </p>
@@ -414,7 +464,7 @@ export default function AvisosDesarrolladores() {
                 {modal.Motivo && (
                   <div className="flex items-start gap-3">
                     <FiFileText className="shrink-0 mt-0.5 text-indigo-400 text-xl" />
-                    <p className="text-slate-300">
+                    <p className="whitespace-pre-wrap text-slate-300">
                       <span className="font-semibold">Motivo:</span>{" "}
                       {modal.Motivo}
                     </p>

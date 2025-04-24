@@ -167,7 +167,13 @@ export default function Login() {
         <div className={styles.formSection}>
           <h1 className={styles.formTitle}>Bienvenido, Inicia Sesión</h1>
 
-          <form onSubmit={handleLogin} className={styles.form}>
+          {/* <-- Añadimos method="POST" para evitar GET en la URL -->
+           */}
+          <form
+            onSubmit={handleLogin}
+            method="POST"
+            className={styles.form}
+          >
             <label className="block mb-2 text-lg font-semibold text-white">
               Usuario
             </label>

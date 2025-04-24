@@ -37,29 +37,29 @@ export default async function handler(req, res) {
     await transaction.begin();
     //console.log("Transacción iniciada.");
 
-    // 1. Verificar si ya se ha generado un surtimiento para este folio
-    const verificaRequest = new sql.Request(transaction);
-    const verificaQuery = `
-      SELECT COUNT(*) AS count
-      FROM  SURTIMIENTOS
-      WHERE FOLIO_PASE = @folioReceta
-    `;
-    const verificaResult = await verificaRequest
-      .input("folioReceta", sql.Int, folioReceta)
-      .query(verificaQuery);
+    //? 1. Verificar si ya se ha generado un surtimiento para este folio
+    // const verificaRequest = new sql.Request(transaction);
+    // const verificaQuery = `
+    //   SELECT COUNT(*) AS count
+    //   FROM  SURTIMIENTOS
+    //   WHERE FOLIO_PASE = @folioReceta
+    // `;
+    // const verificaResult = await verificaRequest
+    //   .input("folioReceta", sql.Int, folioReceta)
+    //   .query(verificaQuery);
 
-    //console.log(
+    // console.log(
     //   "Resultado de la verificación de surtimiento:",
     //   verificaResult.recordset[0]
     // );
 
-    if (verificaResult.recordset[0].count > 0) {
-      //console.log("Ya se ha generado un surtimiento para este folio.");
-      await transaction.rollback();
-      return res
-        .status(400)
-        .json({ message: "Ya se ha generado un surtimiento para este folio." });
-    }
+    // if (verificaResult.recordset[0].count > 0) {
+    //   //console.log("Ya se ha generado un surtimiento para este folio.");
+    //   await transaction.rollback();
+    //   return res
+    //     .status(400)
+    //     .json({ message: "Ya se ha generado un surtimiento para este folio." });
+    // }
 
     // 2. Generar un nuevo FOLIO_SURTIMIENTO
     const folioRequest = new sql.Request(transaction);
