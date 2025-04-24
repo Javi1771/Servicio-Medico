@@ -33,8 +33,8 @@ export default async function handler(req, res) {
           SELECT  P.IdPropuesta, P.ClaveUsuario, P.Propuesta, P.Motivo,
                   P.Url_Imagen, P.Fecha, P.Likes,
                   CASE WHEN L.ClaveUsuario IS NULL THEN 0 ELSE 1 END AS YaLike
-          FROM    PRUEBAS.dbo.Propuestas        AS P
-          LEFT JOIN PRUEBAS.dbo.PropuestasLikes AS L
+          FROM    Propuestas        AS P
+          LEFT JOIN PropuestasLikes AS L
                  ON L.IdPropuesta  = P.IdPropuesta
                 AND L.ClaveUsuario = @user
           ORDER BY P.Fecha DESC
@@ -142,7 +142,7 @@ export default async function handler(req, res) {
           .input("prop", sql.NVarChar(sql.MAX), texto)
           .input("motivo", sql.NVarChar(sql.MAX), motivo || null)
           .input("url", sql.NVarChar(sql.MAX), urlImg).query(`
-            INSERT INTO PRUEBAS.dbo.Propuestas
+            INSERT INTO Propuestas
                    (ClaveUsuario, Propuesta, Motivo, Url_Imagen, Fecha, Likes)
             OUTPUT inserted.IdPropuesta
             VALUES (@user, @prop, @motivo, @url, GETDATE(), 0)
