@@ -333,6 +333,36 @@
   font-size: 0.75rem;
 }
 
+/* Badge para “Subió un aviso” (avisoBadge)  ── color megáfono */
+.avisoBadge {
+  background-color: #e0f2ff;   /* Celeste muy claro */
+  color: #0277bd;              /* Azul megáfono */
+  border: 1px solid #81d4fa;   /* Celeste intermedio */
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+}
+
+/* Badge para “Subió una propuesta” (ideaBadge) ── foco / idea */
+.propuestaBadge {
+  background-color: #fff9c4;   /* Amarillo pastel */
+  color: #f9a825;              /* Ámbar profundo */
+  border: 1px solid #fdd835;   /* Amarillo medio */
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+}
+
+/* Badge para “Dió like a una propuesta” (likeBadge) ── pulgar arriba */
+.likeBadge {
+  background-color: #e8f5e9;   /* Verde muy claro */
+  color: #2e7d32;              /* Verde intenso */
+  border: 1px solid #a5d6a7;   /* Verde medio */
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+}
+
 /* 10) Animación de hover en los badges: transición en opacidad y escalado */
 .badgeHover {
   transition: opacity 0.3s ease, transform 0.3s ease;

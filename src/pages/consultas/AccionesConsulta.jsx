@@ -7,6 +7,19 @@ import withReactContent from "sweetalert2-react-content";
 import Cookies from "js-cookie";
 import { FormularioContext } from "/src/context/FormularioContext";
 
+/* ============  🔹 HELPER PARA FORMATEAR FECHAS 🔹  ============ */
+const normalizeDateForSQL = (value, start) => {
+  if (!value) return null;
+  if (typeof value === "string" && !value.includes("T")) return value;
+  const d = new Date(value);
+  const pad = (n) => String(n).padStart(2, "0");
+  return (
+    `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}` +
+    ` ${start ? "00:00:00.000" : "23:59:00.000"}`
+  );
+};
+/* ============================================================= */
+
 const MySwal = withReactContent(Swal);
 
 //* Define las rutas de los sonidos de éxito y error
@@ -338,6 +351,8 @@ const AccionesConsulta = ({
         clavenomina,
         fechaInicial: fechaInicio || null,
         fechaFinal: fechaFin || null,
+        fechaInicial: normalizeDateForSQL(fechaInicio, true),
+        fechaFinal: normalizeDateForSQL(fechaFin, false),
         diagnostico:
           diagnostico ||
           "Sin Observaciones, No Se Asignó Incapacidad En Esta Consulta",

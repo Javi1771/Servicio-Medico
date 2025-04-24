@@ -4,6 +4,7 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
+import NotificationBell from "@/components/NotificationBell";
 
 const InicioPresidente = () => {
   const router = useRouter();
@@ -69,6 +70,12 @@ const InicioPresidente = () => {
         <h1 className="text-6xl font-extrabold text-blue-400 bg-gradient-to-r from-gray-800 via-gray-700 to-gray-900 p-4 rounded-xl shadow-lg">
           Bienvenido {username}
         </h1>
+
+      {/* Campana flotante */}
+      <div className="absolute top-5 right-5 z-20">
+        <NotificationBell />
+      </div>
+
         <p className="text-gray-400 text-2xl mt-4">
           Aquí están tus estadísticas y accesos rápidos
         </p>
@@ -101,7 +108,9 @@ const InicioPresidente = () => {
 
                 {/* Texto dinámico en hover */}
                 <div className="absolute inset-0 flex items-center justify-center text-center text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <p className="text-2xl font-bold">De clic aquí para ver la gráfica</p>
+                  <p className="text-2xl font-bold">
+                    De clic aquí para ver la gráfica
+                  </p>
                 </div>
 
                 {/* Borde de neón */}

@@ -53,22 +53,24 @@ export default function MedicamentoDropdown({
   playSound,
   isLoading = false,
 }) {
-  // Aseguramos que listaMedicamentos sea un arreglo
+  //* Aseguramos que listaMedicamentos sea un arreglo
   const medicamentosArray = Array.isArray(listaMedicamentos)
     ? listaMedicamentos
     : [];
 
-  // Convertimos el arreglo a formato de react-select
+  //* Convertimos el arreglo a formato de react-select
   const opcionesMedicamentos = medicamentosArray.map((m) => ({
     value: m.CLAVEMEDICAMENTO,
     label: `${m.MEDICAMENTO} --- Presentación Por Caja: ${
       m.presentacion || "Sin existencias"
     } --- Cajas Disponibles: ${m.piezas > 0 ? m.piezas : "Sin existencias"}`,
-    isDisabled: m.piezas <= 0 || m.presentacion <= 0,
+    //! Deshabilitamos si no hay piezas/presentación O no tiene clasificación
+    isDisabled:
+      m.piezas <= 0 || m.presentacion <= 0 || m.clasificacion === null || m.clasificacion === undefined || m.clasificacion === "" || m.ean === null || m.ean === undefined || m.ean === "",
     data: m,
   }));
 
-  // Agregamos una opción placeholder al inicio de la lista de opciones
+  //* Agregamos una opción placeholder al inicio de la lista de opciones
   const opcionesConPlaceholder = [
     {
       value: "",
@@ -78,27 +80,36 @@ export default function MedicamentoDropdown({
     ...opcionesMedicamentos,
   ];
 
-  // Si no se ha seleccionado un medicamento (value es falsy), se usa la opción placeholder.
+  //* Si no se ha seleccionado un medicamento (value es falsy), se usa la opción placeholder.
   const opcionSeleccionada = value
     ? opcionesMedicamentos.find((opt) => opt.value === value)
     : opcionesConPlaceholder[0];
 
-  // Manejamos el cambio de selección
+  //* Manejamos el cambio de selección
   const handleChange = (selectedOption) => {
     if (!selectedOption) return;
 
-    // Si se selecciona el placeholder, no hacemos nada.
+    //* Si se selecciona el placeholder, no hacemos nada.
     if (selectedOption.value === "") return;
 
     const selectedMedicamento = selectedOption.data;
-    if (selectedMedicamento.piezas <= 0 || selectedMedicamento.presentacion <= 0) {
-      // Reproducir sonido de error y mostrar SweetAlert
+
+    //* Validaciones de disponibilidad y clasificación
+    if (
+      selectedMedicamento.piezas <= 0 ||
+      selectedMedicamento.presentacion <= 0 ||
+      selectedMedicamento.clasificacion === null
+    ) {
+      //! Reproducir sonido de error y mostrar SweetAlert
       if (playSound) playSound(false);
       Swal.fire({
         icon: "error",
         title:
           "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ No disponible</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>Este medicamento no tiene existencias en farmacia.</p>",
+        html:
+          selectedMedicamento.clasificacion === null
+            ? "<p style='color: #fff; font-size: 1.1em;'>Este medicamento no tiene clasificación asignada.</p>"
+            : "<p style='color: #fff; font-size: 1.1em;'>Este medicamento no tiene existencias en farmacia.</p>",
         background: "linear-gradient(145deg, #4a0000, #220000)",
         confirmButtonColor: "#ff1744",
         confirmButtonText:
@@ -111,7 +122,7 @@ export default function MedicamentoDropdown({
       return;
     }
 
-    // Avisamos al padre el cambio (solo si es válido)
+    //* Avisamos al padre el cambio (solo si es válido)
     onChangeMedicamento(selectedMedicamento.CLAVEMEDICAMENTO);
   };
 
@@ -127,7 +138,7 @@ export default function MedicamentoDropdown({
       isSearchable
       isOptionDisabled={(option) => option.isDisabled}
       filterOption={createFilter({ matchFrom: "any" })}
-      // Se activa el loader si isLoading es true o si la lista está vacía
+      //* Se activa el loader si isLoading es true o si la lista está vacía
       isLoading={isLoading || medicamentosArray.length === 0}
       loadingMessage={() => "Cargando medicamentos..."}
     />

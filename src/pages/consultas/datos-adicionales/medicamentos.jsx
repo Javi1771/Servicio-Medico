@@ -175,15 +175,15 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
                     handleMedicamentoChange(
                       index,
                       "indicaciones",
-                      e.target.value.slice(0, 60).toUpperCase()
+                      e.target.value.slice(0, 90).toUpperCase()
                     )
                   }
-                  maxLength={60}
+                  maxLength={90}
                   className="mt-2 block w-full h-32 md:h-40 rounded-lg bg-gray-700 border-gray-600 text-white p-3 uppercase"
                   placeholder="ESCRIBE AQUÍ LAS INDICACIONES..."
                 />
                 <p className="text-sm text-gray-400 mt-1 uppercase">
-                  {med.indicaciones.length}/60 CARACTERES
+                  {med.indicaciones.length}/90 CARACTERES
                 </p>
               </div>
 
