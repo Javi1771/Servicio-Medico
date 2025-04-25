@@ -1,11 +1,12 @@
 // src/components/DashboardActividad.jsx
 import React, { useRef, useState, useEffect } from "react";
-import { FaUserCircle } from "react-icons/fa";
+import { FaUserCircle, FaArrowLeft } from "react-icons/fa";
 import { useActividades } from "../../hooks/hookActividades/useActividades";
 import { getBadgeClasses } from "../../helpers/getBadgeClasses";
 import { getActionIcon } from "../../helpers/getActionIcon";
 import DetalleConsulta from "./components/DetalleConsulta"; // Asegúrate de la ruta correcta
 import styles from "../../pages/css/estilosActividad/DashboardActividad.module.css";
+import { useRouter } from "next/router";
 
 // Diccionario para colores de usuario (caché en memoria)
 const userColors = {};
@@ -18,6 +19,7 @@ function getRandomColorForUser(username) {
 }
 
 export default function DashboardActividad() {
+  const router = useRouter();
   const actividades = useActividades();
 
   // Audio para el efecto de hover
@@ -63,11 +65,29 @@ export default function DashboardActividad() {
     page * itemsPerPage
   );
 
+  const handleGoBack = () => {
+    router.replace("/inicio-servicio-medico");
+  };
+
   return (
     <div className={styles.container}>
       {/* Encabezado principal */}
-      <div className={styles.header}>
-        <div>
+      <div
+        className={`${styles.header} flex flex-col items-center w-full mb-6 relative`}
+      >
+        {/* Botón Regresar */}
+        <div className="absolute left-0">
+          <button
+            onClick={handleGoBack}
+            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-500 to-red-700 text-white font-bold rounded-full shadow-lg hover:shadow-[0_0_20px_rgba(255,0,0,0.8)] transition-all duration-300"
+          >
+            <FaArrowLeft />
+            <span className="hidden sm:inline">Regresar</span>
+          </button>
+        </div>
+
+        {/* Títulos */}
+        <div className="flex flex-col items-center">
           <h1 className={styles.title}>Registro de Eventos</h1>
           <p className={styles.subtitle}>Actividades recientes</p>
         </div>
@@ -160,9 +180,9 @@ export default function DashboardActividad() {
                           </td>
                           <td>
                             <span
-                              className={`${styles.badgeHover} ${getBadgeClasses(
-                                act.Accion
-                              )}`}
+                              className={`${
+                                styles.badgeHover
+                              } ${getBadgeClasses(act.Accion)}`}
                               style={{
                                 display: "inline-flex",
                                 alignItems: "center",
@@ -204,7 +224,9 @@ export default function DashboardActividad() {
                               }}
                             >
                               {claveConsulta ? (
-                                <DetalleConsulta claveConsulta={claveConsulta} />
+                                <DetalleConsulta
+                                  claveConsulta={claveConsulta}
+                                />
                               ) : (
                                 <p style={{ color: "#666" }}>
                                   No hay clave de consulta disponible.
@@ -233,7 +255,9 @@ export default function DashboardActividad() {
                 Página {page} de {totalPages}
               </span>
               <button
-                onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
+                onClick={() =>
+                  setPage((prev) => Math.min(prev + 1, totalPages))
+                }
                 disabled={page === totalPages}
                 className={styles.paginationButton}
               >
