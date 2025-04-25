@@ -25,7 +25,9 @@ import {
   Legend,
 } from "chart.js";
 
+import { useRouter } from "next/router";
 import Loader from "./Loaders/Loader-morado";
+import { FaArrowLeft } from "react-icons/fa";
 
 //* Registrar componentes de ChartJS
 ChartJS.register(
@@ -46,6 +48,7 @@ const CostoDeSurtimientos = () => {
   const [initialLoading, setInitialLoading] = useState(true);
   const [pieChartLoading, setPieChartLoading] = useState(false);
   const [barChartLoading, setBarChartLoading] = useState(false);
+  const router = useRouter();
 
   //* Estado para manejar qué elementos están ocultos en la gráfica
   const [hiddenItems, setHiddenItems] = useState({});
@@ -218,6 +221,10 @@ const CostoDeSurtimientos = () => {
     },
   };
 
+  const handleGoBack = () => {
+    router.replace("/inicio-servicio-medico");
+  };
+
   const handlePageChange = (event, value) => {
     setCurrentPage(value);
   };
@@ -243,6 +250,14 @@ const CostoDeSurtimientos = () => {
       >
         Análisis de Costo de Surtimientos
       </Typography>
+
+      <button
+        onClick={handleGoBack}
+        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-500 to-red-700 text-white font-bold rounded-full shadow-lg hover:shadow-[0_0_20px_rgba(255,0,0,0.8)] transition-all duration-300"
+      >
+        <FaArrowLeft />
+        <span className="hidden sm:inline">Regresar</span>
+      </button>
 
       {/* Si está cargando, mostramos el Loader morado */}
       {initialLoading ? (

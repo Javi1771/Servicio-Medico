@@ -15,9 +15,10 @@ import {
   FaCapsules,
   FaSignOutAlt,
   FaChevronDown,
-  // FaBan,
   FaFeatherAlt,
 } from "react-icons/fa";
+
+import { BsGraphUpArrow } from "react-icons/bs";
 
 const Home = () => {
   const router = useRouter();
@@ -83,32 +84,14 @@ const Home = () => {
         },
         {
           title: "Catalogos",
-          options: [
-            "Beneficiarios",
-            "Especialidades",
-            //"Medicamentos",
-            "Enfermedades Cronicas",
-            "Usuarios y Proveedores",
-          ],
+          options: [ "Beneficiarios", "Especialidades", "Enfermedades Cronicas", "Usuarios y Proveedores", ],
           icon: <FaBriefcaseMedical className="inline-block mr-2" />,
         },
         {
           title: "Capturas",
-          options: [
-            "Pases a Especialidades",
-            "Surtimientos",
-            "Orden de Estudio de Laboratorio",
-            "Incapacidades",
-            "Costos",
-            "Cancelaciones",
-          ],
+          options: ["Pases a Especialidades", "Surtimientos", "Orden de Estudio de Laboratorio", "Incapacidades", "Costos", "Cancelaciones", ],
           icon: <FaHeartbeat className="inline-block mr-2" />,
         },
-        // {
-        //   title: "Cancelaciones",
-        //   options: ["Formatos"],
-        //   icon: <FaBan className="inline-block mr-2" />,
-        // },
         {
           title: "Reportes",
           options: ["Incapacidades"],
@@ -116,13 +99,7 @@ const Home = () => {
         },
         {
           title: "Farmacia",
-          options: [
-            "Medicamentos",
-            "Farmacia Surtimientos",
-            "Alertas de Stock",
-            "Unidades de Medida",
-            "Recetas Pendientes",
-          ],
+          options: ["Medicamentos", "Farmacia Surtimientos", "Alertas de Stock", "Unidades de Medida", "Recetas Pendientes", ],
           icon: <FaCapsules className="inline-block mr-2" />,
         }
       );
@@ -159,14 +136,7 @@ const Home = () => {
     if (rol === "3") {
       menuOptions.push({
         title: "Capturas",
-        options: [
-          "Pases a Especialidades",
-          "Surtimientos",
-          "Orden de Estudio de Laboratorio",
-          "Incapacidades",
-          "Costos",
-          "Cancelaciones",
-        ],
+        options: ["Pases a Especialidades", "Surtimientos", "Orden de Estudio de Laboratorio", "Incapacidades", "Costos", "Cancelaciones", ],
         icon: <FaHeartbeat className="inline-block mr-2" />,
       });
     }
@@ -189,13 +159,7 @@ const Home = () => {
     if (rol === "9") {
       menuOptions.push({
         title: "Farmacia",
-        options: [
-          "Medicamentos",
-          "Farmacia Surtimientos",
-          "Alertas de Stock",
-          "Unidades de Medida",
-          "Recetas Pendientes",
-        ],
+        options: ["Medicamentos", "Farmacia Surtimientos", "Alertas de Stock", "Unidades de Medida", "Recetas Pendientes", ],
         icon: <FaCapsules className="inline-block mr-2" />,
       });
     }
@@ -203,21 +167,30 @@ const Home = () => {
     if (rol === "10") {
       menuOptions.push(
         {
+          title: "Consultas",
+          options: ["Signos Vitales", "Diagnostico"],
+          icon: <FaStethoscope className="inline-block mr-2" />,
+        },
+        {
+          title: "Capturas",
+          options: ["Pases a Especialidades", "Surtimientos", "Orden de Estudio de Laboratorio", "Incapacidades", "Costos", "Cancelaciones", ],
+          icon: <FaHeartbeat className="inline-block mr-2" />,
+        },
+        {
           title: "Farmacia",
-          options: [
-            "Medicamentos",
-            "Farmacia Surtimientos",
-            "Alertas de Stock",
-            "Unidades de Medida",
-            "Recetas Pendientes",
-          ],
+          options: ["Medicamentos", "Farmacia Surtimientos", "Alertas de Stock", "Unidades de Medida", "Recetas Pendientes", ],
           icon: <FaCapsules className="inline-block mr-2" />,
         },
         {
           title: "Catalogos",
           options: ["Usuarios y Proveedores"],
           icon: <FaBriefcaseMedical className="inline-block mr-2" />,
-        }
+        },
+        {
+          title: "Estadisticas",
+          options: ["Costo de Surtimientos", "Intervalo de Especialidades", "Intervalos de Consultas", "Total de Pacientes por Especialidad"],
+          icon: <BsGraphUpArrow className="inline-block mr-2" />,
+        },
       );
     }
 
@@ -305,7 +278,7 @@ interface SidebarButtonProps {
   loadingPath: string | null;
 }
 
-// Botón que incluye menú desplegable
+//* Botón que incluye menú desplegable
 const SidebarButton: React.FC<SidebarButtonProps> = ({
   title,
   options,

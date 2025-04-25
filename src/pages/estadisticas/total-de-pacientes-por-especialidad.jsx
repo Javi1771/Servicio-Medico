@@ -7,7 +7,8 @@ import Select from "react-select";
 import Calendar from "react-calendar";
 import { Pie, Bar } from "react-chartjs-2";
 import "react-calendar/dist/Calendar.css";
-import { FaCalendarAlt } from "react-icons/fa";
+import { FaCalendarAlt, FaArrowLeft } from "react-icons/fa";
+import { useRouter } from "next/router";
 
 // ***** IMPORTAMOS PAGINATION DE MUI *****
 import { Pagination } from "@mui/material";
@@ -28,6 +29,8 @@ const PumpkinColors = [
 ];
 
 export default function PacientesPorEspecialidad() {
+  const router = useRouter();
+
   const [isLoading, setIsLoading] = useState(true);
   const [especialidades, setEspecialidades] = useState([]);
   const [selectedEspecialidad, setSelectedEspecialidad] = useState(null);
@@ -222,16 +225,33 @@ export default function PacientesPorEspecialidad() {
 
   useEffect(() => {
     setVisibleSegments(
-      paginatedData.map(() => true) // Por defecto, todos los segmentos son visibles
+      paginatedData.map(() => true) //! Por defecto, todos los segmentos son visibles
     );
   }, [paginatedData]);
 
+  const handleGoBack = () => {
+    router.replace("/inicio-servicio-medico");
+  };
+
   return (
     <div className="flex flex-col items-center p-6 bg-gradient-to-br from-[#4A1E06] via-[#3A2909] to-[#2B1D0F] text-white min-h-screen">
-      <h1 className="text-4xl font-bold mb-6 text-orange-200 shadow-md">
+      {/* Botón arriba a la izquierda */}
+      <div className="w-full flex justify-start mb-4">
+        <button
+          onClick={handleGoBack}
+          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-500 to-red-700 text-white font-bold rounded-full shadow-lg hover:shadow-[0_0_20px_rgba(255,0,0,0.8)] transition-all duration-300"
+        >
+          <FaArrowLeft />
+          <span className="hidden sm:inline">Regresar</span>
+        </button>
+      </div>
+
+      {/* Título centrado */}
+      <h1 className="text-4xl font-bold mb-6 text-orange-200 text-center shadow-md">
         Total de Pacientes por Especialidad
       </h1>
 
+      {/* Loader si está cargando */}
       {isLoading ? (
         <div className="flex justify-center items-center w-full h-[80vh]">
           <Loader size={120} />

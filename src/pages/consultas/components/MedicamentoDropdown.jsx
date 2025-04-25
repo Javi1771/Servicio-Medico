@@ -1,6 +1,5 @@
 import React from "react";
 import Select, { createFilter } from "react-select";
-import Swal from "sweetalert2";
 
 const customStyles = {
   control: (provided, state) => ({
@@ -50,7 +49,6 @@ export default function MedicamentoDropdown({
   listaMedicamentos = [],
   value,
   onChangeMedicamento,
-  playSound,
   isLoading = false,
 }) {
   //* Aseguramos que listaMedicamentos sea un arreglo
@@ -64,9 +62,10 @@ export default function MedicamentoDropdown({
     label: `${m.MEDICAMENTO} --- Presentación Por Caja: ${
       m.presentacion || "Sin existencias"
     } --- Cajas Disponibles: ${m.piezas > 0 ? m.piezas : "Sin existencias"}`,
-    //! Deshabilitamos si no hay piezas/presentación O no tiene clasificación
-    isDisabled:
-      m.piezas <= 0 || m.presentacion <= 0 || m.clasificacion === null || m.clasificacion === undefined || m.clasificacion === "" || m.ean === null || m.ean === undefined || m.ean === "",
+    // Deshabilitación temporal comentada para permitir cualquier selección
+    // isDisabled:
+    //   m.piezas <= 0 || m.presentacion <= 0 || m.clasificacion === null || m.clasificacion === undefined || m.clasificacion === "" || m.ean === null || m.ean === undefined || m.ean === "",
+    isDisabled: false,
     data: m,
   }));
 
@@ -94,13 +93,13 @@ export default function MedicamentoDropdown({
 
     const selectedMedicamento = selectedOption.data;
 
-    //* Validaciones de disponibilidad y clasificación
+    // Validaciones temporales comentadas para permitir cualquier selección
+    /*
     if (
       selectedMedicamento.piezas <= 0 ||
       selectedMedicamento.presentacion <= 0 ||
       selectedMedicamento.clasificacion === null
     ) {
-      //! Reproducir sonido de error y mostrar SweetAlert
       if (playSound) playSound(false);
       Swal.fire({
         icon: "error",
@@ -121,6 +120,7 @@ export default function MedicamentoDropdown({
       });
       return;
     }
+    */
 
     //* Avisamos al padre el cambio (solo si es válido)
     onChangeMedicamento(selectedMedicamento.CLAVEMEDICAMENTO);

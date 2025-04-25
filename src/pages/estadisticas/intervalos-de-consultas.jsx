@@ -2,12 +2,13 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Chart } from "chart.js";
 import "chart.js/auto";
-import { FaCalendarAlt } from "react-icons/fa";
+import { FaCalendarAlt, FaArrowLeft } from "react-icons/fa";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 import Loader from "./Loaders/Loader-azul";
+import { useRouter } from "next/router";
 
 // ***** IMPORTAMOS PAGINATION DE MUI *****
 import { Pagination } from "@mui/material";
@@ -86,6 +87,8 @@ const playSound = (isSuccess) => {
 };
 
 export default function IntervalosDeConsultas() {
+  const router = useRouter();
+
   //* ESTADOS PRINCIPALES
   const [data, setData] = useState(null);
   const [interval, setInterval] = useState("días");
@@ -101,8 +104,8 @@ export default function IntervalosDeConsultas() {
   const [fechaMaxConsultas, setFechaMaxConsultas] = useState(null);
 
   //* Loaders
-  const [isLoading, setIsLoading] = useState(true); // Para datos de resumen
-  const [isLoadingDetalles, setIsLoadingDetalles] = useState(false); // Para detalles
+  const [isLoading, setIsLoading] = useState(true); //* Para datos de resumen
+  const [isLoadingDetalles, setIsLoadingDetalles] = useState(false); //* Para detalles
 
   //* Tabla de Detalles
   const [detalles, setDetalles] = useState([]);
@@ -528,9 +531,25 @@ export default function IntervalosDeConsultas() {
     setCurrentPage(value);
   };
 
+  const handleGoBack = () => {
+    router.replace("/inicio-servicio-medico");
+  };
+
   return (
     <div className="flex flex-col items-center p-6 bg-gradient-to-br from-gray-800 via-black to-gray-900 text-white min-h-screen">
-      <h1 className="text-4xl font-extrabold mb-6 text-teal-500">
+      {/* Botón arriba a la izquierda */}
+      <div className="w-full flex justify-start mb-4">
+        <button
+          onClick={handleGoBack}
+          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-500 to-red-700 text-white font-bold rounded-full shadow-lg hover:shadow-[0_0_20px_rgba(255,0,0,0.8)] transition-all duration-300"
+        >
+          <FaArrowLeft />
+          <span className="hidden sm:inline">Regresar</span>
+        </button>
+      </div>
+
+      {/* Título centrado */}
+      <h1 className="text-4xl font-extrabold mb-6 text-teal-500 text-center">
         Intervalos de Consultas Generales
       </h1>
 

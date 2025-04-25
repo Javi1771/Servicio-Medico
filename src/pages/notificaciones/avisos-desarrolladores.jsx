@@ -107,7 +107,23 @@ export default function AvisosDesarrolladores() {
       setLoading(true);
       try {
         const r = await fetch("/api/avisos", { signal: ctrl.signal });
-        setAvisos(await r.json());
+        const payload = await r.json();
+        //console.log("[GET /api/avisos] payload:", payload);
+  
+        //* Si viene un array plano
+        if (Array.isArray(payload)) {
+          setAvisos(payload);
+        }
+        //* Si viene { raw, formatted }
+        else if (payload.formatted) {
+          setAvisos(payload.formatted);
+        }
+        else if (payload.raw) {
+          setAvisos(payload.raw);
+        } 
+        else {
+          setAvisos([]);
+        }
       } catch (err) {
         if (err.name !== "AbortError")
           showAlert("error", "Error", "No se pudieron obtener los avisos");
@@ -117,32 +133,45 @@ export default function AvisosDesarrolladores() {
     })();
     return () => ctrl.abort();
   }, []);
-
+  
   //* ────────── post aviso ────────── */
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    //* ① Definir avisoTxt
+  
     const avisoTxt = form.aviso.trim();
     if (!avisoTxt) return showAlert("warning", "Escribe un aviso");
-
+  
     const body = new FormData();
     body.append("aviso", avisoTxt.toUpperCase());
     body.append("motivo", form.motivo);
     body.append("urgencia", form.urgencia);
     if (file) body.append("imagen", file);
-
+  
     try {
       const r = await fetch("/api/avisos", { method: "POST", body });
       if (!r.ok) throw new Error((await r.json()).error);
       showAlert("success", "¡Aviso publicado!");
       setForm({ aviso: "", motivo: "", urgencia: "NORMAL" });
       setFile(null);
-      setAvisos(await (await fetch("/api/avisos")).json());
+  
+      //* Refrescar lista
+      const r2 = await fetch("/api/avisos");
+      const payload2 = await r2.json();
+      //console.log("[REFRESH GET /api/avisos] payload:", payload2);
+  
+      if (Array.isArray(payload2)) {
+        setAvisos(payload2);
+      } else if (payload2.formatted) {
+        setAvisos(payload2.formatted);
+      } else if (payload2.raw) {
+        setAvisos(payload2.raw);
+      } else {
+        setAvisos([]);
+      }
     } catch (err) {
       showAlert("error", "Ups", err.message);
     }
-  };
+  };  
 
   //* ────────── view ────────── */
   return (
@@ -364,7 +393,7 @@ export default function AvisosDesarrolladores() {
                         {/* Fecha siempre al fondo */}
                         <div className="mt-auto">
                           <p className="text-xs text-slate-400">
-                            {new Date(a.Fecha).toLocaleString()}
+                          {a.Fecha}
                           </p>
                         </div>
                       </div>
@@ -450,12 +479,12 @@ export default function AvisosDesarrolladores() {
                 >
                   <FiClock className="shrink-0 mt-0.5" />
                   <time className="font-medium">
-                    {new Date(modal.Fecha).toLocaleString()}
+                  {modal.Fecha}
                   </time>
                 </div>
 
                 <div className="flex items-start gap-3">
-                  <MdImageNotSupported className="shrink-0 mt-0.5 text-purple-400 text-xl" />
+                  <FiFileText className="shrink-0 mt-0.5 text-purple-400 text-xl" />
                   <p className="whitespace-pre-wrap leading-relaxed text-base text-slate-200">
                     {modal.Aviso}
                   </p>

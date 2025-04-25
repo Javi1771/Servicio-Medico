@@ -8,13 +8,41 @@ import path from "path";
 
 export const config = { api: { bodyParser: false } };
 
+//* Función para formatear la fecha con día de la semana incluido
+function formatFecha(fecha) {
+  const date = new Date(fecha);
+
+  //* Días de la semana en español
+  const diasSemana = [
+    "Domingo",
+    "Lunes",
+    "Martes",
+    "Miércoles",
+    "Jueves",
+    "Viernes",
+    "Sábado",
+  ];
+
+  //* Obtener los valores en UTC para preservar la hora exacta de la base de datos
+  const diaSemana = diasSemana[date.getUTCDay()];
+  const dia = String(date.getUTCDate()).padStart(2, "0");
+  const mes = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const año = date.getUTCFullYear();
+  const horas = date.getUTCHours();
+  const minutos = String(date.getUTCMinutes()).padStart(2, "0");
+  const periodo = horas >= 12 ? "p.m." : "a.m.";
+  const horas12 = horas % 12 === 0 ? 12 : horas % 12;
+
+  return `${diaSemana}, ${dia}/${mes}/${año}, ${horas12}:${minutos} ${periodo}`;
+}
+
 export default async function handler(req, res) {
   const db = await connectToDatabase();
   const request = db.request();
   const cookies = cookie.parse(req.headers.cookie || "");
   const userId = parseInt(cookies.claveusuario || "0", 10) || null;
 
-  //* util para IP y UA */
+  //* Util para IP y UA
   const getClientInfo = () => {
     const ip =
       (req.headers["x-forwarded-for"] &&
@@ -26,55 +54,62 @@ export default async function handler(req, res) {
     return { ip, ua };
   };
 
-  /* ─────────── GET ─────────── */
+  //* ─────────── GET ─────────── */
   if (req.method === "GET") {
     try {
-      const { recordset } = await request.input("user", sql.Int, userId).query(`
-SELECT
-  P.IdPropuesta,
-  P.Completado AS Completado,    
-  P.ClaveUsuario,
-  P.Propuesta,
-  P.Motivo,
-  P.Url_Imagen,
-  P.Fecha,
-  P.Likes,
-  CASE WHEN L.ClaveUsuario IS NULL THEN 0 ELSE 1 END AS YaLike
-FROM Propuestas AS P
-LEFT JOIN PropuestasLikes AS L
-  ON L.IdPropuesta = P.IdPropuesta
- AND L.ClaveUsuario = @user
-WHERE
-  P.Completado IS NULL
-  OR (
-      P.Completado = 1
-      AND P.Fecha >= DATEADD(WEEK, -1, GETDATE())
-  )
-ORDER BY P.Fecha DESC;
+      const { recordset } = await request
+        .input("user", sql.Int, userId)
+        .query(`
+          SELECT
+            P.IdPropuesta,
+            P.Completado AS Completado,    
+            P.ClaveUsuario,
+            P.Propuesta,
+            P.Motivo,
+            P.Url_Imagen,
+            P.Fecha,
+            P.Likes,
+            CASE WHEN L.ClaveUsuario IS NULL THEN 0 ELSE 1 END AS YaLike
+          FROM Propuestas AS P
+          LEFT JOIN PropuestasLikes AS L
+            ON L.IdPropuesta = P.IdPropuesta
+          AND L.ClaveUsuario = @user
+          WHERE
+            P.Completado = 0
+            OR (
+                P.Completado = 1
+                AND P.Fecha >= DATEADD(WEEK, -1, GETDATE())
+            )
+          ORDER BY P.Fecha DESC;
+      `);
 
-  `);
+      //* Aplicar formateo de fecha
+      const formatted = recordset.map(row => ({
+        ...row,
+        Fecha: formatFecha(row.Fecha),
+      }));
 
-      return res.status(200).json(recordset);
+      return res.status(200).json(formatted);
     } catch (e) {
       console.error(e);
       return res.status(500).json({ error: "Error al obtener propuestas" });
     }
   }
 
-  /* ─────────── PATCH ─────────── */
+  //* ─────────── PATCH ─────────── */
   if (req.method === "PATCH") {
     const idProp = Number(req.query.id);
     if (!idProp || !userId)
       return res.status(400).json({ error: "Parámetros inválidos" });
 
-    // si viene ?complete=1, marcamos completada
+    //* si viene ?complete=1, marcamos completada
     if (req.query.complete) {
       try {
         await request.input("idProp", sql.Int, idProp).query(`
             UPDATE Propuestas
             SET Completado = 1
             WHERE IdPropuesta = @idProp
-          `);
+        `);
         return res.status(200).json({ Completado: 1 });
       } catch (e) {
         console.error(e);
@@ -82,11 +117,12 @@ ORDER BY P.Fecha DESC;
       }
     }
 
-    // de lo contrario, registramos el like
+    //! de lo contrario, registramos el like
     try {
       const { rowsAffected } = await request
         .input("idProp", sql.Int, idProp)
-        .input("user", sql.Int, userId).query(`
+        .input("user", sql.Int, userId)
+        .query(`
           IF NOT EXISTS (
             SELECT 1 FROM PropuestasLikes
             WHERE IdPropuesta = @idProp AND ClaveUsuario = @user
@@ -109,7 +145,8 @@ ORDER BY P.Fecha DESC;
           .input("accion", sql.VarChar, "Dió like a una propuesta")
           .input("direccionIP", sql.VarChar, ip)
           .input("agenteUsuario", sql.VarChar, ua)
-          .input("idPropuesta", sql.Int, idProp).query(`
+          .input("idPropuesta", sql.Int, idProp)
+          .query(`
             INSERT INTO ActividadUsuarios
               (IdUsuario, Accion, FechaHora, DireccionIP, AgenteUsuario, IdPropuesta)
             VALUES
@@ -124,7 +161,7 @@ ORDER BY P.Fecha DESC;
     }
   }
 
-  /* ─────────── POST ─────────── */
+  //* ─────────── POST ─────────── */
   if (req.method === "POST") {
     if (!userId)
       return res.status(403).json({ error: "Inicia sesión para proponer" });
@@ -167,7 +204,8 @@ ORDER BY P.Fecha DESC;
           .input("user", sql.Int, userId)
           .input("prop", sql.NVarChar(sql.MAX), texto)
           .input("motivo", sql.NVarChar(sql.MAX), motivo || null)
-          .input("url", sql.NVarChar(sql.MAX), urlImg).query(`
+          .input("url", sql.NVarChar(sql.MAX), urlImg)
+          .query(`
             INSERT INTO Propuestas
                    (ClaveUsuario, Propuesta, Motivo, Url_Imagen, Fecha, Likes, Completado)
             OUTPUT inserted.IdPropuesta
@@ -182,7 +220,8 @@ ORDER BY P.Fecha DESC;
           .input("accion", sql.VarChar, "Subió una propuesta")
           .input("direccionIP", sql.VarChar, ip)
           .input("agenteUsuario", sql.VarChar, ua)
-          .input("idPropuesta", sql.Int, idNew).query(`
+          .input("idPropuesta", sql.Int, idNew)
+          .query(`
             INSERT INTO ActividadUsuarios
               (IdUsuario, Accion, FechaHora, DireccionIP, AgenteUsuario, IdPropuesta)
             VALUES
@@ -201,7 +240,7 @@ ORDER BY P.Fecha DESC;
     return;
   }
 
-  /* ─────────── Método NO permitido ─────────── */
+  //! ─────────── Método NO permitido ─────────── */
   res.setHeader("Allow", ["GET", "POST", "PATCH"]);
   return res.status(405).json({ error: `Método ${req.method} no permitido` });
 }

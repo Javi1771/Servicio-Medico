@@ -2,12 +2,13 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Chart } from "chart.js";
 import "chart.js/auto";
-import { FaCalendarAlt } from "react-icons/fa";
+import { FaCalendarAlt, FaArrowLeft } from "react-icons/fa";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 import Loader from "./Loaders/Loader-rosa";
+import { useRouter } from "next/router";
 
 //* Importamos Pagination de MUI
 import { Pagination } from "@mui/material";
@@ -83,6 +84,8 @@ const playSound = (isSuccess) => {
 };
 
 export default function IntervalosDeConsultas() {
+  const router = useRouter();
+
   //* ESTADOS PRINCIPALES
   const [data, setData] = useState(null);
   const [interval, setInterval] = useState("días");
@@ -194,7 +197,7 @@ export default function IntervalosDeConsultas() {
     return () => clearTimeout(timer);
   }, []);
 
-  /**
+  /*
    * Filtra la data según el rango de fechas
    */
   const filterDataByDateRange = (originalData, startDate, endDate) => {
@@ -368,14 +371,14 @@ export default function IntervalosDeConsultas() {
             label: "Consultas",
             data: Object.values(filteredData),
             borderColor: "rgb(166, 38, 140)",
-            backgroundColor: "rgba(166, 38, 151, 0.1)", 
+            backgroundColor: "rgba(166, 38, 151, 0.1)",
             borderWidth: 3,
             fill: true,
             tension: 0.4,
             pointRadius: 4,
             pointHoverRadius: 8,
-            pointBackgroundColor: "#FFF0F9", 
-            pointHoverBackgroundColor: "#FF27A1", 
+            pointBackgroundColor: "#FFF0F9",
+            pointHoverBackgroundColor: "#FF27A1",
           },
         ],
       },
@@ -408,18 +411,18 @@ export default function IntervalosDeConsultas() {
           legend: {
             display: true,
             labels: {
-              color: "#FFF0F9", 
+              color: "#FFF0F9",
               font: { size: 14, weight: "bold" },
             },
           },
           tooltip: {
             backgroundColor: "rgba(20, 20, 40, 0.9)",
-            titleColor: "#ff0088", 
+            titleColor: "#ff0088",
             bodyColor: "#FFF0F9",
             titleFont: { size: 16, weight: "bold" },
             bodyFont: { size: 14 },
             borderWidth: 2,
-            borderColor: "#FF007B", 
+            borderColor: "#FF007B",
             padding: 12,
             intersect: false,
             mode: "index",
@@ -466,7 +469,7 @@ export default function IntervalosDeConsultas() {
               font: { size: 16, weight: "bold" },
             },
             ticks: {
-              color: "#FFE3F5", 
+              color: "#FFE3F5",
               font: { size: 12 },
               maxRotation: 45,
               autoSkip: true,
@@ -503,9 +506,28 @@ export default function IntervalosDeConsultas() {
     setCurrentPage(value);
   };
 
+  const handleGoBack = () => {
+    router.replace("/inicio-servicio-medico");
+  };
+
   return (
     <div className="flex flex-col items-center p-6 bg-gradient-to-br from-gray-800 via-black to-gray-900 text-white min-h-screen">
-      <h1 className="text-4xl font-extrabold mb-6" style={{ color: "#FF007B" }}>
+      {/* Botón arriba a la izquierda */}
+      <div className="w-full flex justify-start mb-4">
+        <button
+          onClick={handleGoBack}
+          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-500 to-red-700 text-white font-bold rounded-full shadow-lg hover:shadow-[0_0_20px_rgba(255,0,0,0.8)] transition-all duration-300"
+        >
+          <FaArrowLeft />
+          <span className="hidden sm:inline">Regresar</span>
+        </button>
+      </div>
+
+      {/* Título bien centrado */}
+      <h1
+        className="text-4xl font-extrabold mb-6 text-center"
+        style={{ color: "#FF007B" }}
+      >
         Intervalos de Especialidades
       </h1>
 

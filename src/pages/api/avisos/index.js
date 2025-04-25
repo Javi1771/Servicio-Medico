@@ -9,6 +9,34 @@ import path       from "path";
 //! ───── Next: desactivar bodyParser ───── */
 export const config = { api: { bodyParser: false } };
 
+//* Función para formatear la fecha con día de la semana incluido
+function formatFecha(fecha) {
+  const date = new Date(fecha);
+
+  //* Días de la semana en español
+  const diasSemana = [
+    "Domingo",
+    "Lunes",
+    "Martes",
+    "Miércoles",
+    "Jueves",
+    "Viernes",
+    "Sábado",
+  ];
+
+  //* Obtener los valores en UTC para preservar la hora exacta de la base de datos
+  const diaSemana = diasSemana[date.getUTCDay()];
+  const dia = String(date.getUTCDate()).padStart(2, "0");
+  const mes = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const año = date.getUTCFullYear();
+  const horas = date.getUTCHours();
+  const minutos = String(date.getUTCMinutes()).padStart(2, "0");
+  const periodo = horas >= 12 ? "p.m." : "a.m.";
+  const horas12 = horas % 12 === 0 ? 12 : horas % 12;
+
+  return `${diaSemana}, ${dia}/${mes}/${año}, ${horas12}:${minutos} ${periodo}`;
+}
+
 export default async function handler(req, res) {
   const db      = await connectToDatabase();
   const request = db.request();
@@ -21,7 +49,18 @@ export default async function handler(req, res) {
         FROM   AvisosDesarrolladores
         ORDER  BY Fecha DESC
       `);
-      return res.status(200).json(recordset);
+      //* Preparamos raw y formatted para depuración
+      const formatted = recordset.map((row) => ({
+        ...row,
+        Fecha: formatFecha(row.Fecha),
+      }));
+
+      //* Log para revisar en consola del servidor
+      // console.log("[Avisos GET] Raw recordset:", recordset);
+      // console.log("[Avisos GET] Formatted:", formatted);
+
+      //* Enviamos ambos al front para inspección
+      return res.status(200).json({ raw: recordset, formatted });
     } catch (err) {
       console.error(err);
       return res.status(500).json({ error: "Error al obtener avisos" });

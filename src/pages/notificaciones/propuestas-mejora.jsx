@@ -95,30 +95,23 @@ export default function PropuestasMejora() {
   const normalize = (arr) =>
     arr.map((p) => ({ ...p, Completado: !!p.Completado }));
 
+  //* ①. Declara fetchPosts _antes_ del useEffect:
+  const fetchPosts = async () => {
+    setLoading(true);
+    try {
+      const r = await fetch("/api/propuestas");
+      const data = await r.json();
+      setPosts(Array.isArray(data) ? normalize(data) : []);
+    } catch {
+      showAlert("error", "Error", "No se pudieron obtener las propuestas");
+      setPosts([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    let isMounted = true;
-
-    const fetchPosts = async () => {
-      setLoading(true);
-      try {
-        const r = await fetch("/api/propuestas");
-        const data = await r.json();
-        if (isMounted) setPosts(Array.isArray(data) ? normalize(data) : []);
-      } catch {
-        if (isMounted) {
-          showAlert("error", "Error", "No se pudieron obtener las propuestas");
-          setPosts([]);
-        }
-      } finally {
-        if (isMounted) setLoading(false);
-      }
-    };
-
     fetchPosts();
-
-    return () => {
-      isMounted = false;
-    };
   }, []);
 
   const handleSubmit = async (e) => {
@@ -137,7 +130,7 @@ export default function PropuestasMejora() {
       showAlert("success", "¡Propuesta publicada!");
       setForm({ texto: "", motivo: "" });
       setFile(null);
-      fetchPosts();
+      await fetchPosts();
     } catch (err) {
       showAlert("error", "Ups", err.message);
     }
@@ -332,7 +325,7 @@ export default function PropuestasMejora() {
                               completed ? "text-green-300" : "text-slate-400"
                             }`}
                           >
-                            {new Date(p.Fecha).toLocaleString()}
+                            {p.Fecha}
                           </time>
                           <div className="flex items-center gap-2">
                             <button
@@ -441,9 +434,7 @@ export default function PropuestasMejora() {
                   }`}
                 >
                   <FaCalendarAlt className="shrink-0 mt-0.5" />
-                  <time className="font-medium">
-                    {new Date(modal.Fecha).toLocaleString()}
-                  </time>
+                  <time className="font-medium">{modal.Fecha}</time>
                 </div>
 
                 <div className="flex items-start gap-3">
