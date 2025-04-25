@@ -18,6 +18,7 @@ import {
   FaFeatherAlt,
 } from "react-icons/fa";
 
+import { FaLaptopMedical } from "react-icons/fa";
 import { BsGraphUpArrow } from "react-icons/bs";
 
 const Home = () => {
@@ -190,6 +191,11 @@ const Home = () => {
           title: "Estadisticas",
           options: ["Costo de Surtimientos", "Intervalo de Especialidades", "Intervalos de Consultas", "Total de Pacientes por Especialidad"],
           icon: <BsGraphUpArrow className="inline-block mr-2" />,
+        },
+        {
+          title: "Dashboard",
+          options: ["Actividades"],
+          icon: <FaLaptopMedical className="inline-block mr-2" />,
         },
       );
     }
