@@ -79,29 +79,34 @@ export default function GenerarReceta() {
     return canvas.toDataURL("image/png");
   };
 
-  //* Función actualizada: divide el texto en líneas (por salto de línea y espacios),
-  //* dibuja cada línea y retorna la posición "Y" final.
-  const drawMultilineText = (page, text, x, y, maxWidth, fontSize) => {
-    const lines = text.split("\n");
+  //* Función para dibujar texto multilinea que retorna la posición Y final
+  //* Ahora acepta un objeto `options` con `font` y `color`.
+  const drawMultilineText = (page, text, x, y, maxWidth, fontSize, options = {} ) => {
+    const { font, color } = options;
+    const lines = text.split('\n');
     let currentY = y;
-    const lineHeight = fontSize + 2;
-    lines.forEach((lineText) => {
-      const words = lineText.split(" ");
-      let line = "";
+    const lineHeight = fontSize + 2; //* Ajuste de separación
+
+    lines.forEach(lineText => {
+      const words = lineText.split(' ');
+      let line = '';
       const maxCharsPerLine = Math.floor(maxWidth / (fontSize * 0.6));
-      words.forEach((word) => {
-        const testLine = line + (line ? " " : "") + word;
+
+      words.forEach(word => {
+        const testLine = line + (line ? ' ' : '') + word;
         if (testLine.length > maxCharsPerLine) {
-          page.drawText(line, { x, y: currentY, size: fontSize });
+          page.drawText(line, { x, y: currentY, size: fontSize, ...(font && { font }), ...(color && { color })});
           currentY -= lineHeight;
           line = word;
         } else {
           line = testLine;
         }
       });
-      page.drawText(line, { x, y: currentY, size: fontSize });
+
+      page.drawText(line, { x, y: currentY, size: fontSize, ...(font && { font }), ...(color && { color }) });
       currentY -= lineHeight;
     });
+
     return currentY;
   };
 
@@ -204,22 +209,26 @@ export default function GenerarReceta() {
     page.drawText(`${nombreUsuario}`, { x: 396, y: 22, size: 8 });
   };
 
-  //? Dibuja solo la lista de medicamentos usando la posición dinámica
-  const drawOnlyMedications = (
-    page,
-    medsArray,
-    startY,
-    extraSpacing,
-    fontSize
-  ) => {
+  //? Dibuja solo la lista de medicamentos, recibiendo boldFont desde afuera
+  const drawOnlyMedications = async (page, medsArray, startY, extraSpacing, fontSize, boldFont) => {
     let currentY = startY;
-    medsArray.forEach((med) => {
-      const y1 = drawMultilineText(page, String(med.nombreMedicamento ?? "No Asignado"), 40, currentY, 130, fontSize );
-      const y2 = drawMultilineText(page, String(med.indicaciones ?? "No Asignado"), 180, currentY, 200, fontSize );
-      const y3 = drawMultilineText(page, String(med.cantidad ?? "No Asignado"), 422, currentY, 161, fontSize );
-      const y4 = drawMultilineText(page, String(med.piezas ?? "No Asignados"), 553, currentY, 100, fontSize );
-      currentY = Math.min(y1, y2, y3, y4) - extraSpacing;
-    });
+
+    for (const med of medsArray) {
+      const y1 = drawMultilineText(page, String(med.nombreMedicamento ?? "No Asignado"), 40,  currentY, 130, fontSize);
+      const y2 = drawMultilineText(page, String(med.indicaciones       ?? "No Asignado"), 180, currentY, 200, fontSize);
+      const y3 = drawMultilineText(page, String(med.cantidad          ?? "No Asignado"), 422, currentY, 161, fontSize);
+      const y4 = drawMultilineText(page, String(med.piezas            ?? "No Asignados"), 553, currentY, 100, fontSize);
+
+      let nextY = Math.min(y1, y2, y3, y4);
+
+      if (med.seAsignoResurtimiento === 1) {
+        const mensaje = `Se tiene que resurtir por ${med.cuantoTiempo} mes${med.cuantoTiempo > 1 ? "es" : ""}`;
+        const y5 = drawMultilineText(page, mensaje, 40, nextY - 4, 400, fontSize, { font: boldFont });
+        nextY = y5;
+      }
+
+      currentY = nextY - extraSpacing;
+    }
   };
 
   //? Dibuja el pie de página mínimo (código de barras y firmas)
@@ -245,50 +254,51 @@ export default function GenerarReceta() {
     page.drawText(`${nombreUsuario}`, { x: 396, y: 22, size: 8 });
   };
 
-  //? Primera hoja: con info base + medicamentos (para otros meds)
-  const addNonCMedPageFirst = async (
-    finalDoc,
-    baseUrl,
-    medsArray,
-    data,
-    nombreEmpleado,
-    nombreUsuario,
-    codigoBarrasBase64
-  ) => {
+  //? Primera hoja: solo la lista de medicamentos + footer (para otros meds)
+  const addNonCMedPageFirst = async (finalDoc, baseUrl, medsArray, data, nombreEmpleado, nombreUsuario, codigoBarrasBase64) => {
     const baseBytes = await fetch(baseUrl).then((res) => {
       if (!res.ok) throw new Error(`Error al cargar PDF base ${baseUrl}`);
       return res.arrayBuffer();
     });
     const baseDoc = await PDFDocument.load(baseBytes);
     const [copiedPage] = await finalDoc.copyPages(baseDoc, [0]);
-    await drawBaseData(
-      copiedPage,
-      data,
-      nombreEmpleado,
-      nombreUsuario,
-      finalDoc,
-      codigoBarrasBase64
-    );
+
+    //* Dibuja todos los datos base (paciente, diagnóstico, etc.)
+    await drawBaseData(copiedPage, data, nombreEmpleado, nombreUsuario, finalDoc, codigoBarrasBase64);
+
     const startY = 400;
     const extraSpacing = 10;
     const fontSize = 8;
     let currentMedicationY = startY;
-    medsArray.forEach((med) => {
-      const y1 = drawMultilineText(copiedPage, String(med.nombreMedicamento ?? "No Asignado"), 40, currentMedicationY, 130, fontSize );
-      const y2 = drawMultilineText(copiedPage, String(med.indicaciones ?? "No Asignado"), 180, currentMedicationY, 200, fontSize );
-      const y3 = drawMultilineText(copiedPage, String(med.cantidad ?? "No Asignado"), 422, currentMedicationY, 161, fontSize );
-      const y4 = drawMultilineText(copiedPage, String(med.piezas ?? "No Asignados"), 553, currentMedicationY, 100, fontSize );
-      currentMedicationY = Math.min(y1, y2, y3, y4) - extraSpacing;
-    });
+
+    //* embebemos la fuente bold una sola vez
+    const helveticaBold = await finalDoc.embedFont(StandardFonts.HelveticaBold);
+
+    for (const med of medsArray) {
+      const y1 = drawMultilineText(copiedPage, String(med.nombreMedicamento ?? "No Asignado"), 40, currentMedicationY, 130, fontSize);
+      const y2 = drawMultilineText(copiedPage, String(med.indicaciones ?? "No Asignado"), 180, currentMedicationY, 200, fontSize);
+      const y3 = drawMultilineText(copiedPage, String(med.cantidad ?? "No Asignado"), 422, currentMedicationY, 161, fontSize);
+      const y4 = drawMultilineText(copiedPage, String(med.piezas ?? "No Asignados"), 553, currentMedicationY, 100, fontSize);
+
+      //* determinamos la Y mínima de los cuatro bloques
+      let nextY = Math.min(y1, y2, y3, y4);
+
+      //* si seAsignoResurtimiento === 1, dibujamos mensaje en negrita justo debajo
+      if (med.seAsignoResurtimiento === 1) {
+        const mensaje = `Se tiene que resurtir por ${med.cuantoTiempo} mes${med.cuantoTiempo > 1 ? "es" : ""}`;
+        const y5 = drawMultilineText(copiedPage, mensaje, 40, nextY - 4, 400, fontSize, { font: helveticaBold });
+        nextY = y5;
+      }
+
+      currentMedicationY = nextY - extraSpacing;
+    }
+
     finalDoc.addPage(copiedPage);
   };
 
+
   //? Segunda hoja: solo la lista de medicamentos + footer (para otros meds)
-  const addNonCMedPageSecond = async (
-    finalDoc,
-    baseUrl,
-    medsArray,
-    options
+  const addNonCMedPageSecond = async (finalDoc, baseUrl, medsArray, options
   ) => {
     const baseBytes = await fetch(baseUrl).then((res) => {
       if (!res.ok) throw new Error(`Error al cargar PDF base ${baseUrl}`);
@@ -296,46 +306,52 @@ export default function GenerarReceta() {
     });
     const baseDoc = await PDFDocument.load(baseBytes);
     const [copiedPage] = await finalDoc.copyPages(baseDoc, [0]);
+
     //* La posición de inicio se configura en options.startY
     const startY = options?.startY ?? 400;
-    const extraSpacing = 10;
+    const extraSpacing = options?.extraSpacing ?? 10;
     const fontSize = options?.fontSize ?? 8;
-    drawOnlyMedications(copiedPage, medsArray, startY, extraSpacing, fontSize);
+    const boldFont = options?.boldFont; 
+
+    //* Dibujar lista de medicamentos con resurtimiento en negrita si aplica
+    await drawOnlyMedications(copiedPage, medsArray, startY, extraSpacing, fontSize, boldFont);
+
+    //* Pie de página mínimo (código de barras y firmas)
     await drawMinimalFooter(copiedPage, await fetchRecetaData(), finalDoc);
+
     finalDoc.addPage(copiedPage);
   };
 
   //? Página individual para cada medicamento con clasificación "C"
-  const addCMedPage = async (
-    finalDoc,
-    baseUrl,
-    med,
-    data,
-    nombreEmpleado,
-    nombreUsuario,
-    codigoBarrasBase64
-  ) => {
+  const addCMedPage = async (finalDoc, baseUrl, med, data, nombreEmpleado, nombreUsuario, codigoBarrasBase64) => {
     const baseBytes = await fetch(baseUrl).then((res) => {
       if (!res.ok) throw new Error(`Error al cargar PDF base ${baseUrl}`);
       return res.arrayBuffer();
     });
     const baseDoc = await PDFDocument.load(baseBytes);
     const [copiedPage] = await finalDoc.copyPages(baseDoc, [0]);
-    await drawBaseData(
-      copiedPage,
-      data,
-      nombreEmpleado,
-      nombreUsuario,
-      finalDoc,
-      codigoBarrasBase64
-    );
-    const startY = 400;
 
-    //? Aunque es un solo medicamento, se usa la misma lógica dinámica
-    drawMultilineText(copiedPage, String(med.nombreMedicamento), 40, startY, 130, 8);
-    drawMultilineText(copiedPage, String(med.indicaciones), 180, startY, 200, 8);
-    drawMultilineText(copiedPage, String(med.cantidad), 422, startY, 161, 8);
-    drawMultilineText(copiedPage, String(med.piezas), 553, startY, 100, 8);
+    //* Dibuja el header con datos del paciente, diagnóstico, etc.
+    await drawBaseData(copiedPage, data, nombreEmpleado, nombreUsuario, finalDoc, codigoBarrasBase64);
+
+    const startY = 400;
+    const fontSize = 8;
+
+    //* Embebemos bold para el mensaje si corresponde
+    const helveticaBold = await finalDoc.embedFont(StandardFonts.HelveticaBold);
+
+    //* Campos del medicamento
+    const y1 = drawMultilineText(copiedPage, String(med.nombreMedicamento), 40,  startY, 130, fontSize);
+    const y2 = drawMultilineText(copiedPage, String(med.indicaciones),       180, startY, 200, fontSize);
+    const y3 = drawMultilineText(copiedPage, String(med.cantidad),          422, startY, 161, fontSize);
+    const y4 = drawMultilineText(copiedPage, String(med.piezas),            553, startY, 100, fontSize);
+
+    //* Si debe resurtirse, dibujar mensaje justo debajo
+    if (med.seAsignoResurtimiento === 1) {
+      const nextY = Math.min(y1, y2, y3, y4) - 4; 
+      const mensaje = `Se tiene que resurtir por ${med.cuantoTiempo} mes${med.cuantoTiempo > 1 ? "es" : ""}`;
+      drawMultilineText(copiedPage, mensaje, 40, nextY, 400, fontSize, { font: helveticaBold } );
+    }
 
     finalDoc.addPage(copiedPage);
   };
@@ -385,11 +401,14 @@ export default function GenerarReceta() {
             nombreUsuario,
             data.codigoBarrasBase64
           );
-          //? Configurar startY en 640 para que la lista comience en esa posición
+          //? Embebemos una sola vez la fuente bold
+          const helveticaBold = await finalDoc.embedFont(StandardFonts.HelveticaBold);
+
           const customOptionsSecondPage = {
-            startY: 640,
-            lineSpacing: 28,
-            fontSize: 8,
+            startY:      640,
+            extraSpacing:10,
+            fontSize:    8,
+            boldFont:    helveticaBold    
           };
           await addNonCMedPageSecond(
             finalDoc,

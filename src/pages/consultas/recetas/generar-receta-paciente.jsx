@@ -68,27 +68,33 @@ export default function GenerarReceta() {
   };
 
   //* Función para dibujar texto multilinea que retorna la posición Y final
-  const drawMultilineText = (page, text, x, y, maxWidth, fontSize) => {
+  //* Ahora acepta un objeto `options` con `font` y `color`.
+  const drawMultilineText = (page, text, x, y, maxWidth, fontSize, options = {} ) => {
+    const { font, color } = options;
     const lines = text.split('\n');
     let currentY = y;
     const lineHeight = fontSize + 2; //* Ajuste de separación
+
     lines.forEach(lineText => {
       const words = lineText.split(' ');
       let line = '';
       const maxCharsPerLine = Math.floor(maxWidth / (fontSize * 0.6));
+
       words.forEach(word => {
         const testLine = line + (line ? ' ' : '') + word;
         if (testLine.length > maxCharsPerLine) {
-          page.drawText(line, { x, y: currentY, size: fontSize });
+          page.drawText(line, { x, y: currentY, size: fontSize, ...(font && { font }), ...(color && { color })});
           currentY -= lineHeight;
           line = word;
         } else {
           line = testLine;
         }
       });
-      page.drawText(line, { x, y: currentY, size: fontSize });
+
+      page.drawText(line, { x, y: currentY, size: fontSize, ...(font && { font }), ...(color && { color }) });
       currentY -= lineHeight;
     });
+
     return currentY;
   };
 
@@ -174,17 +180,28 @@ export default function GenerarReceta() {
       let currentMedicationY = 358;
       const extraSpacing = 10;
       const medsFirstPage = data.receta.slice(0, 3);
-      medsFirstPage.forEach((item) => {
+
+      for (const item of medsFirstPage) {
         const y1 = drawMultilineText(firstPage, String(item.nombreMedicamento ?? "No Asignado"), 40, currentMedicationY, 130, 8);
         const y2 = drawMultilineText(firstPage, String(item.indicaciones ?? "No Asignado"), 180, currentMedicationY, 200, 8);
-        //* Define la coordenada X en función del valor de item.cantidad
-        const xCoordinate = item.cantidad === "Sin tiempo de toma estimado, sin medicamentos." ? 380 : 422;
-
-        //* Dibuja el texto en la coordenada determinada
+        const xCoordinate = item.cantidad === "Sin tiempo de toma estimado, sin medicamentos." ? 380 : 422; 
         const y3 = drawMultilineText(firstPage, String(item.cantidad ?? "No Asignado"), xCoordinate, currentMedicationY, 161, 8);
         const y4 = drawMultilineText(firstPage, String(item.piezas ?? "No Asignados"), 553, currentMedicationY, 100, 8);
-        currentMedicationY = Math.min(y1, y2, y3, y4) - extraSpacing;
-      });
+
+        //* calculamos la posición mínima de los 4 textos
+        let nextY = Math.min(y1, y2, y3, y4);
+
+        //* SI seAsignoResurtimiento===1, dibujar mensaje debajo
+        if (item.seAsignoResurtimiento === 1) {
+          const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+          const mensaje = `Se tiene que resurtir por ${item.cuantoTiempo} mes${item.cuantoTiempo > 1 ? "es" : ""}`;
+          const y5 = drawMultilineText(firstPage, mensaje, 40, nextY, 400, 8, {font: boldFont});
+          nextY = y5;
+        }
+
+        //* actualizamos currentMedicationY para el siguiente ítem
+        currentMedicationY = nextY - extraSpacing;
+      }
 
       //? Bloque: OBSERVACIONES en la primera hoja
       drawMultilineText(firstPage, String(data.consulta?.motivoconsulta ?? "N/A"), 50, 180, 600, 7);
@@ -214,16 +231,34 @@ export default function GenerarReceta() {
         //? En la segunda hoja se reimprime también el bloque de OBSERVACIONES
         drawMultilineText(secondPage, String(data.consulta?.motivoconsulta ?? "N/A"), 50, 164, 600, 7);
 
+        const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+
         //? Lista de medicamentos adicionales empezando en Y=640
         let currentMedY = 640;
+        const extraSpacing = 10;
         const medsSecondPage = data.receta.slice(3); //* Medicamentos desde el quinto en adelante
-        medsSecondPage.forEach((item) => {
+
+        //* for...of para mantener el orden y evitar issues con async forEach
+        for (const item of medsSecondPage) {
           const y1 = drawMultilineText(secondPage, String(item.nombreMedicamento ?? "No Asignado"), 40, currentMedY, 130, 8);
           const y2 = drawMultilineText(secondPage, String(item.indicaciones ?? "No Asignado"), 180, currentMedY, 190, 8);
           const y3 = drawMultilineText(secondPage, String(item.cantidad ?? "No Asignado"), 422, currentMedY, 161, 8);
           const y4 = drawMultilineText(secondPage, String(item.piezas ?? "No Asignados"), 553, currentMedY, 100, 8);
-          currentMedY = Math.min(y1, y2, y3, y4) - extraSpacing;
-        });
+
+          //* Determinamos la Y mínima de los cuatro bloques
+          let nextY = Math.min(y1, y2, y3, y4);
+
+          //* SI seAsignoResurtimiento===1, dibujar mensaje debajo, en negrita, en secondPage
+          if (item.seAsignoResurtimiento === 1) {
+            const mensaje = `Se tiene que resurtir por ${item.cuantoTiempo} mes${item.cuantoTiempo > 1 ? "es" : ""}`;
+            //* Ajustamos un pequeño offset vertical (por ejemplo -4) para que quede más pegado
+            const y5 = drawMultilineText(secondPage, mensaje, 40, nextY - 4, 400, 8, { font: helveticaBold } );
+            nextY = y5;
+          }
+
+          //* Actualizamos currentMedY para el siguiente medicamento
+          currentMedY = nextY - extraSpacing;
+        }
 
         //? Se reimprimen los datos extra (incapacidad, especialidad y firmas) en las mismas coordenadas que en la primera hoja
         secondPage.drawText(data.consulta?.seAsignoIncapacidad === 1 ? "Sí" : "No", { x: 150, y: 76, size: 10 });

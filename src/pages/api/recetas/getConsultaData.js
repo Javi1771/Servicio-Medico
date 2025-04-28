@@ -87,6 +87,8 @@ export async function getConsultaData(claveConsulta) {
       dr.cantidad, 
       dr.descMedicamento AS idMedicamento, 
       dr.piezas,
+      dr.seAsignoResurtimiento,
+      dr.cuantoTiempo,
       REPLACE(
         REPLACE(
           REPLACE(

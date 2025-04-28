@@ -161,6 +161,7 @@ const AccionesConsulta = ({
     }
   };
 
+  //* Guardar medicamentos
   const guardarMedicamentos = async () => {
     try {
       //console.log("📤 Guardando medicamentos...");
@@ -190,6 +191,8 @@ const AccionesConsulta = ({
           decisionTomada: "no",
           medicamentos: [], //! Array vacío
           piezas: 0,
+          resurtir: 0,
+          mesesResurtir: null,
         };
       } else {
         //* Si la decisión es "si", se valida que existan medicamentos y se arma el payload
@@ -203,7 +206,10 @@ const AccionesConsulta = ({
             descMedicamento: medicamento.medicamento,
             indicaciones: medicamento.indicaciones.trim(),
             cantidad: medicamento.tratamiento.trim(),
-            piezas: medicamento.piezas, //* Se envían las piezas seleccionadas en el front
+            piezas: medicamento.piezas,
+            resurtir: medicamento.resurtir === "si" ? 1 : 0, 
+            mesesResurtir:
+              medicamento.resurtir === "si" ? medicamento.mesesResurtir : null,
           })),
         };
       }
