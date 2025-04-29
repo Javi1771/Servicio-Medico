@@ -194,7 +194,7 @@ export default function GenerarReceta() {
         //* SI seAsignoResurtimiento===1, dibujar mensaje debajo
         if (item.seAsignoResurtimiento === 1) {
           const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-          const mensaje = `Se tiene que resurtir por ${item.cuantoTiempo} mes${item.cuantoTiempo > 1 ? "es" : ""}`;
+          const mensaje = `Se tiene que resurtir por ${item.cantidadMeses} mes${item.cantidadMeses > 1 ? "es" : ""}`;
           const y5 = drawMultilineText(firstPage, mensaje, 40, nextY, 400, 8, {font: boldFont});
           nextY = y5;
         }
@@ -250,7 +250,7 @@ export default function GenerarReceta() {
 
           //* SI seAsignoResurtimiento===1, dibujar mensaje debajo, en negrita, en secondPage
           if (item.seAsignoResurtimiento === 1) {
-            const mensaje = `Se tiene que resurtir por ${item.cuantoTiempo} mes${item.cuantoTiempo > 1 ? "es" : ""}`;
+            const mensaje = `Se tiene que resurtir por ${item.cantidadMeses} mes${item.cantidadMeses > 1 ? "es" : ""}`;
             //* Ajustamos un pequeño offset vertical (por ejemplo -4) para que quede más pegado
             const y5 = drawMultilineText(secondPage, mensaje, 40, nextY - 4, 400, 8, { font: helveticaBold } );
             nextY = y5;

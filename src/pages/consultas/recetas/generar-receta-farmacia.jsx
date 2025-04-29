@@ -222,7 +222,7 @@ export default function GenerarReceta() {
       let nextY = Math.min(y1, y2, y3, y4);
 
       if (med.seAsignoResurtimiento === 1) {
-        const mensaje = `Se tiene que resurtir por ${med.cuantoTiempo} mes${med.cuantoTiempo > 1 ? "es" : ""}`;
+        const mensaje = `Se tiene que resurtir por ${med.cantidadMeses} mes${med.cantidadMeses > 1 ? "es" : ""}`;
         const y5 = drawMultilineText(page, mensaje, 40, nextY - 4, 400, fontSize, { font: boldFont });
         nextY = y5;
       }
@@ -285,7 +285,7 @@ export default function GenerarReceta() {
 
       //* si seAsignoResurtimiento === 1, dibujamos mensaje en negrita justo debajo
       if (med.seAsignoResurtimiento === 1) {
-        const mensaje = `Se tiene que resurtir por ${med.cuantoTiempo} mes${med.cuantoTiempo > 1 ? "es" : ""}`;
+        const mensaje = `Se tiene que resurtir por ${med.cantidadMeses} mes${med.cantidadMeses > 1 ? "es" : ""}`;
         const y5 = drawMultilineText(copiedPage, mensaje, 40, nextY - 4, 400, fontSize, { font: helveticaBold });
         nextY = y5;
       }
@@ -349,7 +349,7 @@ export default function GenerarReceta() {
     //* Si debe resurtirse, dibujar mensaje justo debajo
     if (med.seAsignoResurtimiento === 1) {
       const nextY = Math.min(y1, y2, y3, y4) - 4; 
-      const mensaje = `Se tiene que resurtir por ${med.cuantoTiempo} mes${med.cuantoTiempo > 1 ? "es" : ""}`;
+      const mensaje = `Se tiene que resurtir por ${med.cantidadMeses} mes${med.cantidadMeses > 1 ? "es" : ""}`;
       drawMultilineText(copiedPage, mensaje, 40, nextY, 400, fontSize, { font: helveticaBold } );
     }
 

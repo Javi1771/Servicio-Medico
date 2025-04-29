@@ -31,14 +31,14 @@ export default async function handler(req, res) {
     await transaction.begin();
     //console.log("🔄 Transacción iniciada.");
 
-    //? 1) Inserción en detalleReceta (con columnas seAsignoResurtimiento y cuantoTiempo)
+    //? 1) Inserción en detalleReceta (con columnas seAsignoResurtimiento y cantidadMeses)
     const queryInsertarReceta = `
       INSERT INTO detalleReceta
         (folioReceta, descMedicamento, indicaciones, estatus, cantidad, piezas,
-         seAsignoResurtimiento, cuantoTiempo)
+         seAsignoResurtimiento, cantidadMeses)
       VALUES
         (@folioReceta, @descMedicamento, @indicaciones, @estatus, @cantidad, @piezas,
-         @seAsignoResurtimiento, @cuantoTiempo)
+         @seAsignoResurtimiento, @cantidadMeses)
     `;
 
     if (decisionTomada === "no") {
@@ -51,7 +51,7 @@ export default async function handler(req, res) {
         .input("cantidad",              sql.NVarChar,"Sin tratamiento estimado.")
         .input("piezas",                sql.Int,     0)
         .input("seAsignoResurtimiento", sql.Int,     0)
-        .input("cuantoTiempo",          sql.Int,     null)
+        .input("cantidadMeses",          sql.Int,     null)
         .query(queryInsertarReceta);
 
       resultados.push({
@@ -93,7 +93,7 @@ export default async function handler(req, res) {
           .input("cantidad",              sql.NVarChar,cantidad.trim())
           .input("piezas",                sql.Int,     parseInt(piezas, 10))
           .input("seAsignoResurtimiento", sql.Int,     resurtir)
-          .input("cuantoTiempo",          sql.Int,     resurtir === 1 ? mesesResurtir : null)
+          .input("cantidadMeses",          sql.Int,     resurtir === 1 ? mesesResurtir : null)
           .query(queryInsertarReceta);
 
         resultados.push({ medicamento: med, status: "success" });

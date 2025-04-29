@@ -82,36 +82,29 @@ export default async function handler(req, res) {
           .query(updateDetalle);
       }
 
-      //* 🔹 Si la receta está completada, actualizar el estatus del surtimiento
-      if (recetaCompletada) {
-        // console.log(
-        //   `📌 Actualizando SURTIMIENTOS - Folio: ${folioSurtimiento}`
-        // );
-        // console.log(`   🔹 Nuevo estatus: 0`);
-        // console.log(`   🔹 Fecha despacho a guardar: ${fechaDespacho}`);
-        // console.log(`   🔹 Costo: ${cost || 0}`);
+    //* 🔹 Si la receta está completada, actualizar el estatus del surtimiento
+    if (recetaCompletada) {
+      const updateSurtimiento = `
+        UPDATE SURTIMIENTOS
+        SET ESTATUS             = 0,
+            FECHA_DESPACHO      = @fechaDespacho,
+            COSTO               = @cost,                -- ← COMA añadida aquí
+            SURTIMIENTOS_ACTUALES = @primerSurtimiento
+        WHERE FOLIO_SURTIMIENTO = @folio
+      `;
 
-        const updateSurtimiento = `
-          UPDATE SURTIMIENTOS
-          SET ESTATUS = 0,
-              FECHA_DESPACHO = @fechaDespacho,
-              COSTO = @cost
-          WHERE FOLIO_SURTIMIENTO = @folio
-        `;
+      const updateResult = await transaction
+        .request()
+        .input("folio",             sql.Int,     folioSurtimiento)
+        .input("fechaDespacho",     sql.VarChar, fechaDespacho)  //* Ajusta el tipo si es datetime
+        .input("cost",              sql.Numeric(18, 2), cost || 0)
+        .input("primerSurtimiento", sql.Int,     1)
+        .query(updateSurtimiento);
 
-        //console.log("🟢 Ejecutando UPDATE en SURTIMIENTOS...");
-
-        const updateResult = await transaction
-          .request()
-          .input("folio", sql.Int, folioSurtimiento)
-          .input("fechaDespacho", sql.VarChar, fechaDespacho) //* Maneja el tipo que uses en tu DB
-          .input("cost", sql.Numeric(18, 2), cost || 0)
-          .query(updateSurtimiento);
-
-        console.log("✅ Resultado del UPDATE en SURTIMIENTOS:", updateResult);
-      } else {
-        //console.log("⚠️ Receta NO completada, no se actualizó SURTIMIENTOS.");
-      }
+      console.log("✅ Resultado del UPDATE en SURTIMIENTOS:", updateResult);
+    } else {
+      //console.log("⚠️ Receta NO completada, no se actualizó SURTIMIENTOS.");
+    }
 
       //* 👇 Finaliza la transacción con éxito
       await transaction.commit();
