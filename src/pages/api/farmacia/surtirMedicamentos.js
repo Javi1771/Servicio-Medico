@@ -84,26 +84,51 @@ export default async function handler(req, res) {
 
     //* 🔹 Si la receta está completada, actualizar el estatus del surtimiento
     if (recetaCompletada) {
+      //? 1) Actualizar SURTIMIENTOS
       const updateSurtimiento = `
         UPDATE SURTIMIENTOS
-        SET ESTATUS             = 0,
-            FECHA_DESPACHO      = @fechaDespacho,
-            COSTO               = @cost,                -- ← COMA añadida aquí
-            SURTIMIENTOS_ACTUALES = @primerSurtimiento
-        WHERE FOLIO_SURTIMIENTO = @folio
+        SET ESTATUS        = 0,
+            FECHA_DESPACHO = @fechaDespacho,
+            COSTO          = @cost
+        WHERE FOLIO_SURTIMIENTO = @folioSurtimiento
       `;
-
-      const updateResult = await transaction
+      await transaction
         .request()
-        .input("folio",             sql.Int,     folioSurtimiento)
-        .input("fechaDespacho",     sql.VarChar, fechaDespacho)  //* Ajusta el tipo si es datetime
-        .input("cost",              sql.Numeric(18, 2), cost || 0)
-        .input("primerSurtimiento", sql.Int,     1)
+        .input("folioSurtimiento", sql.Int, folioSurtimiento)
+        .input("fechaDespacho",    sql.VarChar, fechaDespacho)  
+        .input("cost",             sql.Numeric(18, 2), cost || 0)
         .query(updateSurtimiento);
+      console.log("✅ SURTIMIENTOS actualizado:", folioSurtimiento);
 
-      console.log("✅ Resultado del UPDATE en SURTIMIENTOS:", updateResult);
+      //? 2) Obtener el FOLIO_PASE asociado
+      const folioPaseResult = await transaction
+        .request()
+        .input("folioSurtimiento", sql.Int, folioSurtimiento)
+        .query(`
+          SELECT FOLIO_PASE
+          FROM SURTIMIENTOS
+          WHERE FOLIO_SURTIMIENTO = @folioSurtimiento
+        `);
+      const folioPase = folioPaseResult.recordset[0]?.FOLIO_PASE;
+      console.log("🔎 FOLIO_PASE obtenido:", folioPase);
+
+      //? 3) Actualizar detalleReceta.surtimientoActual = 1 para ese folioPase
+      if (folioPase) {
+        const updateDetalle = `
+          UPDATE detalleReceta
+          SET surtimientoActual = 1
+          WHERE folioReceta = @folioPase
+        `;
+        await transaction
+          .request()
+          .input("folioPase", sql.Int, folioPase)
+          .query(updateDetalle);
+        console.log("✅ detalleReceta.surtimientoActual actualizado para folioReceta =", folioPase);
+      } else {
+        console.warn("⚠ No se encontró FOLIO_PASE para actualizar detalleReceta.");
+      }
     } else {
-      //console.log("⚠️ Receta NO completada, no se actualizó SURTIMIENTOS.");
+      //console.log("⚠️ Receta NO completada, no se realizaron actualizaciones de surtimiento.");
     }
 
       //* 👇 Finaliza la transacción con éxito
