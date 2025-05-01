@@ -176,30 +176,66 @@ export default function GenerarReceta() {
       //? Bloque: DIAGNÓSTICO
       drawMultilineText(firstPage, String(data.consulta?.diagnostico ?? "N/A"), 45, 493, 600, 7);
 
-      //? Bloque: TRATAMIENTO en la primera hoja (primeros 3 medicamentos)
+      //? Bloque: TRATAMIENTO en la primera hoja (hasta 4 medicamentos si caben)
       let currentMedicationY = 358;
       const extraSpacing = 10;
-      const medsFirstPage = data.receta.slice(0, 3);
+      const fontSize = 8;
 
-      for (const item of medsFirstPage) {
-        const y1 = drawMultilineText(firstPage, String(item.nombreMedicamento ?? "No Asignado"), 40, currentMedicationY, 130, 8);
-        const y2 = drawMultilineText(firstPage, String(item.indicaciones ?? "No Asignado"), 180, currentMedicationY, 200, 8);
-        const xCoordinate = item.cantidad === "Sin tiempo de toma estimado, sin medicamentos." ? 380 : 422; 
-        const y3 = drawMultilineText(firstPage, String(item.cantidad ?? "No Asignado"), xCoordinate, currentMedicationY, 161, 8);
-        const y4 = drawMultilineText(firstPage, String(item.piezas ?? "No Asignados"), 553, currentMedicationY, 100, 8);
+      let medsFirstPage = [];
+      let index = 0;
 
-        //* calculamos la posición mínima de los 4 textos
-        let nextY = Math.min(y1, y2, y3, y4);
+      for (const item of data.receta) {
+        if (index >= 4) break;
 
-        //* SI seAsignoResurtimiento===1, dibujar mensaje debajo
+        const tempY = currentMedicationY;
+
+        //* Simula altura consumida por el nombre del medicamento
+        const y1 = drawMultilineText(firstPage, String(item.nombreMedicamento ?? "No Asignado"), 9999, tempY, 130, fontSize);
+
+        //* Si hay resurtimiento, simula también el texto extra (justo debajo del nombre)
+        let yResurtimiento = y1;
         if (item.seAsignoResurtimiento === 1) {
           const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
           const mensaje = `Se tiene que resurtir por ${item.cantidadMeses} mes${item.cantidadMeses > 1 ? "es" : ""}`;
-          const y5 = drawMultilineText(firstPage, mensaje, 40, nextY, 400, 8, {font: boldFont});
-          nextY = y5;
+          yResurtimiento = drawMultilineText(firstPage, mensaje, 9999, y1, 400, fontSize, { font: boldFont });
         }
 
-        //* actualizamos currentMedicationY para el siguiente ítem
+        //* Simula las otras columnas
+        const y2 = drawMultilineText(firstPage, String(item.indicaciones ?? "No Asignado"), 9999, tempY, 200, fontSize);
+        const y3 = drawMultilineText(firstPage, String(item.cantidad ?? "No Asignado"), 9999, tempY, 161, fontSize);
+        const y4 = drawMultilineText(firstPage, String(item.piezas ?? "No Asignados"), 9999, tempY, 100, fontSize);
+
+        const simulatedNextY = Math.min(yResurtimiento, y2, y3, y4);
+        const heightNeeded = tempY - simulatedNextY + extraSpacing;
+
+        //* Validación especial para el 3er medicamento
+        if (index === 2 && currentMedicationY - heightNeeded < 258) break;
+
+        medsFirstPage.push(item);
+        currentMedicationY -= heightNeeded;
+        index++;
+      }
+
+      //* Dibuja los medicamentos validados
+      currentMedicationY = 358;
+
+      for (const item of medsFirstPage) {
+        const y1 = drawMultilineText(firstPage, String(item.nombreMedicamento ?? "No Asignado"), 40, currentMedicationY, 130, fontSize);
+
+        //* Si hay resurtimiento, dibuja el mensaje justo debajo del nombre
+        let yResurtimiento = y1;
+        if (item.seAsignoResurtimiento === 1) {
+          const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+          const mensaje = `Se tiene que resurtir por ${item.cantidadMeses} mes${item.cantidadMeses > 1 ? "es" : ""}`;
+          yResurtimiento = drawMultilineText(firstPage, mensaje, 40, y1, 400, fontSize, { font: boldFont });
+        }
+
+        const y2 = drawMultilineText(firstPage, String(item.indicaciones ?? "No Asignado"), 180, currentMedicationY, 200, fontSize);
+        const xCoordinate = item.cantidad === "Sin tiempo de toma estimado, sin medicamentos." ? 380 : 422;
+        const y3 = drawMultilineText(firstPage, String(item.cantidad ?? "No Asignado"), xCoordinate, currentMedicationY, 161, fontSize);
+        const y4 = drawMultilineText(firstPage, String(item.piezas ?? "No Asignados"), 553, currentMedicationY, 100, fontSize);
+
+        const nextY = Math.min(yResurtimiento, y2, y3, y4);
         currentMedicationY = nextY - extraSpacing;
       }
 
@@ -218,8 +254,8 @@ export default function GenerarReceta() {
       firstPage.drawText(String(data.consulta?.nombreproveedor ?? "N/A"), { x: 110, y: 52, size: 10 });
       firstPage.drawText(String(data.consulta?.nombrepaciente ?? "N/A"), { x: 370, y: 52, size: 10 });
 
-      //* Si hay más de 3 medicamentos, se agrega una segunda hoja para mostrar el resto
-      if (data.receta.length > 3) {
+      //* Si hay más medicamentos de los que entraron en la primera hoja, se agrega una segunda hoja
+      if (data.receta.length > medsFirstPage.length) {
         const medPdfBytes = await fetch("/Receta-Paciente-Medicamentos.pdf").then(res => {
           if (!res.ok) throw new Error("Error al cargar el PDF Receta-Paciente-Medicamentos");
           return res.arrayBuffer();
@@ -236,31 +272,26 @@ export default function GenerarReceta() {
         //? Lista de medicamentos adicionales empezando en Y=640
         let currentMedY = 640;
         const extraSpacing = 10;
-        const medsSecondPage = data.receta.slice(3); //* Medicamentos desde el quinto en adelante
+        const medsSecondPage = data.receta.slice(medsFirstPage.length); //* Medicamentos restantes
 
-        //* for...of para mantener el orden y evitar issues con async forEach
         for (const item of medsSecondPage) {
           const y1 = drawMultilineText(secondPage, String(item.nombreMedicamento ?? "No Asignado"), 40, currentMedY, 130, 8);
+
+          let yResurtimiento = y1;
+          if (item.seAsignoResurtimiento === 1) {
+            const mensaje = `Se tiene que resurtir por ${item.cantidadMeses} mes${item.cantidadMeses > 1 ? "es" : ""}`;
+            yResurtimiento = drawMultilineText(secondPage, mensaje, 40, y1, 400, 8, { font: helveticaBold });
+          }
+
           const y2 = drawMultilineText(secondPage, String(item.indicaciones ?? "No Asignado"), 180, currentMedY, 190, 8);
           const y3 = drawMultilineText(secondPage, String(item.cantidad ?? "No Asignado"), 422, currentMedY, 161, 8);
           const y4 = drawMultilineText(secondPage, String(item.piezas ?? "No Asignados"), 553, currentMedY, 100, 8);
 
-          //* Determinamos la Y mínima de los cuatro bloques
-          let nextY = Math.min(y1, y2, y3, y4);
-
-          //* SI seAsignoResurtimiento===1, dibujar mensaje debajo, en negrita, en secondPage
-          if (item.seAsignoResurtimiento === 1) {
-            const mensaje = `Se tiene que resurtir por ${item.cantidadMeses} mes${item.cantidadMeses > 1 ? "es" : ""}`;
-            //* Ajustamos un pequeño offset vertical (por ejemplo -4) para que quede más pegado
-            const y5 = drawMultilineText(secondPage, mensaje, 40, nextY - 4, 400, 8, { font: helveticaBold } );
-            nextY = y5;
-          }
-
-          //* Actualizamos currentMedY para el siguiente medicamento
+          const nextY = Math.min(yResurtimiento, y2, y3, y4);
           currentMedY = nextY - extraSpacing;
         }
 
-        //? Se reimprimen los datos extra (incapacidad, especialidad y firmas) en las mismas coordenadas que en la primera hoja
+        //? Se reimprimen los datos extra (incapacidad, especialidad y firmas)
         secondPage.drawText(data.consulta?.seAsignoIncapacidad === 1 ? "Sí" : "No", { x: 150, y: 76, size: 10 });
         secondPage.drawText(incapacidad ? incapacidad.fechaInicial : "No asignada", { x: 219, y: 82, size: 10 });
         secondPage.drawText(incapacidad ? incapacidad.fechaFinal : "No asignada", { x: 209, y: 68, size: 10 });

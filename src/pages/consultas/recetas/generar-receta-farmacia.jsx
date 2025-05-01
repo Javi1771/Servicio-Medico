@@ -212,24 +212,24 @@ export default function GenerarReceta() {
   //? Dibuja solo la lista de medicamentos, recibiendo boldFont desde afuera
   const drawOnlyMedications = async (page, medsArray, startY, extraSpacing, fontSize, boldFont) => {
     let currentY = startY;
-
+  
     for (const med of medsArray) {
-      const y1 = drawMultilineText(page, String(med.nombreMedicamento ?? "No Asignado"), 40,  currentY, 130, fontSize);
-      const y2 = drawMultilineText(page, String(med.indicaciones       ?? "No Asignado"), 180, currentY, 200, fontSize);
-      const y3 = drawMultilineText(page, String(med.cantidad          ?? "No Asignado"), 422, currentY, 161, fontSize);
-      const y4 = drawMultilineText(page, String(med.piezas            ?? "No Asignados"), 553, currentY, 100, fontSize);
-
-      let nextY = Math.min(y1, y2, y3, y4);
-
+      const y1 = drawMultilineText(page, String(med.nombreMedicamento ?? "No Asignado"), 40, currentY, 130, fontSize);
+  
+      let yResurtimiento = y1;
       if (med.seAsignoResurtimiento === 1) {
         const mensaje = `Se tiene que resurtir por ${med.cantidadMeses} mes${med.cantidadMeses > 1 ? "es" : ""}`;
-        const y5 = drawMultilineText(page, mensaje, 40, nextY - 4, 400, fontSize, { font: boldFont });
-        nextY = y5;
+        yResurtimiento = drawMultilineText(page, mensaje, 40, y1, 400, fontSize, { font: boldFont });
       }
-
+  
+      const y2 = drawMultilineText(page, String(med.indicaciones ?? "No Asignado"), 180, currentY, 200, fontSize);
+      const y3 = drawMultilineText(page, String(med.cantidad ?? "No Asignado"), 422, currentY, 161, fontSize);
+      const y4 = drawMultilineText(page, String(med.piezas ?? "No Asignados"), 553, currentY, 100, fontSize);
+  
+      const nextY = Math.min(yResurtimiento, y2, y3, y4);
       currentY = nextY - extraSpacing;
     }
-  };
+  };  
 
   //? Dibuja el pie de página mínimo (código de barras y firmas)
   const drawMinimalFooter = async (page, data, pdfDoc) => {
@@ -276,26 +276,26 @@ export default function GenerarReceta() {
 
     for (const med of medsArray) {
       const y1 = drawMultilineText(copiedPage, String(med.nombreMedicamento ?? "No Asignado"), 40, currentMedicationY, 130, fontSize);
+
+      //* si seAsignoResurtimiento === 1, dibujamos mensaje en negrita justo debajo del nombre
+      let yResurtimiento = y1;
+      if (med.seAsignoResurtimiento === 1) {
+        const mensaje = `Se tiene que resurtir por ${med.cantidadMeses} mes${med.cantidadMeses > 1 ? "es" : ""}`;
+        yResurtimiento = drawMultilineText(copiedPage, mensaje, 40, y1, 400, fontSize, { font: helveticaBold });
+      }
+
       const y2 = drawMultilineText(copiedPage, String(med.indicaciones ?? "No Asignado"), 180, currentMedicationY, 200, fontSize);
       const y3 = drawMultilineText(copiedPage, String(med.cantidad ?? "No Asignado"), 422, currentMedicationY, 161, fontSize);
       const y4 = drawMultilineText(copiedPage, String(med.piezas ?? "No Asignados"), 553, currentMedicationY, 100, fontSize);
 
-      //* determinamos la Y mínima de los cuatro bloques
-      let nextY = Math.min(y1, y2, y3, y4);
-
-      //* si seAsignoResurtimiento === 1, dibujamos mensaje en negrita justo debajo
-      if (med.seAsignoResurtimiento === 1) {
-        const mensaje = `Se tiene que resurtir por ${med.cantidadMeses} mes${med.cantidadMeses > 1 ? "es" : ""}`;
-        const y5 = drawMultilineText(copiedPage, mensaje, 40, nextY - 4, 400, fontSize, { font: helveticaBold });
-        nextY = y5;
-      }
+      //* determinamos la Y mínima de los bloques y del mensaje
+      let nextY = Math.min(yResurtimiento, y2, y3, y4);
 
       currentMedicationY = nextY - extraSpacing;
     }
 
     finalDoc.addPage(copiedPage);
   };
-
 
   //? Segunda hoja: solo la lista de medicamentos + footer (para otros meds)
   const addNonCMedPageSecond = async (finalDoc, baseUrl, medsArray, options
