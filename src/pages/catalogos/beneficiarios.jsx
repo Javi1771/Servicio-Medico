@@ -1002,7 +1002,7 @@ export default function RegistroBeneficiario() {
         Swal.fire("Error", "El beneficiario no está activo.", "error");
         return;
       }
-  
+
       const {
         NO_NOMINA,
         PARENTESCO,
@@ -1019,12 +1019,12 @@ export default function RegistroBeneficiario() {
         ESDISCAPACITADO,
         FIRMA: firma,
       } = beneficiary;
-  
+
       const getParentescoDescripcion = (id) => {
-        const p = parentescoOptions.find(o => o.ID_PARENTESCO === id);
+        const p = parentescoOptions.find((o) => o.ID_PARENTESCO === id);
         return p ? p.PARENTESCO : "Desconocido";
       };
-      const formatFechaLocal = f => {
+      const formatFechaLocal = (f) => {
         if (!f) return "";
         const [y, m, d] = f.split("T")[0].split("-");
         return `${d}/${m}/${y}`;
@@ -1032,11 +1032,14 @@ export default function RegistroBeneficiario() {
       const parentescoDescripcion = getParentescoDescripcion(PARENTESCO);
       const edad = calculateAge(F_NACIMIENTO);
       const vigencia = calcularVigencia(
-        PARENTESCO, edad, VIGENCIA_ESTUDIOS,
-        F_NACIMIENTO, ESDISCAPACITADO
+        PARENTESCO,
+        edad,
+        VIGENCIA_ESTUDIOS,
+        F_NACIMIENTO,
+        ESDISCAPACITADO
       );
-  
-      // Obtener departamento
+
+      //* Obtener departamento
       const resp = await fetch("/api/empleado", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1045,105 +1048,122 @@ export default function RegistroBeneficiario() {
       if (!resp.ok) throw new Error("Empleado no encontrado");
       const emp = await resp.json();
       const DEPARTAMENTO = emp?.departamento || "N/A";
-  
+
       const doc = new jsPDF({
         orientation: "landscape",
         unit: "cm",
         format: [8.5, 5.5],
       });
-  
+
       const frontTemplate = await loadImageBase64("/CREDENCIAL_FRONTAL2.png");
-      const backTemplate  = await loadImageBase64("/CREDENCIAL_TRASERA.png");
-      const signatureSec  = await loadImageBase64("/firma.png");
-  
-      // --- Portada ---
+      const backTemplate = await loadImageBase64("/CREDENCIAL_TRASERA.png");
+      const signatureSec = await loadImageBase64("/firma.png");
+
+      //* --- Portada ---
       doc.addImage(frontTemplate, "PNG", 0, 0, 8.5, 5.5);
-  
-      // Escalado A4 → 8.5×5.5
-      const sx = 8.5 / 29.7, sy = 5.5 / 21;
+
+      //* Escalado A4 → 8.5×5.5
+      const sx = 8.5 / 29.7,
+        sy = 5.5 / 21;
       const _text = doc.text.bind(doc);
       doc.text = (t, x, y, o) => _text(t, x * sx, y * sy, o);
       const _img = doc.addImage.bind(doc);
       doc.addImage = (i, f, x, y, w, h, a, c, r) =>
         _img(i, f, x * sx, y * sy, w * sx, h * sy, a, c, r);
-  
-      // Función para texto invertido con espaciado ajustable
+
+      //* Función para texto invertido con espaciado ajustable
       function drawInvertedText(text, x, yOrig, maxWidth, lineSpacing) {
         const lines = doc.splitTextToSize(text, maxWidth);
-        const spacing = lineSpacing !== undefined
-          ? lineSpacing
-          : doc.getLineHeight();
+        const spacing =
+          lineSpacing !== undefined ? lineSpacing : doc.getLineHeight();
         for (let i = 0; i < lines.length; i++) {
           const y = yOrig - (lines.length - 1 - i) * spacing;
           doc.text(lines[i], x, y);
         }
       }
-  
-      // Foto
+
+      //* Foto (tamaño reducido un 10%)
       if (FOTO_URL) {
         try {
           const photo = await loadImageBase64(FOTO_URL);
-          doc.addImage(photo, "JPEG", 4.5, 10.9, 7.0, 8.4);
+          //* Coordenadas originales y tamaño reducido (7.0 -> 6.3, 8.4 -> 7.56)
+          const imgX = 4.5;
+          const imgY = 11.5;
+          const imgW = 6.8; // 7.0 * 0.9
+          const imgH = 7.7; // 8.4 * 0.9
+
+          doc.addImage(photo, "JPEG", imgX, imgY, imgW, imgH);
+
           doc.setLineWidth(0.25);
           doc.setDrawColor(255, 255, 255);
-          doc.roundedRect(4.5 * sx, 10.9 * sy, 7.0 * sx, 8.4 * sy, 0.3, 0.3, "S");
-        } catch {}
+          doc.roundedRect(
+            imgX * sx,
+            imgY * sy,
+            imgW * sx,
+            imgH * sy,
+            0.3 * sx,
+            0.3 * sy,
+            "S"
+          );
+        } catch (e) {
+          console.error("Error cargando foto:", e);
+        }
       }
-  
+
       doc.setFont("helvetica", "bold");
       doc.setTextColor("#19456a");
-  
-      // Nómina (7pt)
+
+      //? Nómina (7pt)
       doc.setFontSize(7);
       doc.text(NO_NOMINA.toString(), 18.3, 9.5);
-  
-      // Parentesco (7pt)
+
+      //? Parentesco (7pt)
       doc.setFontSize(7);
       doc.text(parentescoDescripcion, 19.8, 11.42);
-  
-      // Nombre completo (5.5pt, invertido) — 2 líneas a 0.3cm: 12.9 & 13.2
+
+      //? Nombre completo (5.5pt, invertido) — 2 líneas a 0.3cm: 12.9 & 13.2
       doc.setFontSize(5.5);
       const nombreFull = `${NOMBRE} ${A_PATERNO} ${A_MATERNO}`.trim();
       drawInvertedText(nombreFull, 18.4, 13.2, 3, 0.7);
-  
-      // Edad (7pt)
+
+      //? Edad (7pt)
       doc.setFontSize(7);
       doc.text(`${edad} años`, 17.2, 15.3);
-  
-      // Secretaría (4.5pt, invertido) — también a 0.3cm: 17.0 & 17.3
+
+      //? Secretaría (4.5pt, invertido) — también a 0.3cm: 17.0 & 17.3
       doc.setFontSize(4.5);
       drawInvertedText(DEPARTAMENTO, 19.2, 17.3, 3, 0.7);
-  
-      // Vigencia (7pt)
+
+      //? Vigencia (7pt)
       doc.setFontSize(7);
       doc.text(vigencia, 18.8, 19.4);
-  
-      // --- Reverso ---
+
+      //! --- Reverso ---
       doc.addPage();
       _img(backTemplate, "PNG", 0, 0, 8.5, 5.5);
-  
-      // Fecha de nacimiento (6pt)
+
+      //? Fecha de nacimiento (6pt)
       doc.setFontSize(6);
       doc.text(formatFechaLocal(F_NACIMIENTO), 12.5, 2.8);
-  
-      // Sangre (6pt)
+
+      //? Sangre (6pt)
       doc.text(SANGRE || "Sin información", 9.8, 5);
-  
-      // Alergia (6pt)
+
+      //? Alergia (6pt)
       doc.text(ALERGIAS || "Sin información", 7.0, 7.4);
-  
-      // Teléfono (6pt)
+
+      //? Teléfono (6pt)
       doc.text(TEL_EMERGENCIA || "Sin información", 14, 9.8);
-  
-      // Nombre de emergencia (6pt, invertido) — 2 líneas a 0.3cm
+
+      //? Nombre de emergencia (6pt, invertido) — 2 líneas a 0.3cm
       doc.setFontSize(6);
       const emText = NOMBRE_EMERGENCIA || "Sin información";
-      drawInvertedText(emText, 13.1, 12.1, 4, 0.8);
-  
-      // Firmas
+      drawInvertedText(emText, 13.1, 12, 4, 0.8);
+
+      //? Firmas
       doc.addImage(signatureSec, "PNG", 18, 13.2, 6, 2.5);
       if (firma) doc.addImage(firma, "PNG", 3.7, 13, 9, 3);
-  
+
       doc.save(`Credencial_${NOMBRE}_${A_PATERNO}.pdf`);
     } catch (err) {
       console.error(err);
