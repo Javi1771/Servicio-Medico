@@ -10,7 +10,6 @@ import { FaCamera } from "react-icons/fa";
 import * as faceapi from "face-api.js";
 import SignatureCanvas from "react-signature-canvas";
 
-
 import {
   FaIdCard,
   FaPrint,
@@ -67,7 +66,6 @@ export default function RegistroBeneficiario() {
     descriptorFacial: "",
     firma: "",
   });
-
 
   const [beneficiaryIdToDelete, setBeneficiaryIdToDelete] = useState(null);
 
@@ -999,14 +997,12 @@ export default function RegistroBeneficiario() {
 
   const handlePrintCredential = async (beneficiary) => {
     try {
-      // Verificar que el beneficiario esté activo
       if (beneficiary.ACTIVO !== "A") {
         playSound(false);
         Swal.fire("Error", "El beneficiario no está activo.", "error");
         return;
       }
-
-      // Desestructuramos usando "FIRMA" y la renombramos a "firma"
+  
       const {
         NO_NOMINA,
         PARENTESCO,
@@ -1021,247 +1017,138 @@ export default function RegistroBeneficiario() {
         SANGRE,
         ALERGIAS,
         ESDISCAPACITADO,
-        FIRMA: firma, // Renombramos FIRMA a firma para usarla posteriormente
+        FIRMA: firma,
       } = beneficiary;
-
-      //console.log("Datos recibidos del beneficiario:", beneficiary);
-
-      // Función para obtener la descripción del parentesco
-      const getParentescoDescripcion = (parentescoId) => {
-        const parentesco = parentescoOptions.find(
-          (option) => option.ID_PARENTESCO === parentescoId
-        );
-        return parentesco ? parentesco.PARENTESCO : "Desconocido";
+  
+      const getParentescoDescripcion = (id) => {
+        const p = parentescoOptions.find(o => o.ID_PARENTESCO === id);
+        return p ? p.PARENTESCO : "Desconocido";
       };
-
-      // Función para formatear fecha local
-      const formatFechaLocal = (fecha) => {
-        if (!fecha) return "";
-        const dateParts = fecha.split("T")[0].split("-");
-        const [year, month, day] = dateParts;
-        return `${day}/${month}/${year}`;
+      const formatFechaLocal = f => {
+        if (!f) return "";
+        const [y, m, d] = f.split("T")[0].split("-");
+        return `${d}/${m}/${y}`;
       };
-
       const parentescoDescripcion = getParentescoDescripcion(PARENTESCO);
       const edad = calculateAge(F_NACIMIENTO);
-      //console.log("Descripción del parentesco:", parentescoDescripcion);
-      //console.log("Edad calculada:", edad);
-
-      // Calcular vigencia
       const vigencia = calcularVigencia(
-        PARENTESCO,
-        edad,
-        VIGENCIA_ESTUDIOS,
-        F_NACIMIENTO,
-        ESDISCAPACITADO
+        PARENTESCO, edad, VIGENCIA_ESTUDIOS,
+        F_NACIMIENTO, ESDISCAPACITADO
       );
-      //console.log("Vigencia final asignada:", vigencia);
-
-      // Consumir la API para obtener datos del empleado
-      const response = await fetch("/api/empleado", {
+  
+      // Obtener departamento
+      const resp = await fetch("/api/empleado", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ num_nom: NO_NOMINA }),
       });
-      if (!response.ok) throw new Error("Empleado no encontrado");
-      const employeeData = await response.json();
-      const DEPARTAMENTO = employeeData?.departamento || "N/A";
-      //console.log("Datos del empleado obtenidos:", employeeData);
-
-      // Configuración de jsPDF
+      if (!resp.ok) throw new Error("Empleado no encontrado");
+      const emp = await resp.json();
+      const DEPARTAMENTO = emp?.departamento || "N/A";
+  
       const doc = new jsPDF({
         orientation: "landscape",
         unit: "cm",
-        format: "a4",
+        format: [8.5, 5.5],
       });
-
-      // Cargar imágenes de la credencial
+  
       const frontTemplate = await loadImageBase64("/CREDENCIAL_FRONTAL2.png");
-      const backTemplate = await loadImageBase64("/CREDENCIAL_TRASERA.png");
-      const signatureSecretary = await loadImageBase64("/firma.png"); // Firma del secretario
-
-      // Página frontal
-      doc.addImage(frontTemplate, "PNG", 0, 0, 29.7, 21);
-
-      // Si existe foto del beneficiario, agregarla
+      const backTemplate  = await loadImageBase64("/CREDENCIAL_TRASERA.png");
+      const signatureSec  = await loadImageBase64("/firma.png");
+  
+      // --- Portada ---
+      doc.addImage(frontTemplate, "PNG", 0, 0, 8.5, 5.5);
+  
+      // Escalado A4 → 8.5×5.5
+      const sx = 8.5 / 29.7, sy = 5.5 / 21;
+      const _text = doc.text.bind(doc);
+      doc.text = (t, x, y, o) => _text(t, x * sx, y * sy, o);
+      const _img = doc.addImage.bind(doc);
+      doc.addImage = (i, f, x, y, w, h, a, c, r) =>
+        _img(i, f, x * sx, y * sy, w * sx, h * sy, a, c, r);
+  
+      // Función para texto invertido con espaciado ajustable
+      function drawInvertedText(text, x, yOrig, maxWidth, lineSpacing) {
+        const lines = doc.splitTextToSize(text, maxWidth);
+        const spacing = lineSpacing !== undefined
+          ? lineSpacing
+          : doc.getLineHeight();
+        for (let i = 0; i < lines.length; i++) {
+          const y = yOrig - (lines.length - 1 - i) * spacing;
+          doc.text(lines[i], x, y);
+        }
+      }
+  
+      // Foto
       if (FOTO_URL) {
         try {
           const photo = await loadImageBase64(FOTO_URL);
-          const photoX = 4.5;
-          const photoY = 10.9;
-          const photoWidth = 7.0;
-          const photoHeight = 8.4;
-          doc.addImage(photo, "JPEG", photoX, photoY, photoWidth, photoHeight);
-          // Dibujar marco redondeado alrededor de la foto
+          doc.addImage(photo, "JPEG", 4.5, 10.9, 7.0, 8.4);
           doc.setLineWidth(0.25);
           doc.setDrawColor(255, 255, 255);
-          doc.roundedRect(
-            photoX,
-            photoY,
-            photoWidth,
-            photoHeight,
-            0.3,
-            0.3,
-            "S"
-          );
-        } catch (error) {
-          console.error("Error al cargar la foto del beneficiario:", error);
-        }
+          doc.roundedRect(4.5 * sx, 10.9 * sy, 7.0 * sx, 8.4 * sy, 0.3, 0.3, "S");
+        } catch {}
       }
-
-      // Texto en la página frontal
+  
       doc.setFont("helvetica", "bold");
       doc.setTextColor("#19456a");
-      doc.setFontSize(21);
-      // Número de nómina
-      if (NO_NOMINA) {
-        doc.text(NO_NOMINA.toString(), 18.3, 9.5);
-      } else {
-        console.error("Error: NO_NOMINA no es válido:", NO_NOMINA);
-      }
-
-      // Parentesco
-      doc.setFontSize(21);
-      if (parentescoDescripcion) {
-        doc.text(parentescoDescripcion, 19.8, 11.42);
-      } else {
-        console.error(
-          "Error: parentescoDescripcion no es válido:",
-          parentescoDescripcion
-        );
-      }
-
-      doc.setFontSize(17.5);
-      const nombreCompleto = `${NOMBRE || ""} ${A_PATERNO || ""} ${
-        A_MATERNO || ""
-      }`.trim();
-
-      if (nombreCompleto) {
-        // Define el ancho máximo en las unidades de jsPDF
-        const maxWidth = 11.3; // Ajusta según tu espacio disponible
-
-        // Divide el texto en líneas de acuerdo con maxWidth
-        const splittedName = doc.splitTextToSize(nombreCompleto, maxWidth);
-
-        if (splittedName.length === 1) {
-          // Si solo se generó una línea, imprímela en una sola línea
-          doc.text(splittedName[0], 18.4, 13.4);
-        } else {
-          // Si hay más de una línea, aplica salto de línea con lineHeightFactor
-          doc.text(splittedName, 18.4, 12.7, { lineHeightFactor: 1.2 });
-        }
-      } else {
-        console.error("Error: Nombre completo no es válido:", nombreCompleto);
-      }
-
-      // Edad
-      doc.setFontSize(21);
-      const edadTexto = `${edad} años`;
-      if (edadTexto) {
-        doc.text(edadTexto, 17.2, 15.5);
-      } else {
-        console.error("Error: Edad no es válida:", edadTexto);
-      }
-
-      // Departamento
-      doc.setFontSize(17);
-
-      // Define un ancho máximo para el texto del departamento
-      const maxWidthDept = 9.6; // Ajusta según tu diseño
-
-      // Divide el texto del departamento en líneas según maxWidthDept
-      const splittedDept = doc.splitTextToSize(DEPARTAMENTO, maxWidthDept);
-
-      // Posición base en Y (si es una sola línea)
-      const baseYDept = 17.3;
-
-      // Si hay varias líneas, "sube" la primera línea un poco (por ejemplo, 0.5 cm)
-      const multiLineYDept = baseYDept - 0.6;
-
-      if (splittedDept.length === 1) {
-        // Si el texto cabe en una sola línea, se imprime en la posición base
-        doc.text(splittedDept[0], 19.4, baseYDept);
-      } else {
-        // Si el texto ocupa varias líneas, se imprime iniciando en multiLineYDept
-        // y se usa lineHeightFactor para espaciar las líneas
-        doc.text(splittedDept, 19.2, multiLineYDept, { lineHeightFactor: 1.2 });
-      }
-
-      // Vigencia
-      doc.setFontSize(21);
-      if (vigencia) {
-        doc.text(vigencia, 18.8, 19.4);
-      } else {
-        console.error("Error: Vigencia no es válida:", vigencia);
-      }
-
-      // Página trasera
+  
+      // Nómina (7pt)
+      doc.setFontSize(7);
+      doc.text(NO_NOMINA.toString(), 18.3, 9.5);
+  
+      // Parentesco (7pt)
+      doc.setFontSize(7);
+      doc.text(parentescoDescripcion, 19.8, 11.42);
+  
+      // Nombre completo (5.5pt, invertido) — 2 líneas a 0.3cm: 12.9 & 13.2
+      doc.setFontSize(5.5);
+      const nombreFull = `${NOMBRE} ${A_PATERNO} ${A_MATERNO}`.trim();
+      drawInvertedText(nombreFull, 18.4, 13.2, 3, 0.7);
+  
+      // Edad (7pt)
+      doc.setFontSize(7);
+      doc.text(`${edad} años`, 17.2, 15.3);
+  
+      // Secretaría (4.5pt, invertido) — también a 0.3cm: 17.0 & 17.3
+      doc.setFontSize(4.5);
+      drawInvertedText(DEPARTAMENTO, 19.2, 17.3, 3, 0.7);
+  
+      // Vigencia (7pt)
+      doc.setFontSize(7);
+      doc.text(vigencia, 18.8, 19.4);
+  
+      // --- Reverso ---
       doc.addPage();
-      doc.addImage(backTemplate, "PNG", 0, 0, 29.7, 21);
-      doc.setFontSize(21);
-      // Fecha de nacimiento
-      const fechaNacimientoTexto = formatFechaLocal(F_NACIMIENTO);
-      if (fechaNacimientoTexto) {
-        doc.text(fechaNacimientoTexto, 12.5, 2.8);
-      } else {
-        console.error(
-          "Error: Fecha de nacimiento no es válida:",
-          fechaNacimientoTexto
-        );
-      }
+      _img(backTemplate, "PNG", 0, 0, 8.5, 5.5);
+  
+      // Fecha de nacimiento (6pt)
+      doc.setFontSize(6);
+      doc.text(formatFechaLocal(F_NACIMIENTO), 12.5, 2.8);
+  
+      // Sangre (6pt)
       doc.text(SANGRE || "Sin información", 9.8, 5);
-      doc.text(ALERGIAS || "Sin información", 7.0, 7.6);
+  
+      // Alergia (6pt)
+      doc.text(ALERGIAS || "Sin información", 7.0, 7.4);
+  
+      // Teléfono (6pt)
       doc.text(TEL_EMERGENCIA || "Sin información", 14, 9.8);
-      doc.setFontSize(21);
-
-      // Define un ancho máximo para el nombre de emergencia
-      const maxWidthEmergencia = 14.5; // Ajusta este valor si necesitas más o menos espacio
-
-      // Divide el texto en líneas
-      const textoEmergencia = NOMBRE_EMERGENCIA || "Sin información";
-      const splittedEmergencia = doc.splitTextToSize(
-        textoEmergencia,
-        maxWidthEmergencia
-      );
-
-      // Posiciones base
-      const baseYEmergencia = 12;
-      const multiLineYEmergencia = baseYEmergencia - 0.8;
-
-      if (splittedEmergencia.length === 1) {
-        // Si solo es una línea, se imprime en su posición normal
-        doc.text(splittedEmergencia[0], 13.1, baseYEmergencia);
-      } else {
-        // Si hay más de una línea, se imprime más arriba y con saltos
-        doc.text(splittedEmergencia, 13.1, multiLineYEmergencia, {
-          lineHeightFactor: 1.2,
-        });
-      }
-
-      // Firma del secretario (más grande)
-      // Se aumenta el tamaño: por ejemplo, de 4.5 x 1.5 a 6 x 2.5, manteniendo la posición original
-      doc.addImage(signatureSecretary, "PNG", 18, 13.2, 6, 2.5);
-
-      // Firma del beneficiario (más abajo)
-      if (firma) {
-        // 'firma' ya es una cadena base64 con el prefijo "data:image/png;base64,..."
-        // Se ajusta la posición para bajarla (por ejemplo, Y = 13 en lugar de 5) y se define su tamaño
-        doc.addImage(firma, "PNG", 3.7, 13, 9, 3);
-      } else {
-        console.warn("No se encontró la firma del beneficiario.");
-      }
-
-      // Guardar el PDF
-      doc.save(`Credencial_${NOMBRE || ""}_${A_PATERNO || ""}.pdf`);
-      //console.log("Credencial generada exitosamente");
-    } catch (error) {
-      console.error("Error al generar la credencial:", error.message);
+  
+      // Nombre de emergencia (6pt, invertido) — 2 líneas a 0.3cm
+      doc.setFontSize(6);
+      const emText = NOMBRE_EMERGENCIA || "Sin información";
+      drawInvertedText(emText, 13.1, 12.1, 4, 0.8);
+  
+      // Firmas
+      doc.addImage(signatureSec, "PNG", 18, 13.2, 6, 2.5);
+      if (firma) doc.addImage(firma, "PNG", 3.7, 13, 9, 3);
+  
+      doc.save(`Credencial_${NOMBRE}_${A_PATERNO}.pdf`);
+    } catch (err) {
+      console.error(err);
       playSound(false);
-      Swal.fire(
-        "Error",
-        "No se pudo generar la credencial. Intenta nuevamente.",
-        "error"
-      );
+      Swal.fire("Error", "No se pudo generar la credencial.", "error");
     }
   };
 
@@ -2039,63 +1926,61 @@ export default function RegistroBeneficiario() {
         // 1. Aquí NO eliminamos directo, sino que guardamos el ID
         setBeneficiaryIdToDelete(idBeneficiario);
         // 2. Abrimos un modal interno (con un input de motivo)
-        setDeleteModalOpen(true)      }
+        setDeleteModalOpen(true);
+      }
     });
   };
 
-// En tu confirmDeleteWithReason:
-const confirmDeleteWithReason = async (motivo) => {
-  if (!motivo.trim()) {
-    Swal.fire("Error", "Por favor, ingresa un motivo.", "warning");
-    return;
-  }
-
-  try {
-    // Manda al backend el beneficiaryIdToDelete y el motivo
-    const response = await fetch("/api/beneficiarios/eliminarBeneficiario", {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        idBeneficiario: beneficiaryIdToDelete,
-        motivoEliminacion: motivo,  // <-- Envías el motivo aquí
-      }),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(
-        errorData.error || "No se pudo eliminar el beneficiario."
-      );
+  // En tu confirmDeleteWithReason:
+  const confirmDeleteWithReason = async (motivo) => {
+    if (!motivo.trim()) {
+      Swal.fire("Error", "Por favor, ingresa un motivo.", "warning");
+      return;
     }
 
-    playSound(true);
-    Swal.fire(
-      "Eliminado",
-      "El beneficiario y su imagen asociada han sido eliminados correctamente.",
-      "success"
-    );
+    try {
+      // Manda al backend el beneficiaryIdToDelete y el motivo
+      const response = await fetch("/api/beneficiarios/eliminarBeneficiario", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          idBeneficiario: beneficiaryIdToDelete,
+          motivoEliminacion: motivo, // <-- Envías el motivo aquí
+        }),
+      });
 
-    // Cierra el modal de motivo
-    setDeleteModalOpen(false);
-    // Limpia id en caso de reuso
-    setBeneficiaryIdToDelete(null);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.error || "No se pudo eliminar el beneficiario."
+        );
+      }
 
-    // Refresca la lista
-    fetchBeneficiarios();
-  } catch (error) {
-    playSound(false);
-    Swal.fire("Error", error.message, "error");
-  }
-};
+      playSound(true);
+      Swal.fire(
+        "Eliminado",
+        "El beneficiario y su imagen asociada han sido eliminados correctamente.",
+        "success"
+      );
 
-  
+      // Cierra el modal de motivo
+      setDeleteModalOpen(false);
+      // Limpia id en caso de reuso
+      setBeneficiaryIdToDelete(null);
+
+      // Refresca la lista
+      fetchBeneficiarios();
+    } catch (error) {
+      playSound(false);
+      Swal.fire("Error", error.message, "error");
+    }
+  };
+
   // Encima del return
-const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-const [deleteReason, setDeleteReason] = useState("");
-
-
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deleteReason, setDeleteReason] = useState("");
 
   /** */
   /**TERMINO DE LA FUNCION */
@@ -3299,66 +3184,47 @@ const [deleteReason, setDeleteReason] = useState("");
           </form>
         </Modal>
 
+        <div>
+          {/* Todo tu JSX (banner, tabla, etc.) */}
 
-
-
-
-  <div>
-    {/* Todo tu JSX (banner, tabla, etc.) */}
-
-    <Modal
-  isOpen={deleteModalOpen}  // Usar deleteModalOpen
-  onRequestClose={() => {
-    setDeleteModalOpen(false);  // Usar setDeleteModalOpen
-    setBeneficiaryIdToDelete(null);
-  }}
-  overlayClassName={styles.modalOverlay}
-  className={styles.modal}
->
-  <div className={styles.modalContent}>
-    <h2>Motivo de la eliminación</h2>
-    <textarea
-      className={styles.inputField}
-      rows={4}
-      placeholder="Explica por qué eliminarás este beneficiario..."
-      value={deleteReason}
-      onChange={(e) => setDeleteReason(e.target.value)}
-    />
-    <div className={styles.buttonGroup}>
-      <button
-        onClick={() => confirmDeleteWithReason(deleteReason)}
-        className={styles.deleteButton}
-      >
-        Eliminar
-      </button>
-      <button
-        onClick={() => {
-          setDeleteModalOpen(false);
-          setBeneficiaryIdToDelete(null);
-        }}
-        className={styles.cancelButton}
-      >
-        Cancelar
-      </button>
-    </div>
-  </div>
-</Modal>
-
-
-  </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
+          <Modal
+            isOpen={deleteModalOpen} // Usar deleteModalOpen
+            onRequestClose={() => {
+              setDeleteModalOpen(false); // Usar setDeleteModalOpen
+              setBeneficiaryIdToDelete(null);
+            }}
+            overlayClassName={styles.modalOverlay}
+            className={styles.modal}
+          >
+            <div className={styles.modalContent}>
+              <h2>Motivo de la eliminación</h2>
+              <textarea
+                className={styles.inputField}
+                rows={4}
+                placeholder="Explica por qué eliminarás este beneficiario..."
+                value={deleteReason}
+                onChange={(e) => setDeleteReason(e.target.value)}
+              />
+              <div className={styles.buttonGroup}>
+                <button
+                  onClick={() => confirmDeleteWithReason(deleteReason)}
+                  className={styles.deleteButton}
+                >
+                  Eliminar
+                </button>
+                <button
+                  onClick={() => {
+                    setDeleteModalOpen(false);
+                    setBeneficiaryIdToDelete(null);
+                  }}
+                  className={styles.cancelButton}
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          </Modal>
+        </div>
 
         <Modal
           key={isViewModalOpen ? "open" : "closed"} // Forzar un re-render al abrir/cerrar
