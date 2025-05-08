@@ -5,17 +5,16 @@ export default async function handler(req, res) {
     const db = await connectToDatabase();
 
     const query = `
-      SELECT 
-        NOMBRE_PACIENTE, 
-        EDAD, 
-        CLAVECONSULTA, 
-        NOMINA, 
-        DEPARTAMENTO
-      FROM LABORATORIOS
-      WHERE FECHA_EMISION >= DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()), 0)
-      AND ESTATUS = 1
-      ORDER BY FECHA_EMISION DESC;
-    `;
+    SELECT
+      NOMBRE_PACIENTE,
+      EDAD,
+      CLAVECONSULTA,
+      NOMINA,
+      DEPARTAMENTO
+    FROM LABORATORIOS
+    WHERE ESTATUS = 1
+    ORDER BY FECHA_EMISION DESC;
+  `;
 
     const result = await db.query(query);
 

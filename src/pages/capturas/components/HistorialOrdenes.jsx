@@ -8,7 +8,7 @@ const HistorialOrdenes = () => {
   const [historial, setHistorial] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [loading, setLoading] = useState(true); // Estado para el loader
+  const [loading, setLoading] = useState(true); //* Estado para el loader
   const itemsPerPage = 5;
 
   useEffect(() => {
@@ -24,7 +24,7 @@ const HistorialOrdenes = () => {
       } catch (error) {
         console.error("Error al obtener el historial:", error);
       } finally {
-        setLoading(false); // Finalizamos la carga
+        setLoading(false); //* Finalizamos la carga
       }
     };
 

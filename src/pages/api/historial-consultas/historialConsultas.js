@@ -39,7 +39,6 @@ export default async function handler(req, res) {
         AND c.clavestatus = 2
         AND c.diagnostico IS NOT NULL
         AND c.motivoconsulta IS NOT NULL
-        AND c.especialidadinterconsulta IS NOT NULL
       ORDER BY c.fechaconsulta DESC
     `;
 
