@@ -45,8 +45,6 @@ export const useMedicamentos = () => {
   // ===========================
   const addMedicamento = async (medicamentoData) => {
     try {
-      // Asegúrate que medicamentoData incluya "precio"
-      // Si viene en string, lo convertimos a float
       const response = await fetch("/api/farmacia/crearMedicamentos", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -57,6 +55,7 @@ export const useMedicamentos = () => {
       });
 
       const data = await response.json();
+
       if (response.ok) {
         // Alerta de éxito
         playSound(true);
@@ -81,34 +80,59 @@ export const useMedicamentos = () => {
         });
         fetchMedicamentos();
       } else {
-        if (data.message === "El medicamento ya está registrado.") {
-          // Alerta de error: medicamento duplicado
-          playSound(false);
-          Swal.fire({
-            icon: "error",
-            title:
-              "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>Error</span>",
-            html: "<p style='color: #fff; font-size: 1.1rem;'>El medicamento ya está registrado en el inventario.</p>",
-            background: "linear-gradient(145deg, #4a0000, #220000)",
-            confirmButtonColor: "#ff1744",
-            confirmButtonText:
-              "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-            customClass: {
-              popup:
-                "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-            },
-            didOpen: () => {
-              const popup = Swal.getPopup();
-              popup.style.boxShadow = "0px 0px 20px 5px rgba(255,23,68,0.9)";
-              popup.style.borderRadius = "15px";
-            },
-          });
-        } else {
+        // Alerta de error (duplicado u otro)
+        playSound(false);
+        Swal.fire({
+          icon: "error",
+          title:
+            "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>Error</span>",
+          html: `<p style='color: #fff; font-size: 1.1rem;'>${
+            data.message === "El medicamento ya está registrado."
+              ? "El medicamento o el EAN ya está registrado en el inventario."
+              : data.message || "Error al registrar el medicamento."
+          }</p>`,
+          background: "linear-gradient(145deg, #4a0000, #220000)",
+          confirmButtonColor: "#ff1744",
+          confirmButtonText:
+            "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
+          customClass: {
+            popup:
+              "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
+          },
+          didOpen: () => {
+            const popup = Swal.getPopup();
+            popup.style.boxShadow = "0px 0px 20px 5px rgba(255,23,68,0.9)";
+            popup.style.borderRadius = "15px";
+          },
+        });
+
+        // Si quieres además que el banner de 'message' aparezca:
+        if (data.message !== "El medicamento ya está registrado.") {
           setMessage(data.message || "Error al registrar el medicamento.");
         }
       }
     } catch (error) {
-      console.error("Error:", error);
+      console.error("Error interno:", error);
+      playSound(false);
+      Swal.fire({
+        icon: "error",
+        title:
+          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>Error</span>",
+        html: "<p style='color: #fff; font-size: 1.1rem;'>Error interno del servidor.</p>",
+        background: "linear-gradient(145deg, #4a0000, #220000)",
+        confirmButtonColor: "#ff1744",
+        confirmButtonText:
+          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
+        customClass: {
+          popup:
+            "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
+        },
+        didOpen: () => {
+          const popup = Swal.getPopup();
+          popup.style.boxShadow = "0px 0px 20px 5px rgba(255,23,68,0.9)";
+          popup.style.borderRadius = "15px";
+        },
+      });
       setMessage("Error interno del servidor.");
     }
   };
@@ -235,7 +259,7 @@ export const useMedicamentos = () => {
       maximo,
       minimo,
       medida,
-      precio // <-- Asegúrate de traer precio
+      precio, // <-- Asegúrate de traer precio
     } = medicamentoData;
 
     try {
@@ -252,7 +276,7 @@ export const useMedicamentos = () => {
           maximo,
           minimo,
           medida: parseInt(medida, 10),
-          precio: parseFloat(precio) // <-- Convertimos a número
+          precio: parseFloat(precio), // <-- Convertimos a número
         }),
       });
 
