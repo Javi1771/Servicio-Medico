@@ -1,0 +1,279 @@
+.pageContainer {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #575757 0%, #353535 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+/* TARJETA PRINCIPAL */
+.card {
+  position: relative;
+  background: rgba(16, 21, 29, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  border-radius: 1rem;
+  width: 100%;
+  max-width: 900px;
+  padding: 2rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  transition: box-shadow 0.3s ease;
+  --mouse-x: 50%;
+  --mouse-y: 50%;
+  overflow: hidden;
+}
+
+.card:hover {
+  box-shadow: 0 0 40px rgba(37, 37, 37, 0.466);
+}
+
+
+/* HEADER */
+.header {
+  position: relative;
+  height: 200px;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+
+.headerImage {
+  position: absolute;
+    top: 0px;
+    left: 94px;
+    width: 23%;
+    height: 97%;
+}
+
+.headerOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.headerText {
+  position: absolute;
+  top: 50%;
+  left: 45%;
+  transform: translateY(-50%);
+  color: #00e5ff;
+}
+
+.subtitle {
+  display: block;
+  font-size: 1rem;
+  color: #00e5ff;
+  text-transform: uppercase;
+  margin-bottom: 0.25rem;
+}
+
+.title {
+  font-size: 2rem;
+  margin: 0;
+  color: #e0f7fa;
+}
+
+/* TÍTULO DE SECCIÓN */
+.sectionTitle {
+  color: #e0f7fa;
+  text-align: center;
+  margin: 1rem 0 2rem;
+  font-size: 1.75rem;
+}
+
+/* CONTENEDOR GLASS PARA WIDGETS */
+.widgetContainer {
+  margin-top: 1rem;
+  background: rgba(16, 21, 29, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(15px);
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
+
+/* CONTROLES */
+.controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.leftControls {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+/* BOTÓN REGRESAR */
+.btnBack {
+  background: #ff5252;
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.btnBack:hover {
+  background: #bd3c3c;
+}
+
+/* INPUT FOLIO */
+.inputFolio {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  color: #e0f7fa;
+  flex: 1;
+}
+
+.inputFolio::placeholder {
+  color: #80deea;
+}
+
+/* BOTÓN BUSCAR */
+.btnSearch {
+  background: #006836;
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: box-shadow 0.2s ease;
+}
+
+.btnSearch:hover {
+  box-shadow: 0 0 10px rgba(0, 230, 118, 0.6);
+}
+
+/* TARJETA FECHA */
+.dateCard {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  color: #e0f7fa;
+  font-size: 0.9rem;
+}
+
+/*ESTILSO 3 TARJETAS DE SURTIMIETNOS INFO*/
+/* Hacemos la tarjeta principal más ancha */
+.card {
+  max-width: 1100px; /* Antes era 900px */
+}
+
+/* Contenedor de las tres cards */
+.infoCards {
+  margin-top: 2rem;
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+/* Estilo base para cada card */
+.infoCard {
+  border-radius: 1rem;        /* Más redondeado */
+  padding: 1.5rem;
+  flex: 1;
+  min-width: 300px;           /* Un poco más ancha */
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Hover lift */
+.infoCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+}
+
+/* Gradiente 1: azul → negro */
+.infoCard1 {
+  background: linear-gradient(135deg, #14549e85 0%, #242a3a 100%);
+  border: 1px solid rgba(12, 66, 128, 0.6);
+  color: #e0f7fa;
+}
+
+/* Gradiente 2: naranja → negro */
+.infoCard2 {
+  background: linear-gradient(135deg, #14549e73 0%, #242a3a 100%);
+  border: 1px solid rgba(12, 66, 128, 0.6);
+  color: #e0f7fa;
+}
+
+/* Gradiente 3: neón verde → negro */
+.infoCard3 {
+  background: linear-gradient(135deg, #026937 0%, #0e1015 100%);
+  border: 1px solid rgba(0, 230, 118, 0.6);
+  color: #e8f5e9;
+}
+
+/* Título dentro de cada card */
+.infoCard h3 {
+  margin: 0 0 1rem;
+  font-size: 1.3rem;
+}
+
+/* Párrafos y negritas */
+.infoCard p {
+  margin: 0.4rem 0;
+  font-size: 0.95rem;
+}
+
+.infoCard p strong {
+  font-weight: 600;
+}
+
+
+/*TERCERA TARJETA PARA ESPACIALISTA*/
+/* --- Especialista & Diagnóstico como infoCard full-width --- */
+.specialistContainer {
+  /* mismos estilos base que .infoCard */
+  background: linear-gradient(135deg, #14549e73 0%, #242a3a 100%);
+  border: 1px solid rgba(12, 66, 128, 0.6);
+  color: #e0f7fa;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(15px);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  margin-top: 2rem;
+  /* para que ocupe toda la fila */
+  flex: 1 1 100%;
+  min-width: 0;
+}
+
+.specialistContainer:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+}
+
+.specialistContainer h3 {
+  margin: 0 0 1rem;
+  color: #00e5ff;
+  font-size: 1.3rem;
+}
+
+/* Iconos */
+.iconUser::before {
+  content: '👤';
+  margin-right: 0.5rem;
+}
+.iconStethoscope::before {
+  content: '🩺';
+  margin-right: 0.5rem;
+}
+
+/* Caja de diagnóstico */
+.diagnosisBox {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-top: 1rem;
+  color: #e0f7fa;
+  font-style: italic;
+  min-height: 80px;
+}
