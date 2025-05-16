@@ -146,7 +146,7 @@ const Home = () => {
       menuOptions.push(
         {
           title: "Catalogos",
-          options: ["Beneficiarios"],
+          options: ["Beneficiarios", "Historial Incapacidades Completo"],
           icon: <FaCapsules className="inline-block mr-2" />,
         },
         {
@@ -184,7 +184,7 @@ const Home = () => {
         },
         {
           title: "Catalogos",
-          options: ["Usuarios y Proveedores"],
+          options: ["Usuarios y Proveedores", "Estudios"],
           icon: <FaBriefcaseMedical className="inline-block mr-2" />,
         },
         {

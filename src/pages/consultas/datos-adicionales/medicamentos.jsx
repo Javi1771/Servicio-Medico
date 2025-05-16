@@ -271,7 +271,6 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
                           className="w-full h-10 rounded-lg bg-gray-700 border border-gray-600 text-white p-2 focus:ring-2 focus:ring-purple-600"
                         >
                           <option value="">Selecciona</option>
-                          <option value={1}>1 mes</option>
                           <option value={2}>2 meses</option>
                           <option value={3}>3 meses</option>
                         </select>

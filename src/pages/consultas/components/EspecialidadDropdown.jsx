@@ -4,13 +4,13 @@ import Select, { createFilter } from "react-select";
 const customStyles = {
   control: (provided, state) => ({
     ...provided,
-    backgroundColor: "#374151", 
-    border: "1px solid #4B5563", 
-    borderRadius: "0.5rem", 
-    height: "3rem", 
+    backgroundColor: "#374151",
+    border: "1px solid #4B5563",
+    borderRadius: "0.5rem",
+    height: "3rem",
     padding: "0.5rem 1rem",
-    fontSize: "1.125rem", 
-    boxShadow: state.isFocused ? "0 0 0 2px #7E22CE" : null, 
+    fontSize: "1.125rem",
+    boxShadow: state.isFocused ? "0 0 0 2px #7E22CE" : null,
     color: "#fff",
   }),
   option: (provided, state) => ({
@@ -27,7 +27,7 @@ const customStyles = {
   }),
   placeholder: (provided) => ({
     ...provided,
-    color: "#D1D5DB", 
+    color: "#D1D5DB",
   }),
   singleValue: (provided) => ({
     ...provided,
@@ -40,24 +40,22 @@ const customStyles = {
 };
 
 const EspecialidadDropdown = ({ especialidades = [], value, onChange }) => {
-  //* Convertimos el arreglo a formato de react-select
-  const opcionesEspecialidades = especialidades.map((esp) => ({
-    value: esp.claveespecialidad,
-    label: esp.especialidad,
-    data: esp,
-  }));
+  //? 1) Excluir la especialidad 38 y luego mapear
+  const opcionesEspecialidades = especialidades
+    .filter(esp => esp.claveespecialidad !== 38)
+    .map((esp) => ({
+      value: esp.claveespecialidad,
+      label: esp.especialidad,
+      data: esp,
+    }));
 
-  //* Agregamos una opción placeholder al inicio de la lista de opciones
+  //? 2) Añadimos el placeholder
   const opcionesConPlaceholder = [
-    {
-      value: "",
-      label: "Seleccionar Especialidad",
-      isDisabled: true,
-    },
+    { value: "", label: "Seleccionar Especialidad", isDisabled: true },
     ...opcionesEspecialidades,
   ];
 
-  //* Si no se ha seleccionado nada, se muestra el placeholder
+  //? 3) Determinar la opción seleccionada
   const opcionSeleccionada = value
     ? opcionesEspecialidades.find((opt) => opt.value === value)
     : opcionesConPlaceholder[0];
