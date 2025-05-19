@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import {
   FaSearch,
@@ -6,8 +6,21 @@ import {
   FaArrowLeft,
   FaBarcode,
 } from "react-icons/fa";
+import Swal from "sweetalert2";
+import withReactContent from "sweetalert2-react-content";
 import SurtimientosTable from "./components/surtimientosTable";
 import useSurtimientos from "../../hooks/farmaciaHook/useSurtimientos";
+
+//* Inicializa SweetAlert2 con React
+const MySwal = withReactContent(Swal);
+
+//* Rutas de sonidos
+const successSound = "/assets/applepay.mp3";
+const errorSound = "/assets/error.mp3";
+const playSound = (isSuccess) => {
+  const audio = new Audio(isSuccess ? successSound : errorSound);
+  audio.play();
+};
 
 const FarmaciaSurtimientos = () => {
   const router = useRouter();
@@ -15,7 +28,30 @@ const FarmaciaSurtimientos = () => {
   const { data, setData, loading, error, fetchSurtimientos } =
     useSurtimientos();
 
+  //! Efecto para lanzar SweetAlert cuando cambie el error
+  useEffect(() => {
+    if (error) {
+      playSound(false);
+      MySwal.fire({
+        icon: "error",
+        title:
+          "<span style='color: #ff0000; font-weight: bold; font-size: 1.5em;'>❌ Código de Barras Incorrecto</span>",
+        html: `<p style='color: #fff; font-size: 1.1em;'>Por favor, verifique nuevamente el código de barras.</p>`,
+        background: "linear-gradient(145deg, #660000, #330000)",
+        confirmButtonColor: "#ff0000",
+        confirmButtonText:
+          "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
+        customClass: {
+          popup:
+            "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,0,0,0.9)] rounded-lg",
+        },
+      });
+    }
+  }, [error]);
+
   const handleSearch = async () => {
+    //* limpia datos previos
+    setData(null);
     await fetchSurtimientos(barcode);
   };
 
@@ -23,13 +59,11 @@ const FarmaciaSurtimientos = () => {
     router.replace("/inicio-servicio-medico");
   };
 
-  //* Función para limpiar la pantalla después de guardar
   const limpiarPantalla = () => {
     setData(null);
     setBarcode("");
   };
 
-  //* Estilos del contenedor principal
   const containerClasses = `
     min-h-screen 
     flex
@@ -41,7 +75,6 @@ const FarmaciaSurtimientos = () => {
     to-cyan-50
   `;
 
-  //* Ajuste de ancho máximo
   const cardMaxWidth = data ? "max-w-6xl" : "max-w-3xl";
 
   return (
@@ -60,7 +93,6 @@ const FarmaciaSurtimientos = () => {
           border-4 border-white
         `}
       >
-        {/* Botón de Regresar */}
         <button
           onClick={handleRegresar}
           className="mb-4 flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md shadow hover:bg-blue-700 transition"
@@ -69,12 +101,10 @@ const FarmaciaSurtimientos = () => {
           <span>Regresar</span>
         </button>
 
-        {/* Título principal */}
         <h1 className="text-3xl font-bold text-center text-gray-800 uppercase tracking-wider mb-6">
           Farmacia Surtimientos
         </h1>
 
-        {/* Input para el código de barras con icono interno */}
         <div className="relative mb-4">
           <label
             htmlFor="barcode"
@@ -83,7 +113,6 @@ const FarmaciaSurtimientos = () => {
             Código de Barras
           </label>
           <div className="relative">
-            {/* Icono dentro del input */}
             <FaBarcode className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <input
               id="barcode"
@@ -112,7 +141,6 @@ const FarmaciaSurtimientos = () => {
           </div>
         </div>
 
-        {/* Botón de Buscar */}
         <button
           onClick={handleSearch}
           className="
@@ -136,7 +164,6 @@ const FarmaciaSurtimientos = () => {
           <span>Buscar</span>
         </button>
 
-        {/* Estado de carga */}
         {loading && (
           <div className="flex flex-col items-center my-6 text-gray-600">
             <div className="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-8 w-8 mb-4 animate-spin border-t-blue-600"></div>
@@ -144,7 +171,7 @@ const FarmaciaSurtimientos = () => {
           </div>
         )}
 
-        {/* Mensaje de error */}
+        {/* Banner de error (opcional, puedes eliminarlo si solo quieres el SweetAlert) */}
         {error && (
           <div className="flex items-center gap-2 bg-red-100 border border-red-300 text-red-700 px-4 py-3 rounded mb-4">
             <FaExclamationCircle className="text-red-600" />
@@ -152,7 +179,6 @@ const FarmaciaSurtimientos = () => {
           </div>
         )}
 
-        {/* Si hay datos, mostrar la tabla */}
         {data ? (
           <div className="mt-6 overflow-auto">
             <SurtimientosTable data={data} resetSurtimiento={limpiarPantalla} />
@@ -171,13 +197,11 @@ const FarmaciaSurtimientos = () => {
         )}
       </div>
 
-      {/* Spinner CSS y animaciones */}
       <style jsx>{`
         .loader {
           border-color: #f3f3f3;
           border-top-color: #3498db;
         }
-        /* Animación de neón para el input con borde azul oscuro */
         .neon-animation:focus {
           animation: neon 1s ease-in-out infinite alternate;
         }
@@ -188,10 +212,6 @@ const FarmaciaSurtimientos = () => {
           to {
             box-shadow: 0 0 15px #003366, 0 0 20px #003366, 0 0 25px #003366;
           }
-        }
-        /* Nueva animación de scanner reemplazada por una animación de pulso en el borde */
-        .scan-line {
-          display: none;
         }
       `}</style>
     </div>
