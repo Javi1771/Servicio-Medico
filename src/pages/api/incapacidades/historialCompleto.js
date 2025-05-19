@@ -33,7 +33,7 @@ export default async function handler(req, res) {
 
     //* Consulta a la base de datos con joins y condiciones
     const result = await pool.request().query(`
-      SELECT TOP (1000)
+      SELECT
         i.claveincapacidad,
         i.folioincapacidad,
         i.fecha,

@@ -7,9 +7,9 @@ const rolePermissions = {
   "1": ["/inicio-servicio-medico", "/consultas", "/especialista", "/capturas/orden-de-estudio-de-laboratorio"], //* Permisos para médico
   "2": ["/inicio-servicio-medico", "/consultas/signos-vitales", "/consultas/face-test", "consultas/signos-vitales-facial"], //* Permisos para enfermera
   "3": ["/inicio-servicio-medico", "/capturas", "/consultas/recetas", "/cancelaciones", "/consultas/components/HistorialMedicamentos"], //* Permisos para capturista
-  "8": ["/inicio-servicio-medico", "/reportes", "/catalogos/beneficiarios"], //* Permisos para RRHH
+  "8": ["/inicio-servicio-medico", "/reportes", "/catalogos/beneficiarios", "/catalogos/historial-incapacidades-completo", "/capturas/incapacidades"], //* Permisos para RRHH
   "9": ["/inicio-servicio-medico", "/farmacia"], //* Permisos para farmacia 
-  "10": ["/inicio-servicio-medico", "/farmacia", "/catalogos/usuarios-y-proveedores", "/consultas", "/dashboard", "/especialista", "/estadisticas"], //* Permisos para director de servicios médicos 
+  "10": ["/inicio-servicio-medico", "/farmacia", "/catalogos/usuarios-y-proveedores", "/catalogos/estudios", "/consultas", "/dashboard", "/especialista", "/estadisticas"], //* Permisos para director de servicios médicos 
 };
 
 export function middleware(request) {

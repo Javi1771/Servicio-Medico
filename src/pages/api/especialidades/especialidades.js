@@ -32,7 +32,6 @@ export default async function handler(req, res) {
       SELECT * 
       FROM especialidades 
       WHERE estatus = 1 
-      AND claveespecialidad <> 38
       ORDER BY especialidad ASC
     `;
 

@@ -54,7 +54,7 @@ export function getBadgeClasses(action) {
 
     /* ───── Recetas ───── */
     case normalized === "surtió una receta":
-      return styles.orangeBadge;
+      return styles.surtirRecetaBadge;
 
     /* ───── Incapacidades ───── */
     case normalized === "asignó una incapacidad":

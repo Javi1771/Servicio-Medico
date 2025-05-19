@@ -213,6 +213,45 @@
   font-size: 0.75rem;
 }
 
+/* Badge con degradado animado */
+.surtirRecetaBadge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  color: #000000;
+  background: linear-gradient(
+    90deg,
+    #e9d5ff,
+    #dbf4ff,
+    #a5b4fc,
+    #67e8f9,
+    #5eead4,
+    #4ade80,
+    #eeef20,
+    #facc15,
+    #f8696b
+  );
+  background-size: 200% 200%;
+  animation: gradientShift 5s ease infinite;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Keyframes para desplazar el degradado */
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
 /* Badge para "Asignó enfermedad crónica" (marrón) */
 .brownBadge {
   background-color: #fce7d2;
@@ -316,7 +355,7 @@
 /* Badge para Cancelaciones (cancelBadge) */
 .cancelBadge {
   background-color: #ffebee; /* Rojo muy claro */
-  color: #c62828;           /* Rojo oscuro */
+  color: #c62828; /* Rojo oscuro */
   border: 1px solid #ef9a9a; /* Rojo intermedio */
   padding: 0.25rem 0.5rem;
   border-radius: 9999px;
@@ -335,9 +374,9 @@
 
 /* Badge para “Subió un aviso” (avisoBadge)  ── color megáfono */
 .avisoBadge {
-  background-color: #e0f2ff;   /* Celeste muy claro */
-  color: #0277bd;              /* Azul megáfono */
-  border: 1px solid #81d4fa;   /* Celeste intermedio */
+  background-color: #e0f2ff; /* Celeste muy claro */
+  color: #0277bd; /* Azul megáfono */
+  border: 1px solid #81d4fa; /* Celeste intermedio */
   padding: 0.25rem 0.5rem;
   border-radius: 9999px;
   font-size: 0.75rem;
@@ -345,9 +384,9 @@
 
 /* Badge para “Subió una propuesta” (ideaBadge) ── foco / idea */
 .propuestaBadge {
-  background-color: #fff9c4;   /* Amarillo pastel */
-  color: #f9a825;              /* Ámbar profundo */
-  border: 1px solid #fdd835;   /* Amarillo medio */
+  background-color: #fff9c4; /* Amarillo pastel */
+  color: #f9a825; /* Ámbar profundo */
+  border: 1px solid #fdd835; /* Amarillo medio */
   padding: 0.25rem 0.5rem;
   border-radius: 9999px;
   font-size: 0.75rem;
@@ -355,9 +394,9 @@
 
 /* Badge para “Dió like a una propuesta” (likeBadge) ── pulgar arriba */
 .likeBadge {
-  background-color: #e8f5e9;   /* Verde muy claro */
-  color: #2e7d32;              /* Verde intenso */
-  border: 1px solid #a5d6a7;   /* Verde medio */
+  background-color: #e8f5e9; /* Verde muy claro */
+  color: #2e7d32; /* Verde intenso */
+  border: 1px solid #a5d6a7; /* Verde medio */
   padding: 0.25rem 0.5rem;
   border-radius: 9999px;
   font-size: 0.75rem;
@@ -401,7 +440,6 @@
 .detailRow {
   filter: none !important;
 }
-
 
 /* Contenedor para la paginación */
 .pagination {

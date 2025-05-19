@@ -15,6 +15,7 @@ import {
   FaUsers,
   FaEye,
   FaEyeSlash,
+  FaSpinner,
 } from "react-icons/fa";
 import Swal from "sweetalert2";
 import Image from "next/image"; //* Asegúrate de importar Image desde next/image
@@ -37,6 +38,7 @@ export default function UsuariosTable() {
   const [cellError, setCellError] = useState(""); //! Error de celular
 
   const [isFormComplete, setIsFormComplete] = useState(false); //* Estado para controlar si el formulario es válido
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [showPassword, setShowPassword] = useState(false); //* Estado para el ojo de visibilidad
   const togglePasswordVisibility = () => {
@@ -202,6 +204,7 @@ export default function UsuariosTable() {
   const toggleModal = () => {
     setShowModal(!showModal);
     if (showModal) {
+      setIsSubmitting(false);
       setNewUsuario({
         nombreproveedor: "",
         direccionproveedor: "",
@@ -332,7 +335,8 @@ export default function UsuariosTable() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    //console.log("handleSubmit fue llamado");
+    if (isSubmitting) return; //! evita doble envío
+    setIsSubmitting(true);
 
     if (!isUsuarioValido) {
       playSound(false); //! Reproducir sonido de error
@@ -524,6 +528,8 @@ export default function UsuariosTable() {
             "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
         },
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -1122,15 +1128,28 @@ export default function UsuariosTable() {
                   <div className="flex-grow"></div>
                   <button
                     type="submit"
-                    className={`py-2 px-6 rounded-lg shadow-lg font-bold ${
-                      isFormComplete
-                        ? "bg-teal-500 hover:bg-teal-600 text-white"
-                        : "bg-gray-500 text-gray-300 cursor-not-allowed"
-                    }`}
-                    disabled={!isFormComplete}
+                    disabled={!isFormComplete || isSubmitting}
                     onClick={handleSubmit}
+                    className={`
+                      py-2 px-6 rounded-lg shadow-lg font-bold flex items-center justify-center
+                      ${
+                        isFormComplete && !isSubmitting
+                          ? "bg-teal-500 hover:bg-teal-600 text-white"
+                          : "bg-gray-500 text-gray-300 cursor-not-allowed"
+                      }
+                      ${isSubmitting ? "opacity-75 cursor-wait" : ""}
+                    `}
                   >
-                    {selectedUsuario ? "Actualizar Usuario" : "Agregar Usuario"}
+                    {isSubmitting ? (
+                      <>
+                        <FaSpinner className="animate-spin mr-2" />
+                        Cargando...
+                      </>
+                    ) : selectedUsuario ? (
+                      "Actualizar Usuario"
+                    ) : (
+                      "Agregar Usuario"
+                    )}
                   </button>
                 </div>
               </div>
