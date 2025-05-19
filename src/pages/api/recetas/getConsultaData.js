@@ -36,7 +36,7 @@ export async function getConsultaData(claveConsulta) {
     //console.log("🔍 Conectando a la base de datos...");
     const db = await connectToDatabase();
 
-    //console.log("📡 Buscando consulta en la BD con claveconsulta:", claveConsulta);
+    console.log("📡 Buscando consulta en la BD con claveconsulta:", claveConsulta);
 
     //? Consulta a la tabla "consultas"
     const consultaQuery = `
@@ -110,7 +110,7 @@ export async function getConsultaData(claveConsulta) {
       .input("claveConsulta", sql.VarChar, claveConsulta)
       .query(recetaQuery);
 
-    //console.log("✅ Datos de la receta obtenidos:", recetaResult.recordset);
+    console.log("✅ Datos de la receta obtenidos:", recetaResult.recordset);
 
     //? Consulta a la tabla "incapacidades"
     const incapacidadesQuery = `
@@ -154,7 +154,7 @@ export async function getConsultaData(claveConsulta) {
       .input("claveConsulta", sql.VarChar, claveConsulta)
       .query(detalleEspecialidadQuery);
 
-    //console.log("✅ Datos de detalleEspecialidad obtenidos:", detalleEspecialidadResult.recordset);
+    console.log("✅ Datos de detalleEspecialidad obtenidos:", detalleEspecialidadResult.recordset);
 
     //? Nueva consulta para obtener el FOLIO_SURTIMIENTO basado en la claveConsulta
     const folioSurtimientoQuery = `
@@ -172,7 +172,7 @@ export async function getConsultaData(claveConsulta) {
     const folioSurtimiento =
       folioSurtimientoResult.recordset[0]?.FOLIO_SURTIMIENTO || null;
 
-    //console.log("✅ FOLIO_SURTIMIENTO obtenido:", folioSurtimiento);
+    console.log("✅ FOLIO_SURTIMIENTO obtenido:", folioSurtimiento);
 
     return {
       consulta: consultaData,
@@ -182,7 +182,7 @@ export async function getConsultaData(claveConsulta) {
       folioSurtimiento, //* Enviar al frontend
     };
   } catch (error) {
-    //console.error("❌ Error en getConsultaData:", error);
+    console.error("❌ Error en getConsultaData:", error);
     throw error;
   }
 }

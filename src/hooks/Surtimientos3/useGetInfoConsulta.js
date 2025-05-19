@@ -26,10 +26,3 @@ export function useGetInfoConsulta() {
 
   return { data, error, loading, getInfoConsulta };
 }
-
-
-
-
-
-
-
