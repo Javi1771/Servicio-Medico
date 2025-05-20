@@ -118,20 +118,62 @@ const SignosVitales = () => {
 
   const handleBeneficiarySelect = (index) => {
     const selected = beneficiaryData[index];
+    const fechaActual = new Date();
 
+    //? 1. ¿Es discapacitado? (convertimos a número)
+    if (Number(selected.ESDISCAPACITADO) === 1) {
+      //* 1.a. Si no tiene URL_INCAP, avisar pero permitir avanzar
+      if (!selected.URL_INCAP) {
+        playSound(false);
+        MySwal.fire({
+          icon: "info",
+          title:
+            "<span style='color: #00bcd4; font-weight: bold; font-size: 1.5em;'>ℹ️ Falta incapacidad</span>",
+          html: `<p style='color: #fff; font-size: 1.1em;'>El beneficiario <strong>${selected.NOMBRE} ${selected.A_PATERNO} ${selected.A_MATERNO}</strong> es discapacitado pero no ha subido su documento de incapacidad. Súbelo a la brevedad.</p>`,
+          background: "linear-gradient(145deg, #004d40, #00251a)",
+          confirmButtonColor: "#00bcd4",
+          confirmButtonText:
+            "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
+          customClass: {
+            popup:
+              "border border-cyan-600 shadow-[0px_0px_20px_5px_rgba(0,188,212,0.9)] rounded-lg",
+          },
+        });
+      }
+      setSelectedBeneficiary(selected);
+      return;
+    }
+
+    //? 2. Si NO es discapacitado, ¿es estudiante?
+    if (Number(selected.ESESTUDIANTE) === 0) {
+      playSound(false);
+      MySwal.fire({
+        icon: "error",
+        title:
+          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ No es estudiante</span>",
+        html: `<p style='color: #fff; font-size: 1.1em;'>El beneficiario <strong>${selected.NOMBRE} ${selected.A_PATERNO} ${selected.A_MATERNO}</strong> no está registrado como estudiante.</p>`,
+        background: "linear-gradient(145deg, #4a0000, #220000)",
+        confirmButtonColor: "#ff1744",
+        confirmButtonText:
+          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
+        customClass: {
+          popup:
+            "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
+        },
+      });
+      return;
+    }
+
+    //? 3. Es estudiante, validar vigencia (igual que antes)
     if (selected.VIGENCIA_ESTUDIOS) {
       const vigenciaEstudios = new Date(selected.VIGENCIA_ESTUDIOS);
-      const fechaActual = new Date();
-
-      //* Compara las fechas usando getTime() para asegurarte de que se comparan correctamente
       if (vigenciaEstudios.getTime() < fechaActual.getTime()) {
-        //! Mostrar alerta si la constancia está vencida
         playSound(false);
         MySwal.fire({
           icon: "warning",
           title:
             "<span style='color: #ff9800; font-weight: bold; font-size: 1.5em;'>⚠️ Constancia vencida</span>",
-          html: `<p style='color: #fff; font-size: 1.1em;'>El beneficiario <strong>${selected.NOMBRE} ${selected.A_PATERNO} ${selected.A_MATERNO}</strong> tiene la constancia de estudios vencida. Seleccionando un beneficiario válido...</p>`,
+          html: `<p style='color: #fff; font-size: 1.1em;'>El beneficiario <strong>${selected.NOMBRE} ${selected.A_PATERNO} ${selected.A_MATERNO}</strong> tiene la constancia vencida. Buscando otro válido...</p>`,
           background: "linear-gradient(145deg, #4a2600, #220f00)",
           confirmButtonColor: "#ff9800",
           confirmButtonText:
@@ -142,34 +184,29 @@ const SignosVitales = () => {
           },
         });
 
-        //* Buscar el siguiente beneficiario válido
-        const validBeneficiaryIndex = beneficiaryData.findIndex(
-          (beneficiary) => {
-            if (beneficiary.VIGENCIA_ESTUDIOS) {
-              const vigenciaEstudios = new Date(beneficiary.VIGENCIA_ESTUDIOS);
-              const fechaActual = new Date();
-              return vigenciaEstudios.getTime() >= fechaActual.getTime(); //* Beneficiario con vigencia válida
-            }
-            return true; //* Beneficiario sin validación de vigencia
+        //* buscar siguiente con vigencia válida
+        const validIndex = beneficiaryData.findIndex((b) => {
+          if (b.VIGENCIA_ESTUDIOS) {
+            return (
+              new Date(b.VIGENCIA_ESTUDIOS).getTime() >= fechaActual.getTime()
+            );
           }
-        );
+          return true;
+        });
 
-        if (validBeneficiaryIndex !== -1) {
-          //* Seleccionar automáticamente el primer beneficiario válido
-          setSelectedBeneficiary(beneficiaryData[validBeneficiaryIndex]);
-          document.querySelector("select").value = validBeneficiaryIndex; //* Actualizar el select
+        if (validIndex !== -1) {
+          setSelectedBeneficiary(beneficiaryData[validIndex]);
+          document.querySelector("select").value = validIndex;
         } else {
-          //* Si no hay beneficiarios válidos, limpiar todo
           setSelectedBeneficiary(null);
           setBeneficiaryData([]);
-          setConsultaSeleccionada("empleado"); //! Cambiar a "empleado" si no hay beneficiarios
+          setConsultaSeleccionada("empleado");
         }
-
         return;
       }
     }
 
-    //* Si el beneficiario es válido, actualizar la selección
+    //? 4. Todo OK
     setSelectedBeneficiary(selected);
   };
 

@@ -324,10 +324,20 @@ export default function UsuariosTable() {
   const handleEditUser = (usuario) => {
     setSelectedUsuario(usuario);
 
-    // Copiamos todos los campos y añadimos "usuarioOriginal"
     setNewUsuario({
-      ...usuario,
-      usuarioOriginal: usuario.usuario, // <-- clave para identificar el registro en la BD
+      nombreproveedor: usuario.nombreproveedor ?? "",
+      direccionproveedor: usuario.direccionproveedor ?? "",
+      coloniaproveedor: usuario.coloniaproveedor ?? "",
+      telefonoproveedor: usuario.telefonoproveedor ?? "",
+      celularproveedor: usuario.celularproveedor ?? "",
+      cedulaproveedor: usuario.cedulaproveedor ?? "",
+      claveespecialidad: usuario.claveespecialidad ?? "",
+      clavetipousuario: usuario.clavetipousuario ?? "",
+      usuario: usuario.usuario ?? "",
+      password: "", // siempre inicia vacío al editar
+      costo: usuario.costo ?? "",
+      usuarioOriginal: usuario.usuario, // clave para la BD
+      claveproveedor: usuario.claveproveedor, // clave para la BD
     });
 
     setShowModal(true);

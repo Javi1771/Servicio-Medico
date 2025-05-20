@@ -8,7 +8,6 @@ function getUserIdFromCookie(req) {
     .split("; ")
     .find((c) => c.startsWith("claveusuario="));
   if (!cookie) return null;
-
   const claveUsuario = cookie.split("=")[1];
   return claveUsuario ? Number(claveUsuario) : null;
 }
@@ -20,13 +19,6 @@ export default async function handler(req, res) {
 
   const { folioSurtimiento, detalle, recetaCompletada, cost, fechaDespacho } =
     req.body;
-
-  //console.log("📌 Datos recibidos en la API:");
-  //console.log(`   🔹 Folio: ${folioSurtimiento}`);
-  //console.log(`   🔹 Receta Completada: ${recetaCompletada}`);
-  //console.log(`   🔹 Costo: ${cost}`);
-  //console.log(`   🔹 Fecha Despacho Recibida: ${fechaDespacho}`);
-  //console.log("   🔹 Detalle recibido:", detalle);
 
   if (!folioSurtimiento || !detalle) {
     return res
@@ -40,137 +32,124 @@ export default async function handler(req, res) {
     await transaction.begin();
 
     try {
-      //* 🔹 Actualizar stock y detalleSurtimientos para cada detalle
+      //* 🔹 1) Actualizar stock y detalleSurtimientos
       for (const item of detalle) {
         const delta = item.delta;
-
         if (delta > 0) {
-          // console.log(
-          //   `📌 Actualizando stock de medicamento ${item.claveMedicamento}`
-          // );
-          // console.log(`   🔹 Descontando ${delta} piezas`);
-
-          const updateMed = `
-            UPDATE medicamentos
-            SET piezas = piezas - @delta
-            WHERE claveMedicamento = @claveMedicamento
-          `;
           await transaction
             .request()
             .input("delta", sql.Int, delta)
             .input("claveMedicamento", sql.NVarChar(50), item.claveMedicamento)
-            .query(updateMed);
+            .query(`
+              UPDATE medicamentos
+              SET piezas = piezas - @delta
+              WHERE claveMedicamento = @claveMedicamento
+            `);
         }
 
-        // console.log(
-        //   `📌 Actualizando detalleSurtimientos ID ${item.idSurtimiento}`
-        // );
-        // console.log(`   🔹 Nuevo estatus: ${item.estatus}`);
-        // console.log(`   🔹 Cantidad entregada: ${item.delivered}`);
-
-        const updateDetalle = `
-          UPDATE detalleSurtimientos
-          SET estatus = @estatus,
-              entregado = @delivered
-          WHERE idSurtimiento = @idSurtimiento
-        `;
         await transaction
           .request()
           .input("estatus", sql.Int, item.estatus)
           .input("delivered", sql.Int, item.delivered)
           .input("idSurtimiento", sql.Int, item.idSurtimiento)
-          .query(updateDetalle);
+          .query(`
+            UPDATE detalleSurtimientos
+            SET estatus   = @estatus,
+                entregado = @delivered
+            WHERE idSurtimiento = @idSurtimiento
+          `);
       }
 
-    //* 🔹 Si la receta está completada, actualizar el estatus del surtimiento
-    if (recetaCompletada) {
-      //? 1) Actualizar SURTIMIENTOS
-      const updateSurtimiento = `
-        UPDATE SURTIMIENTOS
-        SET ESTATUS        = 0,
-            FECHA_DESPACHO = @fechaDespacho,
-            COSTO          = @cost
-        WHERE FOLIO_SURTIMIENTO = @folioSurtimiento
-      `;
-      await transaction
-        .request()
-        .input("folioSurtimiento", sql.Int, folioSurtimiento)
-        .input("fechaDespacho",    sql.VarChar, fechaDespacho)  
-        .input("cost",             sql.Numeric(18, 2), cost || 0)
-        .query(updateSurtimiento);
-      console.log("✅ SURTIMIENTOS actualizado:", folioSurtimiento);
-
-      //? 2) Obtener el FOLIO_PASE asociado
-      const folioPaseResult = await transaction
-        .request()
-        .input("folioSurtimiento", sql.Int, folioSurtimiento)
-        .query(`
-          SELECT FOLIO_PASE
-          FROM SURTIMIENTOS
-          WHERE FOLIO_SURTIMIENTO = @folioSurtimiento
-        `);
-      const folioPase = folioPaseResult.recordset[0]?.FOLIO_PASE;
-      console.log("🔎 FOLIO_PASE obtenido:", folioPase);
-
-      //? 3) Actualizar detalleReceta.surtimientoActual = 1 para ese folioPase
-      if (folioPase) {
-        const updateDetalle = `
-          UPDATE detalleReceta
-          SET surtimientoActual = 1
-          WHERE folioReceta = @folioPase
-        `;
+      //* 🔹 2) Si la receta está completada, actualizamos SURTIMIENTOS y detalleReceta
+      if (recetaCompletada) {
+        // 2.1) Actualizar SURTIMIENTOS
         await transaction
           .request()
-          .input("folioPase", sql.Int, folioPase)
-          .query(updateDetalle);
-        console.log("✅ detalleReceta.surtimientoActual actualizado para folioReceta =", folioPase);
-      } else {
-        console.warn("⚠ No se encontró FOLIO_PASE para actualizar detalleReceta.");
-      }
-    } else {
-      //console.log("⚠️ Receta NO completada, no se realizaron actualizaciones de surtimiento.");
-    }
+          .input("folioSurtimiento", sql.Int, folioSurtimiento)
+          .input("fechaDespacho", sql.VarChar, fechaDespacho)
+          .input("cost", sql.Numeric(18, 2), cost || 0)
+          .query(`
+            UPDATE SURTIMIENTOS
+            SET ESTATUS        = 0,
+                FECHA_DESPACHO = @fechaDespacho,
+                COSTO          = @cost
+            WHERE FOLIO_SURTIMIENTO = @folioSurtimiento
+          `);
 
-      //* 👇 Finaliza la transacción con éxito
+        // 2.2) Obtener FOLIO_PASE
+        const folioPaseResult = await transaction
+          .request()
+          .input("folioSurtimiento", sql.Int, folioSurtimiento)
+          .query(`
+            SELECT FOLIO_PASE
+            FROM SURTIMIENTOS
+            WHERE FOLIO_SURTIMIENTO = @folioSurtimiento
+          `);
+        const folioPase = folioPaseResult.recordset[0]?.FOLIO_PASE;
+
+        // 2.3) Ajustar detalleReceta solo si seAsignoResurtimiento = 1
+        if (folioPase) {
+          const recetaInfo = await transaction
+            .request()
+            .input("folioPase", sql.Int, folioPase)
+            .query(`
+              SELECT cantidadMeses,
+                     seAsignoResurtimiento,
+                     surtimientoActual
+              FROM detalleReceta
+              WHERE folioReceta = @folioPase
+            `);
+          const row = recetaInfo.recordset[0] || {};
+          const cantidadMeses = row.cantidadMeses || 0;
+
+          await transaction
+            .request()
+            .input("folioPase", sql.Int, folioPase)
+            .input("cantidadMeses", sql.Int, cantidadMeses)
+            .query(`
+              UPDATE detalleReceta
+              SET surtimientoActual = CASE
+                -- solo suma si ya se había asignado resurtimiento (valor = 1)
+                WHEN seAsignoResurtimiento = 1
+                     AND ISNULL(surtimientoActual, 0) < @cantidadMeses
+                  THEN ISNULL(surtimientoActual, 0) + 1
+                -- en cualquier otro caso, deja el valor tal cual
+                ELSE surtimientoActual
+              END
+              WHERE folioReceta = @folioPase
+            `);
+        }
+      }
+
+      //* 👇 3) Commit de la transacción
       await transaction.commit();
-      // console.log(
-      //   `✅ Transacción completada con éxito para folio ${folioSurtimiento}`
-      // );
 
       //* ======================
-      //* Registrar la actividad
+      //* 4) Registrar la actividad
       //* ======================
       try {
         const idUsuario = getUserIdFromCookie(req);
-        let ip =
-          (req.headers["x-forwarded-for"] &&
-            req.headers["x-forwarded-for"].split(",")[0].trim()) ||
+        const ip =
+          req.headers["x-forwarded-for"]?.split(",")[0].trim() ||
           req.connection?.remoteAddress ||
           req.socket?.remoteAddress ||
-          (req.connection?.socket ? req.connection.socket.remoteAddress : null);
-
+          null;
         const userAgent = req.headers["user-agent"] || "";
 
         if (idUsuario) {
-          //* Inserta en ActividadUsuarios, usando la columna IdSurtimiento
-          //* para almacenar el folioSurtimiento recién procesado
           await db
             .request()
             .input("IdUsuario", sql.Int, idUsuario)
             .input("Accion", sql.VarChar, "Surtió una receta")
             .input("DireccionIP", sql.VarChar, ip)
             .input("AgenteUsuario", sql.VarChar, userAgent)
-            .input("IdSurtimiento", sql.Int, folioSurtimiento).query(`
+            .input("IdSurtimiento", sql.Int, folioSurtimiento)
+            .query(`
               INSERT INTO ActividadUsuarios
                 (IdUsuario, Accion, FechaHora, DireccionIP, AgenteUsuario, IdSurtimiento)
               VALUES
                 (@IdUsuario, @Accion, GETDATE(), @DireccionIP, @AgenteUsuario, @IdSurtimiento)
             `);
-          //console.log("✅ Actividad registrada en la tabla ActividadUsuarios.");
-        } else {
-          // console.log(
-          //   "⚠️ No se pudo registrar la actividad: falta idUsuario (cookie)."
-          // );
         }
       } catch (errorAct) {
         console.error("❌ Error al registrar la actividad:", errorAct);

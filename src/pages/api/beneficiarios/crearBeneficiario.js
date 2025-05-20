@@ -32,6 +32,7 @@ export default async function handler(req, res) {
     ineUrl,
     cartaNoAfiliacionUrl,
     actaConcubinatoUrl,
+    actaDependenciaEconomicaUrl,
     urlIncap,
     descriptorFacial,
     //-------------------- NUEVO CAMPO --------------------//
@@ -58,6 +59,8 @@ export default async function handler(req, res) {
       255
     );
     const truncatedActaConcubinatoUrl = actaConcubinatoUrl?.substring(0, 255);
+    const truncatedActaDependenciaEconomicaUrl =
+      actaDependenciaEconomicaUrl?.substring(0, 255);
     const truncatedUrlIncap = urlIncap?.substring(0, 255);
 
     const pool = await connectToDatabase();
@@ -89,6 +92,7 @@ export default async function handler(req, res) {
       .input("ineUrl", truncatedIneUrl)
       .input("cartaNoAfiliacionUrl", truncatedCartaNoAfiliacionUrl)
       .input("actaConcubinatoUrl", truncatedActaConcubinatoUrl)
+      .input("actaDependenciaEconomicaUrl", truncatedActaDependenciaEconomicaUrl)
       .input("urlIncap", truncatedUrlIncap)
       //-------------------- NUEVO CAMPO --------------------//
       .input("firma", firma || "") // Guardamos la firma en la BD
@@ -99,7 +103,7 @@ export default async function handler(req, res) {
           TEL_EMERGENCIA, NOMBRE_EMERGENCIA, ESESTUDIANTE, ESDISCAPACITADO, 
           VIGENCIA_ESTUDIOS, FOTO_URL, URL_CONSTANCIA, 
           URL_CURP, URL_ACTA_NAC, URL_ACTAMATRIMONIO, URL_INE, URL_NOISSTE, 
-          URL_CONCUBINATO, URL_INCAP, DESCRIPTOR_FACIAL,FIRMA
+          URL_CONCUBINATO, URL_INCAP, DESCRIPTOR_FACIAL, FIRMA, URL_ACTADEPENDENCIAECONOMICA
         )
         OUTPUT INSERTED.ID_BENEFICIARIO
         VALUES (
@@ -108,7 +112,7 @@ export default async function handler(req, res) {
           @telEmergencia, @nombreEmergencia, @esEstudiante, @esDiscapacitado, 
           @vigenciaEstudios, @imageUrl, @urlConstancia, 
           @urlCurp, @urlActaNac, @actaMatrimonioUrl, @ineUrl, @cartaNoAfiliacionUrl, 
-          @actaConcubinatoUrl, @urlIncap, @descriptorFacial, @firma
+          @actaConcubinatoUrl, @urlIncap, @descriptorFacial, @firma, @actaDependenciaEconomicaUrl
         )
       `);
 

@@ -326,21 +326,71 @@ const CrearPaseNuevo = () => {
     setSelectedPersona(persona);
   };
 
-  const handleBeneficiarySelect = (index) => {
+  const handleBeneficiarySelect = (rawIndex) => {
+    const index = Number(rawIndex);
     const selected = beneficiaryData[index];
+    const now = new Date();
 
+    //* Si no es parentesco = 2 (hijo), permitimos cualquier otro directamente
+    if (Number(selected.PARENTESCO) !== 2) {
+      setSelectedBeneficiary(selected);
+      return;
+    }
+
+    //? 1) Si es discapacitado
+    if (Number(selected.ESDISCAPACITADO) === 1) {
+      //! 1.a) Si falta documento de incapacidad
+      if (!selected.URL_INCAP) {
+        playSound(false);
+        MySwal.fire({
+          icon: "info",
+          title:
+            "<span style='color: #00bcd4; font-weight: bold; font-size: 1.5em;'>ℹ️ Falta incapacidad</span>",
+          html: `<p style='color: #fff; font-size: 1.1em;'>El beneficiario <strong>${selected.NOMBRE} ${selected.A_PATERNO} ${selected.A_MATERNO}</strong> es discapacitado y aún no ha subido su documento de incapacidad.</p>`,
+          background: "linear-gradient(145deg, #004d40, #00251a)",
+          confirmButtonColor: "#00bcd4",
+          confirmButtonText:
+            "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
+          customClass: {
+            popup:
+              "border border-blue-600 shadow-[0px_0px_20px_5px_rgba(0,188,212,0.9)] rounded-lg",
+          },
+        });
+      }
+      setSelectedBeneficiary(selected);
+      return;
+    }
+
+    //? 2) No es discapacitado → debe ser estudiante
+    if (Number(selected.ESESTUDIANTE) === 0) {
+      playSound(false);
+      MySwal.fire({
+        icon: "error",
+        title:
+          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ No es estudiante</span>",
+        html: `<p style='color: #fff; font-size: 1.1em;'>El beneficiario <strong>${selected.NOMBRE} ${selected.A_PATERNO} ${selected.A_MATERNO}</strong> no está registrado como estudiante.</p>`,
+        background: "linear-gradient(145deg, #4a0000, #220000)",
+        confirmButtonColor: "#ff1744",
+        confirmButtonText:
+          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
+        customClass: {
+          popup:
+            "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
+        },
+      });
+      return;
+    }
+
+    //? 3) Es estudiante → validar vigencia de estudios
     if (selected.VIGENCIA_ESTUDIOS) {
-      const vigenciaEstudios = new Date(selected.VIGENCIA_ESTUDIOS);
-      const fechaActual = new Date();
-
-      if (vigenciaEstudios.getTime() < fechaActual.getTime()) {
-        //! Mostrar alerta de constancia vencida
+      const vigencia = new Date(selected.VIGENCIA_ESTUDIOS);
+      if (vigencia.getTime() < now.getTime()) {
         playSound(false);
         MySwal.fire({
           icon: "warning",
           title:
             "<span style='color: #ff9800; font-weight: bold; font-size: 1.5em;'>⚠️ Constancia vencida</span>",
-          html: `<p style='color: #fff; font-size: 1.1em;'>El beneficiario <strong>${selected.NOMBRE} ${selected.A_PATERNO} ${selected.A_MATERNO}</strong> tiene la constancia de estudios vencida. Seleccionando un beneficiario válido...</p>`,
+          html: `<p style='color: #fff; font-size: 1.1em;'>El beneficiario <strong>${selected.NOMBRE} ${selected.A_PATERNO} ${selected.A_MATERNO}</strong> tiene la constancia de estudios vencida.</p>`,
           background: "linear-gradient(145deg, #4a2600, #220f00)",
           confirmButtonColor: "#ff9800",
           confirmButtonText:
@@ -350,31 +400,11 @@ const CrearPaseNuevo = () => {
               "border border-yellow-600 shadow-[0px_0px_20px_5px_rgba(255,152,0,0.9)] rounded-lg",
           },
         });
-
-        //* Buscar el siguiente beneficiario válido
-        const validBeneficiaryIndex = beneficiaryData.findIndex((b) => {
-          if (b.VIGENCIA_ESTUDIOS) {
-            const vig = new Date(b.VIGENCIA_ESTUDIOS);
-            return vig.getTime() >= fechaActual.getTime(); //* Vigente
-          }
-          return true; //* O no requiere vigencia
-        });
-
-        if (validBeneficiaryIndex !== -1) {
-          //* Seleccionar automáticamente el primer beneficiario válido
-          setSelectedBeneficiary(beneficiaryData[validBeneficiaryIndex]);
-          document.querySelector("select").value = validBeneficiaryIndex;
-        } else {
-          //* Si no hay beneficiarios válidos, limpiar y cambiar a empleado
-          setSelectedBeneficiary(null);
-          setBeneficiaryData([]);
-          setSelectedPersona("empleado");
-        }
         return;
       }
     }
 
-    //* Si el beneficiario es válido, actualizar la selección
+    //? 4) Todo OK: asignamos beneficiario
     setSelectedBeneficiary(selected);
   };
 

@@ -62,12 +62,16 @@ export default function RegistroBeneficiario() {
     actaMatrimonioUrl: "",
     ineUrl: "",
     cartaNoAfiliacionUrl: "",
-    actaConcubinatoUrl: "", // Nuevo campo para Acta de Concubinato
+    actaConcubinatoUrl: "",
+    actaDependenciaEconomicaUrl: "",
     descriptorFacial: "",
     firma: "",
   });
 
   const [beneficiaryIdToDelete, setBeneficiaryIdToDelete] = useState(null);
+
+  const isPadreOMadre =
+    Number(formData.parentesco) === 4 || Number(formData.parentesco) === 5;
 
   const showCheckboxes =
     (formData.parentesco === "2" || formData.parentesco === 2) &&
@@ -735,6 +739,52 @@ export default function RegistroBeneficiario() {
     }
   };
 
+  const handleFileUploadActaEconomica = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Preparamos FormData con toda la información necesaria
+    const formDataData = new FormData();
+    formDataData.append("file", file);
+    formDataData.append("numNomina", numNomina);
+    formDataData.append("parentesco", formData.parentesco); // "1", "2", etc.
+    formDataData.append("nombre", formData.nombre);
+    formDataData.append("aPaterno", formData.aPaterno);
+    formDataData.append("aMaterno", formData.aMaterno);
+
+    try {
+      const response = await fetch("/api/beneficiarios/uploadActaEconomica", {
+        method: "POST",
+        body: formDataData,
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Guardar la URL del Acta de Dependencia Económica
+        setFormData((prev) => ({
+          ...prev,
+          urlActaEconomica: data.url,
+        }));
+      } else {
+        playSound(false);
+        Swal.fire(
+          "Error",
+          "Error al subir el Acta de Dependencia Económica. Intenta nuevamente.",
+          "error"
+        );
+      }
+    } catch (error) {
+      console.error("Error al subir el Acta de Dependencia Económica:", error);
+      playSound(false);
+      Swal.fire(
+        "Error",
+        "No se pudo subir el Acta de Dependencia Económica.",
+        "error"
+      );
+    }
+  };
+
   const handleFileUpload = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
@@ -1220,9 +1270,15 @@ export default function RegistroBeneficiario() {
 
       // Si cambia el parentesco, recalcular lógica
       if (name === "parentesco") {
-        const isHijo = Number(value) === 2; // Comparar correctamente con número
+        const id = Number(value);
+        const isHijo = id === 2;
         const isMenor16 = prevData.edad < 16;
+        const isPadreOMadre = id === 4 || id === 5;
 
+        // 1️⃣ Guardar el parentesco como número
+        updatedData.parentesco = id;
+
+        // 2️⃣ Recalcular vigencia para Hijo(a) <16
         if (isHijo && isMenor16) {
           const sixteenYearsDate = calculateTimeUntil16(prevData.fNacimiento);
           updatedData.vigenciaEstudios = sixteenYearsDate
@@ -1233,7 +1289,13 @@ export default function RegistroBeneficiario() {
               })
             : "";
         } else {
-          updatedData.vigenciaEstudios = ""; // Limpiar vigencia si no aplica
+          updatedData.vigenciaEstudios = ""; // Limpia vigencia si no aplica
+        }
+
+        // 3️⃣ Limpiar documentos de Padre/Madre si cambió a otro parentesco
+        if (!isPadreOMadre) {
+          updatedData.actaDependenciaEconomicaUrl = "";
+          updatedData.cartaNoAfiliacionUrl = "";
         }
       }
 
@@ -1908,6 +1970,7 @@ export default function RegistroBeneficiario() {
       actaConcubinatoUrl: beneficiario.URL_CONCUBINATO || "",
       urlIncap: beneficiario.URL_INCAP || "",
       descriptorFacial: beneficiario.DESCRIPTOR_FACIAL || "",
+      actaDependenciaEconomicaUrl: beneficiario.URL_DEPENDENCIA_ECONOMICA || "",
       firma: beneficiario.FIRMA || "",
 
       // Estos flags controlan UI en tu formulario
@@ -2150,6 +2213,7 @@ export default function RegistroBeneficiario() {
               ineUrl: "", // Limpiar URL del INE
               cartaNoAfiliacionUrl: "", // Limpiar URL de la carta de no afiliación
               actaConcubinatoUrl: "", // Nuevo: Limpiar URL del acta de concubinato
+              actaDependenciaEconomicaUrl: "", // Nuevo campo para el acta de dependencia económica
               urlIncap: "", // Nuevo campo para el archivo de incapacidad
               firma: "", // Limpiar URL de la firma
             });
@@ -2463,6 +2527,138 @@ export default function RegistroBeneficiario() {
                       </button>
                     )}
                   </div>
+
+                  {/* ****** Documentos para Padre o Madre ****** */}
+                  {isPadreOMadre && (
+                    <>
+                      {/* Acta de Dependencia Económica */}
+                      <div className={styles.inputRow2}>
+                        <label className={styles.inputLabel2}>
+                          <FaFileUpload className={styles.icon} /> Acta de
+                          Dependencia Económica – SUBIR:
+                          <div className={styles.fileInputWrapper2}>
+                            <input
+                              type="file"
+                              accept="application/pdf"
+                              onChange={handleFileUploadActaEconomica}
+                              className={styles.fileInput2}
+                              id="acta-economica-upload"
+                            />
+                            <label
+                              htmlFor="acta-economica-upload"
+                              className={styles.uploadButton2}
+                            >
+                              Seleccionar archivo
+                            </label>
+                            <span className={styles.fileName2}>
+                              {formData.actaDependenciaEconomicaUrl
+                                ? getFileNameFromURL(
+                                    formData.actaDependenciaEconomicaUrl
+                                  )
+                                : "Sin archivo seleccionado"}
+                            </span>
+                          </div>
+                        </label>
+                        {formData.actaDependenciaEconomicaUrl && (
+                          <button
+                            type="button"
+                            className={styles.viewButton2}
+                            onClick={() =>
+                              window.open(
+                                formData.actaDependenciaEconomicaUrl,
+                                "_blank"
+                              )
+                            }
+                          >
+                            Ver Acta Económica
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Carta de No Afiliación */}
+                      <div className={styles.inputRow2}>
+                        <label className={styles.inputLabel2}>
+                          <FaFileUpload className={styles.icon} /> Carta de No
+                          Afiliación – SUBIR:
+                          <div className={styles.fileInputWrapper2}>
+                            <input
+                              type="file"
+                              accept="application/pdf"
+                              onChange={handleFileUploadCartaNoAfiliacion}
+                              className={styles.fileInput2}
+                              id="carta-no-afiliacion-upload"
+                            />
+                            <label
+                              htmlFor="carta-no-afiliacion-upload"
+                              className={styles.uploadButton2}
+                            >
+                              Seleccionar archivo
+                            </label>
+                            <span className={styles.fileName2}>
+                              {formData.cartaNoAfiliacionUrl
+                                ? getFileNameFromURL(
+                                    formData.cartaNoAfiliacionUrl
+                                  )
+                                : "Sin archivo seleccionado"}
+                            </span>
+                          </div>
+                        </label>
+                        {formData.cartaNoAfiliacionUrl && (
+                          <button
+                            type="button"
+                            className={styles.viewButton2}
+                            onClick={() =>
+                              window.open(
+                                formData.cartaNoAfiliacionUrl,
+                                "_blank"
+                              )
+                            }
+                          >
+                            Ver Carta
+                          </button>
+                        )}
+                      </div>
+
+                      {/* ** NUEVO: Subir INE para Padre/Madre ** */}
+                      <div className={styles.inputRow2}>
+                        <label className={styles.inputLabel2}>
+                          <FaFileUpload className={styles.icon} /> INE – SUBIR:
+                          <div className={styles.fileInputWrapper2}>
+                            <input
+                              type="file"
+                              accept="application/pdf"
+                              onChange={handleFileUploadINE}
+                              className={styles.fileInput2}
+                              id="ine-upload-padre-madre"
+                            />
+                            <label
+                              htmlFor="ine-upload-padre-madre"
+                              className={styles.uploadButton2}
+                            >
+                              Seleccionar archivo
+                            </label>
+                            <span className={styles.fileName2}>
+                              {formData.ineUrl
+                                ? getFileNameFromURL(formData.ineUrl)
+                                : "Sin archivo seleccionado"}
+                            </span>
+                          </div>
+                        </label>
+                        {formData.ineUrl && (
+                          <button
+                            type="button"
+                            className={styles.viewButton2}
+                            onClick={() =>
+                              window.open(formData.ineUrl, "_blank")
+                            }
+                          >
+                            Ver INE Actual
+                          </button>
+                        )}
+                      </div>
+                    </>
+                  )}
+
                   {/* Campos adicionales para Esposo(a) */}
                   {formData.showEsposoFiles && (
                     <>
@@ -2701,128 +2897,139 @@ export default function RegistroBeneficiario() {
               )}
 
               {formData.showConcubinoFiles && (
-                <div className={styles.inputRow2}>
-                  <label className={styles.inputLabel2}>
-                    <FaFileUpload className={styles.icon} /> Cargar Acta de
-                    Concubinato desde Clave Única:
-                    <div className={styles.fileInputWrapper2}>
-                      {/* Botón principal para cargar vía Clave Única */}
-                      <button
-                        type="button"
-                        onClick={async () => {
-                          if (!numNomina) {
-                            console.error(
-                              "[ERROR] Número de nómina no ingresado."
-                            );
-                            playSound(false);
-                            Swal.fire(
-                              "Error",
-                              "Por favor, ingresa un número de nómina válido.",
-                              "error"
-                            );
-                            return;
-                          }
-
-                          try {
-                            //console.log(
-                            //   `[INFO] Solicitando acta de concubinato para nómina: ${numNomina}`
-                            // );
-                            const response = await fetch(
-                              "/api/beneficiarios/validarActaConcubinato",
-                              {
-                                method: "POST",
-                                headers: {
-                                  "Content-Type": "application/json",
-                                },
-                                body: JSON.stringify({ numNomina }),
-                              }
-                            );
-
-                            const result = await response.json();
-                            //console.log("[DEBUG] Respuesta de la API:", result);
-
-                            if (!response.ok) {
-                              console.error(
-                                "[ERROR] API Error:",
-                                result.message
+                <>
+                  {/* --- Acta de Concubinato --- */}
+                  <div className={styles.inputRow2}>
+                    <label className={styles.inputLabel2}>
+                      <FaFileUpload className={styles.icon} /> Cargar Acta de
+                      Concubinato desde Clave Única:
+                      <div className={styles.fileInputWrapper2}>
+                        {/* Botón principal para cargar vía Clave Única */}
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            if (!numNomina) {
+                              playSound(false);
+                              Swal.fire(
+                                "Error",
+                                "Por favor, ingresa un número de nómina válido.",
+                                "error"
                               );
-                              throw new Error(result.message);
+                              return;
                             }
+                            try {
+                              const response = await fetch(
+                                "/api/beneficiarios/validarActaConcubinato",
+                                {
+                                  method: "POST",
+                                  headers: {
+                                    "Content-Type": "application/json",
+                                  },
+                                  body: JSON.stringify({ numNomina }),
+                                }
+                              );
+                              const result = await response.json();
+                              if (!response.ok) throw new Error(result.message);
+                              setFormData((prev) => ({
+                                ...prev,
+                                actaConcubinatoUrl: result.url,
+                              }));
+                              playSound(true);
+                              Swal.fire(
+                                "Éxito",
+                                "Acta de Concubinato cargada correctamente.",
+                                "success"
+                              );
+                            } catch (error) {
+                              playSound(false);
+                              Swal.fire("Error", error.message, "error");
+                            }
+                          }}
+                          className={styles.uploadButton3}
+                        >
+                          Cargar Acta de Concubinato
+                        </button>
 
-                            // Actualizar el estado con la URL
-                            setFormData((prev) => ({
-                              ...prev,
-                              actaConcubinatoUrl: result.url,
-                            }));
-
-                            playSound(true);
-                            Swal.fire(
-                              "Éxito",
-                              "Acta de Concubinato cargada correctamente.",
-                              "success"
-                            );
-                          } catch (error) {
-                            console.error(
-                              "[ERROR] Error al cargar el acta:",
-                              error.message
-                            );
-                            playSound(false);
-                            Swal.fire("Error", error.message, "error");
+                        {/* Ícono para subida manual */}
+                        <button
+                          type="button"
+                          className={styles.iconButton}
+                          onClick={() =>
+                            document
+                              .getElementById("acta-concubinato-manual-upload")
+                              ?.click()
                           }
-                        }}
-                        className={styles.uploadButton3}
-                      >
-                        Cargar Acta de Concubinato
-                      </button>
+                          title="Subir manualmente (PDF)"
+                        >
+                          <FaFileAlt />
+                        </button>
 
-                      {/* Pequeño botón-ícono para subir manualmente el PDF */}
+                        {/* Input oculto para subida manual */}
+                        <input
+                          type="file"
+                          id="acta-concubinato-manual-upload"
+                          accept="application/pdf"
+                          style={{ display: "none" }}
+                          onChange={handleFileUploadActaConcubinatoManual}
+                        />
+
+                        <span className={styles.fileName2}>
+                          {formData.actaConcubinatoUrl
+                            ? getFileNameFromURL(formData.actaConcubinatoUrl)
+                            : "Sin archivo cargado"}
+                        </span>
+                      </div>
+                    </label>
+
+                    {formData.actaConcubinatoUrl && (
                       <button
                         type="button"
-                        className={styles.iconButton} // Aplica un estilo reducido o inline
-                        onClick={() => {
-                          // Disparamos un click a un input "oculto" que sube PDF
-                          const fileInput = document.getElementById(
-                            "acta-concubinato-manual-upload"
-                          );
-                          if (fileInput) fileInput.click();
-                        }}
-                        title="Subir manualmente (PDF)"
+                        className={styles.viewButton3}
+                        onClick={() =>
+                          window.open(formData.actaConcubinatoUrl, "_blank")
+                        }
                       >
-                        <FaFileAlt />
+                        Ver Acta de Concubinato
                       </button>
+                    )}
+                  </div>
 
-                      {/* Input oculto para subir manualmente la Acta de Concubinato */}
-                      <input
-                        type="file"
-                        id="acta-concubinato-manual-upload"
-                        name="actaConcubinatoManual"
-                        accept="application/pdf"
-                        style={{ display: "none" }}
-                        onChange={handleFileUploadActaConcubinatoManual}
-                      />
-
-                      {/* Nombre del archivo subido (automático o manual) */}
-                      <span className={styles.fileName2}>
-                        {formData.actaConcubinatoUrl
-                          ? getFileNameFromURL(formData.actaConcubinatoUrl)
-                          : "Sin archivo cargado"}
-                      </span>
-                    </div>
-                  </label>
-
-                  {/* Botón "ver" en caso de que ya exista un archivo subido */}
-                  {formData.actaConcubinatoUrl && (
-                    <button
-                      type="button"
-                      className={styles.viewButton3}
-                      onClick={() =>
-                        window.open(formData.actaConcubinatoUrl, "_blank")
-                      }
-                    >
-                      Ver Acta de Concubinato
-                    </button>
-                  )}
-                </div>
+                  {/* --- INE para Concubinato --- */}
+                  <div className={styles.inputRow2}>
+                    <label className={styles.inputLabel2}>
+                      <FaFileUpload className={styles.icon} /> INE – SUBIR:
+                      <div className={styles.fileInputWrapper2}>
+                        <input
+                          type="file"
+                          accept="application/pdf"
+                          onChange={handleFileUploadINE}
+                          className={styles.fileInput2}
+                          id="ine-upload-concubino"
+                        />
+                        <label
+                          htmlFor="ine-upload-concubino"
+                          className={styles.uploadButton2}
+                        >
+                          Seleccionar archivo
+                        </label>
+                        <span className={styles.fileName2}>
+                          {formData.ineUrl
+                            ? getFileNameFromURL(formData.ineUrl)
+                            : "Sin archivo seleccionado"}
+                        </span>
+                      </div>
+                    </label>
+                    {formData.ineUrl && (
+                      <button
+                        type="button"
+                        className={styles.viewButton2}
+                        onClick={() => window.open(formData.ineUrl, "_blank")}
+                      >
+                        Ver INE Actual
+                      </button>
+                    )}
+                  </div>
+                </>
               )}
 
               {/* Checkboxes dinámicos */}

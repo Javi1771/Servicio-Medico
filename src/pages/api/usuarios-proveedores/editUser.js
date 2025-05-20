@@ -19,6 +19,7 @@ export default async function handler(req, res) {
     clavetipousuario,
     password,
     costo,
+    claveproveedor
   } = req.body;
 
   //* Validaciones mínimas
@@ -54,7 +55,7 @@ export default async function handler(req, res) {
       .input("claveespecialidad", sql.Int, claveespecialidad)
       .input("clavetipousuario", sql.Int, clavetipousuario)
       .input("usuario", sql.VarChar, usuario)
-      .input("usuarioOriginal", sql.VarChar, usuarioOriginal);
+      .input("claveproveedor", sql.Int, claveproveedor);
 
     //* Agregar costo si está definido
     if (typeof costo !== "undefined") {
@@ -85,13 +86,13 @@ export default async function handler(req, res) {
         UPDATE proveedores
           SET ${setClause},
               password = @password
-        WHERE usuario = @usuarioOriginal
+        WHERE claveproveedor = @claveproveedor
       `;
     } else {
       query = `
         UPDATE proveedores
           SET ${setClause}
-        WHERE usuario = @usuarioOriginal
+        WHERE claveproveedor = @claveproveedor
       `;
     }
 

@@ -21,6 +21,8 @@ export default async function handler(req, res) {
             B.FOTO_URL,
             FORMAT(B.VIGENCIA_ESTUDIOS, 'yyyy-MM-dd') AS VIGENCIA_ESTUDIOS, 
             B.ACTIVO,
+            B.PARENTESCO,
+            B.URL_INCAP,
             P.ID_PARENTESCO AS ID_PARENTESCO,
             P.PARENTESCO AS PARENTESCO_DESC,
             DATEDIFF(YEAR, B.F_NACIMIENTO, GETDATE()) AS YEARS,
