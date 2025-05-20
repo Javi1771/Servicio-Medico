@@ -16,22 +16,26 @@ export default async function handler(req, res) {
     const pool = await connectToDatabase();
     const result = await pool
       .request()
-      .input('claveconsulta', sql.VarChar, claveconsulta)
+      .input('claveconsulta', sql.VarChar, claveconsulta) // Nota: aquí hay una 'a' suelta en tu código original, la he quitado.
       .query(`
-        SELECT 
+        SELECT
           c.claveconsulta,
-          c.clavenomina,
-          c.nombrepaciente,
-          c.edad,
-          c.departamento,
-          c.parentesco,
-          c.sindicato,
-          c.elpacienteesempleado,
-          c.diagnostico,
-          c.especialidadinterconsulta,    -- <— aquí lo agregamos
-          p.nombreproveedor,
+          -- Asumiendo que clavenomina podría ser NTEXT
+          RTRIM(CAST(c.clavenomina AS NVARCHAR(MAX))) as clavenomina,
+          RTRIM(CAST(c.clavepaciente AS NVARCHAR(MAX))) as clavepaciente, -- Aplicar CAST si también es NTEXT
+          RTRIM(CAST(c.nombrepaciente AS NVARCHAR(MAX))) as nombrepaciente, -- Aplicar CAST si también es NTEXT
+          RTRIM(CAST(c.edad AS NVARCHAR(MAX))) as edad, -- Aplicar CAST si también es NTEXT
+          RTRIM(CAST(c.departamento AS NVARCHAR(MAX))) as departamento, -- Aplicar CAST si también es NTEXT
+          RTRIM(CAST(c.parentesco AS NVARCHAR(MAX))) as parentesco, -- Aplicar CAST si también es NTEXT
+          RTRIM(CAST(c.sindicato AS NVARCHAR(MAX))) as sindicato, -- Aplicar CAST si también es NTEXT
+          RTRIM(CAST(c.elpacienteesempleado AS NVARCHAR(MAX))) as elpacienteesempleado, -- Aplicar CAST si también es NTEXT
+          -- Especialmente importante para diagnostico si es NTEXT, ya que suele ser largo
+          RTRIM(CAST(c.diagnostico AS NVARCHAR(MAX))) as diagnostico,
+          c.especialidadinterconsulta,
+          RTRIM(CAST(p.nombreproveedor AS NVARCHAR(MAX))) as nombreproveedor, -- Aplicar CAST si también es NTEXT
           p.claveespecialidad,
-          e.especialidad
+          RTRIM(CAST(e.especialidad AS NVARCHAR(MAX))) as especialidad, -- Aplicar CAST si también es NTEXT
+          c.claveproveedor
         FROM PRUEBAS.dbo.consultas AS c
         LEFT JOIN PRUEBAS.dbo.proveedores AS p
           ON c.claveproveedor = p.claveproveedor
@@ -43,10 +47,15 @@ export default async function handler(req, res) {
     if (result.recordset.length === 0) {
       return res.status(404).json({ error: 'Consulta no encontrada' });
     }
-    // Ahora `consulta.especialidadinterconsulta` estará definido
     res.status(200).json(result.recordset[0]);
   } catch (error) {
     console.error('API getInfoConsulta error:', error);
-    res.status(500).json({ error: 'Error en la base de datos' });
+    let errorMessage = 'Error en la base de datos';
+    if (error.originalError && error.originalError.info && error.originalError.info.message) {
+        errorMessage = `Error de base de datos: ${error.originalError.info.message}`;
+    } else if (error.message) {
+        errorMessage = error.message;
+    }
+    res.status(500).json({ error: errorMessage });
   }
-}
+}    

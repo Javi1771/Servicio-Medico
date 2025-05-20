@@ -72,7 +72,7 @@ export default async function handler(req, res) {
           AND dr.surtimientoActual < dr.cantidadMeses
       `;
     }
-
+    
     // 3) Ejecuta y devuelve
     const result = await pool
       .request()

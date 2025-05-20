@@ -277,3 +277,23 @@
   font-style: italic;
   min-height: 80px;
 }
+
+/*boton generar surtimiento*/
+/* botón grande degradado naranja → gris oscuro */
+.generateBtn {
+  display: block;
+  margin: 2rem auto 0;
+  padding: 1rem 2rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, #ff8c00 0%, #333 100%);
+  border: none;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.generateBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(255, 140, 0, 0.5);
+}
