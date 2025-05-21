@@ -184,7 +184,7 @@ const Home = () => {
         },
         {
           title: "Catalogos",
-          options: ["Usuarios y Proveedores", "Estudios"],
+          options: ["Usuarios y Proveedores", "Estudios", "Enfermedades Cronicas", "Especialidades", "Beneficiarios", "Historial Incapacidades Completo"],
           icon: <FaBriefcaseMedical className="inline-block mr-2" />,
         },
         {

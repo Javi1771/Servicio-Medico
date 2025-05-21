@@ -119,6 +119,8 @@ const PresidenteLayout: React.FC<PresidenteLayoutProps> = ({ children }) => {
         { name: "Especialidades", path: "/catalogos/especialidades" },
         { name: "Enfermedades Crónicas", path: "/catalogos/enfermedades-cronicas" },
         { name: "Usuarios y Proveedores", path: "/catalogos/usuarios-y-proveedores" },
+        { name: "Historial Incapacidades Completo", path: "/catalogos/historial-incapacidades-completo" },
+        { name: "Estudios", path: "/catalogos/estudios" },
       ],
     },
     {

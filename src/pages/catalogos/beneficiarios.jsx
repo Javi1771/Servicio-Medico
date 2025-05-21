@@ -1638,6 +1638,18 @@ export default function RegistroBeneficiario() {
       return; // Detenemos el proceso si falta algún documento obligatorio
     }
 
+    // 🆕 4️⃣ Validar Carta de No Afiliación para Concubino(a)
+    if (Number(formData.parentesco) === 3 && !formData.cartaNoAfiliacionUrl) {
+      playSound(false);
+      Swal.fire({
+        icon: "error",
+        title: "Falta Carta de No Afiliación",
+        text: "Para el parentesco Concubino(a) es obligatorio subir la Carta de No Afiliación.",
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
     //console.log("Enviando formulario...");
 
     // Validar campos obligatorios según el backend
@@ -3032,6 +3044,44 @@ export default function RegistroBeneficiario() {
                   </div>
                 </>
               )}
+              {/* Carta de No Afiliación */}
+              <div className={styles.inputRow2}>
+                <label className={styles.inputLabel2}>
+                  <FaFileUpload className={styles.icon} /> Carta de No
+                  Afiliación – SUBIR:
+                  <div className={styles.fileInputWrapper2}>
+                    <input
+                      type="file"
+                      accept="application/pdf"
+                      onChange={handleFileUploadCartaNoAfiliacion}
+                      className={styles.fileInput2}
+                      id="carta-no-afiliacion-upload"
+                    />
+                    <label
+                      htmlFor="carta-no-afiliacion-upload"
+                      className={styles.uploadButton2}
+                    >
+                      Seleccionar archivo
+                    </label>
+                    <span className={styles.fileName2}>
+                      {formData.cartaNoAfiliacionUrl
+                        ? getFileNameFromURL(formData.cartaNoAfiliacionUrl)
+                        : "Sin archivo seleccionado"}
+                    </span>
+                  </div>
+                </label>
+                {formData.cartaNoAfiliacionUrl && (
+                  <button
+                    type="button"
+                    className={styles.viewButton2}
+                    onClick={() =>
+                      window.open(formData.cartaNoAfiliacionUrl, "_blank")
+                    }
+                  >
+                    Ver Carta
+                  </button>
+                )}
+              </div>
 
               {/* Checkboxes dinámicos */}
               {showCheckboxes && (
