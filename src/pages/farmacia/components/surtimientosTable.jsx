@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
+import { FaSpinner } from "react-icons/fa";
 
 import SurtimientosInfo from "./surtimientosInfo";
 import MedicamentosList from "./medicamentosList";
@@ -37,6 +38,7 @@ async function validarEAN(ean, claveMedicamento) {
 const SurtimientosTable = ({ data, resetSurtimiento }) => {
   const { surtimiento, detalleSurtimientos } = data;
   const [cost, setCost] = useState(surtimiento?.COSTO || "");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [detalle, setDetalle] = useState(
     detalleSurtimientos.map((item) => ({
@@ -72,10 +74,9 @@ const SurtimientosTable = ({ data, resetSurtimiento }) => {
     if (!item) return;
 
     const pendiente = item.piezas - item.delivered;
-
     if (pendiente <= 0) {
       playSound(false);
-      MySwal.fire({
+      await MySwal.fire({
         icon: "info",
         title:
           "<span style='color: #00bcd4; font-weight: bold; font-size: 1.5em;'>⚠️ Todas las piezas entregadas</span>",
@@ -94,7 +95,7 @@ const SurtimientosTable = ({ data, resetSurtimiento }) => {
 
     if (item.stock === 0) {
       playSound(false);
-      MySwal.fire({
+      await MySwal.fire({
         icon: "error",
         title:
           "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Sin Stock</span>",
@@ -113,7 +114,7 @@ const SurtimientosTable = ({ data, resetSurtimiento }) => {
 
     if (item.delivered >= item.stock) {
       playSound(false);
-      MySwal.fire({
+      await MySwal.fire({
         icon: "warning",
         title:
           "<span style='color: #ff9800; font-weight: bold; font-size: 1.5em;'>⚠️ Límite de Stock Alcanzado</span>",
@@ -131,10 +132,9 @@ const SurtimientosTable = ({ data, resetSurtimiento }) => {
     }
 
     const { valido } = await validarEAN(eanValue, item.claveMedicamento);
-
     if (!valido) {
       playSound(false);
-      MySwal.fire({
+      await MySwal.fire({
         icon: "error",
         title:
           "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ EAN no válido</span>",
@@ -154,7 +154,7 @@ const SurtimientosTable = ({ data, resetSurtimiento }) => {
     const newDelivered = item.delivered + 1;
     if (newDelivered > item.stock) {
       playSound(false);
-      MySwal.fire({
+      await MySwal.fire({
         icon: "warning",
         title:
           "<span style='color: #ff9800; font-weight: bold; font-size: 1.5em;'>⚠️ Stock insuficiente</span>",
@@ -190,6 +190,9 @@ const SurtimientosTable = ({ data, resetSurtimiento }) => {
 
   //* Guardar: calcular delta por cada detalle
   const handleGuardar = async () => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+
     const detallesParaGuardar = detalle
       .map((it) => {
         const delta = it.delivered - it.entregado;
@@ -206,7 +209,7 @@ const SurtimientosTable = ({ data, resetSurtimiento }) => {
 
     if (detallesParaGuardar.length === 0) {
       playSound(false);
-      MySwal.fire({
+      await MySwal.fire({
         icon: "info",
         title:
           "<span style='color: #00bcd4; font-weight: bold; font-size: 1.5em;'>ℹ️ Sin cambios</span>",
@@ -219,9 +222,9 @@ const SurtimientosTable = ({ data, resetSurtimiento }) => {
           popup:
             "border border-blue-600 shadow-[0px_0px_20px_5px_rgba(0,188,212,0.9)] rounded-lg",
         },
-      }).then(() => {
-        resetSurtimiento();
       });
+      resetSurtimiento();
+      setIsSubmitting(false);
       return;
     }
 
@@ -249,7 +252,7 @@ const SurtimientosTable = ({ data, resetSurtimiento }) => {
       });
 
       playSound(true);
-      MySwal.fire({
+      await MySwal.fire({
         icon: "success",
         title:
           "<span style='color: #00e676; font-weight: bold; font-size: 1.5em;'>✔️ Éxito</span>",
@@ -268,7 +271,7 @@ const SurtimientosTable = ({ data, resetSurtimiento }) => {
     } catch (err) {
       console.error("Error al guardar:", err);
       playSound(false);
-      MySwal.fire({
+      await MySwal.fire({
         icon: "error",
         title:
           "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error</span>",
@@ -282,6 +285,8 @@ const SurtimientosTable = ({ data, resetSurtimiento }) => {
             "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
         },
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -311,9 +316,15 @@ const SurtimientosTable = ({ data, resetSurtimiento }) => {
         {/* Botón de Guardar */}
         <button
           onClick={handleGuardar}
-          className="mt-6 px-6 py-2 bg-cyan-600 text-white font-semibold rounded shadow-md hover:shadow-lg hover:scale-105 transition-transform"
+          disabled={isSubmitting}
+          className={`mt-6 px-6 py-2 bg-cyan-600 text-white font-semibold rounded shadow-md flex items-center justify-center transition ${
+            isSubmitting
+              ? "opacity-50 cursor-wait"
+              : "hover:shadow-lg hover:scale-105"
+          }`}
         >
-          Guardar
+          {isSubmitting && <FaSpinner className="animate-spin mr-2" />}
+          {isSubmitting ? "Guardando..." : "Guardar"}
         </button>
       </div>
     </div>

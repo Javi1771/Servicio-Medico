@@ -37,6 +37,7 @@ export default async function handler(req, res) {
             URL_NOISSTE,
             URL_CONCUBINATO,
             URL_INCAP ,
+            URL_ACTADEPENDENCIAECONOMICA,
             FIRMA
         
           FROM BENEFICIARIO

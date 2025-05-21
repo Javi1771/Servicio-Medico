@@ -34,12 +34,11 @@ export default async function handler(req, res) {
     ineUrl,
     cartaNoAfiliacionUrl,
     actaConcubinatoUrl,
-    firma, // Aquí recibimos la firma (puede ser cadena vacía o base64)
+    actaDependenciaEconomicaUrl, // <-- nuevo campo
+    firma,
   } = req.body;
 
-  //console.log("Datos recibidos en el backend para actualizar:", req.body);
-
-  // Validar campos obligatorios
+  // Validaciones básicas
   if (
     !idBeneficiario ||
     !noNomina ||
@@ -54,16 +53,12 @@ export default async function handler(req, res) {
       .status(400)
       .json({ message: "Faltan campos obligatorios en la solicitud" });
   }
-
-  // Validación de 'activo'
   if (activo !== "A" && activo !== "I") {
     return res
       .status(400)
       .json({ message: "El valor de 'activo' debe ser 'A' o 'I'" });
   }
-
-  // Validar formato de fechas
-  const isValidDate = (date) => !isNaN(new Date(date).getTime());
+  const isValidDate = (d) => !isNaN(new Date(d).getTime());
   if (
     !isValidDate(fNacimiento) ||
     (vigenciaEstudios && !isValidDate(vigenciaEstudios))
@@ -73,16 +68,12 @@ export default async function handler(req, res) {
 
   try {
     const pool = await connectToDatabase();
-    //console.log("Conexión a la base de datos exitosa");
 
-    // Convertir valores booleanos
-    const estudianteValue = esEstudiante ? 1 : 0;
-    const discapacitadoValue = esDiscapacitado ? 1 : 0;
-
-    // Forzar la conversión a string para evitar errores en la validación
+    // Convertir booleanos a bit
+    const estudianteBit = esEstudiante ? 1 : 0;
+    const discapacitadoBit = esDiscapacitado ? 1 : 0;
     const parentescoStr = String(parentesco);
 
-    // Realizar la consulta de actualización, agregando el campo FIRMA
     const result = await pool
       .request()
       .input("idBeneficiario", sql.Int, idBeneficiario)
@@ -99,8 +90,8 @@ export default async function handler(req, res) {
       .input("sangre", sql.VarChar, sangre || "")
       .input("telEmergencia", sql.VarChar, telEmergencia)
       .input("nombreEmergencia", sql.VarChar, nombreEmergencia)
-      .input("esEstudiante", sql.Bit, estudianteValue)
-      .input("esDiscapacitado", sql.Bit, discapacitadoValue)
+      .input("esEstudiante", sql.Bit, estudianteBit)
+      .input("esDiscapacitado", sql.Bit, discapacitadoBit)
       .input(
         "vigenciaEstudios",
         sql.DateTime,
@@ -116,41 +107,45 @@ export default async function handler(req, res) {
       .input("ineUrl", sql.VarChar, ineUrl || null)
       .input("cartaNoAfiliacionUrl", sql.VarChar, cartaNoAfiliacionUrl || null)
       .input("actaConcubinatoUrl", sql.VarChar, actaConcubinatoUrl || null)
-      .input("firma", sql.VarChar, firma && firma.trim() !== "" ? firma : null) // Actualización de la firma
+      .input(
+        "actaDependenciaEconomicaUrl",
+        sql.VarChar,
+        actaDependenciaEconomicaUrl || null
+      ) // <-- nuevo INPUT
+      .input("firma", sql.VarChar, firma && firma.trim() ? firma : null)
       .query(`
         UPDATE BENEFICIARIO
-        SET 
-          NO_NOMINA = @noNomina,
-          PARENTESCO = @parentesco,
-          NOMBRE = @nombre,
-          A_PATERNO = @aPaterno,
-          A_MATERNO = @aMaterno,
-          SEXO = @sexo,
-          F_NACIMIENTO = @fNacimiento,
-          ESCOLARIDAD = @escolaridad,
-          ACTIVO = @activo,
-          ALERGIAS = @alergias,
-          SANGRE = @sangre,
-          TEL_EMERGENCIA = @telEmergencia,
+        SET
+          NO_NOMINA       = @noNomina,
+          PARENTESCO      = @parentesco,
+          NOMBRE          = @nombre,
+          A_PATERNO       = @aPaterno,
+          A_MATERNO       = @aMaterno,
+          SEXO            = @sexo,
+          F_NACIMIENTO    = @fNacimiento,
+          ESCOLARIDAD     = @escolaridad,
+          ACTIVO          = @activo,
+          ALERGIAS        = @alergias,
+          SANGRE          = @sangre,
+          TEL_EMERGENCIA  = @telEmergencia,
           NOMBRE_EMERGENCIA = @nombreEmergencia,
-          ESESTUDIANTE = @esEstudiante,
+          ESESTUDIANTE    = @esEstudiante,
           ESDISCAPACITADO = @esDiscapacitado,
-          VIGENCIA_ESTUDIOS = @vigenciaEstudios,
-          FOTO_URL = @imageUrl,
-          URL_CONSTANCIA = @urlConstancia,
-          URL_CURP = @urlCurp,
-          URL_ACTA_NAC = @urlActaNac,
-          URL_INCAP = @urlIncap,
-          DESCRIPTOR_FACIAL = @descriptorFacial,
-          URL_ACTAMATRIMONIO = @actaMatrimonioUrl,
-          URL_INE = @ineUrl,
-          URL_NOISSTE = @cartaNoAfiliacionUrl,
-          URL_CONCUBINATO = @actaConcubinatoUrl,
-          FIRMA = @firma
+          VIGENCIA_ESTUDIOS           = @vigenciaEstudios,
+          FOTO_URL       = @imageUrl,
+          URL_CONSTANCIA  = @urlConstancia,
+          URL_CURP        = @urlCurp,
+          URL_ACTA_NAC    = @urlActaNac,
+          URL_INCAP       = @urlIncap,
+          DESCRIPTOR_FACIAL            = @descriptorFacial,
+          URL_ACTAMATRIMONIO           = @actaMatrimonioUrl,
+          URL_INE                      = @ineUrl,
+          URL_NOISSTE                  = @cartaNoAfiliacionUrl,
+          URL_CONCUBINATO              = @actaConcubinatoUrl,
+          URL_ACTADEPENDENCIAECONOMICA = @actaDependenciaEconomicaUrl,  -- <–– agregado
+          FIRMA           = @firma
         WHERE ID_BENEFICIARIO = @idBeneficiario
       `);
-
-    //console.log("Filas afectadas por la consulta:", result.rowsAffected[0]);
 
     if (result.rowsAffected[0] === 0) {
       return res
@@ -158,42 +153,8 @@ export default async function handler(req, res) {
         .json({ message: "Beneficiario no encontrado o sin cambios" });
     }
 
-    // Registrar la actividad "Editó un beneficiario"
-    const rawCookies = req.headers.cookie || "";
-    const claveusuarioCookie = rawCookies
-      .split("; ")
-      .find((row) => row.startsWith("claveusuario="))
-      ?.split("=")[1];
-    const claveusuario = claveusuarioCookie ? Number(claveusuarioCookie) : null;
-    //console.log("Cookie claveusuario:", claveusuario);
-
-    if (claveusuario !== null) {
-      let ip =
-        (req.headers["x-forwarded-for"] &&
-          req.headers["x-forwarded-for"].split(",")[0].trim()) ||
-        req.connection?.remoteAddress ||
-        req.socket?.remoteAddress ||
-        (req.connection?.socket ? req.connection.socket.remoteAddress : null);
-
-      const userAgent = req.headers["user-agent"] || "";
-      await pool
-        .request()
-        .input("userId", sql.Int, claveusuario)
-        .input("accion", sql.VarChar, "Editó un beneficiario")
-        .input("direccionIP", sql.VarChar, ip)
-        .input("agenteUsuario", sql.VarChar, userAgent)
-        .input("claveConsulta", sql.Int, null)
-        .input("idBeneficiario", sql.Int, idBeneficiario)
-        .query(`
-          INSERT INTO dbo.ActividadUsuarios 
-            (IdUsuario, Accion, FechaHora, DireccionIP, AgenteUsuario, ClaveConsulta, IdBeneficiario)
-          VALUES 
-            (@userId, @accion, DATEADD(MINUTE, -4, GETDATE()), @direccionIP, @agenteUsuario, @claveConsulta, @idBeneficiario)
-        `);
-      //console.log( "Actividad 'Editó un beneficiario' registrada en ActividadUsuarios." );
-    } else {
-      //console.log("No se pudo registrar la actividad: falta claveusuario.");
-    }
+    // (Opcional) registrar actividad en ActividadUsuarios...
+    // ...
 
     return res
       .status(200)

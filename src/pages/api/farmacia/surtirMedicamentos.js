@@ -32,14 +32,16 @@ export default async function handler(req, res) {
     await transaction.begin();
 
     try {
-      //* 🔹 1) Actualizar stock y detalleSurtimientos
+      // 1) Actualizar stock y detalleSurtimientos
       for (const item of detalle) {
-        const delta = item.delta;
+        const { delta, claveMedicamento, estatus, delivered, idSurtimiento } =
+          item;
+
         if (delta > 0) {
           await transaction
             .request()
             .input("delta", sql.Int, delta)
-            .input("claveMedicamento", sql.NVarChar(50), item.claveMedicamento)
+            .input("claveMedicamento", sql.NVarChar(50), claveMedicamento)
             .query(`
               UPDATE medicamentos
               SET piezas = piezas - @delta
@@ -49,9 +51,9 @@ export default async function handler(req, res) {
 
         await transaction
           .request()
-          .input("estatus", sql.Int, item.estatus)
-          .input("delivered", sql.Int, item.delivered)
-          .input("idSurtimiento", sql.Int, item.idSurtimiento)
+          .input("estatus", sql.Int, estatus)
+          .input("delivered", sql.Int, delivered)
+          .input("idSurtimiento", sql.Int, idSurtimiento)
           .query(`
             UPDATE detalleSurtimientos
             SET estatus   = @estatus,
@@ -60,7 +62,7 @@ export default async function handler(req, res) {
           `);
       }
 
-      //* 🔹 2) Si la receta está completada, actualizamos SURTIMIENTOS y detalleReceta
+      // 2) Si la receta está completada, actualizamos SURTIMIENTOS
       if (recetaCompletada) {
         // 2.1) Actualizar SURTIMIENTOS
         await transaction
@@ -76,7 +78,7 @@ export default async function handler(req, res) {
             WHERE FOLIO_SURTIMIENTO = @folioSurtimiento
           `);
 
-        // 2.2) Obtener FOLIO_PASE
+        // 2.2) Obtener el FOLIO_PASE asociado
         const folioPaseResult = await transaction
           .request()
           .input("folioSurtimiento", sql.Int, folioSurtimiento)
@@ -87,46 +89,29 @@ export default async function handler(req, res) {
           `);
         const folioPase = folioPaseResult.recordset[0]?.FOLIO_PASE;
 
-        // 2.3) Ajustar detalleReceta solo si seAsignoResurtimiento = 1
+        // 2.3) Incrementar surtimientoActual **por cada medicamento**,
+        //      independientemente de seAsignoResurtimiento
         if (folioPase) {
-          const recetaInfo = await transaction
-            .request()
-            .input("folioPase", sql.Int, folioPase)
-            .query(`
-              SELECT cantidadMeses,
-                     seAsignoResurtimiento,
-                     surtimientoActual
-              FROM detalleReceta
-              WHERE folioReceta = @folioPase
-            `);
-          const row = recetaInfo.recordset[0] || {};
-          const cantidadMeses = row.cantidadMeses || 0;
-
-          await transaction
-            .request()
-            .input("folioPase", sql.Int, folioPase)
-            .input("cantidadMeses", sql.Int, cantidadMeses)
-            .query(`
-              UPDATE detalleReceta
-              SET surtimientoActual = CASE
-                -- solo suma si ya se había asignado resurtimiento (valor = 1)
-                WHEN seAsignoResurtimiento = 1
-                     AND ISNULL(surtimientoActual, 0) < @cantidadMeses
-                  THEN ISNULL(surtimientoActual, 0) + 1
-                -- en cualquier otro caso, deja el valor tal cual
-                ELSE surtimientoActual
-              END
-              WHERE folioReceta = @folioPase
-            `);
+          for (const item of detalle) {
+            const { claveMedicamento } = item;
+            await transaction
+              .request()
+              .input("folioPase", sql.Int, folioPase)
+              .input("claveMedicamento", sql.NVarChar(50), claveMedicamento)
+              .query(`
+                UPDATE detalleReceta
+                SET surtimientoActual = ISNULL(surtimientoActual, 0) + 1
+                WHERE folioReceta     = @folioPase
+                  AND descMedicamento = @claveMedicamento
+              `);
+          }
         }
       }
 
-      //* 👇 3) Commit de la transacción
+      // 3) Commit de la transacción
       await transaction.commit();
 
-      //* ======================
-      //* 4) Registrar la actividad
-      //* ======================
+      // 4) Registrar la actividad en bitácora
       try {
         const idUsuario = getUserIdFromCookie(req);
         const ip =

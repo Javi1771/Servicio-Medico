@@ -743,11 +743,10 @@ export default function RegistroBeneficiario() {
     const file = event.target.files[0];
     if (!file) return;
 
-    // Preparamos FormData con toda la información necesaria
     const formDataData = new FormData();
     formDataData.append("file", file);
     formDataData.append("numNomina", numNomina);
-    formDataData.append("parentesco", formData.parentesco); // "1", "2", etc.
+    formDataData.append("parentesco", formData.parentesco);
     formDataData.append("nombre", formData.nombre);
     formDataData.append("aPaterno", formData.aPaterno);
     formDataData.append("aMaterno", formData.aMaterno);
@@ -757,14 +756,13 @@ export default function RegistroBeneficiario() {
         method: "POST",
         body: formDataData,
       });
-
       const data = await response.json();
 
       if (response.ok) {
-        // Guardar la URL del Acta de Dependencia Económica
+        // **Usar el mismo nombre que en tu estado y en el JSX**:
         setFormData((prev) => ({
           ...prev,
-          urlActaEconomica: data.url,
+          actaDependenciaEconomicaUrl: data.url,
         }));
       } else {
         playSound(false);
@@ -1820,13 +1818,15 @@ export default function RegistroBeneficiario() {
         actaMatrimonioUrl: formData.actaMatrimonioUrl || null,
         ineUrl: formData.ineUrl || null,
         cartaNoAfiliacionUrl: formData.cartaNoAfiliacionUrl || null,
+        actaDependenciaEconomicaUrl:
+          formData.actaDependenciaEconomicaUrl || null,
         actaConcubinatoUrl: formData.actaConcubinatoUrl || null,
         urlIncap: formData.urlIncap || null,
         descriptorFacial: formData.descriptorFacial || "",
         firma: formData.firma,
       };
 
-      //console.log("Datos enviados al backend (antes del fetch):", payload);
+      console.log("Datos enviados al backend (antes del fetch):", payload);
 
       const response = await fetch(endpoint, {
         method,
@@ -1970,7 +1970,8 @@ export default function RegistroBeneficiario() {
       actaConcubinatoUrl: beneficiario.URL_CONCUBINATO || "",
       urlIncap: beneficiario.URL_INCAP || "",
       descriptorFacial: beneficiario.DESCRIPTOR_FACIAL || "",
-      actaDependenciaEconomicaUrl: beneficiario.URL_DEPENDENCIA_ECONOMICA || "",
+      actaDependenciaEconomicaUrl:
+        beneficiario.URL_ACTADEPENDENCIAECONOMICA || "",
       firma: beneficiario.FIRMA || "",
 
       // Estos flags controlan UI en tu formulario

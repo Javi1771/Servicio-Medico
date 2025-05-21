@@ -101,7 +101,7 @@ export default function SignosVitalesFacial() {
     peso: "",
     glucosa: "",
   });
-    
+
   //* Control de guardado y redirección
   const [isSaving, setIsSaving] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
@@ -141,14 +141,65 @@ export default function SignosVitalesFacial() {
       }
 
       const b = data.beneficiarios[0];
+      const ahora = new Date();
 
-      //* Si el beneficiario tiene fecha de vigencia de estudios:
+      //? 0) Si no es hijo (parentesco !== 2), permitir sin más chequeos
+      if (Number(b.PARENTESCO) !== 2) {
+        setBeneficiario(b);
+        setIsLoadingBenef(false);
+        return;
+      }
+
+      //? 1) Si es discapacitado
+      if (Number(b.ESDISCAPACITADO) === 1) {
+        if (!b.URL_INCAP) {
+          playSound(false);
+          MySwal.fire({
+            icon: "info",
+            title:
+              "<span style='color: #00bcd4; font-weight: bold; font-size: 1.5em;'>ℹ️ Falta incapacidad</span>",
+            html: `<p style='color: #fff; font-size: 1.1em;'>El beneficiario <strong>${b.NOMBRE} ${b.A_PATERNO} ${b.A_MATERNO}</strong> es discapacitado y no ha subido su documento de incapacidad.</p>`,
+            background: "linear-gradient(145deg, #004d40, #00251a)",
+            confirmButtonColor: "#00bcd4",
+            confirmButtonText:
+              "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
+            customClass: {
+              popup:
+                "border border-blue-600 shadow-[0px_0px_20px_5px_rgba(0,188,212,0.9)] rounded-lg",
+            },
+          });
+        }
+        setBeneficiario(b);
+        setIsLoadingBenef(false);
+        return;
+      }
+
+      //? 2) No es discapacitado → debe ser estudiante
+      if (Number(b.ESESTUDIANTE) === 0) {
+        playSound(false);
+        MySwal.fire({
+          icon: "error",
+          title:
+            "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ No es estudiante</span>",
+          html: `<p style='color: #fff; font-size: 1.1em;'>El beneficiario <strong>${b.NOMBRE} ${b.A_PATERNO} ${b.A_MATERNO}</strong> no está registrado como estudiante.</p>`,
+          background: "linear-gradient(145deg, #4a0000, #220000)",
+          confirmButtonColor: "#ff1744",
+          confirmButtonText:
+            "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
+          customClass: {
+            popup:
+              "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
+          },
+        }).then(() => {
+          router.back();
+        });
+        return;
+      }
+
+      //? 3) Es estudiante → validar vigencia de estudios
       if (b.VIGENCIA_ESTUDIOS) {
-        const vigenciaEstudios = new Date(b.VIGENCIA_ESTUDIOS);
-        const fechaActual = new Date();
-
-        //* Revisar vigencia
-        if (vigenciaEstudios < fechaActual) {
+        const vig = new Date(b.VIGENCIA_ESTUDIOS);
+        if (vig.getTime() < ahora.getTime()) {
           playSound(false);
           MySwal.fire({
             icon: "warning",
@@ -164,16 +215,13 @@ export default function SignosVitalesFacial() {
                 "border border-yellow-600 shadow-[0px_0px_20px_5px_rgba(255,152,0,0.9)] rounded-lg",
             },
           }).then(() => {
-            //! Redirige a la pantalla anterior
             router.back();
           });
-
-          //! Termina la función para no continuar
           return;
         }
       }
 
-      //* Si la constancia no está vencida, asigna el beneficiario
+      //? 4) Todo OK: asignar beneficiario
       setBeneficiario(b);
       setIsLoadingBenef(false);
     } catch (error) {
