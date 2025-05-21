@@ -2073,10 +2073,10 @@ export default function RegistroBeneficiario() {
     <div className={styles.body}>
       <div className={styles.bannerContainer}>
         <Image
-          src="/baner_sjr.png"
+          src="/beneficiarios-banner.png"
           alt="Banner"
           width={1100} // Asegúrate de definir un ancho
-          height={150} // y altura para la imagen
+          height={100} // y altura para la imagen
           priority // Añade esta propiedad para optimizar la carga
           className={styles.banner}
         />
