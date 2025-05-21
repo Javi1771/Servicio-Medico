@@ -143,14 +143,31 @@ export default function SignosVitalesFacial() {
       const b = data.beneficiarios[0];
       const ahora = new Date();
 
-      //? 0) Si no es hijo (parentesco !== 2), permitir sin más chequeos
+      //? 0) Si no es hijo/a (PARENTESCO !== 2), permitir sin más chequeos
       if (Number(b.PARENTESCO) !== 2) {
         setBeneficiario(b);
         setIsLoadingBenef(false);
         return;
       }
 
-      //? 1) Si es discapacitado
+      //? 1) Si es hijo/a, calcular edad en años a partir de F_NACIMIENTO ("YYYY-MM-DD HH:MM:SS.sss")
+      if (b.F_NACIMIENTO) {
+        const [fechaParte] = b.F_NACIMIENTO.split(" ");
+        const nacimiento = new Date(fechaParte);
+        const diffMs = ahora - nacimiento;
+        const edadAnios = new Date(diffMs).getUTCFullYear() - 1970;
+
+        //* 1.a) si tiene 16 años o menos, dejamos pasar
+        if (edadAnios <= 16) {
+          setBeneficiario(b);
+          setIsLoadingBenef(false);
+          return;
+        }
+      }
+
+      //? 2) Para hijos/as mayores de 16 años, aplicar discapacitado, estudiante y vigencia
+
+      //? 2.a) ¿Es discapacitado?
       if (Number(b.ESDISCAPACITADO) === 1) {
         if (!b.URL_INCAP) {
           playSound(false);
@@ -174,7 +191,7 @@ export default function SignosVitalesFacial() {
         return;
       }
 
-      //? 2) No es discapacitado → debe ser estudiante
+      //? 2.b) No es discapacitado → debe ser estudiante
       if (Number(b.ESESTUDIANTE) === 0) {
         playSound(false);
         MySwal.fire({
@@ -196,7 +213,7 @@ export default function SignosVitalesFacial() {
         return;
       }
 
-      //? 3) Es estudiante → validar vigencia de estudios
+      //? 2.c) Es estudiante → validar vigencia de estudios
       if (b.VIGENCIA_ESTUDIOS) {
         const vig = new Date(b.VIGENCIA_ESTUDIOS);
         if (vig.getTime() < ahora.getTime()) {
@@ -221,7 +238,7 @@ export default function SignosVitalesFacial() {
         }
       }
 
-      //? 4) Todo OK: asignar beneficiario
+      //? 3) Todo OK: asignar beneficiario
       setBeneficiario(b);
       setIsLoadingBenef(false);
     } catch (error) {

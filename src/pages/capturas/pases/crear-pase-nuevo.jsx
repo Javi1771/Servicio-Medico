@@ -331,15 +331,31 @@ const CrearPaseNuevo = () => {
     const selected = beneficiaryData[index];
     const now = new Date();
 
-    //* Si no es parentesco = 2 (hijo), permitimos cualquier otro directamente
+    //? 0) Si no es hijo/a (PARENTESCO !== 2), permitimos cualquiera directamente
     if (Number(selected.PARENTESCO) !== 2) {
       setSelectedBeneficiary(selected);
       return;
     }
 
-    //? 1) Si es discapacitado
+    //? 1) Si es hijo/a: calculamos edad a partir de F_NACIMIENTO ("YYYY-MM-DD HH:MM:SS.sss")
+    if (selected.F_NACIMIENTO) {
+      const [fechaParte] = selected.F_NACIMIENTO.split(" ");
+      const nacimiento = new Date(fechaParte);
+      const diffMs = now - nacimiento;
+      const edadAnios = new Date(diffMs).getUTCFullYear() - 1970;
+
+      //* 1.a) Si tiene 16 años o menos, lo dejamos pasar sin más validaciones
+      if (edadAnios <= 16) {
+        setSelectedBeneficiary(selected);
+        return;
+      }
+    }
+
+    //? 2) Para hijos/as mayores de 16 años, aplicamos el resto de validaciones
+
+    //* 2.a) Si es discapacitado
     if (Number(selected.ESDISCAPACITADO) === 1) {
-      //! 1.a) Si falta documento de incapacidad
+      //! 2.a.i) Si falta URL_INCAP, avisar pero permitir
       if (!selected.URL_INCAP) {
         playSound(false);
         MySwal.fire({
@@ -361,7 +377,7 @@ const CrearPaseNuevo = () => {
       return;
     }
 
-    //? 2) No es discapacitado → debe ser estudiante
+    //? 2.b) No es discapacitado → debe ser estudiante
     if (Number(selected.ESESTUDIANTE) === 0) {
       playSound(false);
       MySwal.fire({
@@ -381,7 +397,7 @@ const CrearPaseNuevo = () => {
       return;
     }
 
-    //? 3) Es estudiante → validar vigencia de estudios
+    //? 2.c) Es estudiante → validar vigencia de estudios
     if (selected.VIGENCIA_ESTUDIOS) {
       const vigencia = new Date(selected.VIGENCIA_ESTUDIOS);
       if (vigencia.getTime() < now.getTime()) {
@@ -404,7 +420,7 @@ const CrearPaseNuevo = () => {
       }
     }
 
-    //? 4) Todo OK: asignamos beneficiario
+    //? 3) Todo OK: asignar beneficiario
     setSelectedBeneficiary(selected);
   };
 

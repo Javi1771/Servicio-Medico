@@ -120,16 +120,39 @@ const SignosVitales = () => {
     const selected = beneficiaryData[index];
     const fechaActual = new Date();
 
-    //? 1. ¿Es discapacitado? (convertimos a número)
+    //? 0) Si no es hijo/a (PARENTESCO !== 2), dejar pasar sin más
+    if (Number(selected.PARENTESCO) !== 2) {
+      setSelectedBeneficiary(selected);
+      return;
+    }
+
+    //? 1) Si es hijo/a, calcular edad en años
+    if (selected.F_NACIMIENTO) {
+      // Fecha viene como "YYYY-MM-DD HH:MM:SS.sss"
+      const [fechaParte] = selected.F_NACIMIENTO.split(" ");
+      const nacimiento = new Date(fechaParte);
+      const diffMs = fechaActual - nacimiento;
+      const edadAnios = new Date(diffMs).getUTCFullYear() - 1970;
+
+      //* 1.a) Si tiene 16 años o menos, dejamos pasar directamente
+      if (edadAnios <= 16) {
+        setSelectedBeneficiary(selected);
+        return;
+      }
+    }
+
+    //? 2) Para hijos/as mayores de 16 años, aplicar validaciones
+
+    //* 2.a) Discapacitado?
     if (Number(selected.ESDISCAPACITADO) === 1) {
-      //* 1.a. Si no tiene URL_INCAP, avisar pero permitir avanzar
+      //! si falta incapacidad, avisar pero permitir
       if (!selected.URL_INCAP) {
         playSound(false);
         MySwal.fire({
           icon: "info",
           title:
             "<span style='color: #00bcd4; font-weight: bold; font-size: 1.5em;'>ℹ️ Falta incapacidad</span>",
-          html: `<p style='color: #fff; font-size: 1.1em;'>El beneficiario <strong>${selected.NOMBRE} ${selected.A_PATERNO} ${selected.A_MATERNO}</strong> es discapacitado pero no ha subido su documento de incapacidad. Súbelo a la brevedad.</p>`,
+          html: `<p style='color: #fff; font-size: 1.1em;'>El beneficiario <strong>${selected.NOMBRE} ${selected.A_PATERNO} ${selected.A_MATERNO}</strong> es discapacitado y aún no ha subido su documento de incapacidad.</p>`,
           background: "linear-gradient(145deg, #004d40, #00251a)",
           confirmButtonColor: "#00bcd4",
           confirmButtonText:
@@ -144,7 +167,7 @@ const SignosVitales = () => {
       return;
     }
 
-    //? 2. Si NO es discapacitado, ¿es estudiante?
+    //? 2.b) No es alumno (ESESTUDIANTE === 0) → bloquear
     if (Number(selected.ESESTUDIANTE) === 0) {
       playSound(false);
       MySwal.fire({
@@ -164,16 +187,16 @@ const SignosVitales = () => {
       return;
     }
 
-    //? 3. Es estudiante, validar vigencia (igual que antes)
+    //? 2.c) Es estudiante → validar vigencia de estudios
     if (selected.VIGENCIA_ESTUDIOS) {
-      const vigenciaEstudios = new Date(selected.VIGENCIA_ESTUDIOS);
-      if (vigenciaEstudios.getTime() < fechaActual.getTime()) {
+      const vigencia = new Date(selected.VIGENCIA_ESTUDIOS);
+      if (vigencia.getTime() < fechaActual.getTime()) {
         playSound(false);
         MySwal.fire({
           icon: "warning",
           title:
             "<span style='color: #ff9800; font-weight: bold; font-size: 1.5em;'>⚠️ Constancia vencida</span>",
-          html: `<p style='color: #fff; font-size: 1.1em;'>El beneficiario <strong>${selected.NOMBRE} ${selected.A_PATERNO} ${selected.A_MATERNO}</strong> tiene la constancia vencida. Buscando otro válido...</p>`,
+          html: `<p style='color: #fff; font-size: 1.1em;'>El beneficiario <strong>${selected.NOMBRE} ${selected.A_PATERNO} ${selected.A_MATERNO}</strong> tiene la constancia de estudios vencida.</p>`,
           background: "linear-gradient(145deg, #4a2600, #220f00)",
           confirmButtonColor: "#ff9800",
           confirmButtonText:
@@ -183,30 +206,11 @@ const SignosVitales = () => {
               "border border-yellow-600 shadow-[0px_0px_20px_5px_rgba(255,152,0,0.9)] rounded-lg",
           },
         });
-
-        //* buscar siguiente con vigencia válida
-        const validIndex = beneficiaryData.findIndex((b) => {
-          if (b.VIGENCIA_ESTUDIOS) {
-            return (
-              new Date(b.VIGENCIA_ESTUDIOS).getTime() >= fechaActual.getTime()
-            );
-          }
-          return true;
-        });
-
-        if (validIndex !== -1) {
-          setSelectedBeneficiary(beneficiaryData[validIndex]);
-          document.querySelector("select").value = validIndex;
-        } else {
-          setSelectedBeneficiary(null);
-          setBeneficiaryData([]);
-          setConsultaSeleccionada("empleado");
-        }
         return;
       }
     }
 
-    //? 4. Todo OK
+    //? 3) Todo OK: asignar beneficiario
     setSelectedBeneficiary(selected);
   };
 
