@@ -104,29 +104,28 @@ export default function CancelarOrden() {
         body: JSON.stringify({ folio, tipo }),
       });
 
-      //* intentamos parsear JSON; si viene HTML, esto fallará y result = {}
-      let result = {};
-      try {
-        result = await res.json();
-      } catch {
-        //! no hacemos nada; result se queda {} y no metemos HTML
-      }
+      //* Parseamos JSON *siempre* (si viene HTML explotará aquí)
+      let result = await res.json();
 
-      //* si no es 2xx, mostramos la alerta de warning usando result.message
       if (!res.ok) {
-        showAlert(
-          "warning",
-          "Advertencia",
-          result.message || "Error al buscar" //! aquí nunca estará el HTML
-        );
+        // **Sin fallback**: mostramos SOLO el message del endpoint
+        showAlert("warning", "Advertencia", result.message);
         return;
       }
 
-      //* ok → asignamos datos
+      //* OK, pintamos datos
       setDatos(result.data);
     } catch (error) {
-      //! fallo de red, CORS, etc.
-      showAlert("error", "Error", error.message);
+      // Si aquí entra es porque el `await res.json()` reventó
+      // (es decir, NO vino JSON, vino HTML u otro error)
+      // En ese caso tu servidor NO te está devolviendo tu JSON de error:
+      // asegúrate de tener un catch-all en pages/api/cancelaciones
+      // para que siempre entregue JSON (incluso en rutas no definidas).
+      showAlert(
+        "error",
+        "Error inesperado",
+        "No se recibió el JSON de error del endpoint."
+      );
     } finally {
       setCargando(false);
     }
