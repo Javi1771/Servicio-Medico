@@ -26,12 +26,14 @@ const DatosAdicionales = ({
   observaciones,
   setObservaciones,
 }) => {
-  //console.log("Prop pasarEspecialidad en DatosAdicionales:", pasarEspecialidad);
-  //console.log("Prop claveConsulta en DatosAdicionales:", claveConsulta);
+  // console.log("Prop pasarEspecialidad en DatosAdicionales:", pasarEspecialidad);
+  // console.log("Prop claveConsulta en DatosAdicionales:", claveConsulta);
   const { formulariosCompletos, updateFormulario } =
     useContext(FormularioContext);
+
   const [diagnosticoTexto, setDiagnosticoTexto] = useState("");
   const [motivoConsultaTexto, setMotivoConsultaTexto] = useState("");
+  const [alergiasTexto, setAlergiasTexto] = useState("");
 
   //* Función para procesar el texto:
   //* - Convierte a mayúsculas.
@@ -61,15 +63,19 @@ const DatosAdicionales = ({
   useEffect(() => {
     const diagnostico = localStorage.getItem("diagnosticoTexto") || "";
     const motivoConsulta = localStorage.getItem("motivoConsultaTexto") || "";
+    const alergias = localStorage.getItem("alergiasTexto") || "";
     setDiagnosticoTexto(processText(diagnostico));
     setMotivoConsultaTexto(processText(motivoConsulta));
+    setAlergiasTexto(alergias.toUpperCase().slice(0, 100));
   }, [claveConsulta]);
 
   const limpiarFormulario = useCallback(() => {
     setDiagnosticoTexto("");
     setMotivoConsultaTexto("");
+    setAlergiasTexto("");
     localStorage.removeItem("diagnosticoTexto");
     localStorage.removeItem("motivoConsultaTexto");
+    localStorage.removeItem("alergiasTexto");
     if (limpiarFormularioGlobal) limpiarFormularioGlobal();
   }, [limpiarFormularioGlobal]);
 
@@ -84,6 +90,13 @@ const DatosAdicionales = ({
     const newValue = processText(e.target.value);
     setMotivoConsultaTexto(newValue);
     localStorage.setItem("motivoConsultaTexto", newValue);
+  }, []);
+
+  const handleAlergiasChange = useCallback((e) => {
+    const raw = e.target.value.toUpperCase();
+    const newValue = raw.slice(0, 100);
+    setAlergiasTexto(newValue);
+    localStorage.setItem("alergiasTexto", newValue);
   }, []);
 
   //* Se calcula dinámicamente el máximo permitido:
@@ -181,6 +194,40 @@ const DatosAdicionales = ({
             }`}
           >
             {motivoConsultaTexto.length}/{motivoMaxAllowed}
+          </p>
+
+          {/* Alergias */}
+          <h3 className="text-2xl md:text-3xl font-bold mt-6 mb-4 text-white">
+            Alergias - Opcional
+          </h3>
+          <input
+            type="text"
+            className="
+              mt-2 md:mt-3
+              block w-full
+              rounded-2xl
+              bg-gray-800
+              border-2 border-gray-600
+              placeholder-gray-400
+              text-white
+              p-3
+              shadow-inner
+              focus:outline-none
+              focus:border-blue-400
+              focus:ring-2 focus:ring-blue-500/50
+              transition duration-200 ease-in-out
+            "
+            placeholder="ESCRIBE AQUÍ LAS ALERGIAS (máx. 100 caracteres)"
+            value={alergiasTexto}
+            onChange={handleAlergiasChange}
+            maxLength={100}
+          />
+          <p
+            className={`text-sm mt-1 text-right ${
+              alergiasTexto.length >= 100 ? "text-red-400" : "text-gray-400"
+            }`}
+          >
+            {alergiasTexto.length}/100
           </p>
 
           <br />

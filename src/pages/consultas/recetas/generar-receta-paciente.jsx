@@ -166,6 +166,20 @@ export default function GenerarReceta() {
       firstPage.drawText(String(data.consulta?.pesopaciente ?? "N/A"), { x: 459, y: 537, size: 10 });
       firstPage.drawText(String(data.consulta?.glucosapaciente ?? "N/A"), { x: 540, y: 537, size: 10 });
 
+      const boldFont    = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+      const regularFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+      const label       = "Alergias: ";
+      const value       = data.consulta?.alergias || "Sin Alergias Registradas";
+
+      //? Bloque: ALERGIAS
+      firstPage.drawText(label, {x: 145, y: 520, size: 7, font: boldFont});
+
+      //* Calcular el ancho del label para posicionar el texto normal
+      const labelWidth = boldFont.widthOfTextAtSize(label, 7);
+
+      //* Dibujo del valor en fuente normal
+      firstPage.drawText(value, {x: 145 + labelWidth, y: 520, size: 7, font: regularFont});
+
       //? Línea especial: Si el paciente NO es empleado, se muestra el parentesco en negrita
       if (data.consulta?.elpacienteesempleado === "N") {
         const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);

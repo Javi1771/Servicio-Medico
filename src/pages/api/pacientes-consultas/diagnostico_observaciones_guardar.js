@@ -13,7 +13,14 @@ function parseCookies(cookieHeader) {
 
 export default async function handler(req, res) {
   if (req.method === "POST") {
-    const { claveConsulta, diagnostico, motivoconsulta, claveusuario } = req.body;
+    const {
+      claveConsulta,
+      diagnostico,
+      motivoconsulta,
+      alergias: rawAlergias,
+      claveusuario,
+    } = req.body;
+    const alergias = rawAlergias || "";
     let transaction;
 
     try {
@@ -30,7 +37,12 @@ export default async function handler(req, res) {
       const costo = costoCookie ? parseFloat(costoCookie) : null;
 
       //* Validar campos obligatorios mínimos
-      if (!claveConsulta || !diagnostico || !motivoconsulta || costo === null) {
+      if (
+        !claveConsulta ||
+        !diagnostico ||
+        !motivoconsulta ||
+        costo === null
+      ) {
         throw new Error("Datos incompletos o inválidos.");
       }
 
@@ -39,6 +51,7 @@ export default async function handler(req, res) {
         "diagnostico = @diagnostico",
         "motivoconsulta = @motivoconsulta",
         "costo = @costo",
+        "alergias = @alergias",
       ];
 
       const request = transaction.request();
@@ -46,6 +59,7 @@ export default async function handler(req, res) {
       request.input("diagnostico", sql.Text, diagnostico);
       request.input("motivoconsulta", sql.Text, motivoconsulta);
       request.input("costo", sql.Decimal(10, 2), costo);
+      request.input("alergias", sql.VarChar(100), alergias);
 
       //? Agregar claveusuario y claveproveedor si se envía
       if (claveusuario !== undefined) {
@@ -70,7 +84,7 @@ export default async function handler(req, res) {
         : null;
 
       if (idUsuario !== null) {
-        let ip =
+        const ip =
           (req.headers["x-forwarded-for"] &&
             req.headers["x-forwarded-for"].split(",")[0].trim()) ||
           req.connection?.remoteAddress ||
@@ -94,18 +108,14 @@ export default async function handler(req, res) {
       }
 
       await transaction.commit(); //* Si todo sale bien, se confirma la transacción
-      //console.log("✅ Consulta actualizada y actividad registrada exitosamente. ClaveConsulta:", claveConsulta);
 
       //* Emitir el evento de Socket.io (esta parte no afecta la transacción)
-      if (res.socket && res.socket.server && res.socket.server.io) {
+      if (res.socket?.server?.io) {
         res.socket.server.io.emit("consulta-guardada", {
           claveConsulta,
           accion: "Consulta atendida",
           time: new Date().toISOString(),
         });
-        //console.log("Evento 'consulta-guardada' emitido.");
-      } else {
-        //console.log("Socket.io no está disponible en res.socket.server.io");
       }
 
       res.status(200).json({
@@ -117,7 +127,6 @@ export default async function handler(req, res) {
       if (transaction && !transaction._aborted) {
         try {
           await transaction.rollback();
-          //console.log("❌ Transacción revertida debido a un error.");
         } catch (rollbackError) {
           console.error("Error durante el rollback:", rollbackError);
         }
@@ -125,7 +134,6 @@ export default async function handler(req, res) {
       res.status(500).json({ message: "Error al procesar la consulta." });
     }
   } else {
-    //console.log("❌ Método no permitido:", req.method);
     res.status(405).json({ message: "Método no permitido." });
   }
 }

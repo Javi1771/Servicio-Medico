@@ -107,6 +107,8 @@ const AccionesConsulta = ({
     localStorage.removeItem("PaseEspecialidad");
     localStorage.removeItem("medicamentos");
     localStorage.removeItem("Incapacidad");
+    localStorage.removeItem("decisionTomada");
+    localStorage.removeItem("alergiasTexto");
   };
 
   //* Guardar datos adicionales
@@ -115,6 +117,7 @@ const AccionesConsulta = ({
       //console.log("📤 Guardando datos adicionales...");
       const diagnostico = localStorage.getItem("diagnosticoTexto") || "";
       const motivoConsulta = localStorage.getItem("motivoConsultaTexto") || "";
+      const alergias = localStorage.getItem("alergiasTexto") || "";
       const claveUsuarioCookie = Cookies.get("claveusuario");
       const claveusuario = claveUsuarioCookie
         ? parseInt(claveUsuarioCookie, 10)
@@ -130,6 +133,7 @@ const AccionesConsulta = ({
       //   claveConsulta,
       //   diagnostico,
       //   motivoConsulta,
+      //   alergias,
       //   claveusuario,
       // });
 
@@ -142,6 +146,7 @@ const AccionesConsulta = ({
             claveConsulta,
             diagnostico,
             motivoconsulta: motivoConsulta,
+            alergias,
             claveusuario,
           }),
         }
@@ -207,7 +212,7 @@ const AccionesConsulta = ({
             indicaciones: medicamento.indicaciones.trim(),
             cantidad: medicamento.tratamiento.trim(),
             piezas: medicamento.piezas,
-            resurtir: medicamento.resurtir === "si" ? 1 : 0, 
+            resurtir: medicamento.resurtir === "si" ? 1 : 0,
             mesesResurtir:
               medicamento.resurtir === "si" ? medicamento.mesesResurtir : null,
           })),

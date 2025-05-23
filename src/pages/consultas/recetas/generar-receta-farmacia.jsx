@@ -183,6 +183,24 @@ export default function GenerarReceta() {
     page.drawText(`${nombreEmpleado}`, { x: 123, y: 624, size: 10 });
     page.drawText(String(data.consulta?.nombrepaciente ?? "N/A"), {x: 118, y: 571, size: 10});
     page.drawText(String(data.consulta?.edad ?? "N/A"), {x: 435, y: 571, size: 10});
+
+    //* Embebe las fuentes una sola vez antes de dibujar
+    const boldFont    = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+    const regularFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+
+    //* Define etiqueta y valor
+    const label = "Alergias: ";
+    const value = data.consulta?.alergias || "Sin Alergias Registradas";
+
+    //* Dibuja la etiqueta en negrita
+    page.drawText(label, {x: 145, y: 555, size: 7, font: boldFont});
+
+    //* Calcula el ancho de la etiqueta para desplazar el valor
+    const labelWidth = boldFont.widthOfTextAtSize(label, 7);
+
+    //* Dibuja el valor en fuente normal justo después de la etiqueta
+    page.drawText(value, {x: 145 + labelWidth, y: 555, size: 7, font: regularFont});
+
     if (data.consulta?.elpacienteesempleado === "N") {
       const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
       const parentescoTexto = `- ${data.consulta?.parentescoNombre ?? "N/A"}`;

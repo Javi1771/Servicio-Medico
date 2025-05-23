@@ -49,7 +49,7 @@ export async function getConsultaData(claveConsulta) {
         c.elpacienteesempleado, c.parentesco, c.clavepaciente, 
         c.departamento, c.sindicato, c.claveproveedor, c.diagnostico,
         c.seAsignoIncapacidad, c.especialidadinterconsulta, c.seasignoaespecialidad,
-        c.fechacita, p.nombreproveedor, p.cedulaproveedor,
+        c.fechacita, p.nombreproveedor, p.cedulaproveedor, c.alergias,
         pa.PARENTESCO AS parentescoNombre, 
         es.especialidad AS especialidadNombre
       FROM consultas c
