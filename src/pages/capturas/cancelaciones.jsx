@@ -86,32 +86,49 @@ export default function CancelarOrden() {
   const handleBuscar = async () => {
     setDatos(null);
     setCargando(true);
+
     const endpoints = {
       paseEspecialidad: "/api/cancelaciones/buscarConsulta",
       laboratorio: "/api/cancelaciones/buscarLaboratorio",
       incapacidad: "/api/cancelaciones/buscarIncapacidad",
       surtimiento: "/api/cancelaciones/buscarSurtimiento",
     };
+
     try {
       const res = await fetch(endpoints[tipo], {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ folio, tipo }),
       });
-      const result = await res.json();
-      if (!res.ok) {
-        showAlert(
-          "warning",
-          "Advertencia",
-          result.message || "Error al buscar"
-        );
-      } else {
-        setDatos(result.data);
+
+      //? 1) Si es 404 → advertencia con el mensaje
+      if (res.status === 404) {
+        //* parseamos el JSON de error que envío
+        const err = await res
+          .json()
+          .catch(() => ({ message: "No encontrado." }));
+        showAlert("warning", "Advertencia", err.message);
+        return;
       }
+
+      //? 2) Cualquier otro error HTTP
+      if (!res.ok) {
+        const err = await res
+          .json()
+          .catch(() => ({ message: "Error al buscar." }));
+        showAlert("error", "Error", err.message);
+        return;
+      }
+
+      //? 3) OK → parsea JSON y almacena datos
+      const { data } = await res.json();
+      setDatos(data);
     } catch (error) {
+      //! fallos de red o parseo inesperado
       showAlert("error", "Error", error.message);
+    } finally {
+      setCargando(false);
     }
-    setCargando(false);
   };
 
   const handleCancelar = async () => {
@@ -180,7 +197,7 @@ export default function CancelarOrden() {
           <div className="loader-overlay"></div>
         </div>
       )}
-      
+
       <button
         onClick={() => router.replace("/inicio-servicio-medico")}
         className="absolute top-4 left-4 px-6 py-3 rounded-full shadow-lg transition-all duration-300 flex items-center group border-2 border-red-400 hover:scale-105 hover:shadow-2xl"

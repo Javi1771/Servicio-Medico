@@ -334,7 +334,7 @@ export default function UsuariosTable() {
       claveespecialidad: usuario.claveespecialidad ?? "",
       clavetipousuario: usuario.clavetipousuario ?? "",
       usuario: usuario.usuario ?? "",
-      password: "", // siempre inicia vacío al editar
+      password: usuario.password, // siempre inicia vacío al editar
       costo: usuario.costo ?? "",
       usuarioOriginal: usuario.usuario, // clave para la BD
       claveproveedor: usuario.claveproveedor, // clave para la BD
