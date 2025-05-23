@@ -86,32 +86,50 @@ export default function CancelarOrden() {
   const handleBuscar = async () => {
     setDatos(null);
     setCargando(true);
+
     const endpoints = {
       paseEspecialidad: "/api/cancelaciones/buscarConsulta",
       laboratorio: "/api/cancelaciones/buscarLaboratorio",
       incapacidad: "/api/cancelaciones/buscarIncapacidad",
       surtimiento: "/api/cancelaciones/buscarSurtimiento",
     };
+
     try {
       const res = await fetch(endpoints[tipo], {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
         body: JSON.stringify({ folio, tipo }),
       });
-      const result = await res.json();
+
+      //* intentamos parsear JSON; si viene HTML, esto fallará y result = {}
+      let result = {};
+      try {
+        result = await res.json();
+      } catch {
+        //! no hacemos nada; result se queda {} y no metemos HTML
+      }
+
+      //* si no es 2xx, mostramos la alerta de warning usando result.message
       if (!res.ok) {
         showAlert(
           "warning",
           "Advertencia",
-          result.message || "Error al buscar"
+          result.message || "Error al buscar" //! aquí nunca estará el HTML
         );
-      } else {
-        setDatos(result.data);
+        return;
       }
+
+      //* ok → asignamos datos
+      setDatos(result.data);
     } catch (error) {
+      //! fallo de red, CORS, etc.
       showAlert("error", "Error", error.message);
+    } finally {
+      setCargando(false);
     }
-    setCargando(false);
   };
 
   const handleCancelar = async () => {
@@ -180,7 +198,7 @@ export default function CancelarOrden() {
           <div className="loader-overlay"></div>
         </div>
       )}
-      
+
       <button
         onClick={() => router.replace("/inicio-servicio-medico")}
         className="absolute top-4 left-4 px-6 py-3 rounded-full shadow-lg transition-all duration-300 flex items-center group border-2 border-red-400 hover:scale-105 hover:shadow-2xl"
