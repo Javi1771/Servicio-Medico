@@ -97,35 +97,46 @@ export default function CancelarOrden() {
     try {
       const res = await fetch(endpoints[tipo], {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json", //* ojo: pedimos JSON explícito
+        },
         body: JSON.stringify({ folio, tipo }),
       });
 
-      //? 1) Si es 404 → advertencia con el mensaje
-      if (res.status === 404) {
-        //* parseamos el JSON de error que envío
-        const err = await res
-          .json()
-          .catch(() => ({ message: "No encontrado." }));
-        showAlert("warning", "Advertencia", err.message);
-        return;
+      //* Leemos TODO el cuerpo como texto (HTML, JSON, lo que sea)
+      const raw = await res.text();
+
+      //* Intentamos parsear ese texto a JSON
+      let parsed = null;
+      try {
+        parsed = JSON.parse(raw);
+      } catch {
+        //! no era JSON puro
       }
 
-      //? 2) Cualquier otro error HTTP
+      //! Si no es un 2xx → mostramos alerta (warning si es 404)
       if (!res.ok) {
-        const err = await res
-          .json()
-          .catch(() => ({ message: "Error al buscar." }));
-        showAlert("error", "Error", err.message);
+        const is404 = res.status === 404;
+        const mensaje = parsed?.message ?? raw;
+        showAlert(
+          is404 ? "warning" : "error",
+          is404 ? "Advertencia" : "Error",
+          mensaje
+        );
         return;
       }
 
-      //? 3) OK → parsea JSON y almacena datos
-      const { data } = await res.json();
-      setDatos(data);
-    } catch (error) {
-      //! fallos de red o parseo inesperado
-      showAlert("error", "Error", error.message);
+      //* Si llegó 200+ y parseamos JSON correctamente → guardamos datos
+      if (parsed && parsed.data) {
+        setDatos(parsed.data);
+      } else {
+        //! Llegó 200 pero no viene en tu formato esperado
+        showAlert("error", "Error", "Formato de respuesta inesperado:\n" + raw);
+      }
+    } catch (err) {
+      //! Falló la petición (red, CORS, etc.)
+      showAlert("error", "Error", err.message);
     } finally {
       setCargando(false);
     }
