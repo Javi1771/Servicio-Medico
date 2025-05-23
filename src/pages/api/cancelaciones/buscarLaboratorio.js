@@ -2,19 +2,28 @@ import sql from "mssql";
 import { connectToDatabase } from "../connectToDatabase";
 
 export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ message: "Método no permitido" });
-  }
-
-  const { folio } = req.body;
-  if (!folio) {
-    return res.status(400).json({ message: "Folio es requerido." });
-  }
+  //* Forzar siempre JSON
+  res.setHeader("Content-Type", "application/json; charset=utf-8");
 
   try {
+    //? 1) Método válido
+    if (req.method !== "POST") {
+      return res
+        .status(405)
+        .json({ message: "Método no permitido. Usa POST." });
+    }
+
+    //? 2) Body válido
+    const { folio } = req.body;
+    if (!folio) {
+      return res
+        .status(400)
+        .json({ message: "Folio es requerido." });
+    }
+
     const pool = await connectToDatabase();
 
-    //* Verifica que la consulta existe
+    //? 3) Verifica que la consulta existe
     const consultaResult = await pool
       .request()
       .input("folio", sql.VarChar, folio)
@@ -31,7 +40,7 @@ export default async function handler(req, res) {
       });
     }
 
-    //* Obtener todas las órdenes de laboratorio relacionadas
+    //? 4) Obtener todas las órdenes de laboratorio relacionadas
     const labResult = await pool
       .request()
       .input("folio", sql.VarChar, folio)
@@ -49,8 +58,8 @@ export default async function handler(req, res) {
       return res.status(404).json({ message: "Orden de laboratorio no encontrada." });
     }
 
+    //? 5) Recopilar estudios por cada laboratorio
     const laboratorios = [];
-
     for (const row of labResult.recordset) {
       const estudiosResult = await pool
         .request()
@@ -61,7 +70,7 @@ export default async function handler(req, res) {
           JOIN ESTUDIOS E ON DL.claveEstudio = E.claveEstudio
           WHERE DL.folio_orden_laboratorio = @folioOrden
         `);
-    
+
       const estudios = estudiosResult.recordset.map(r => r.estudio);
       laboratorios.push({
         nombre: row.laboratorio,
@@ -70,11 +79,8 @@ export default async function handler(req, res) {
       });
     }
 
-    //* Tomamos los datos generales del primero (todos comparten esos campos)
+    //? 6) Devolver datos consolidados
     const { NOMBRE_PACIENTE, EDAD, DEPARTAMENTO, NOMINA } = labResult.recordset[0];
-
-    //console.log("✅ Estudios por laboratorio:", laboratorios);
-
     return res.status(200).json({
       data: {
         NOMBRE_PACIENTE,
@@ -84,11 +90,13 @@ export default async function handler(req, res) {
         laboratorios,
       },
     });
+
   } catch (error) {
-    console.error("Error al buscar orden de laboratorio:", error);
+    //? 7) Cualquier excepción inesperada retorna JSON de error
+    console.error("💥 Error inesperado en buscarLaboratorio:", error);
     return res.status(500).json({
       message: "Error al buscar la orden de laboratorio",
-      error: error.message,
+      error:   error.message,
     });
   }
 }

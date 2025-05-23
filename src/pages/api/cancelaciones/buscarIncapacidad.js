@@ -17,22 +17,27 @@ function formatFecha(fecha) {
 }
 
 export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ message: "Método no permitido" });
-  }
-
-  const { folio } = req.body;
-
-  //* Log de lo que recibimos en el body
-  //console.log("Request body:", req.body);
-
-  if (!folio) {
-    return res.status(400).json({ message: "Folio es requerido." });
-  }
+  //* Asegurarnos de que cualquier header sea JSON
+  res.setHeader("Content-Type", "application/json; charset=utf-8");
 
   try {
-    const pool = await connectToDatabase();
+    //? 1) Método
+    if (req.method !== "POST") {
+      return res
+        .status(405)
+        .json({ message: "Método no permitido. Usa POST." });
+    }
 
+    //? 2) Body válido
+    const { folio } = req.body;
+    if (!folio) {
+      return res
+        .status(400)
+        .json({ message: "Folio es requerido." });
+    }
+
+    //? 3) Conexión y consulta de la consulta
+    const pool = await connectToDatabase();
     const consultaResult = await pool
       .request()
       .input("folio", sql.VarChar, folio)
@@ -44,15 +49,13 @@ export default async function handler(req, res) {
           AND diagnostico IS NULL
       `);
 
-    //* Log de lo que devuelve consultaResult
-    //console.log("consultaResult.recordset:", consultaResult.recordset);
-
     if (!consultaResult.recordset.length) {
       return res.status(404).json({
         message: "El folio de consulta no es válido o no tiene el estatus requerido.",
       });
     }
 
+    //? 4) Consulta de incapacidades
     const incapResult = await pool
       .request()
       .input("folio", sql.VarChar, folio)
@@ -63,53 +66,51 @@ export default async function handler(req, res) {
           AND estatus = 1
       `);
 
-    //* Log de lo que devuelve incapResult
-    //console.log("incapResult.recordset:", incapResult.recordset);
-
     if (!incapResult.recordset.length) {
-      return res.status(404).json({ message: "Incapacidad no encontrada." });
+      return res.status(404).json({
+        message: "Incapacidad no encontrada."
+      });
     }
 
+    //? 5) Formateo y proveedor
     const incap = incapResult.recordset[0];
-    //console.log("Incapacidad obtenida:", incap);
-
-    const fechaFormateada = formatFecha(incap.fecha);
-    const fechainicioFormateada = formatFecha(incap.fechainicio);
-    const fechafinFormateada = formatFecha(incap.fechafin);
+    const fecha     = formatFecha(incap.fecha);
+    const fechaini  = formatFecha(incap.fechainicio);
+    const fechafin  = formatFecha(incap.fechafin);
 
     const proveedorResult = await pool
       .request()
       .input("claveMedico", sql.Int, incap.claveMedico)
-      .query(`SELECT nombreproveedor FROM proveedores WHERE claveproveedor = @claveMedico`);
-
-    //console.log("proveedorResult.recordset:", proveedorResult.recordset);
+      .query(`
+        SELECT nombreproveedor 
+        FROM proveedores 
+        WHERE claveproveedor = @claveMedico
+      `);
 
     const nombreproveedor = proveedorResult.recordset.length
       ? proveedorResult.recordset[0].nombreproveedor
       : null;
 
-    const responseData = {
+    //? 6) Respuesta 200
+    return res.status(200).json({
       data: {
-        fecha: fechaFormateada,
-        fechainicio: fechainicioFormateada,
-        fechafinal: fechafinFormateada,
+        fecha,
+        fechainicio: fechaini,
+        fechafinal:   fechafin,
         nombrepaciente: incap.nombrepaciente,
-        departamento: incap.departamento,
-        edad: incap.edad,
+        departamento:   incap.departamento,
+        edad:           incap.edad,
         nombreproveedor,
-        observaciones: incap.observaciones,
+        observaciones:  incap.observaciones,
       },
-    };
+    });
 
-    //* Log de lo que estamos retornando
-    //console.log("Response data:", responseData);
-
-    return res.status(200).json(responseData);
   } catch (error) {
-    console.error("Error al buscar incapacidad:", error);
+    //? 7) Cualquier excepción cae aquí y devolvemos JSON
+    console.error("💥 Error inesperado en buscarIncapacidad:", error);
     return res.status(500).json({
       message: "Error al buscar la incapacidad",
-      error: error.message,
+      error:   error.message,
     });
   }
 }

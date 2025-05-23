@@ -2,18 +2,27 @@ import sql from "mssql";
 import { connectToDatabase } from "../connectToDatabase";
 
 export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ message: "Método no permitido" });
-  }
-
-  const { folio } = req.body;
-  if (!folio) {
-    return res.status(400).json({ message: "Folio es requerido." });
-  }
+  //* Forzar siempre JSON
+  res.setHeader("Content-Type", "application/json; charset=utf-8");
 
   try {
-    const pool = await connectToDatabase();
+    //? 1) Método válido
+    if (req.method !== "POST") {
+      return res
+        .status(405)
+        .json({ message: "Método no permitido. Usa POST." });
+    }
 
+    //? 2) Body válido
+    const { folio } = req.body;
+    if (!folio) {
+      return res
+        .status(400)
+        .json({ message: "Folio es requerido." });
+    }
+
+    //? 3) Conectar BD y obtener surtimiento
+    const pool = await connectToDatabase();
     const surtimientoQuery = `
       SELECT 
         S.NOMINA,
@@ -29,8 +38,8 @@ export default async function handler(req, res) {
       LEFT JOIN detalleSurtimientos DS ON S.FOLIO_SURTIMIENTO = DS.folioSurtimiento
       LEFT JOIN MEDICAMENTOS M ON DS.claveMedicamento = M.clavemedicamento
       WHERE S.FOLIO_PASE = @folio
-        AND S.ESTATUS = 1;
-    `;
+        AND S.ESTATUS = 1;`;
+
     const surtimientoResult = await pool
       .request()
       .input("folio", sql.VarChar, folio)
@@ -42,23 +51,20 @@ export default async function handler(req, res) {
       });
     }
 
-    //* Tomar los datos generales del surtimiento de la primera fila
+    //? 4) Datos generales del surtimiento
     const surtimiento = surtimientoResult.recordset[0];
-
-    //* Obtener todos los medicamentos asociados al surtimiento
     const medicamentos = surtimientoResult.recordset
-      .filter((row) => row.claveMedicamento) //* Solo filas que tengan medicamento
-      .map((row) => ({
+      .filter(row => row.claveMedicamento)
+      .map(row => ({
         claveMedicamento: row.claveMedicamento,
         medicamento: row.medicamento,
       }));
 
-    //* Buscar nombre del proveedor usando CLAVEMEDICO
+    //? 5) Nombre del proveedor
     const proveedorQuery = `
       SELECT nombreproveedor 
       FROM PROVEEDORES 
-      WHERE claveproveedor = @claveMedico
-    `;
+      WHERE claveproveedor = @claveMedico`;
     const proveedorResult = await pool
       .request()
       .input("claveMedico", sql.Int, surtimiento.CLAVEMEDICO)
@@ -68,7 +74,7 @@ export default async function handler(req, res) {
       ? proveedorResult.recordset[0].nombreproveedor
       : null;
 
-    //* Retornar toda la información completa
+    //? 6) Respuesta OK
     return res.status(200).json({
       data: {
         nomina: surtimiento.NOMINA,
@@ -79,14 +85,16 @@ export default async function handler(req, res) {
         clavemedico: surtimiento.CLAVEMEDICO,
         folio_surtimiento: surtimiento.FOLIO_SURTIMIENTO,
         nombreproveedor,
-        medicamentos, //* Aquí envías la lista de medicamentos
+        medicamentos,
       },
     });
+
   } catch (error) {
-    console.error("Error al buscar surtimiento:", error);
+    //? 7) Cualquier excepción imprevista retorna JSON
+    console.error("💥 Error inesperado en buscarSurtimiento:", error);
     return res.status(500).json({
       message: "Error al buscar el surtimiento",
-      error: error.message,
+      error:   error.message,
     });
   }
 }
