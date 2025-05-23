@@ -86,60 +86,32 @@ export default function CancelarOrden() {
   const handleBuscar = async () => {
     setDatos(null);
     setCargando(true);
-
     const endpoints = {
       paseEspecialidad: "/api/cancelaciones/buscarConsulta",
       laboratorio: "/api/cancelaciones/buscarLaboratorio",
       incapacidad: "/api/cancelaciones/buscarIncapacidad",
       surtimiento: "/api/cancelaciones/buscarSurtimiento",
     };
-
     try {
       const res = await fetch(endpoints[tipo], {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json", //* ojo: pedimos JSON explícito
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ folio, tipo }),
       });
-
-      //* Leemos TODO el cuerpo como texto (HTML, JSON, lo que sea)
-      const raw = await res.text();
-
-      //* Intentamos parsear ese texto a JSON
-      let parsed = null;
-      try {
-        parsed = JSON.parse(raw);
-      } catch {
-        //! no era JSON puro
-      }
-
-      //! Si no es un 2xx → mostramos alerta (warning si es 404)
+      const result = await res.json();
       if (!res.ok) {
-        const is404 = res.status === 404;
-        const mensaje = parsed?.message ?? raw;
         showAlert(
-          is404 ? "warning" : "error",
-          is404 ? "Advertencia" : "Error",
-          mensaje
+          "warning",
+          "Advertencia",
+          result.message || "Error al buscar"
         );
-        return;
-      }
-
-      //* Si llegó 200+ y parseamos JSON correctamente → guardamos datos
-      if (parsed && parsed.data) {
-        setDatos(parsed.data);
       } else {
-        //! Llegó 200 pero no viene en tu formato esperado
-        showAlert("error", "Error", "Formato de respuesta inesperado:\n" + raw);
+        setDatos(result.data);
       }
-    } catch (err) {
-      //! Falló la petición (red, CORS, etc.)
-      showAlert("error", "Error", err.message);
-    } finally {
-      setCargando(false);
+    } catch (error) {
+      showAlert("error", "Error", error.message);
     }
+    setCargando(false);
   };
 
   const handleCancelar = async () => {
@@ -208,7 +180,7 @@ export default function CancelarOrden() {
           <div className="loader-overlay"></div>
         </div>
       )}
-
+      
       <button
         onClick={() => router.replace("/inicio-servicio-medico")}
         className="absolute top-4 left-4 px-6 py-3 rounded-full shadow-lg transition-all duration-300 flex items-center group border-2 border-red-400 hover:scale-105 hover:shadow-2xl"
