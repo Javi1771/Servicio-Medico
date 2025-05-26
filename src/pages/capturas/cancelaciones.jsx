@@ -121,7 +121,11 @@ export default function CancelarOrden() {
       // En ese caso tu servidor NO te está devolviendo tu JSON de error:
       // asegúrate de tener un catch-all en pages/api/cancelaciones
       // para que siempre entregue JSON (incluso en rutas no definidas).
-        showAlert("warning", "Advertencia", result.message);
+      showAlert(
+        "error",
+        "Error inesperado",
+        "No se recibió el JSON de error del endpoint."
+      );
     } finally {
       setCargando(false);
     }
