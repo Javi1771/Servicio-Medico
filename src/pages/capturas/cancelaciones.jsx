@@ -122,7 +122,7 @@ export default function CancelarOrden() {
       // asegúrate de tener un catch-all en pages/api/cancelaciones
       // para que siempre entregue JSON (incluso en rutas no definidas).
       showAlert(
-        "warning",
+        "error",
         "Error inesperado",
         "No se recibió respuesta, verifique el folio e intente nuevamente."
       );
