@@ -245,13 +245,25 @@ const CrearPaseNuevo = () => {
         body: JSON.stringify({ claveEspecialidad }),
       });
 
-      if (!response.ok) throw new Error("Error al obtener proveedores");
+      if (!response.ok) {
+        throw new Error("Error al obtener proveedores");
+      }
 
-      const data = await response.json();
-      setProveedores(data);
+      const json = await response.json();
+
+      //! Si el endpoint devolvió un error
+      if (!json.success) {
+        showErrorAlert("Error", json.message);
+        setProveedores([]);
+        return;
+      }
+
+      //* json.data es el array de proveedores
+      setProveedores(json.data);
     } catch (error) {
       console.error("Error al cargar proveedores:", error);
       showErrorAlert("Error", "No se pudieron cargar los proveedores.");
+      setProveedores([]);
     }
   };
 

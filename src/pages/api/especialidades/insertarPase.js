@@ -3,7 +3,6 @@ import { connectToDatabase } from "../connectToDatabase";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
-    //console.log("❌ Método no permitido:", req.method);
     return res.status(405).json({ error: "Método no permitido" });
   }
 
@@ -32,67 +31,33 @@ export default async function handler(req, res) {
     ?.split("=")[1];
 
   if (!claveusuario) {
-    console.error("❌ No se encontró 'claveusuario' en las cookies.");
-    return res
-      .status(400)
-      .json({ error: "Falta 'claveusuario' en las cookies." });
+    return res.status(400).json({ error: "Falta 'claveusuario' en las cookies." });
   }
 
-  // console.log("📥 Datos recibidos:", {
-  //   clavenomina,
-  //   clavepaciente,
-  //   nombrepaciente,
-  //   edad,
-  //   claveespecialidad,
-  //   claveproveedor,
-  //   costo,
-  //   fechacita,
-  //   sindicato,
-  //   clavestatus,
-  //   elpacienteesempleado,
-  //   parentesco,
-  //   departamento,
-  //   folio,
-  //   claveusuario,
-  // });
-
   if (!clavenomina || !clavepaciente || !claveespecialidad || !folio) {
-    console.error("❌ Faltan datos obligatorios para la inserción.");
     return res.status(400).json({ error: "Datos incompletos." });
   }
 
   try {
     const pool = await connectToDatabase();
-    //console.log("✅ Conexión establecida");
 
-    //* 1. Inserción en la tabla "consultas" con OUTPUT para obtener la claveconsulta generada.
+    //? 1️⃣ Insertar en consultas
     const insertQuery = `
       INSERT INTO consultas (
-        clavenomina, clavepaciente, nombrepaciente, edad, especialidadinterconsulta, claveproveedor, 
-        costo, fechacita, sindicato, clavestatus, elpacienteesempleado, parentesco, departamento, fechaconsulta, claveusuario
+        clavenomina, clavepaciente, nombrepaciente, edad,
+        especialidadinterconsulta, claveproveedor, costo,
+        fechacita, sindicato, clavestatus,
+        elpacienteesempleado, parentesco, departamento,
+        fechaconsulta, claveusuario
       )
       OUTPUT INSERTED.claveconsulta
       VALUES (
-        @clavenomina, @clavepaciente, @nombrepaciente, @edad, @claveespecialidad, @claveproveedor, 
-        @costo, @fechacita, @sindicato, @clavestatus, @elpacienteesempleado, @parentesco, @departamento, DATEADD(MINUTE, -4, GETDATE()), @claveusuario
-      )
-    `;
-    // console.log("📋 Insert Query valores:", {
-    //   clavenomina,
-    //   clavepaciente,
-    //   nombrepaciente,
-    //   edad,
-    //   claveespecialidad,
-    //   claveproveedor,
-    //   costo,
-    //   fechacita,
-    //   sindicato,
-    //   clavestatus,
-    //   elpacienteesempleado,
-    //   parentesco,
-    //   departamento,
-    //   claveusuario,
-    // });
+        @clavenomina, @clavepaciente, @nombrepaciente, @edad,
+        @claveespecialidad, @claveproveedor, @costo,
+        @fechacita, @sindicato, @clavestatus,
+        @elpacienteesempleado, @parentesco, @departamento,
+        DATEADD(MINUTE, -4, GETDATE()), @claveusuario
+      )`;
 
     const insertResult = await pool
       .request()
@@ -113,138 +78,80 @@ export default async function handler(req, res) {
       .query(insertQuery);
 
     if (insertResult.rowsAffected[0] <= 0) {
-      console.error("⚠️ No se insertó el pase en consultas");
-      return res.status(500).json({ error: "Error al insertar el pase." });
+      return res.status(500).json({ error: "Error al insertar el pase en consultas." });
     }
-    //console.log("✅ Pase insertado en consultas");
 
-    //* 2. Obtener la claveconsulta generada
     const claveconsulta = insertResult.recordset[0].claveconsulta;
-    //console.log("Claveconsulta obtenida:", claveconsulta);
 
-    //* 3. INSERT EN LA TABLA "costos"
-    await pool
-      .request()
-      .input("claveproveedor", sql.Int, claveproveedor || null)
-      .input(
-        "clavenomina",
-        sql.NVarChar(15),
-        clavenomina ? String(clavenomina) : null
-      )
-      .input(
-        "clavepaciente",
-        sql.NVarChar(15),
-        clavepaciente ? String(clavepaciente) : null
-      )
-      .input(
-        "elpacienteesempleado",
-        sql.NVarChar(1),
-        elpacienteesempleado ? String(elpacienteesempleado) : null
-      )
-      .input(
-        "departamento",
-        sql.NChar(200),
-        departamento ? String(departamento) : null
-      )
-      .input("especialidadinterconsulta", sql.Int, claveespecialidad || null)
-      .input("claveConsulta", sql.Int, claveconsulta).query(`
-          INSERT INTO costos (
-            claveproveedor,
-            clavenomina,
-            clavepaciente,
-            elpacienteesempleado,
-            estatus,
-            departamento,
-            especialidadinterconsulta,
-            claveconsulta
-          ) VALUES (
-            @claveproveedor,
-            @clavenomina,
-            @clavepaciente,
-            @elpacienteesempleado,
-            1,
-            @departamento,
-            @especialidadinterconsulta,
-            @claveConsulta
-          );
-        `);
-    //console.log("✅ Registro insertado en la tabla 'costos'");
+    //? 2️⃣ Insertar en costos solo si claveproveedor = 610
+    if (Number(claveproveedor) === 610) {
+      const costoQuery = `
+        INSERT INTO costos (
+          claveproveedor, clavenomina, clavepaciente,
+          elpacienteesempleado, estatus, departamento,
+          especialidadinterconsulta, claveconsulta
+        ) VALUES (
+          @claveproveedor, @clavenomina, @clavepaciente,
+          @elpacienteesempleado, 1, @departamento,
+          @claveespecialidad, @claveconsulta
+        )`;
 
-    //* 4. Actualización en detalleEspecialidad (se mantiene el update usando folio)
-    //console.log("📄 Actualizando estatus en detalleEspecialidad...");
+      await pool
+        .request()
+        .input("claveproveedor", sql.Int, claveproveedor)
+        .input("clavenomina", sql.NVarChar, clavenomina)
+        .input("clavepaciente", sql.NVarChar, clavepaciente)
+        .input("elpacienteesempleado", sql.NVarChar, elpacienteesempleado)
+        .input("departamento", sql.NVarChar, departamento)
+        .input("claveespecialidad", sql.Int, claveespecialidad)
+        .input("claveconsulta", sql.Int, claveconsulta)
+        .query(costoQuery);
+    }
+
+    //? 3️⃣ Actualizar detalleEspecialidad
     const updateQuery = `
       UPDATE detalleEspecialidad
       SET estatus = 2
-      WHERE claveconsulta = @folio
-    `;
-    //console.log("📋 Valores enviados para update:", { folio });
-    const updateResult = await pool
+      WHERE claveconsulta = @folio`;
+
+    await pool
       .request()
       .input("folio", sql.Int, folio)
       .query(updateQuery);
 
-    if (updateResult.rowsAffected[0] > 0) {
-      // console.log(
-      //   `✅ Estatus actualizado en detalleEspecialidad (filas afectadas: ${updateResult.rowsAffected[0]})`
-      // );
-    } else {
-      // console.log(
-      //   "⚠️ No se encontró ninguna fila para actualizar en detalleEspecialidad"
-      // );
-    }
-
-    //* 5. Registrar la actividad "Creó un pase de especialidad" usando la claveconsulta generada
+    //? 4️⃣ Registrar actividad
     const rawCookies = req.headers.cookie || "";
     const claveusuarioCookie = rawCookies
       .split("; ")
       .find((row) => row.startsWith("claveusuario="))
       ?.split("=")[1];
-    const claveusuarioInt = claveusuarioCookie
-      ? Number(claveusuarioCookie)
-      : null;
-    console.log("Cookie claveusuario:", claveusuarioInt);
+    const claveusuarioInt = claveusuarioCookie ? Number(claveusuarioCookie) : null;
 
-    if (claveusuarioInt !== null) {
-      let ip =
-        (req.headers["x-forwarded-for"] &&
-          req.headers["x-forwarded-for"].split(",")[0].trim()) ||
-        req.connection?.remoteAddress ||
-        req.socket?.remoteAddress ||
-        (req.connection?.socket ? req.connection.socket.remoteAddress : null);
-
+    if (claveusuarioInt) {
+      const ip =
+        req.headers["x-forwarded-for"]?.split(",")[0].trim() ||
+        req.connection?.remoteAddress;
       const userAgent = req.headers["user-agent"] || "";
+
+      const actQuery = `
+        INSERT INTO dbo.ActividadUsuarios 
+          (IdUsuario, Accion, FechaHora, DireccionIP, AgenteUsuario, ClaveConsulta)
+        VALUES 
+          (@userId, @accion, DATEADD(MINUTE, -4, GETDATE()), @direccionIP, @agenteUsuario, @claveconsulta)`;
+
       await pool
         .request()
         .input("userId", sql.Int, claveusuarioInt)
         .input("accion", sql.VarChar, "Capturó un pase de especialidad")
         .input("direccionIP", sql.VarChar, ip)
         .input("agenteUsuario", sql.VarChar, userAgent)
-        .input("claveConsulta", sql.Int, claveconsulta).query(`
-          INSERT INTO dbo.ActividadUsuarios 
-            (IdUsuario, Accion, FechaHora, DireccionIP, AgenteUsuario, ClaveConsulta)
-          VALUES 
-            (@userId, @accion, DATEADD(MINUTE, -4, GETDATE()), @direccionIP, @agenteUsuario, @claveConsulta)
-        `);
-      // console.log(
-      //   "Actividad 'Creó un pase de especialidad' registrada en ActividadUsuarios."
-      // );
-    } else {
-      //console.log("No se pudo registrar la actividad: falta claveusuario.");
+        .input("claveconsulta", sql.Int, claveconsulta)
+        .query(actQuery);
     }
 
-    res.status(200).json({
-      message: "Pase creado y estatus actualizado correctamente",
-      claveconsulta,
-    });
+    return res.status(200).json({ message: "Pase creado y estatus actualizado correctamente", claveconsulta });
   } catch (error) {
-    console.error(
-      "❌ Error al insertar pase o actualizar estatus:",
-      error.message
-    );
-    console.error("⚠️ Detalles del error:", error);
-    res.status(500).json({
-      error: "Error al insertar el pase o actualizar el estatus",
-      details: error.message,
-    });
+    console.error("Error al insertar pase o actualizar estatus:", error);
+    return res.status(500).json({ error: error.message });
   }
 }
