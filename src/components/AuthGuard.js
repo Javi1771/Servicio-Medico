@@ -16,7 +16,7 @@ const AuthGuard = ({ children, user: initialUser = null }) => {
         credentials: "include",
       })
         .then((res) => {
-          if (res.ok) return res.json(); 
+          if (res.ok) return res.json();
           throw new Error("No se pudo refrescar token");
         })
         .then((data) => {
@@ -34,17 +34,53 @@ const AuthGuard = ({ children, user: initialUser = null }) => {
     }
   }, [user, router]);
 
-  //* Mientras validamos/intentamos refresh, mostramos un loading
   if (isLoading) {
-    return <div>Cargando sesión...</div>;
+    return (
+      <div className="fixed inset-0 bg-gradient-to-br from-blue-900/90 to-blue-800/90 flex flex-col items-center justify-center">
+        {/* Spinner minimalista: tres círculos que giran en bucle */}
+        <div className="flex space-x-4 mb-6">
+          <div className="w-4 h-4 bg-[#BAE1FD] rounded-full animate-pulse-slow"></div>
+          <div className="w-4 h-4 bg-[#7ECBFB] rounded-full animate-pulse-slow delay-200"></div>
+          <div className="w-4 h-4 bg-[#3000A0] rounded-full animate-pulse-slow delay-400"></div>
+        </div>
+
+        {/* Texto sencillo */}
+        <span className="text-lg text-gray-200">Cargando sesión...</span>
+
+        {/* Estilos definidos internamente para la animación de pulso lento */}
+        <style jsx>{`
+          @keyframes pulseSlow {
+            0% {
+              opacity: 0.3;
+              transform: scale(0.9);
+            }
+            50% {
+              opacity: 1;
+              transform: scale(1.1);
+            }
+            100% {
+              opacity: 0.3;
+              transform: scale(0.9);
+            }
+          }
+          .animate-pulse-slow {
+            animation: pulseSlow 1.5s ease-in-out infinite;
+          }
+          .delay-200 {
+            animation-delay: 0.2s;
+          }
+          .delay-400 {
+            animation-delay: 0.4s;
+          }
+        `}</style>
+      </div>
+    );
   }
 
-  //* Si el usuario existe y tiene rol 7, usa el layout de presidente
   if (user?.role === "7") {
     return <PresidenteLayout>{children}</PresidenteLayout>;
   }
 
-  //* Si no es rol 7, muestra directamente los children sin layout
   return <>{children}</>;
 };
 
