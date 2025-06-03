@@ -83,11 +83,6 @@ const docsList = [
     key: "URL_VIGENCIA",
     icon: <FaCalendarTimes className="text-teal-500" />,
   },
-  {
-    label: "Firma",
-    key: "FIRMA",
-    icon: <PiSignature className="text-teal-500" />,
-  },
 ];
 
 //* Función para calcular la edad a partir de la fecha de nacimiento
@@ -996,7 +991,7 @@ export default function DocumentModal({ beneficiary, onClose }) {
                     {beneficiary.FIRMA && beneficiary.FIRMA.trim() !== "" && (
                       <div className="mt-8 px-4 md:px-0">
                         <h3 className="text-2xl font-semibold text-indigo-800 mb-4 flex items-center gap-2">
-                          <FaFileSignature className="text-indigo-500 text-2xl" />
+                          <PiSignature className="text-indigo-500 text-2xl" />
                           Firma del Beneficiario
                         </h3>
 
