@@ -93,6 +93,7 @@ export default async function handler(req, res) {
         let beneficiarios = [];
         if (ben[0]) {
           try {
+            //* La consulta FOR JSON retorna algo como { '': '[ { … }, { … } ]' }
             beneficiarios = JSON.parse(Object.values(ben[0])[0]);
           } catch {
             beneficiarios = [];
@@ -108,23 +109,25 @@ export default async function handler(req, res) {
           if (fb < new Date()) return null;
         }
 
-        //* Mantener fechas originales en ISO y crear versiones formateadas
+        //* Formatear fechas y mantener originales
         const beneficiariosFmt = beneficiarios.map(b => ({
           ...b,
-          F_NACIMIENTO_ISO: b.F_NACIMIENTO, //* Mantener formato original
-          F_NACIMIENTO: b.F_NACIMIENTO 
-            ? formatFecha(b.F_NACIMIENTO)
-            : null,
-          VIGENCIA_ESTUDIOS_ISO: b.VIGENCIA_ESTUDIOS, //* Mantener formato original
-          VIGENCIA_ESTUDIOS: b.VIGENCIA_ESTUDIOS
-            ? formatFecha(b.VIGENCIA_ESTUDIOS)
-            : null,
+          F_NACIMIENTO_ISO: b.F_NACIMIENTO,
+          F_NACIMIENTO: b.F_NACIMIENTO ? formatFecha(b.F_NACIMIENTO) : null,
+          VIGENCIA_ESTUDIOS_ISO: b.VIGENCIA_ESTUDIOS,
+          VIGENCIA_ESTUDIOS: b.VIGENCIA_ESTUDIOS ? formatFecha(b.VIGENCIA_ESTUDIOS) : null,
         }));
+
+        //* → Contar beneficiarios que NO tienen Acta de Nacimiento (URL_ACTA_NAC IS NULL) y siguen activos
+        const sinActaCount = beneficiariosFmt.filter(
+          b => !b.URL_ACTA_NAC
+        ).length;
 
         return {
           no_nomina: NO_NOMINA,
           empleado: emp,
           beneficiarios: beneficiariosFmt,
+          sinActaCount,            //! ← Número de beneficiarios sin URL_ACTA_NAC
         };
       })
     );

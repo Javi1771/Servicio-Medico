@@ -26,10 +26,13 @@ import {
   FaFileExcel,
   FaArrowLeft,
 } from "react-icons/fa";
+import { TbFolderCancel } from "react-icons/tb";
 import { AnimatePresence, motion } from "framer-motion";
+import MissingBeneficiaries from "./components/MissingBeneficiaries";
 import DocumentModal from "./components/DocumentModal";
 import { exportToExcel } from "../../utils/exportUtils";
 import { useRouter } from "next/router";
+
 const PAGE_SIZE = 12;
 
 export default function EmpleadosBeneficiarios() {
@@ -62,8 +65,12 @@ export default function EmpleadosBeneficiarios() {
   const [selected, setSelected] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
 
+  //* NUEVOS estados para mostrar lista de beneficiarios sin acta
+  const [showMissingList, setShowMissingList] = useState(false);
+  const [missingPage, setMissingPage] = useState(1);
+
   const handleRegresar = () => {
-    router.replace("/inicio-servicio-medico"); //* Navegar a la pantalla anterior
+    router.replace("/inicio-servicio-medico");
   };
 
   //* Carga de datos
@@ -111,7 +118,7 @@ export default function EmpleadosBeneficiarios() {
   const normalized = useMemo(
     () =>
       data.map((item) => {
-        const { empleado = {}, no_nomina } = item;
+        const { empleado = {}, no_nomina, sinActaCount } = item;
         const rawName = [
           empleado.nombre,
           empleado.a_paterno,
@@ -130,9 +137,35 @@ export default function EmpleadosBeneficiarios() {
                 ? "SUTSMSJR"
                 : "SITAM"
               : "",
+          sinActaCount,
         };
       }),
     [data]
+  );
+
+  //* Lista de beneficiarios sin “URL_ACTA_NAC”
+  const beneficiariesWithoutActa = useMemo(() => {
+    const list = [];
+    normalized.forEach((emp) => {
+      emp.beneficiarios.forEach((b) => {
+        if (!b.URL_ACTA_NAC) {
+          list.push({
+            no_nomina: emp.no_nomina,
+            empName: emp.empName,
+            beneficiaryId: b.ID_BENEFICIARIO,
+            beneficiaryName: `${b.NOMBRE} ${b.A_PATERNO} ${b.A_MATERNO}`,
+            parentesco: b.PARENTESCO_DESCRIPCION,
+          });
+        }
+      });
+    });
+    return list;
+  }, [normalized]);
+
+  //* Suma global de beneficiarios sin acta
+  const sinActaCount = useMemo(
+    () => normalized.reduce((total, emp) => total + (emp.sinActaCount || 0), 0),
+    [normalized]
   );
 
   //* Listas de filtro
@@ -141,7 +174,7 @@ export default function EmpleadosBeneficiarios() {
     [normalized]
   );
 
-  //* Datos filtrados con búsqueda por nombres de beneficiarios
+  //* Datos filtrados con búsqueda
   const filtered = useMemo(
     () =>
       normalized.filter(
@@ -149,7 +182,6 @@ export default function EmpleadosBeneficiarios() {
           (!searchTerm ||
             i.empName.toLowerCase().includes(searchTerm.toLowerCase()) ||
             i.no_nomina.toString().includes(searchTerm) ||
-            //* Buscar en los nombres de los beneficiarios
             i.beneficiarios.some((b) =>
               `${b.NOMBRE} ${b.A_PATERNO} ${b.A_MATERNO}`
                 .toLowerCase()
@@ -157,7 +189,6 @@ export default function EmpleadosBeneficiarios() {
             )) &&
           (!deptFilter || i.departamento === deptFilter) &&
           (!sindFilter || i.sindicato === sindFilter) &&
-          //* Filtro por tipo de beneficiario
           (!beneficiaryTypeFilter ||
             i.beneficiarios.some((b) =>
               beneficiaryTypeFilter === "hijos"
@@ -175,11 +206,16 @@ export default function EmpleadosBeneficiarios() {
     [normalized, searchTerm, deptFilter, sindFilter, beneficiaryTypeFilter]
   );
 
-  //* Paginación
+  //* Paginación empleados
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
   const pageItems = filtered.slice(
     (currentPage - 1) * PAGE_SIZE,
     currentPage * PAGE_SIZE
+  );
+
+  //* Paginación beneficiarios sin acta
+  const missingTotalPages = Math.ceil(
+    beneficiariesWithoutActa.length / PAGE_SIZE
   );
 
   //* Métricas
@@ -205,6 +241,9 @@ export default function EmpleadosBeneficiarios() {
 
   const changePage = (delta) => {
     setCurrentPage((p) => Math.min(Math.max(1, p + delta), totalPages));
+  };
+  const changeMissingPage = (delta) => {
+    setMissingPage((p) => Math.min(Math.max(1, p + delta), missingTotalPages));
   };
 
   const handleBeneficiaryTypeClick = (type) => {
@@ -426,6 +465,20 @@ export default function EmpleadosBeneficiarios() {
     );
   };
 
+  //* Si el usuario hizo clic en “Beneficiarios sin Documentos”, mostramos componente externo
+  if (showMissingList) {
+    return (
+      <MissingBeneficiaries
+        beneficiariesWithoutActa={beneficiariesWithoutActa}
+        missingPage={missingPage}
+        setMissingPage={setMissingPage}
+        missingTotalPages={missingTotalPages}
+        changeMissingPage={changeMissingPage}
+        setShowMissingList={setShowMissingList}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-indigo-50">
       {/* Barra superior */}
@@ -556,8 +609,8 @@ export default function EmpleadosBeneficiarios() {
           </div>
         </div>
 
-        {/* Métricas */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-5 mb-5">
+        {/* MÉTRICAS */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 mb-6">
           {[
             {
               icon: <FaUsers className="text-2xl" />,
@@ -591,19 +644,32 @@ export default function EmpleadosBeneficiarios() {
               )}%`,
               color: "from-purple-500 to-purple-600",
             },
-          ].map(({ icon, label, value, color }, index) => (
+            {
+              icon: <TbFolderCancel className="text-2xl" />,
+              label: "Sin Documentos",
+              value: sinActaCount,
+              color: "from-red-500 to-red-600",
+              onClick: () => {
+                setShowMissingList(true);
+                setMissingPage(1);
+              },
+            },
+          ].map(({ icon, label, value, color, onClick }, index) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1, duration: 0.5 }}
-              className={`bg-gradient-to-br ${color} text-white rounded-2xl p-5 shadow-xl overflow-hidden relative`}
+              className={`relative overflow-hidden rounded-2xl shadow-xl p-5 text-white bg-gradient-to-br ${color} ${
+                onClick ? "cursor-pointer" : ""
+              }`}
+              onClick={onClick}
             >
               <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-white/10 rounded-full"></div>
               <div className="absolute -right-6 -bottom-6 w-32 h-32 bg-white/5 rounded-full"></div>
 
-              <div className="relative z-10">
-                <div className="mb-4">{icon}</div>
+              <div className="relative z-10 flex flex-col items-start">
+                <div className="mb-2">{icon}</div>
                 <h3 className="text-2xl font-bold mb-1">{value}</h3>
                 <p className="font-light text-white/90">{label}</p>
               </div>
@@ -648,7 +714,7 @@ export default function EmpleadosBeneficiarios() {
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
               onClick={() => handleBeneficiaryTypeClick(type)}
-              className={`bg-gradient-to-br ${color} text-white rounded-2xl p-5 shadow-xl overflow-hidden relative ${
+              className={`relative overflow-hidden rounded-2xl shadow-xl p-5 text-white bg-gradient-to-br ${color} ${
                 beneficiaryTypeFilter === type ? "ring-4 ring-white/50" : ""
               }`}
             >
@@ -931,7 +997,7 @@ export default function EmpleadosBeneficiarios() {
               ))}
             </div>
 
-            {/* Paginación */}
+            {/* Paginación empleados */}
             {filtered.length > 0 && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -1004,7 +1070,6 @@ export default function EmpleadosBeneficiarios() {
                             </span>
                           );
                         }
-
                         return null;
                       })}
                     </div>
