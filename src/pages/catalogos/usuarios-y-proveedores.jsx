@@ -284,9 +284,9 @@ export default function UsuariosTable() {
 
       //? Validar contraseña
       if (name === "password") {
-        if (value.length < 8) {
+        if (value.length < 6) {
           setPasswordError(
-            "❌ La contraseña debe tener al menos 8 caracteres."
+            "❌ La contraseña debe tener al menos 6 caracteres."
           );
         } else {
           setPasswordError(""); //* Contraseña válida
@@ -367,13 +367,13 @@ export default function UsuariosTable() {
       return;
     }
 
-    if (!newUsuario.password || newUsuario.password.length < 8) {
+    if (!newUsuario.password || newUsuario.password.length < 6) {
       playSound(false); //! Reproducir sonido de error
       await Swal.fire({
         icon: "error",
         title:
           "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>La contraseña debe tener al menos 8 caracteres.</p>",
+        html: "<p style='color: #fff; font-size: 1.1em;'>La contraseña debe tener al menos 6 caracteres.</p>",
         background: "linear-gradient(145deg, #4a0000, #220000)",
         confirmButtonColor: "#ff1744",
         confirmButtonText:
@@ -1021,7 +1021,7 @@ export default function UsuariosTable() {
                         placeholder={
                           selectedUsuario
                             ? "Escribe la nueva contraseña"
-                            : "Ingrese la contraseña (mínimo 8 caracteres)"
+                            : "Ingrese la contraseña (mínimo 6 caracteres)"
                         }
                         onChange={handleInputChange}
                         value={newUsuario.password || ""}

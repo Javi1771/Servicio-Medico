@@ -49,22 +49,24 @@ export async function getConsultaData(claveconsulta) {
   //? 1. Consultar todos los registros de LABORATORIOS para la clave de consulta
   const labQuery = `
     SELECT
-      FOLIO_ORDEN_LABORATORIO,
-      FECHA_EMISION,
-      NOMINA,
-      EDAD,
-      NOMBRE_PACIENTE,
-      ESEMPLEADO,
-      DEPARTAMENTO,
-      DIAGNOSTICO,
-      claveusuario,
-      CLAVEMEDICO,
-      SINDICATO,
-      CLAVECONSULTA,
-      FECHA_CITA
-    FROM LABORATORIOS
-    WHERE CLAVECONSULTA = @claveConsulta
-      AND ESTATUS = 1
+      L.FOLIO_ORDEN_LABORATORIO,
+      L.FECHA_EMISION,
+      L.NOMINA,
+      L.EDAD,
+      L.NOMBRE_PACIENTE,
+      L.ESEMPLEADO,
+      L.DEPARTAMENTO,
+      L.DIAGNOSTICO,
+      L.claveusuario,
+      L.CLAVEMEDICO,
+      L.SINDICATO,
+      L.CLAVECONSULTA,
+      L.FECHA_CITA,
+      C.claveproveedor AS CLAVEPROVEEDOR
+    FROM LABORATORIOS AS L
+    JOIN CONSULTAS   AS C ON L.CLAVECONSULTA = C.claveconsulta
+    WHERE L.CLAVECONSULTA = @claveConsulta
+      AND L.ESTATUS = 1
   `;
   const labResult = await pool
     .request()
@@ -168,6 +170,22 @@ export async function getConsultaData(claveconsulta) {
         }
       }
 
+      //* Nombre de proveedor/firma médico basado en CLAVEPROVEEDOR
+      let firmamedico = null;
+      if (labRow.CLAVEPROVEEDOR) {
+        const firmaQ = await pool
+          .request()
+          .input("prov2", sql.Int, labRow.CLAVEPROVEEDOR)
+          .query(
+            `SELECT nombreproveedor 
+             FROM proveedores 
+             WHERE claveproveedor = @prov2`
+          );
+        if (firmaQ.recordset.length > 0) {
+          firmamedico = firmaQ.recordset[0].nombreproveedor;
+        }
+      }
+
       return {
         FOLIO_ORDEN_LABORATORIO: labRow.FOLIO_ORDEN_LABORATORIO,
         FECHA_EMISION: labRow.FECHA_EMISION,
@@ -181,8 +199,10 @@ export async function getConsultaData(claveconsulta) {
         claveusuario: labRow.claveusuario,
         CLAVEMEDICO: labRow.CLAVEMEDICO,
         SINDICATO: labRow.SINDICATO,
+        CLAVEPROVEEDOR: labRow.CLAVEPROVEEDOR,
         laboratorio: laboratorioNombre,
         medico: medico,
+        firmamedico: firmamedico,
         estudios,
       };
     })
@@ -203,9 +223,11 @@ export async function getConsultaData(claveconsulta) {
     CLAVECONSULTA: firstLabOriginal.CLAVECONSULTA,
     SINDICATO: firstLab.SINDICATO,
     FOLIO_ORDEN_LABORATORIO: firstLab.FOLIO_ORDEN_LABORATORIO,
+    CLAVEPROVEEDOR: firstLab.CLAVEPROVEEDOR,
+    firmamedico: firstLab.firmamedico ?? null,
     parentesco: parentesco || null,
     laboratorios,
-    nombreelaborador: cookieString,
+    nombreelaborador: cookieString, 
   };
 
   return { consulta: respuesta };
@@ -221,7 +243,19 @@ export default async function handler(req, res) {
     if (!data || !data.consulta) {
       return res.status(404).json({ error: "No se encontró la consulta" });
     }
-    //* Imprimir en consola la información completa, sin truncar objetos anidados
+
+    //* ─────────── NUEVO: si existe la cookie `nombreusuario`, úsala ─────────── */
+    const rawCookies = req.headers.cookie || "";
+    const cookieHit = rawCookies
+      .split("; ")
+      .find((c) => c.startsWith("nombreusuario="));
+
+    if (cookieHit) {
+      const nombreCookie = decodeURIComponent(cookieHit.split("=")[1] || "");
+      if (nombreCookie) data.consulta.nombreelaborador = nombreCookie;
+    }
+    //* ───────────────────────────────────────────────────────────────────────── */
+
     console.dir(data, { depth: null });
     return res.status(200).json(data);
   } catch (error) {

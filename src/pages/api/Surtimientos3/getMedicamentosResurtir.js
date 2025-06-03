@@ -1,4 +1,3 @@
-// pages/api/Surtimientos3/getMedicamentosResurtir.js
 import { connectToDatabase } from '../connectToDatabase';
 import sql from 'mssql';
 
@@ -27,7 +26,7 @@ export default async function handler(req, res) {
       .input('folio', sql.VarChar, folioReceta)
       .query(`
         SELECT TOP 1 especialidadinterconsulta
-        FROM PRUEBAS.dbo.consultas 
+        FROM consultas 
         WHERE claveconsulta = @folio
       `);
 
@@ -48,8 +47,8 @@ export default async function handler(req, res) {
           dr.piezas,
           dr.cantidadMeses,
           dr.surtimientoActual
-        FROM PRUEBAS.dbo.detalleReceta dr
-        LEFT JOIN PRUEBAS.dbo.MEDICAMENTOS m
+        FROM detalleReceta dr
+        LEFT JOIN MEDICAMENTOS m
           ON dr.descMedicamento = m.clavemedicamento
         WHERE dr.folioReceta = @folio
       `;
@@ -64,8 +63,8 @@ export default async function handler(req, res) {
           dr.piezas,
           dr.cantidadMeses,
           dr.surtimientoActual
-        FROM PRUEBAS.dbo.detalleReceta dr
-        LEFT JOIN PRUEBAS.dbo.MEDICAMENTOS m
+        FROM detalleReceta dr
+        LEFT JOIN MEDICAMENTOS m
           ON dr.descMedicamento = m.clavemedicamento
         WHERE dr.folioReceta = @folio
           AND dr.seAsignoResurtimiento = 1

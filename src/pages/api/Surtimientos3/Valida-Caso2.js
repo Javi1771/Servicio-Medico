@@ -26,8 +26,8 @@ export default async function handler(req, res) {
           dr.piezas,
           dr.cantidadMeses,
           dr.surtimientoActual
-        FROM PRUEBAS.dbo.detalleReceta dr
-        LEFT JOIN PRUEBAS.dbo.MEDICAMENTOS m
+        FROM detalleReceta dr
+        LEFT JOIN MEDICAMENTOS m
           ON dr.descMedicamento = m.clavemedicamento
         WHERE dr.folioReceta = @folio
           AND dr.seAsignoResurtimiento = 1

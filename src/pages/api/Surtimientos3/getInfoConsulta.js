@@ -1,4 +1,3 @@
-// pages/api/Surtimientos3/getInfoConsulta.js
 import { connectToDatabase } from '../connectToDatabase';
 import sql from 'mssql';
 
@@ -16,31 +15,36 @@ export default async function handler(req, res) {
     const pool = await connectToDatabase();
     const result = await pool
       .request()
-      .input('claveconsulta', sql.VarChar, claveconsulta) // Nota: aquí hay una 'a' suelta en tu código original, la he quitado.
+      .input('claveconsulta', sql.VarChar, claveconsulta)
       .query(`
         SELECT
           c.claveconsulta,
-          -- Asumiendo que clavenomina podría ser NTEXT
-          RTRIM(CAST(c.clavenomina AS NVARCHAR(MAX))) as clavenomina,
-          RTRIM(CAST(c.clavepaciente AS NVARCHAR(MAX))) as clavepaciente, -- Aplicar CAST si también es NTEXT
-          RTRIM(CAST(c.nombrepaciente AS NVARCHAR(MAX))) as nombrepaciente, -- Aplicar CAST si también es NTEXT
-          RTRIM(CAST(c.edad AS NVARCHAR(MAX))) as edad, -- Aplicar CAST si también es NTEXT
-          RTRIM(CAST(c.departamento AS NVARCHAR(MAX))) as departamento, -- Aplicar CAST si también es NTEXT
-          RTRIM(CAST(c.parentesco AS NVARCHAR(MAX))) as parentesco, -- Aplicar CAST si también es NTEXT
-          RTRIM(CAST(c.sindicato AS NVARCHAR(MAX))) as sindicato, -- Aplicar CAST si también es NTEXT
-          RTRIM(CAST(c.elpacienteesempleado AS NVARCHAR(MAX))) as elpacienteesempleado, -- Aplicar CAST si también es NTEXT
-          -- Especialmente importante para diagnostico si es NTEXT, ya que suele ser largo
-          RTRIM(CAST(c.diagnostico AS NVARCHAR(MAX))) as diagnostico,
+          RTRIM(CAST(c.clavenomina      AS NVARCHAR(MAX))) AS clavenomina,
+          RTRIM(CAST(c.clavepaciente    AS NVARCHAR(MAX))) AS clavepaciente,
+          RTRIM(CAST(c.nombrepaciente   AS NVARCHAR(MAX))) AS nombrepaciente,
+          RTRIM(CAST(c.edad            AS NVARCHAR(MAX))) AS edad,
+          RTRIM(CAST(c.departamento     AS NVARCHAR(MAX))) AS departamento,
+
+          -- 🔸 Descripción del parentesco; si no existe → 'EMPLEADO'
+          ISNULL(
+            RTRIM(CAST(par.PARENTESCO   AS NVARCHAR(MAX))),
+            'EMPLEADO'
+          )                                        AS parentesco,
+
+          RTRIM(CAST(c.sindicato        AS NVARCHAR(MAX))) AS sindicato,
+          RTRIM(CAST(c.elpacienteesempleado AS NVARCHAR(MAX))) AS elpacienteesempleado,
+          RTRIM(CAST(c.diagnostico      AS NVARCHAR(MAX))) AS diagnostico,
           c.especialidadinterconsulta,
-          RTRIM(CAST(p.nombreproveedor AS NVARCHAR(MAX))) as nombreproveedor, -- Aplicar CAST si también es NTEXT
+
+          RTRIM(CAST(p.nombreproveedor  AS NVARCHAR(MAX))) AS nombreproveedor,
           p.claveespecialidad,
-          RTRIM(CAST(e.especialidad AS NVARCHAR(MAX))) as especialidad, -- Aplicar CAST si también es NTEXT
+          RTRIM(CAST(e.especialidad     AS NVARCHAR(MAX))) AS especialidad,
           c.claveproveedor
-        FROM PRUEBAS.dbo.consultas AS c
-        LEFT JOIN PRUEBAS.dbo.proveedores AS p
-          ON c.claveproveedor = p.claveproveedor
-        LEFT JOIN PRUEBAS.dbo.especialidades AS e
-          ON p.claveespecialidad = e.claveespecialidad
+        FROM dbo.consultas      AS c
+        LEFT JOIN dbo.proveedores    AS p  ON c.claveproveedor  = p.claveproveedor
+        LEFT JOIN dbo.especialidades AS e  ON p.claveespecialidad = e.claveespecialidad
+        LEFT JOIN dbo.PARENTESCO     AS par
+               ON TRY_CAST(c.parentesco AS INT) = par.ID_PARENTESCO
         WHERE c.claveconsulta = @claveconsulta
       `);
 
@@ -51,11 +55,11 @@ export default async function handler(req, res) {
   } catch (error) {
     console.error('API getInfoConsulta error:', error);
     let errorMessage = 'Error en la base de datos';
-    if (error.originalError && error.originalError.info && error.originalError.info.message) {
-        errorMessage = `Error de base de datos: ${error.originalError.info.message}`;
+    if (error.originalError?.info?.message) {
+      errorMessage = `Error de base de datos: ${error.originalError.info.message}`;
     } else if (error.message) {
-        errorMessage = error.message;
+      errorMessage = error.message;
     }
     res.status(500).json({ error: errorMessage });
   }
-}    
+}

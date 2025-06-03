@@ -18,7 +18,7 @@ import { BiLogoReact } from "react-icons/bi";
 import { MdLogout } from "react-icons/md";
 import Cookies from "js-cookie";
 
-// Carga dinámica del loader sin SSR
+//* Carga dinámica del loader sin SSR
 const LoaderGeneral = dynamic(
   () => import("../pages/estadisticas/Loaders/Loader-general"),
   { ssr: false }
@@ -34,9 +34,9 @@ const PresidenteLayout: React.FC<PresidenteLayoutProps> = ({ children }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [fromSidebar, setFromSidebar] = useState<boolean>(false); // Determina si el cambio es desde la barra lateral
+  const [fromSidebar, setFromSidebar] = useState<boolean>(false); //* Determina si el cambio es desde la barra lateral
 
-  // Lista de rutas sin layout
+  //* Lista de rutas sin layout
   const noLayoutRoutes = [
     "/consultas/recetas/generar-receta-farmacia",
     "/consultas/recetas/generar-receta-paciente",
@@ -46,12 +46,12 @@ const PresidenteLayout: React.FC<PresidenteLayoutProps> = ({ children }) => {
     "/capturas/incapacidades/generar-incapacidad",
   ];
 
-  // Para evitar renderizado en SSR
+  //* Para evitar renderizado en SSR
   useEffect(() => {
     setIsClient(true);
   }, []);
 
-  // Efecto para manejar el cambio de ruta y la animación de carga
+  //* Efecto para manejar el cambio de ruta y la animación de carga
   useEffect(() => {
     const handleRouteChangeStart = () => {
       if (fromSidebar) setIsLoading(true);
@@ -60,7 +60,7 @@ const PresidenteLayout: React.FC<PresidenteLayoutProps> = ({ children }) => {
     const handleRouteChangeComplete = () => {
       setIsLoading(false);
       setFromSidebar(false);
-      setMobileMenuOpen(false); // Cierra el menú móvil tras la navegación
+      setMobileMenuOpen(false); //! Cierra el menú móvil tras la navegación
     };
 
     router.events.on("routeChangeStart", handleRouteChangeStart);
@@ -72,25 +72,25 @@ const PresidenteLayout: React.FC<PresidenteLayoutProps> = ({ children }) => {
     };
   }, [fromSidebar, router.events]);
 
-  // Función para cerrar sesión
+  //* Función para cerrar sesión
   const handleLogout = () => {
     Cookies.remove("token");
     Cookies.remove("rol");
     router.replace("/");
   };
 
-  // Navega a una ruta, marcando el cambio como proveniente de la sidebar
+  //* Navega a una ruta, marcando el cambio como proveniente de la sidebar
   const navigateTo = (path: string) => {
     setFromSidebar(true);
     router.replace(path);
   };
 
-  // Alterna la apertura/cierre de un menú (acordeón)
+  //* Alterna la apertura/cierre de un menú (acordeón)
   const toggleMenu = (menu: string) => {
     setOpenMenu(openMenu === menu ? null : menu);
   };
 
-  // Opciones del menú lateral
+  //* Opciones del menú lateral
   const menuOptions = [
     {
       title: "Consultas",
@@ -142,7 +142,10 @@ const PresidenteLayout: React.FC<PresidenteLayoutProps> = ({ children }) => {
       icon: (
         <FaChartLine className="text-blue-400 text-3xl transition-transform duration-300 group-hover:scale-110" />
       ),
-      options: [{ name: "Incapacidades", path: "/reportes/incapacidades" }],
+      options: [
+        { name: "Incapacidades", path: "/reportes/incapacidades" },
+        { name: "Beneficiarios Activos", path: "/reportes/beneficiarios-activos" },
+      ],
     },
     {
       title: "Farmacia",
@@ -166,7 +169,7 @@ const PresidenteLayout: React.FC<PresidenteLayoutProps> = ({ children }) => {
     },
   ];
 
-  // Evitar renderizar el layout en SSR o para rutas que no lo requieren
+  //! Evitar renderizar el layout en SSR o para rutas que no lo requieren
   if (!isClient) return null;
   if (noLayoutRoutes.includes(router.pathname)) return <>{children}</>;
 

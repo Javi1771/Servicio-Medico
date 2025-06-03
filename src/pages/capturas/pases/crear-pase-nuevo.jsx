@@ -157,7 +157,7 @@ const CrearPaseNuevo = () => {
     }
 
     try {
-      //* Buscar el empleado
+      //* 1️⃣ Buscar el empleado
       const response = await fetch("/api/empleado", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -187,7 +187,7 @@ const CrearPaseNuevo = () => {
         photo: "/user_icon_.png",
       });
 
-      //* Obtener beneficiarios ya filtrados del backend
+      //* 2️⃣ Obtener beneficiarios ya filtrados del backend
       const beneficiariesResponse = await fetch(
         "/api/beneficiarios/beneficiario",
         {
@@ -196,6 +196,18 @@ const CrearPaseNuevo = () => {
           body: JSON.stringify({ nomina }),
         }
       );
+
+      //* NUEVO — si el endpoint devuelve 4xx/5xx lo tratamos como “sin beneficiarios”
+      if (!beneficiariesResponse.ok) {
+        showInfoAlert(
+          "ℹ Sin beneficiarios válidos",
+          "No hay beneficiarios activos o con vigencia de estudios válida."
+        );
+        setBeneficiaryData([]);
+        setHideHistorial(true);
+        return; //! evitamos entrar al bloque JSON / catch
+      }
+      //* FIN NUEVO
 
       const beneficiaries = await beneficiariesResponse.json();
 
@@ -214,6 +226,8 @@ const CrearPaseNuevo = () => {
 
       setHideHistorial(true);
     } catch (error) {
+      //! Este catch solo se mostrará ante fallos de red o excepciones inesperadas,
+      //! ya no cuando simplemente no haya beneficiarios.
       console.error("Error al buscar empleado o beneficiarios:", error);
       showErrorAlert(
         "❌ Error en la búsqueda",

@@ -23,7 +23,7 @@ export default async function handler(req, res) {
     nombreEmergencia,
     esEstudiante,
     esDiscapacitado,
-    vigenciaEstudios,
+    vigenciaEstudios,   // <-- lo recibimos como string
     imageUrl,
     urlConstancia,
     urlCurp,
@@ -35,7 +35,7 @@ export default async function handler(req, res) {
     actaDependenciaEconomicaUrl,
     urlIncap,
     descriptorFacial,
-    //-------------------- NUEVO CAMPO --------------------//
+    // -------------------- NUEVO CAMPO --------------------//
     firma, // Aquí recibimos la firma en base64
   } = req.body;
 
@@ -54,49 +54,54 @@ export default async function handler(req, res) {
     const truncatedUrlActaNac = urlActaNac?.substring(0, 255);
     const truncatedActaMatrimonioUrl = actaMatrimonioUrl?.substring(0, 255);
     const truncatedIneUrl = ineUrl?.substring(0, 255);
-    const truncatedCartaNoAfiliacionUrl = cartaNoAfiliacionUrl?.substring(
-      0,
-      255
-    );
+    const truncatedCartaNoAfiliacionUrl = cartaNoAfiliacionUrl?.substring(0, 255);
     const truncatedActaConcubinatoUrl = actaConcubinatoUrl?.substring(0, 255);
     const truncatedActaDependenciaEconomicaUrl =
       actaDependenciaEconomicaUrl?.substring(0, 255);
     const truncatedUrlIncap = urlIncap?.substring(0, 255);
+    const truncatedFirma = firma?.substring(0, 8000); // ajusta según tamaño de tu columna
 
     const pool = await connectToDatabase();
 
     //* Inserción en BENEFICIARIO con OUTPUT para obtener el ID insertado
     const insertResult = await pool
       .request()
-      .input("noNomina", noNomina)
-      .input("parentesco", parentesco)
-      .input("nombre", truncatedNombre)
-      .input("aPaterno", truncatedAPaterno)
-      .input("aMaterno", truncatedAMaterno)
-      .input("sexo", sexo)
-      .input("fNacimiento", fNacimiento)
-      .input("escolaridad", escolaridad || null)
-      .input("activo", activo)
-      .input("alergias", truncatedAlergias)
-      .input("sangre", truncatedSangre)
-      .input("telEmergencia", truncatedTelEmergencia)
-      .input("nombreEmergencia", truncatedNombreEmergencia)
-      .input("esEstudiante", esEstudiante)
-      .input("esDiscapacitado", esDiscapacitado)
-      .input("vigenciaEstudios", vigenciaEstudios || null)
-      .input("imageUrl", truncatedFotoUrl)
-      .input("urlConstancia", truncatedUrlConstancia)
-      .input("urlCurp", truncatedUrlCurp)
-      .input("urlActaNac", truncatedUrlActaNac)
-      .input("actaMatrimonioUrl", truncatedActaMatrimonioUrl)
-      .input("ineUrl", truncatedIneUrl)
-      .input("cartaNoAfiliacionUrl", truncatedCartaNoAfiliacionUrl)
-      .input("actaConcubinatoUrl", truncatedActaConcubinatoUrl)
-      .input("actaDependenciaEconomicaUrl", truncatedActaDependenciaEconomicaUrl)
-      .input("urlIncap", truncatedUrlIncap)
-      //-------------------- NUEVO CAMPO --------------------//
-      .input("firma", firma || "") // Guardamos la firma en la BD
-      .input("descriptorFacial", descriptorFacial || "").query(`
+      .input("noNomina", sql.VarChar(50), noNomina)
+      .input("parentesco", sql.Int, parentesco)
+      .input("nombre", sql.VarChar(50), truncatedNombre)
+      .input("aPaterno", sql.VarChar(50), truncatedAPaterno)
+      .input("aMaterno", sql.VarChar(50), truncatedAMaterno)
+      .input("sexo", sql.Char(1), sexo)
+      .input("fNacimiento", sql.Date, fNacimiento)
+      .input("escolaridad", sql.VarChar(50), escolaridad || null)
+      .input("activo", sql.Char(1), activo)
+      .input("alergias", sql.VarChar(99), truncatedAlergias)
+      .input("sangre", sql.VarChar(10), truncatedSangre)
+      .input("telEmergencia", sql.VarChar(12), truncatedTelEmergencia)
+      .input("nombreEmergencia", sql.VarChar(99), truncatedNombreEmergencia)
+      .input("esEstudiante", sql.Bit, esEstudiante)
+      .input("esDiscapacitado", sql.Bit, esDiscapacitado)
+      // ───────────────────────────────────────────────────────────────
+      // Aquí tratamos vigenciaEstudios como texto plano:
+      .input("vigenciaEstudios", sql.VarChar(50), vigenciaEstudios || null)
+      // ───────────────────────────────────────────────────────────────
+      .input("imageUrl", sql.VarChar(255), truncatedFotoUrl)
+      .input("urlConstancia", sql.VarChar(255), truncatedUrlConstancia)
+      .input("urlCurp", sql.VarChar(255), truncatedUrlCurp)
+      .input("urlActaNac", sql.VarChar(255), truncatedUrlActaNac)
+      .input("actaMatrimonioUrl", sql.VarChar(255), truncatedActaMatrimonioUrl)
+      .input("ineUrl", sql.VarChar(255), truncatedIneUrl)
+      .input("cartaNoAfiliacionUrl", sql.VarChar(255), truncatedCartaNoAfiliacionUrl)
+      .input("actaConcubinatoUrl", sql.VarChar(255), truncatedActaConcubinatoUrl)
+      .input(
+        "actaDependenciaEconomicaUrl",
+        sql.VarChar(255),
+        truncatedActaDependenciaEconomicaUrl
+      )
+      .input("urlIncap", sql.VarChar(255), truncatedUrlIncap)
+      .input("descriptorFacial", sql.VarChar(sql.MAX), descriptorFacial || null)
+      .input("firma", sql.VarChar(sql.MAX), truncatedFirma)
+      .query(`
         INSERT INTO BENEFICIARIO (
           NO_NOMINA, PARENTESCO, NOMBRE, A_PATERNO, A_MATERNO, SEXO, 
           F_NACIMIENTO, ESCOLARIDAD, ACTIVO, ALERGIAS, SANGRE, 
@@ -116,46 +121,41 @@ export default async function handler(req, res) {
         )
       `);
 
-    //console.log("Resultado de la inserción:", insertResult);
-    //* Verifica el objeto insertResult para confirmar la propiedad exacta del ID
     const insertedId = insertResult.recordset[0].ID_BENEFICIARIO;
-    //console.log("Beneficiario insertado, ID:", insertedId);
 
-    //* Obtener la cookie "claveusuario"
+    // Registrar actividad de usuario (igual que antes)...
     const rawCookies = req.headers.cookie || "";
     const claveusuarioCookie = rawCookies
       .split("; ")
       .find((row) => row.startsWith("claveusuario="))
       ?.split("=")[1];
     const claveusuario = claveusuarioCookie ? Number(claveusuarioCookie) : null;
-    //console.log("Cookie claveusuario:", claveusuario);
 
-    //* Registrar la actividad en ActividadUsuarios incluyendo el ID del beneficiario
     if (claveusuario !== null) {
       let ip =
         (req.headers["x-forwarded-for"] &&
           req.headers["x-forwarded-for"].split(",")[0].trim()) ||
         req.connection?.remoteAddress ||
         req.socket?.remoteAddress ||
-        (req.connection?.socket ? req.connection.socket.remoteAddress : null);
+        (req.connection?.socket
+          ? req.connection.socket.remoteAddress
+          : null);
 
       const userAgent = req.headers["user-agent"] || "";
-      const activityResult = await pool
+      await pool
         .request()
         .input("userId", sql.Int, claveusuario)
         .input("accion", sql.VarChar, "Guardó un beneficiario")
         .input("direccionIP", sql.VarChar, ip)
         .input("agenteUsuario", sql.VarChar, userAgent)
         .input("claveConsulta", sql.Int, null)
-        .input("idBeneficiario", sql.Int, insertedId).query(`
+        .input("idBeneficiario", sql.Int, insertedId)
+        .query(`
           INSERT INTO dbo.ActividadUsuarios 
             (IdUsuario, Accion, FechaHora, DireccionIP, AgenteUsuario, ClaveConsulta, IdBeneficiario)
           VALUES 
             (@userId, @accion, DATEADD(MINUTE, -4, GETDATE()), @direccionIP, @agenteUsuario, @claveConsulta, @idBeneficiario)
         `);
-      console.log("Actividad registrada:", activityResult);
-    } else {
-      console.log("No se pudo registrar la actividad: falta claveusuario.");
     }
 
     res.status(200).json({

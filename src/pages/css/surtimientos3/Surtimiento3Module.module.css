@@ -46,6 +46,17 @@
     height: 97%;
 }
 
+.alertNoMeds {
+  margin: 1.5rem 0;
+  padding: 1rem 1.5rem;
+  background: #ffe5c7;
+  border: 1px solid #ffb870;
+  color: #7a4e00;
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+
 .headerOverlay {
   position: absolute;
   inset: 0;

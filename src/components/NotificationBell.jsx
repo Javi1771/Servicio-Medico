@@ -97,7 +97,7 @@ const NotificationBell = () => {
                 "text-[1.35rem] md:text-[1.55rem] lg:text-[1.7rem]",
                 unread
                   ? "text-amber-300 drop-shadow-[0_0_6px_#facc15]"
-                  : "text-gray-600 dark:text-gray-300"
+                  : "text-white dark:text-white"
               )}
             />
 

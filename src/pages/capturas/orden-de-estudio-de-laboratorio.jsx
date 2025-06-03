@@ -404,9 +404,7 @@ const EstudioLaboratorio = () => {
               <div className="flex items-center justify-between w-full px-4">
                 <button
                   type="button"
-                  onClick={() =>
-                    router.push("/inicio-servicio-medico")
-                  }
+                  onClick={() => router.push("/inicio-servicio-medico")}
                   className="flex items-center gap-2 px-4 py-2 bg-[#00A7D0] text-[#EAFFFE] rounded-lg hover:bg-[#0084A9] transition transform hover:scale-105"
                 >
                   <FaArrowLeft className="animate-bounce" />
@@ -578,7 +576,7 @@ const EstudioLaboratorio = () => {
                             );
                           }
                         }}
-                        className="w-full p-3 border border-[#5BFCFF] rounded-xl focus:outline-none focus:border-[#00E6FF] focus:ring-2 focus:ring-[#00E6FF] text-[#00576A] transition-all duration-300 shadow-sm"
+                        className="w-full p-3 border border-[#5BFCFF] rounded-xl bg-white focus:outline-none focus:border-[#00E6FF] focus:ring-2 focus:ring-[#00E6FF] text-[#00576A] transition-all duration-300 shadow-sm"
                       >
                         <option value="">Seleccionar un laboratorio</option>
                         {especialistas.map((prov, idx) => (
@@ -680,25 +678,33 @@ const EstudioLaboratorio = () => {
                   {/* Ingreso de Diagnóstico */}
                   <div className="mb-4">
                     <label className="block text-lg font-bold mb-2 text-[#00576A] flex items-center gap-2">
-                      <FaNotesMedical className="text-xl" /> Ingrese
-                      Diagnóstico:
+                      <FaNotesMedical className="text-xl" /> Ingrese Diagnóstico:
                     </label>
+
                     <textarea
-                      maxLength={250}
+                      rows={4}                      
+                      maxLength={340}                
                       value={lab.diagnosis}
-                      onChange={(e) =>
-                        actualizarLab(
-                          index,
-                          "diagnosis",
-                          e.target.value.toUpperCase()
-                        )
-                      }
+                      onChange={(e) => {
+                        let value = e.target.value.toUpperCase();
+
+                        value = value
+                          .split(/\r?\n/)           
+                          .slice(0, 4)              
+                          .map((ln) => ln.slice(0, 85))
+                          .join("\n");
+
+                        actualizarLab(index, "diagnosis", value);
+                      }}
                       className="w-full p-4 border border-[#5BFCFF] rounded-xl focus:outline-none focus:border-[#00E6FF] focus:ring-2 focus:ring-[#00E6FF] text-[#00576A] transition-all duration-300 shadow-sm"
                       placeholder="Escribe aquí el diagnóstico..."
                       style={{ textTransform: "uppercase" }}
                     />
+
+                    {/* contador dinámico: caracteres / renglones */}
                     <p className="text-right text-sm text-[#0084A9]">
-                      {lab.diagnosis.length}/250
+                      {lab.diagnosis.length}/340&nbsp;•&nbsp;
+                      {lab.diagnosis.split(/\r?\n/).length}/4 líneas
                     </p>
                   </div>
                 </div>

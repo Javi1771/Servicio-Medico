@@ -1688,8 +1688,8 @@ export default function RegistroBeneficiario() {
       return;
     }
 
-    // Validar la URL de la imagen
-    if (!formData.imageUrl || !formData.imageUrl.startsWith("http")) {
+    //? Validar la URL de la imagen SOLO si el usuario realmente seleccionó o capturó una foto.
+    if (formData.imageUrl && !formData.imageUrl.startsWith("http")) {
       playSound(false);
       Swal.fire({
         icon: "error",
@@ -3197,10 +3197,14 @@ export default function RegistroBeneficiario() {
                   <label className={styles.inputLabel}>
                     Vigencia de Estudios:
                     <input
-                      type="datetime-local"
+                      type="date" // sólo fecha
                       name="vigenciaEstudios"
-                      value={formData.vigenciaEstudios}
-                      onChange={handleVigenciaChange} // Validación incluida aquí
+                      value={
+                        formData.vigenciaEstudios
+                          ? formData.vigenciaEstudios.slice(0, 10) // mostramos sólo "YYYY-MM-DD"
+                          : ""
+                      }
+                      onChange={handleVigenciaChange}
                       className={styles.inputField}
                       required
                     />

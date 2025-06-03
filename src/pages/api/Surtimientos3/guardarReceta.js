@@ -29,7 +29,7 @@ export default async function handler(req, res) {
       .input('folio', sql.VarChar, folioReceta)
       .input('diag', sql.VarChar, diagnostico)
       .query(`
-        UPDATE PRUEBAS.dbo.consultas
+        UPDATE consultas
         SET diagnostico = @diag
         WHERE claveconsulta = @folio
       `);
@@ -55,7 +55,7 @@ export default async function handler(req, res) {
         .input('meses', sql.Int, cantidadMeses)
         .input('surtAct', sql.Int, 0)
         .query(`
-          INSERT INTO PRUEBAS.dbo.detalleReceta
+          INSERT INTO detalleReceta
             (folioReceta, descMedicamento, indicaciones, estatus,
              cantidad, piezas, seAsignoResurtimiento, cantidadMeses, surtimientoActual)
           VALUES

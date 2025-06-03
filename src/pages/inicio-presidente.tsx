@@ -61,6 +61,12 @@ const InicioPresidente = () => {
       path: "/estadisticas/total-de-pacientes-por-especialidad",
       gradient: "from-orange-500 to-orange-900",
     },
+    {
+      title: "Incapacidades de Pacientes",
+      image: "/grafica-azul.png",
+      path: "/estadisticas/incapacidades-de-pacientes",
+      gradient: "from-orange-500 to-orange-900",
+    },
   ];
 
   return (
