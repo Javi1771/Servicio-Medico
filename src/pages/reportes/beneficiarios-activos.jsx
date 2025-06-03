@@ -23,26 +23,29 @@ import {
   FaHeart,
   FaUser,
   FaCrown,
-  FaFileExcel
+  FaFileExcel,
+  FaArrowLeft,
 } from "react-icons/fa";
 import { AnimatePresence, motion } from "framer-motion";
 import DocumentModal from "./components/DocumentModal";
-import { exportToExcel } from '../../utils/exportUtils';
+import { exportToExcel } from "../../utils/exportUtils";
+import { useRouter } from "next/router";
 const PAGE_SIZE = 12;
 
 export default function EmpleadosBeneficiarios() {
   //* Sonido de interacción
   const tapSound = useMemo(() => new Audio("/assets/tap.mp3"), []);
+  const router = useRouter();
 
   //* Estados principales
   const [data, setData] = useState([]);
-  const [stats, setStats] = useState({ 
-    total: 0, 
+  const [stats, setStats] = useState({
+    total: 0,
     withBenefits: 0,
     hijos: 0,
     esposos: 0,
     concubinos: 0,
-    padres: 0
+    padres: 0,
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -59,6 +62,10 @@ export default function EmpleadosBeneficiarios() {
   const [selected, setSelected] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
 
+  const handleRegresar = () => {
+    router.replace("/inicio-servicio-medico"); //* Navegar a la pantalla anterior
+  };
+
   //* Carga de datos
   const fetchData = () => {
     setLoading(true);
@@ -66,30 +73,30 @@ export default function EmpleadosBeneficiarios() {
       .then((res) => (res.ok ? res.json() : Promise.reject(res.statusText)))
       .then((json) => {
         setData(json);
-        
+
         //* Calcular estadísticas de parentesco
         let hijos = 0;
         let esposos = 0;
         let concubinos = 0;
         let padres = 0;
-        
-        json.forEach(emp => {
-          emp.beneficiarios.forEach(b => {
+
+        json.forEach((emp) => {
+          emp.beneficiarios.forEach((b) => {
             const parentesco = b.PARENTESCO_DESCRIPCION;
-            if (parentesco === 'Hijo(a)') hijos++;
-            else if (parentesco === 'Esposo(a)') esposos++;
-            else if (parentesco === 'Concubino(a)') concubinos++;
-            else if (parentesco === 'Padre' || parentesco === 'Madre') padres++;
+            if (parentesco === "Hijo(a)") hijos++;
+            else if (parentesco === "Esposo(a)") esposos++;
+            else if (parentesco === "Concubino(a)") concubinos++;
+            else if (parentesco === "Padre" || parentesco === "Madre") padres++;
           });
         });
-        
+
         setStats({
           total: json.length,
           withBenefits: json.filter((e) => e.beneficiarios.length).length,
           hijos,
           esposos,
           concubinos,
-          padres
+          padres,
         });
       })
       .catch((err) => setError(err))
@@ -105,7 +112,11 @@ export default function EmpleadosBeneficiarios() {
     () =>
       data.map((item) => {
         const { empleado = {}, no_nomina } = item;
-        const rawName = [empleado.nombre, empleado.a_paterno, empleado.a_materno]
+        const rawName = [
+          empleado.nombre,
+          empleado.a_paterno,
+          empleado.a_materno,
+        ]
           .filter(Boolean)
           .join(" ");
         return {
@@ -139,7 +150,7 @@ export default function EmpleadosBeneficiarios() {
             i.empName.toLowerCase().includes(searchTerm.toLowerCase()) ||
             i.no_nomina.toString().includes(searchTerm) ||
             //* Buscar en los nombres de los beneficiarios
-            i.beneficiarios.some(b => 
+            i.beneficiarios.some((b) =>
               `${b.NOMBRE} ${b.A_PATERNO} ${b.A_MATERNO}`
                 .toLowerCase()
                 .includes(searchTerm.toLowerCase())
@@ -147,14 +158,19 @@ export default function EmpleadosBeneficiarios() {
           (!deptFilter || i.departamento === deptFilter) &&
           (!sindFilter || i.sindicato === sindFilter) &&
           //* Filtro por tipo de beneficiario
-          (!beneficiaryTypeFilter || 
-            i.beneficiarios.some(b => 
-              beneficiaryTypeFilter === 'hijos' ? b.PARENTESCO_DESCRIPCION === 'Hijo(a)' :
-              beneficiaryTypeFilter === 'esposos' ? b.PARENTESCO_DESCRIPCION === 'Esposo(a)' :
-              beneficiaryTypeFilter === 'concubinos' ? b.PARENTESCO_DESCRIPCION === 'Concubino(a)' :
-              beneficiaryTypeFilter === 'padres' ? (b.PARENTESCO_DESCRIPCION === 'Padre' || b.PARENTESCO_DESCRIPCION === 'Madre') : true
-            )
-          )
+          (!beneficiaryTypeFilter ||
+            i.beneficiarios.some((b) =>
+              beneficiaryTypeFilter === "hijos"
+                ? b.PARENTESCO_DESCRIPCION === "Hijo(a)"
+                : beneficiaryTypeFilter === "esposos"
+                ? b.PARENTESCO_DESCRIPCION === "Esposo(a)"
+                : beneficiaryTypeFilter === "concubinos"
+                ? b.PARENTESCO_DESCRIPCION === "Concubino(a)"
+                : beneficiaryTypeFilter === "padres"
+                ? b.PARENTESCO_DESCRIPCION === "Padre" ||
+                  b.PARENTESCO_DESCRIPCION === "Madre"
+                : true
+            ))
       ),
     [normalized, searchTerm, deptFilter, sindFilter, beneficiaryTypeFilter]
   );
@@ -172,7 +188,8 @@ export default function EmpleadosBeneficiarios() {
     [data]
   );
   const avgPerEmployee = useMemo(
-    () => (stats.total ? (totalBeneficiaries / stats.total).toFixed(2) : "0.00"),
+    () =>
+      stats.total ? (totalBeneficiaries / stats.total).toFixed(2) : "0.00",
     [stats, totalBeneficiaries]
   );
 
@@ -191,7 +208,7 @@ export default function EmpleadosBeneficiarios() {
   };
 
   const handleBeneficiaryTypeClick = (type) => {
-    setBeneficiaryTypeFilter(prev => prev === type ? "" : type);
+    setBeneficiaryTypeFilter((prev) => (prev === type ? "" : type));
     setCurrentPage(1);
   };
 
@@ -227,7 +244,7 @@ export default function EmpleadosBeneficiarios() {
   if (error) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-rose-900 to-purple-900 p-6">
-        <motion.div 
+        <motion.div
           className="bg-white/10 backdrop-blur-lg p-8 rounded-3xl border border-white/20 text-center max-w-md"
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -236,9 +253,12 @@ export default function EmpleadosBeneficiarios() {
           <div className="bg-rose-500/20 p-4 rounded-full inline-block mb-4">
             <FaTimes className="text-4xl text-rose-300" />
           </div>
-          <h2 className="text-2xl font-bold text-white mb-2">Error al cargar datos</h2>
+          <h2 className="text-2xl font-bold text-white mb-2">
+            Error al cargar datos
+          </h2>
           <p className="text-rose-100 mb-6">
-            Ocurrió un problema al obtener la información. Por favor intenta nuevamente.
+            Ocurrió un problema al obtener la información. Por favor intenta
+            nuevamente.
           </p>
           <motion.button
             whileHover={{ scale: 1.05 }}
@@ -257,7 +277,7 @@ export default function EmpleadosBeneficiarios() {
   const EmployeeCard = ({ emp }) => {
     const isOpen = expanded === emp.no_nomina;
     const hasBeneficiaries = emp.beneficiarios.length > 0;
-    
+
     return (
       <motion.div
         layout
@@ -281,11 +301,13 @@ export default function EmpleadosBeneficiarios() {
             <div className="bg-gradient-to-br from-cyan-400 to-indigo-500 rounded-xl w-14 h-14 flex items-center justify-center flex-shrink-0">
               <FaUserAlt className="text-white text-xl" />
             </div>
-            <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-white ${
-              hasBeneficiaries ? "bg-green-400" : "bg-gray-300"
-            }`}></div>
+            <div
+              className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-white ${
+                hasBeneficiaries ? "bg-green-400" : "bg-gray-300"
+              }`}
+            ></div>
           </div>
-          
+
           <div className="flex-1 min-w-0">
             <h3 className="font-bold text-gray-800 truncate">{emp.empName}</h3>
             <div className="flex items-center gap-2 mt-1">
@@ -298,11 +320,17 @@ export default function EmpleadosBeneficiarios() {
             </div>
             <div className="mt-2 flex items-center gap-1">
               <FaBuilding className="text-gray-400 text-xs" />
-              <p className="text-xs text-gray-500 truncate">{emp.departamento}</p>
+              <p className="text-xs text-gray-500 truncate">
+                {emp.departamento}
+              </p>
             </div>
           </div>
-          
-          <div className={`text-lg ${isOpen ? "text-indigo-500" : "text-gray-400"}`}>
+
+          <div
+            className={`text-lg ${
+              isOpen ? "text-indigo-500" : "text-gray-400"
+            }`}
+          >
             {isOpen ? <FaChevronUp /> : <FaChevronDown />}
           </div>
         </motion.button>
@@ -318,24 +346,28 @@ export default function EmpleadosBeneficiarios() {
               className="px-5 pb-5"
             >
               <div className="h-px bg-gradient-to-r from-transparent via-indigo-200 to-transparent my-4"></div>
-              
+
               <div className="flex justify-between items-center mb-4">
                 <h4 className="font-semibold text-gray-700 flex items-center gap-2">
                   <FaUserFriends className="text-indigo-500" />
                   Beneficiarios ({emp.beneficiarios.length})
                 </h4>
-                <span className={`text-xs px-3 py-1 rounded-full ${
-                  emp.sindicato === "SUTSMSJR" 
-                    ? "bg-blue-100 text-blue-800" 
-                    : "bg-amber-100 text-amber-800"
-                }`}>
+                <span
+                  className={`text-xs px-3 py-1 rounded-full ${
+                    emp.sindicato === "SUTSMSJR"
+                      ? "bg-blue-100 text-blue-800"
+                      : "bg-amber-100 text-amber-800"
+                  }`}
+                >
                   {emp.sindicato || "Sin sindicato"}
                 </span>
               </div>
-              
+
               {emp.beneficiarios.length === 0 ? (
                 <div className="text-center py-4 bg-indigo-50 rounded-xl">
-                  <p className="italic text-gray-500">Sin beneficiarios registrados</p>
+                  <p className="italic text-gray-500">
+                    Sin beneficiarios registrados
+                  </p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -356,12 +388,17 @@ export default function EmpleadosBeneficiarios() {
                             {b.NOMBRE} {b.A_PATERNO} {b.A_MATERNO}
                           </p>
                           <p className="text-xs text-gray-500 truncate">
-                            <span className={`inline-block w-2 h-2 rounded-full mr-1 ${
-                              b.PARENTESCO_DESCRIPCION === 'Hijo(a)' ? 'bg-blue-500' :
-                              b.PARENTESCO_DESCRIPCION === 'Esposo(a)' ? 'bg-pink-500' :
-                              b.PARENTESCO_DESCRIPCION === 'Concubino(a)' ? 'bg-red-500' :
-                              'bg-green-500'
-                            }`}></span>
+                            <span
+                              className={`inline-block w-2 h-2 rounded-full mr-1 ${
+                                b.PARENTESCO_DESCRIPCION === "Hijo(a)"
+                                  ? "bg-blue-500"
+                                  : b.PARENTESCO_DESCRIPCION === "Esposo(a)"
+                                  ? "bg-pink-500"
+                                  : b.PARENTESCO_DESCRIPCION === "Concubino(a)"
+                                  ? "bg-red-500"
+                                  : "bg-green-500"
+                              }`}
+                            ></span>
                             {b.PARENTESCO_DESCRIPCION}
                           </p>
                         </div>
@@ -399,10 +436,22 @@ export default function EmpleadosBeneficiarios() {
               <FaIdCard className="text-cyan-300" />
               <span>Dashboard de Beneficiarios</span>
             </h1>
-            <p className="text-indigo-200 text-sm mt-1">Administra los beneficiarios de los empleados</p>
+            <p className="text-indigo-200 text-sm mt-1">
+              Administra los beneficiarios de los empleados
+            </p>
           </div>
-          
+
           <div className="flex items-center gap-4">
+            {/* Botón Regresar */}
+            <div className="absolute left-5">
+              <button
+                onClick={handleRegresar}
+                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-500 to-red-700 text-white font-bold rounded-full shadow-lg hover:shadow-[0_0_20px_rgba(255,0,0,0.8)] transition-all duration-300"
+              >
+                <FaArrowLeft />
+                <span className="hidden sm:inline">Regresar</span>
+              </button>
+            </div>
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -411,15 +460,15 @@ export default function EmpleadosBeneficiarios() {
             >
               <FaFilter className="text-xl" />
             </motion.button>
-            
-            <div className="flex items-center gap-2">              
+
+            <div className="flex items-center gap-2">
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={fetchData}
                 className="flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-indigo-600 px-5 py-3 rounded-xl font-medium shadow-lg hover:shadow-xl transition-all"
               >
-                <FaSyncAlt /> 
+                <FaSyncAlt />
                 <span className="hidden md:inline">Actualizar</span>
               </motion.button>
 
@@ -432,10 +481,9 @@ export default function EmpleadosBeneficiarios() {
                 }}
                 className="flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-green-600 px-5 py-3 rounded-xl font-medium shadow-lg hover:shadow-xl transition-all"
               >
-                <FaFileExcel /> 
+                <FaFileExcel />
                 <span className="hidden md:inline">Exportar Excel</span>
               </motion.button>
-
             </div>
           </div>
         </div>
@@ -453,53 +501,53 @@ export default function EmpleadosBeneficiarios() {
             <motion.button
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
-              onClick={() => handleBeneficiaryTypeClick('hijos')}
+              onClick={() => handleBeneficiaryTypeClick("hijos")}
               className={`p-4 rounded-xl flex flex-col items-center justify-center shadow-md ${
-                beneficiaryTypeFilter === 'hijos'
-                  ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white'
-                  : 'bg-white border border-gray-200 text-gray-700'
+                beneficiaryTypeFilter === "hijos"
+                  ? "bg-gradient-to-br from-blue-500 to-blue-600 text-white"
+                  : "bg-white border border-gray-200 text-gray-700"
               }`}
             >
               <FaChild className="text-2xl mb-2" />
               <span>Hijos</span>
             </motion.button>
-            
+
             <motion.button
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
-              onClick={() => handleBeneficiaryTypeClick('esposos')}
+              onClick={() => handleBeneficiaryTypeClick("esposos")}
               className={`p-4 rounded-xl flex flex-col items-center justify-center shadow-md ${
-                beneficiaryTypeFilter === 'esposos'
-                  ? 'bg-gradient-to-br from-pink-500 to-pink-600 text-white'
-                  : 'bg-white border border-gray-200 text-gray-700'
+                beneficiaryTypeFilter === "esposos"
+                  ? "bg-gradient-to-br from-pink-500 to-pink-600 text-white"
+                  : "bg-white border border-gray-200 text-gray-700"
               }`}
             >
               <FaRing className="text-2xl mb-2" />
               <span>Esposos</span>
             </motion.button>
-            
+
             <motion.button
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
-              onClick={() => handleBeneficiaryTypeClick('concubinos')}
+              onClick={() => handleBeneficiaryTypeClick("concubinos")}
               className={`p-4 rounded-xl flex flex-col items-center justify-center shadow-md ${
-                beneficiaryTypeFilter === 'concubinos'
-                  ? 'bg-gradient-to-br from-red-500 to-red-600 text-white'
-                  : 'bg-white border border-gray-200 text-gray-700'
+                beneficiaryTypeFilter === "concubinos"
+                  ? "bg-gradient-to-br from-red-500 to-red-600 text-white"
+                  : "bg-white border border-gray-200 text-gray-700"
               }`}
             >
               <FaHeart className="text-2xl mb-2" />
               <span>Concubinos</span>
             </motion.button>
-            
+
             <motion.button
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
-              onClick={() => handleBeneficiaryTypeClick('padres')}
+              onClick={() => handleBeneficiaryTypeClick("padres")}
               className={`p-4 rounded-xl flex flex-col items-center justify-center shadow-md ${
-                beneficiaryTypeFilter === 'padres'
-                  ? 'bg-gradient-to-br from-green-500 to-green-600 text-white'
-                  : 'bg-white border border-gray-200 text-gray-700'
+                beneficiaryTypeFilter === "padres"
+                  ? "bg-gradient-to-br from-green-500 to-green-600 text-white"
+                  : "bg-white border border-gray-200 text-gray-700"
               }`}
             >
               <FaUser className="text-2xl mb-2" />
@@ -511,37 +559,39 @@ export default function EmpleadosBeneficiarios() {
         {/* Métricas */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-5 mb-5">
           {[
-            { 
-              icon: <FaUsers className="text-2xl" />, 
-              label: "Empleados", 
-              value: stats.total, 
+            {
+              icon: <FaUsers className="text-2xl" />,
+              label: "Empleados",
+              value: stats.total,
               color: "from-indigo-500 to-indigo-600",
             },
-            { 
-              icon: <FaCoins className="text-2xl" />, 
-              label: "Beneficiarios", 
-              value: totalBeneficiaries, 
+            {
+              icon: <FaCoins className="text-2xl" />,
+              label: "Beneficiarios",
+              value: totalBeneficiaries,
               color: "from-cyan-500 to-cyan-600",
             },
-            { 
-              icon: <FaPercentage className="text-2xl" />, 
-              label: "Promedio", 
-              value: avgPerEmployee, 
+            {
+              icon: <FaPercentage className="text-2xl" />,
+              label: "Promedio",
+              value: avgPerEmployee,
               color: "from-emerald-500 to-emerald-600",
             },
-            { 
-              icon: <FaLayerGroup className="text-2xl" />, 
-              label: "Departamentos", 
-              value: departments.length, 
+            {
+              icon: <FaLayerGroup className="text-2xl" />,
+              label: "Departamentos",
+              value: departments.length,
               color: "from-amber-500 to-amber-600",
             },
-            { 
-              icon: <FaChartPie className="text-2xl" />, 
-              label: "Con Beneficiarios", 
-              value: `${((stats.withBenefits/stats.total)*100).toFixed(1)}%`, 
+            {
+              icon: <FaChartPie className="text-2xl" />,
+              label: "Con Beneficiarios",
+              value: `${((stats.withBenefits / stats.total) * 100).toFixed(
+                1
+              )}%`,
               color: "from-purple-500 to-purple-600",
             },
-          ].map(({ icon, label, value, color, }, index) => (
+          ].map(({ icon, label, value, color }, index) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, y: 30 }}
@@ -551,7 +601,7 @@ export default function EmpleadosBeneficiarios() {
             >
               <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-white/10 rounded-full"></div>
               <div className="absolute -right-6 -bottom-6 w-32 h-32 bg-white/5 rounded-full"></div>
-              
+
               <div className="relative z-10">
                 <div className="mb-4">{icon}</div>
                 <h3 className="text-2xl font-bold mb-1">{value}</h3>
@@ -560,37 +610,37 @@ export default function EmpleadosBeneficiarios() {
             </motion.div>
           ))}
         </div>
-        
+
         {/* Estadísticas de parentesco */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-5 mb-10">
           {[
-            { 
-              icon: <FaChild className="text-2xl" />, 
-              label: "Hijos", 
-              value: stats.hijos, 
+            {
+              icon: <FaChild className="text-2xl" />,
+              label: "Hijos",
+              value: stats.hijos,
               color: "from-blue-500 to-blue-600",
-              type: "hijos"
+              type: "hijos",
             },
-            { 
-              icon: <FaRing className="text-2xl" />, 
-              label: "Esposos", 
-              value: stats.esposos, 
+            {
+              icon: <FaRing className="text-2xl" />,
+              label: "Esposos",
+              value: stats.esposos,
               color: "from-pink-500 to-pink-600",
-              type: "esposos"
+              type: "esposos",
             },
-            { 
-              icon: <FaHeart className="text-2xl" />, 
-              label: "Concubinos", 
-              value: stats.concubinos, 
+            {
+              icon: <FaHeart className="text-2xl" />,
+              label: "Concubinos",
+              value: stats.concubinos,
               color: "from-red-500 to-red-600",
-              type: "concubinos"
+              type: "concubinos",
             },
-            { 
-              icon: <FaUserFriends className="text-2xl" />, 
-              label: "Padres", 
-              value: stats.padres, 
+            {
+              icon: <FaUserFriends className="text-2xl" />,
+              label: "Padres",
+              value: stats.padres,
               color: "from-green-500 to-green-600",
-              type: "padres"
+              type: "padres",
             },
           ].map(({ icon, label, value, color, type }, index) => (
             <motion.button
@@ -604,7 +654,7 @@ export default function EmpleadosBeneficiarios() {
             >
               <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-white/10 rounded-full"></div>
               <div className="absolute -right-6 -bottom-6 w-32 h-32 bg-white/5 rounded-full"></div>
-              
+
               <div className="relative z-10">
                 <div className="mb-4">{icon}</div>
                 <h3 className="text-2xl font-bold mb-1">{value}</h3>
@@ -624,9 +674,9 @@ export default function EmpleadosBeneficiarios() {
               className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm md:hidden"
             >
               <motion.div
-                initial={{ x: '-100%' }}
+                initial={{ x: "-100%" }}
                 animate={{ x: 0 }}
-                exit={{ x: '-100%' }}
+                exit={{ x: "-100%" }}
                 transition={{ type: "spring", damping: 25 }}
                 className="w-4/5 max-w-sm h-full bg-gradient-to-b from-indigo-900 to-purple-900 p-6 shadow-2xl"
               >
@@ -666,7 +716,9 @@ export default function EmpleadosBeneficiarios() {
                   </div>
 
                   <div>
-                    <label className="block mb-2 text-indigo-200 font-medium">Departamento</label>
+                    <label className="block mb-2 text-indigo-200 font-medium">
+                      Departamento
+                    </label>
                     <select
                       value={deptFilter}
                       onChange={(e) => {
@@ -675,15 +727,25 @@ export default function EmpleadosBeneficiarios() {
                       }}
                       className="w-full bg-indigo-800/50 border border-indigo-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
                     >
-                      <option value="" className="bg-indigo-900 text-white">Todos los departamentos</option>
+                      <option value="" className="bg-indigo-900 text-white">
+                        Todos los departamentos
+                      </option>
                       {departments.map((opt) => (
-                        <option key={opt} value={opt} className="bg-indigo-900 text-white">{opt}</option>
+                        <option
+                          key={opt}
+                          value={opt}
+                          className="bg-indigo-900 text-white"
+                        >
+                          {opt}
+                        </option>
                       ))}
                     </select>
                   </div>
 
                   <div>
-                    <label className="block mb-2 text-indigo-200 font-medium">Sindicato</label>
+                    <label className="block mb-2 text-indigo-200 font-medium">
+                      Sindicato
+                    </label>
                     <select
                       value={sindFilter}
                       onChange={(e) => {
@@ -692,9 +754,21 @@ export default function EmpleadosBeneficiarios() {
                       }}
                       className="w-full bg-indigo-800/50 border border-indigo-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
                     >
-                      <option value="" className="bg-indigo-900 text-white">Todos los sindicatos</option>
-                      <option value="SUTSMSJR" className="bg-indigo-900 text-white">SUTSMSJR</option>
-                      <option value="SITAM" className="bg-indigo-900 text-white">SITAM</option>
+                      <option value="" className="bg-indigo-900 text-white">
+                        Todos los sindicatos
+                      </option>
+                      <option
+                        value="SUTSMSJR"
+                        className="bg-indigo-900 text-white"
+                      >
+                        SUTSMSJR
+                      </option>
+                      <option
+                        value="SITAM"
+                        className="bg-indigo-900 text-white"
+                      >
+                        SITAM
+                      </option>
                     </select>
                   </div>
                 </div>
@@ -705,7 +779,7 @@ export default function EmpleadosBeneficiarios() {
 
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Filtros para escritorio */}
-          <motion.aside 
+          <motion.aside
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.4 }}
@@ -725,7 +799,9 @@ export default function EmpleadosBeneficiarios() {
 
             <div className="space-y-6">
               <div>
-                <label className="block mb-2 text-gray-700 font-medium">Buscar</label>
+                <label className="block mb-2 text-gray-700 font-medium">
+                  Buscar
+                </label>
                 <div className="relative">
                   <FaSearch className="absolute top-3 left-3 text-gray-400" />
                   <input
@@ -742,7 +818,9 @@ export default function EmpleadosBeneficiarios() {
               </div>
 
               <div>
-                <label className="block mb-2 text-gray-700 font-medium">Departamento</label>
+                <label className="block mb-2 text-gray-700 font-medium">
+                  Departamento
+                </label>
                 <select
                   value={deptFilter}
                   onChange={(e) => {
@@ -753,13 +831,17 @@ export default function EmpleadosBeneficiarios() {
                 >
                   <option value="">Todos</option>
                   {departments.map((opt) => (
-                    <option key={opt} value={opt}>{opt}</option>
+                    <option key={opt} value={opt}>
+                      {opt}
+                    </option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <label className="block mb-2 text-gray-700 font-medium">Sindicato</label>
+                <label className="block mb-2 text-gray-700 font-medium">
+                  Sindicato
+                </label>
                 <select
                   value={sindFilter}
                   onChange={(e) => {
@@ -773,7 +855,7 @@ export default function EmpleadosBeneficiarios() {
                   <option value="SITAM">SITAM</option>
                 </select>
               </div>
-              
+
               <div className="pt-4">
                 <div className="bg-gradient-to-r from-cyan-500 to-indigo-500 text-white text-center py-3 rounded-xl font-medium">
                   {filtered.length} empleados encontrados
@@ -795,7 +877,7 @@ export default function EmpleadosBeneficiarios() {
                 <FaFilter className="text-indigo-500" />
                 <span>Filtros</span>
               </motion.button>
-              
+
               <div className="text-sm text-gray-600">
                 {filtered.length} resultados
               </div>
@@ -807,24 +889,33 @@ export default function EmpleadosBeneficiarios() {
                 <FaUserFriends className="text-indigo-500" />
                 Empleados con Beneficiarios
               </h2>
-              
+
               {beneficiaryTypeFilter && (
                 <div className="bg-white px-4 py-2 rounded-full flex items-center gap-2 shadow-sm">
                   <span className="text-sm font-medium text-gray-700">
-                    Filtrado por: 
+                    Filtrado por:
                   </span>
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                    beneficiaryTypeFilter === 'hijos' ? 'bg-blue-100 text-blue-800' :
-                    beneficiaryTypeFilter === 'esposos' ? 'bg-pink-100 text-pink-800' :
-                    beneficiaryTypeFilter === 'concubinos' ? 'bg-red-100 text-red-800' :
-                    'bg-green-100 text-green-800'
-                  }`}>
-                    {beneficiaryTypeFilter === 'hijos' ? 'Hijos' : 
-                     beneficiaryTypeFilter === 'esposos' ? 'Esposos' : 
-                     beneficiaryTypeFilter === 'concubinos' ? 'Concubinos' : 'Padres'}
+                  <span
+                    className={`px-3 py-1 rounded-full text-xs font-medium ${
+                      beneficiaryTypeFilter === "hijos"
+                        ? "bg-blue-100 text-blue-800"
+                        : beneficiaryTypeFilter === "esposos"
+                        ? "bg-pink-100 text-pink-800"
+                        : beneficiaryTypeFilter === "concubinos"
+                        ? "bg-red-100 text-red-800"
+                        : "bg-green-100 text-green-800"
+                    }`}
+                  >
+                    {beneficiaryTypeFilter === "hijos"
+                      ? "Hijos"
+                      : beneficiaryTypeFilter === "esposos"
+                      ? "Esposos"
+                      : beneficiaryTypeFilter === "concubinos"
+                      ? "Concubinos"
+                      : "Padres"}
                   </span>
-                  <button 
-                    onClick={() => setBeneficiaryTypeFilter('')}
+                  <button
+                    onClick={() => setBeneficiaryTypeFilter("")}
                     className="text-gray-500 hover:text-gray-700"
                   >
                     <FaTimes />
@@ -850,11 +941,18 @@ export default function EmpleadosBeneficiarios() {
               >
                 <div className="flex flex-col md:flex-row items-center justify-between gap-4">
                   <p className="text-sm text-gray-600">
-                    Mostrando <span className="font-semibold">{(currentPage - 1) * PAGE_SIZE + 1}</span> -{" "}
-                    <span className="font-semibold">{Math.min(currentPage * PAGE_SIZE, filtered.length)}</span> de{" "}
-                    <span className="font-semibold">{filtered.length}</span> empleados
+                    Mostrando{" "}
+                    <span className="font-semibold">
+                      {(currentPage - 1) * PAGE_SIZE + 1}
+                    </span>{" "}
+                    -{" "}
+                    <span className="font-semibold">
+                      {Math.min(currentPage * PAGE_SIZE, filtered.length)}
+                    </span>{" "}
+                    de <span className="font-semibold">{filtered.length}</span>{" "}
+                    empleados
                   </p>
-                  
+
                   <div className="flex items-center gap-3">
                     <motion.button
                       whileHover={{ scale: 1.05 }}
@@ -865,14 +963,19 @@ export default function EmpleadosBeneficiarios() {
                     >
                       <FaChevronUp className="-rotate-90" /> Anterior
                     </motion.button>
-                    
+
                     <div className="flex gap-1">
                       {[...Array(totalPages)].map((_, i) => {
                         const page = i + 1;
                         const isCurrent = page === currentPage;
                         const isNear = Math.abs(page - currentPage) <= 1;
-                        
-                        if (isCurrent || isNear || page === 1 || page === totalPages) {
+
+                        if (
+                          isCurrent ||
+                          isNear ||
+                          page === 1 ||
+                          page === totalPages
+                        ) {
                           return (
                             <motion.button
                               key={page}
@@ -880,8 +983,8 @@ export default function EmpleadosBeneficiarios() {
                               whileTap={{ scale: 0.9 }}
                               onClick={() => setCurrentPage(page)}
                               className={`w-10 h-10 flex items-center justify-center rounded-xl font-medium ${
-                                isCurrent 
-                                  ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-md" 
+                                isCurrent
+                                  ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-md"
                                   : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"
                               }`}
                             >
@@ -889,15 +992,23 @@ export default function EmpleadosBeneficiarios() {
                             </motion.button>
                           );
                         }
-                        
-                        if ((page === 2 && currentPage > 3) || (page === totalPages - 1 && currentPage < totalPages - 2)) {
-                          return <span key={page} className="px-2 flex items-center">...</span>;
+
+                        if (
+                          (page === 2 && currentPage > 3) ||
+                          (page === totalPages - 1 &&
+                            currentPage < totalPages - 2)
+                        ) {
+                          return (
+                            <span key={page} className="px-2 flex items-center">
+                              ...
+                            </span>
+                          );
                         }
-                        
+
                         return null;
                       })}
                     </div>
-                    
+
                     <motion.button
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
@@ -911,7 +1022,7 @@ export default function EmpleadosBeneficiarios() {
                 </div>
               </motion.div>
             )}
-            
+
             {/* Sin resultados */}
             {filtered.length === 0 && !loading && (
               <motion.div
@@ -922,9 +1033,12 @@ export default function EmpleadosBeneficiarios() {
                 <div className="bg-gradient-to-r from-cyan-400 to-indigo-500 w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6">
                   <FaSearch className="text-white text-3xl" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-800 mb-2">No se encontraron empleados</h3>
+                <h3 className="text-xl font-bold text-gray-800 mb-2">
+                  No se encontraron empleados
+                </h3>
                 <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                  No encontramos empleados que coincidan con tus criterios de búsqueda. Intenta ajustar los filtros.
+                  No encontramos empleados que coincidan con tus criterios de
+                  búsqueda. Intenta ajustar los filtros.
                 </p>
                 <motion.button
                   whileHover={{ scale: 1.05 }}
@@ -942,7 +1056,12 @@ export default function EmpleadosBeneficiarios() {
 
       {/* Modal de documentos */}
       <AnimatePresence>
-        {selected && <DocumentModal beneficiary={selected} onClose={() => setSelected(null)} />}
+        {selected && (
+          <DocumentModal
+            beneficiary={selected}
+            onClose={() => setSelected(null)}
+          />
+        )}
       </AnimatePresence>
 
       {/* Footer */}
