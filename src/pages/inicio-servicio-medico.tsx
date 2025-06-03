@@ -95,7 +95,7 @@ const Home = () => {
         },
         {
           title: "Reportes",
-          options: ["Incapacidades"],
+          options: ["Incapacidades", "Beneficiarios Activos"],
           icon: <FaFeatherAlt className="inline-block mr-2" />,
         },
         {
@@ -151,7 +151,7 @@ const Home = () => {
         },
         {
           title: "Reportes",
-          options: ["Incapacidades"],
+          options: ["Incapacidades", "Beneficiarios Activos"],
           icon: <FaFeatherAlt className="inline-block mr-2" />,
         }
       );
@@ -190,6 +190,11 @@ const Home = () => {
         {
           title: "Estadisticas",
           options: ["Costo de Surtimientos", "Intervalo de Especialidades", "Intervalos de Consultas", "Total de Pacientes por Especialidad"],
+          icon: <BsGraphUpArrow className="inline-block mr-2" />,
+        },
+        {
+          title: "Reportes",
+          options: ["Incapacidades", "Beneficiarios Activos"],
           icon: <BsGraphUpArrow className="inline-block mr-2" />,
         },
         {
