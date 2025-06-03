@@ -1,4 +1,3 @@
-// MissingBeneficiaries.jsx
 "use client";
 
 import { useState, useMemo } from "react";
@@ -29,11 +28,11 @@ export default function MissingBeneficiaries({
   changeMissingPage,
   setShowMissingList,
 }) {
-  // Estados para filtros y búsqueda
+  //* Estados para filtros y búsqueda
   const [missingSearchTerm, setMissingSearchTerm] = useState("");
   const [parentescoFilter, setParentescoFilter] = useState("Todos");
 
-  // Filtrar (texto + parentesco)
+  //* Filtrar (texto + parentesco)
   const filteredMissing = useMemo(() => {
     const term = missingSearchTerm.trim().toLowerCase();
     return beneficiariesWithoutActa.filter((b) => {
@@ -47,13 +46,13 @@ export default function MissingBeneficiaries({
     });
   }, [beneficiariesWithoutActa, missingSearchTerm, parentescoFilter]);
 
-  // Paginación
+  //* Paginación
   const missingPageItems = useMemo(() => {
     const start = (missingPage - 1) * PAGE_SIZE;
     return filteredMissing.slice(start, start + PAGE_SIZE);
   }, [filteredMissing, missingPage]);
 
-  // Métricas generales
+  //* Métricas generales
   const totalMissing = filteredMissing.length;
   const uniqueEmployeesCount = useMemo(() => {
     const setIds = new Set(filteredMissing.map((b) => b.no_nomina));
@@ -68,7 +67,7 @@ export default function MissingBeneficiaries({
     }, {});
   }, [filteredMissing]);
 
-  // Porcentajes para cada parentesco
+  //* Porcentajes para cada parentesco
   const percentagesByParentesco = useMemo(() => {
     const total = totalMissing || 1;
     const pctObj = {};
@@ -78,7 +77,7 @@ export default function MissingBeneficiaries({
     return pctObj;
   }, [countsByParentesco, totalMissing]);
 
-  // Lista única de valores de parentesco
+  //* Lista única de valores de parentesco
   const parentescosUnicos = useMemo(() => {
     const setPar = new Set(beneficiariesWithoutActa.map((b) => b.parentesco));
     return ["Todos", ...Array.from(setPar)];
@@ -176,7 +175,7 @@ export default function MissingBeneficiaries({
             <div className="relative z-10 flex items-center gap-4">
               <FaChild className="text-3xl" />
               <div>
-                <p className="text-sm uppercase opacity-80">Hijos sin acta</p>
+                <p className="text-sm uppercase opacity-80">Hijos Afectados</p>
                 <p className="text-2xl font-bold">
                   {countsByParentesco["Hijo(a)"] || 0}
                 </p>
