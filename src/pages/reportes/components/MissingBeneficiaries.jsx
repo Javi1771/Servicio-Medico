@@ -694,7 +694,7 @@ export default function MissingBeneficiaries({
                         {item.parentesco}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                        {edad}
+                        {edad} años
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                         {faltantes.length > 0 ? faltantes.join(", ") : "-"}
