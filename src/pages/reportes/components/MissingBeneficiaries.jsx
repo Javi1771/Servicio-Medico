@@ -478,7 +478,7 @@ export default function MissingBeneficiaries({
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.25 }}
-            className="relative overflow-hidden rounded-2xl shadow-lg p-6 bg-red-500 text-white"
+            className="relative overflow-hidden rounded-2xl shadow-lg p-6 bg-red-600 text-white"
           >
             <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-white/10 rounded-full"></div>
             <div className="absolute -right-8 -bottom-8 w-32 h-32 bg-white/5 rounded-full"></div>
@@ -497,7 +497,7 @@ export default function MissingBeneficiaries({
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.35 }}
-            className="relative overflow-hidden rounded-2xl shadow-lg p-6 bg-red-400 text-white"
+            className="relative overflow-hidden rounded-2xl shadow-lg p-6 bg-red-600 text-white"
           >
             <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-white/10 rounded-full"></div>
             <div className="absolute -right-8 -bottom-8 w-32 h-32 bg-white/5 rounded-full"></div>
@@ -516,7 +516,7 @@ export default function MissingBeneficiaries({
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.45 }}
-            className="relative overflow-hidden rounded-2xl shadow-lg p-6 bg-red-300 text-white"
+            className="relative overflow-hidden rounded-2xl shadow-lg p-6 bg-red-600 text-white"
           >
             <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-white/10 rounded-full"></div>
             <div className="absolute -right-8 -bottom-8 w-32 h-32 bg-white/5 rounded-full"></div>
