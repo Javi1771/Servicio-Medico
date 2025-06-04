@@ -674,7 +674,7 @@ export default function DocumentModal({ beneficiary, onClose }) {
                   <div
                     className={`text-xs font-bold px-2 py-1 rounded-full ${
                       documentosFaltantes.length > 0
-                        ? "bg-red-100 text-red-700"
+                        ? "bg-red-200 text-red-700"
                         : "bg-green-100 text-green-700"
                     }`}
                   >
@@ -689,11 +689,11 @@ export default function DocumentModal({ beneficiary, onClose }) {
                     const existeDocumento = beneficiary[doc.key];
                     const esFaltante = doc.requerido && !existeDocumento;
 
-                    // Verificar si es la vigencia (campo fecha) y está expirada
+                    //* Verificar si es la vigencia (campo fecha) y está expirada
                     const esVigenciaExpirada =
                       doc.key === "VIGENCIA_ESTUDIOS" && vigenciaExpirada;
 
-                    // Calcular días restantes sólo si clave es VIGENCIA_ESTUDIOS
+                    //* Calcular días restantes sólo si clave es VIGENCIA_ESTUDIOS
                     let textoDias = "";
                     if (doc.key === "VIGENCIA_ESTUDIOS" && diasRestantes !== null) {
                       if (diasRestantes < 0) {
