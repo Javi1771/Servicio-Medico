@@ -10,7 +10,7 @@ import {
   FaCalendarAlt,
   FaChevronLeft,
 } from "react-icons/fa";
-import DatosAdicionales from "../consultas/datos-adicionales/datos-adicionales";
+import DatosAdicionales from "./components/datos-adicionales";
 import AccionesConsulta from "../consultas/AccionesConsulta";
 
 const formatearFecha = (fecha) => {

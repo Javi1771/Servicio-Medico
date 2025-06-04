@@ -80,7 +80,7 @@ const docsList = [
   },
   {
     label: "Vigencia de Estudios",
-    key: "URL_VIGENCIA",
+    key: "VIGENCIA_ESTUDIOS",
     icon: <FaCalendarTimes className="text-teal-500" />,
   },
 ];
@@ -101,18 +101,53 @@ const calcularEdad = (fechaNac) => {
   return edad;
 };
 
+//* Función para parsear la fecha formateada de vigencia (por ejemplo: "Domingo, 01/06/2025, 6:00 a.m.")
+const parseFechaVigencia = (rawString) => {
+  if (!rawString) return null;
+  const partes = rawString.split(",");
+  if (partes.length < 3) return null;
+  const fechaParte = partes[1].trim(); 
+  const horaParte = partes[2].trim().toLowerCase();
+  const [diaStr, mesStr, anioStr] = fechaParte.split("/");
+  const dia = parseInt(diaStr, 10);
+  const mes = parseInt(mesStr, 10);
+  const anio = parseInt(anioStr, 10);
+  const matchHora = horaParte.match(/(\d{1,2}):(\d{2})\s?([ap]\.m\.)/);
+  if (!matchHora) {
+    return new Date(anio, mes - 1, dia);
+  }
+  let hora = parseInt(matchHora[1], 10);
+  const minutos = parseInt(matchHora[2], 10);
+  const sufijo = matchHora[3]; 
+  if (sufijo.includes("p") && hora < 12) {
+    hora += 12;
+  }
+  if (sufijo.includes("a") && hora === 12) {
+    hora = 0;
+  }
+  return new Date(anio, mes - 1, dia, hora, minutos, 0);
+};
+
 //* Función para verificar si la vigencia de estudios ha expirado
-const isVigenciaExpirada = (fechaVigencia) => {
-  if (!fechaVigencia) return false;
-
+const isVigenciaExpirada = (rawFechaVigencia) => {
+  const vigenciaDate = parseFechaVigencia(rawFechaVigencia);
+  if (!vigenciaDate) return false;
   const hoy = new Date();
-  const vigencia = new Date(fechaVigencia);
-
-  //* Ajustar a inicio del día para comparar solo fechas
   hoy.setHours(0, 0, 0, 0);
-  vigencia.setHours(0, 0, 0, 0);
+  vigenciaDate.setHours(0, 0, 0, 0);
+  return vigenciaDate < hoy;
+};
 
-  return vigencia < hoy;
+//* Función para calcular cuántos días faltan o pasaron desde/hasta la fecha
+const getDiasRestantes = (rawFechaVigencia) => {
+  const vigenciaDate = parseFechaVigencia(rawFechaVigencia);
+  if (!vigenciaDate) return null;
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
+  vigenciaDate.setHours(0, 0, 0, 0);
+  const diffMs = vigenciaDate - hoy;
+  const diffDias = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+  return diffDias;
 };
 
 //* Lista de campos obligatorios específicos
@@ -129,8 +164,8 @@ const camposObligatorios = [
 const getDocumentosRequeridos = (
   PARENTESCO,
   edad,
-  esDiscapacitado,
-  esEstudiante
+  ESDISCAPACITADO,
+  ESESTUDIANTE
 ) => {
   console.log(
     "[DEBUG] Parentesco recibido:",
@@ -178,7 +213,7 @@ const getDocumentosRequeridos = (
     }
 
     //* Para discapacitados (cualquier edad)
-    if (esDiscapacitado === "SI") {
+    if (ESDISCAPACITADO === true) {
       docs.push({
         key: "URL_INCAP",
         label: "Acta de Incapacidad",
@@ -187,14 +222,14 @@ const getDocumentosRequeridos = (
     }
 
     //* Para estudiantes (cualquier edad)
-    if (esEstudiante === "SI") {
+    if (ESESTUDIANTE === true) {
       docs.push(
         {
           key: "URL_CONSTANCIA",
           label: "Constancia de Estudios",
           requerido: true,
         },
-        { key: "URL_VIGENCIA", label: "Vigencia de Estudios", requerido: true }
+        { key: "VIGENCIA_ESTUDIOS", label: "Vigencia de Estudios", requerido: true }
       );
     }
 
@@ -241,7 +276,6 @@ export default function DocumentModal({ beneficiary, onClose }) {
     F_NACIMIENTO,
     F_NACIMIENTO_ISO,
     PARENTESCO,
-    FECHA_VIGENCIA,
   } = beneficiary;
 
   //* Calcular edad usando F_NACIMIENTO_ISO para compatibilidad con el endpoint
@@ -256,6 +290,7 @@ export default function DocumentModal({ beneficiary, onClose }) {
   const [alertas, setAlertas] = useState([]);
   const [documentosRequeridos, setDocumentosRequeridos] = useState([]);
   const [vigenciaExpirada, setVigenciaExpirada] = useState(false);
+  const [diasRestantes, setDiasRestantes] = useState(null);
 
   //* Nuevo estado para mostrar/ocultar alertas
   const [showAlerts, setShowAlerts] = useState(true);
@@ -271,14 +306,13 @@ export default function DocumentModal({ beneficiary, onClose }) {
     );
   }, [PARENTESCO, edad, ESDISCAPACITADO, ESESTUDIANTE]);
 
-  //* Validar campos obligatorios y documentos
+  //* Validar campos obligatorios y documentos + vigencia
   useEffect(() => {
     //* Validar campos obligatorios
     const camposFaltantesTemp = camposObligatorios.filter(
       (campo) =>
         !beneficiary[campo] || beneficiary[campo].toString().trim() === ""
     );
-
     setCamposFaltantes(camposFaltantesTemp);
 
     //* Validar documentos requeridos
@@ -290,12 +324,29 @@ export default function DocumentModal({ beneficiary, onClose }) {
     });
     setDocumentosFaltantes(documentosFaltantesTemp);
 
-    //* Verificar vigencia de estudios
+    //* Agregar console logs para depuración de fechas
+    console.log("[DEBUG] Fecha cruda de VIGENCIA_ESTUDIOS:", beneficiary.VIGENCIA_ESTUDIOS);
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+    console.log("[DEBUG] Hoy (ajustado a inicio de día):", hoy);
+
     let vigenciaExpiradaTemp = false;
-    if (ESESTUDIANTE === "SI" && beneficiary.URL_VIGENCIA) {
-      vigenciaExpiradaTemp = isVigenciaExpirada(FECHA_VIGENCIA);
+    let diasTemp = null;
+    if (ESESTUDIANTE === true && beneficiary.VIGENCIA_ESTUDIOS) {
+      const fechaVigenciaDate = parseFechaVigencia(beneficiary.VIGENCIA_ESTUDIOS);
+      console.log(
+        "[DEBUG] FechaVigencia parseada:",
+        fechaVigenciaDate
+      );
+
+      vigenciaExpiradaTemp = isVigenciaExpirada(beneficiary.VIGENCIA_ESTUDIOS);
+      console.log("[DEBUG] Resultado isVigenciaExpirada:", vigenciaExpiradaTemp);
+
+      diasTemp = getDiasRestantes(beneficiary.VIGENCIA_ESTUDIOS);
+      console.log("[DEBUG] Días restantes (getDiasRestantes):", diasTemp);
     }
     setVigenciaExpirada(vigenciaExpiradaTemp);
+    setDiasRestantes(diasTemp);
 
     //* Construir alertas
     const alertasTemp = [];
@@ -314,7 +365,12 @@ export default function DocumentModal({ beneficiary, onClose }) {
     setAlertas(alertasTemp);
 
     setDocumentosRequeridos(docsRequeridos);
-  }, [beneficiary, faltaFirma, docsRequeridos, ESESTUDIANTE, FECHA_VIGENCIA]);
+  }, [
+    beneficiary,
+    faltaFirma,
+    docsRequeridos,
+    ESESTUDIANTE,
+  ]);
 
   return createPortal(
     <AnimatePresence>
@@ -339,7 +395,7 @@ export default function DocumentModal({ beneficiary, onClose }) {
           animate={{ scale: 1, y: 0, opacity: 1 }}
           exit={{ scale: 0.9, y: 20, opacity: 0 }}
           transition={{ type: "spring", damping: 25 }}
-          className="relative bg-gradient-to-br from-white to-indigo-50 rounded-2xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col z-10 border border-indigo-100"
+          className="relative bg-gradient-to-br from-white to-indigo-50 rounded-2xl shadow-2xl w-full max-w-7xl max-h-[90vh] overflow-hidden flex flex-col z-10 border border-indigo-100"
         >
           {/* Header */}
           <div className="bg-gradient-to-r from-indigo-600 to-purple-700 p-6 text-white">
@@ -376,10 +432,10 @@ export default function DocumentModal({ beneficiary, onClose }) {
                   {/* Indicador de estado de discapacidad */}
                   <div
                     className={`absolute -top-1 -right-1 w-6 h-6 rounded-full border-2 border-white flex items-center justify-center ${
-                      ESDISCAPACITADO === "SI" ? "bg-green-500" : "bg-gray-400"
+                      ESDISCAPACITADO === true ? "bg-green-500" : "bg-gray-400"
                     }`}
                   >
-                    {ESDISCAPACITADO === "SI" ? (
+                    {ESDISCAPACITADO === true ? (
                       <FaCheck className="text-white text-xs" />
                     ) : (
                       <FaCloseIcon className="text-white text-xs" />
@@ -400,12 +456,12 @@ export default function DocumentModal({ beneficiary, onClose }) {
                   <div className="flex flex-wrap gap-3 mt-2">
                     <div
                       className={`flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${
-                        ESDISCAPACITADO === "SI"
+                        ESDISCAPACITADO === true
                           ? "bg-green-100 text-green-800"
                           : "bg-gray-100 text-gray-800"
                       }`}
                     >
-                      {ESDISCAPACITADO === "SI" ? (
+                      {ESDISCAPACITADO === true ? (
                         <>
                           <FaWheelchair /> Discapacitado
                         </>
@@ -418,12 +474,12 @@ export default function DocumentModal({ beneficiary, onClose }) {
 
                     <div
                       className={`flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${
-                        ESESTUDIANTE === "SI"
+                        ESESTUDIANTE === true
                           ? "bg-blue-100 text-blue-800"
                           : "bg-gray-100 text-gray-800"
                       }`}
                     >
-                      {ESESTUDIANTE === "SI" ? (
+                      {ESESTUDIANTE === true ? (
                         <>
                           <FaGraduationCap /> Estudiante
                         </>
@@ -633,38 +689,77 @@ export default function DocumentModal({ beneficiary, onClose }) {
                     const existeDocumento = beneficiary[doc.key];
                     const esFaltante = doc.requerido && !existeDocumento;
 
+                    // Verificar si es la vigencia (campo fecha) y está expirada
+                    const esVigenciaExpirada =
+                      doc.key === "VIGENCIA_ESTUDIOS" && vigenciaExpirada;
+
+                    // Calcular días restantes sólo si clave es VIGENCIA_ESTUDIOS
+                    let textoDias = "";
+                    if (doc.key === "VIGENCIA_ESTUDIOS" && diasRestantes !== null) {
+                      if (diasRestantes < 0) {
+                        textoDias = `Venció hace ${Math.abs(diasRestantes)} día${
+                          Math.abs(diasRestantes) !== 1 ? "s" : ""
+                        }`;
+                      } else if (diasRestantes === 0) {
+                        textoDias = "Vence hoy";
+                      } else {
+                        textoDias = `Vence en ${diasRestantes} día${
+                          diasRestantes !== 1 ? "s" : ""
+                        }`;
+                      }
+                    }
+
                     return (
                       <li
                         key={index}
                         className={`flex items-start gap-2 p-2 rounded-lg ${
-                          esFaltante
+                          esVigenciaExpirada
+                            ? "bg-red-50 border border-red-200"
+                            : esFaltante
                             ? "bg-red-50 border border-red-200"
                             : "bg-green-50 border border-green-200"
                         }`}
                       >
                         <div
                           className={`mt-1 w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 ${
-                            esFaltante ? "bg-red-500" : "bg-green-500"
+                            esVigenciaExpirada ? "bg-red-500" : "bg-green-500"
                           }`}
                         >
-                          {esFaltante ? (
+                          {esVigenciaExpirada || esFaltante ? (
                             <FaTimes className="text-white text-xs" />
                           ) : (
                             <FaCheck className="text-white text-xs" />
                           )}
                         </div>
 
-                        <div>
+                        <div className="flex-1">
                           <span className="font-medium">{doc.label}</span>
                           <div
-                            className={`text-xs ${
-                              esFaltante
+                            className={`text-xs mt-1 ${
+                              esVigenciaExpirada
+                                ? "text-red-600 font-bold"
+                                : esFaltante
                                 ? "text-red-600 font-bold"
                                 : "text-green-600"
                             }`}
                           >
-                            {esFaltante ? "FALTANTE (obligatorio)" : "PRESENTE"}
+                            {esVigenciaExpirada
+                              ? "EXPIRADA"
+                              : esFaltante
+                              ? "FALTANTE (obligatorio)"
+                              : "PRESENTE"}
                           </div>
+                          {/* Mostrar texto de días si es VIGENCIA_ESTUDIOS */}
+                          {doc.key === "VIGENCIA_ESTUDIOS" &&
+                            beneficiary.VIGENCIA_ESTUDIOS && (
+                              <div
+                                className={`mt-1 text-xs font-medium ${
+                                  esVigenciaExpirada ? "text-red-600" : "text-gray-600"
+                                }`}
+                              >
+                                {textoDias}
+                              </div>
+                            )}
                         </div>
                       </li>
                     );
@@ -701,7 +796,7 @@ export default function DocumentModal({ beneficiary, onClose }) {
                           <li>Menor de 16 años: Acta nacimiento, CURP</li>
                           <li>Mayor de 16 años: + INE</li>
                           <li>Discapacitado: + Acta incapacidad</li>
-                          <li>Estudiante: + Constancia estudios</li>
+                          <li>Estudiante: + Constancia estudios y Vigencia</li>
                         </ul>
                       </li>
                       <li>
@@ -767,9 +862,24 @@ export default function DocumentModal({ beneficiary, onClose }) {
                   const esRequerido = doc.requerido;
                   const esFaltante = esRequerido && !existeDocumento;
 
-                  // Verificar si es la vigencia y está expirada
                   const esVigenciaExpirada =
-                    doc.key === "URL_VIGENCIA" && vigenciaExpirada;
+                    doc.key === "VIGENCIA_ESTUDIOS" && vigenciaExpirada;
+
+                  // Calcular días restantes solo si clave es VIGENCIA_ESTUDIOS
+                  let textoDias = "";
+                  if (doc.key === "VIGENCIA_ESTUDIOS" && diasRestantes !== null) {
+                    if (diasRestantes < 0) {
+                      textoDias = `Venció hace ${Math.abs(diasRestantes)} día${
+                        Math.abs(diasRestantes) !== 1 ? "s" : ""
+                      }`;
+                    } else if (diasRestantes === 0) {
+                      textoDias = "Vence hoy";
+                    } else {
+                      textoDias = `Vence en ${diasRestantes} día${
+                        diasRestantes !== 1 ? "s" : ""
+                      }`;
+                    }
+                  }
 
                   return (
                     <motion.div
@@ -823,7 +933,7 @@ export default function DocumentModal({ beneficiary, onClose }) {
                                 return (
                                   <FaUserGraduate className="text-indigo-500 text-xl" />
                                 );
-                              case "URL_VIGENCIA":
+                              case "VIGENCIA_ESTUDIOS":
                                 return (
                                   <FaCalendarTimes className="text-indigo-500 text-xl" />
                                 );
@@ -835,7 +945,7 @@ export default function DocumentModal({ beneficiary, onClose }) {
                           })()}
                         </div>
 
-                        <div>
+                        <div className="flex-1">
                           <h4 className="font-semibold text-gray-800">
                             {doc.label}
                           </h4>
@@ -869,37 +979,27 @@ export default function DocumentModal({ beneficiary, onClose }) {
                             )}
                           </div>
 
-                          {/* Mostrar fecha de vigencia si está disponible */}
-                          {doc.key === "URL_VIGENCIA" &&
-                            beneficiary.FECHA_VIGENCIA && (
+                          {/* Mostrar texto de días si es VIGENCIA_ESTUDIOS */}
+                          {doc.key === "VIGENCIA_ESTUDIOS" &&
+                            beneficiary.VIGENCIA_ESTUDIOS && (
                               <div
                                 className={`mt-2 text-xs font-medium ${
-                                  vigenciaExpirada
-                                    ? "text-red-600"
-                                    : "text-gray-600"
+                                  esVigenciaExpirada ? "text-red-600" : "text-gray-600"
                                 }`}
                               >
-                                Fecha de vigencia:{" "}
-                                {new Date(
-                                  beneficiary.FECHA_VIGENCIA
-                                ).toLocaleDateString()}
-                                {vigenciaExpirada && (
-                                  <span className="ml-2 font-bold">
-                                    (Expirada)
-                                  </span>
-                                )}
+                                {textoDias}
                               </div>
                             )}
                         </div>
-                      </div>
 
-                      {/* Mensaje de documento faltante */}
-                      {esFaltante && (
-                        <div className="mt-3 flex items-center gap-2 text-red-600 font-bold">
-                          <FaExclamationTriangle />
-                          <span>DOCUMENTO OBLIGATORIO FALTANTE</span>
-                        </div>
-                      )}
+                        {/* Mensaje de documento faltante */}
+                        {esFaltante && (
+                          <div className="mt-3 flex items-center gap-2 text-red-600 font-bold">
+                            <FaExclamationTriangle />
+                            <span>DOCUMENTO OBLIGATORIO FALTANTE</span>
+                          </div>
+                        )}
+                      </div>
                     </motion.div>
                   );
                 })}
@@ -916,11 +1016,27 @@ export default function DocumentModal({ beneficiary, onClose }) {
                     <div className="flex-1 overflow-auto px-4 md:px-0">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {docsList.map((d) => {
-                          const url = beneficiary[d.key];
-                          if (!url) return null;
+                          const valor = beneficiary[d.key];
+                          if (!valor) return null;
 
                           const esVigenciaExpirada =
-                            d.key === "URL_VIGENCIA" && vigenciaExpirada;
+                            d.key === "VIGENCIA_ESTUDIOS" && vigenciaExpirada;
+
+                          // Texto de días para sección disponible
+                          let textoDias = "";
+                          if (d.key === "VIGENCIA_ESTUDIOS" && diasRestantes !== null) {
+                            if (diasRestantes < 0) {
+                              textoDias = `Venció hace ${Math.abs(diasRestantes)} día${
+                                Math.abs(diasRestantes) !== 1 ? "s" : ""
+                              }`;
+                            } else if (diasRestantes === 0) {
+                              textoDias = "Vence hoy";
+                            } else {
+                              textoDias = `Vence en ${diasRestantes} día${
+                                diasRestantes !== 1 ? "s" : ""
+                              }`;
+                            }
+                          }
 
                           return (
                             <motion.div
@@ -950,36 +1066,42 @@ export default function DocumentModal({ beneficiary, onClose }) {
                               </div>
 
                               <div className="p-6">
-                                <div className="w-full h-48 bg-gray-100 rounded-lg border border-gray-200 shadow-inner flex items-center justify-center">
-                                  <FaFileContract className="text-indigo-300 text-5xl" />
-                                </div>
+                                {d.key !== "VIGENCIA_ESTUDIOS" ? (
+                                  <>
+                                    <div className="w-full h-48 bg-gray-100 rounded-lg border border-gray-200 shadow-inner flex items-center justify-center">
+                                      <FaFileContract className="text-indigo-300 text-5xl" />
+                                    </div>
 
-                                <div className="mt-5 flex justify-center">
-                                  <a
-                                    href={url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="px-5 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-full flex items-center gap-2 hover:shadow-xl transition-all"
-                                  >
-                                    <FaDownload /> Descargar
-                                  </a>
-                                </div>
-
-                                {d.key === "URL_VIGENCIA" &&
-                                  beneficiary.FECHA_VIGENCIA && (
+                                    <div className="mt-5 flex justify-center">
+                                      <a
+                                        href={valor}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="px-5 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-full flex items-center gap-2 hover:shadow-xl transition-all"
+                                      >
+                                        <FaDownload /> Descargar
+                                      </a>
+                                    </div>
+                                  </>
+                                ) : (
+                                  <div className="text-center">
+                                    <div className="text-gray-700 mb-2">
+                                      Fecha de vigencia:
+                                    </div>
                                     <div
-                                      className={`mt-4 text-center text-sm font-medium ${
-                                        vigenciaExpirada
-                                          ? "text-red-600"
-                                          : "text-gray-600"
+                                      className={`text-sm font-medium ${
+                                        esVigenciaExpirada ? "text-red-600" : "text-gray-600"
                                       }`}
                                     >
-                                      Fecha de vigencia:{" "}
-                                      {new Date(
-                                        beneficiary.FECHA_VIGENCIA
-                                      ).toLocaleDateString()}
+                                      {parseFechaVigencia(valor).toLocaleDateString()}
+                                      {textoDias && (
+                                        <span className="ml-2 font-medium">
+                                          ({textoDias})
+                                        </span>
+                                      )}
                                     </div>
-                                  )}
+                                  </div>
+                                )}
                               </div>
                             </motion.div>
                           );
@@ -998,7 +1120,6 @@ export default function DocumentModal({ beneficiary, onClose }) {
                         {/* Contenedor con degradado + sombra */}
                         <div className="bg-gradient-to-r from-indigo-200 to-purple-200 p-1 rounded-2xl shadow-xl">
                           <div className="bg-white rounded-2xl h-40 relative overflow-hidden">
-                            {/* Usamos `fill` para que la imagen ocupe todo el ancho/alto del padre, y `object-contain` para que mantenga proporción sin recortarse.*/}
                             <Image
                               src={beneficiary.FIRMA}
                               alt="Firma del beneficiario"

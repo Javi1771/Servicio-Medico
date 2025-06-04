@@ -155,6 +155,8 @@ export default function EmpleadosBeneficiarios() {
             beneficiaryId: b.ID_BENEFICIARIO,
             beneficiaryName: `${b.NOMBRE} ${b.A_PATERNO} ${b.A_MATERNO}`,
             parentesco: b.PARENTESCO_DESCRIPCION,
+            fechanacimiento: b.F_NACIMIENTO,
+            fechanacimientoISO: b.F_NACIMIENTO_ISO,
           });
         }
       });
