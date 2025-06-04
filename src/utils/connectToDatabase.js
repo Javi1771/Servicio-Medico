@@ -10,9 +10,9 @@ const dbConfig = {
     trustServerCertificate: process.env.DB_TRUST_SERVER_CERTIFICATE === 'true',
   },
   pool: {
-    max: 100, // Máximo de conexiones en el pool
+    max: 1000, // Máximo de conexiones en el pool
     min: 0,  // Mínimo de conexiones
-    idleTimeoutMillis: 30000, // Tiempo máximo de inactividad
+    idleTimeoutMillis: 300000, // Tiempo máximo de inactividad
   },
 };
 
