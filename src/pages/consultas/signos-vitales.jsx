@@ -111,6 +111,7 @@ const SignosVitales = () => {
   const [consultaSeleccionada, setConsultaSeleccionada] = useState("empleado");
 
   const [isSaving, setIsSaving] = useState(false);
+  const [beneficiaryData, setBeneficiaryData] = useState([]);
 
   const handleFaceRecognition = () => {
     router.push("/consultas/face-test");
@@ -232,7 +233,6 @@ const SignosVitales = () => {
           if (
             JSON.stringify(prevPacientes) !== JSON.stringify(consultasOrdenadas)
           ) {
-            //console.log("Actualizando lista de pacientes...");
             return consultasOrdenadas;
           }
           return prevPacientes; //! No actualiza si los datos son iguales
@@ -258,7 +258,6 @@ const SignosVitales = () => {
         throw new Error("Error al actualizar el estatus");
       }
 
-      //console.log("Clave de estatus actualizada correctamente a 2");
       playSound(true);
       MySwal.fire({
         icon: "success",
@@ -293,8 +292,6 @@ const SignosVitales = () => {
       });
     }
   };
-
-  const [beneficiaryData, setBeneficiaryData] = useState([]);
 
   const handleSave = async () => {
     if (isSaving) return; //! Evitar múltiples ejecuciones si ya está en curso
@@ -445,12 +442,17 @@ const SignosVitales = () => {
     });
     setNomina("");
     setEmpleadoEncontrado(false);
+    setBeneficiaryData([]);
+    setSelectedBeneficiary(null);
   };
 
   const handleRadioChange = (value) => {
     setConsultaSeleccionada(value);
     if (value === "beneficiario") {
       handleSearchBeneficiary();
+    } else {
+      setBeneficiaryData([]);
+      setSelectedBeneficiary(null);
     }
   };
 
@@ -551,23 +553,90 @@ const SignosVitales = () => {
       const data = await response.json();
 
       if (data.beneficiarios && data.beneficiarios.length > 0) {
-        //* Actualizar beneficiarios directamente con los datos filtrados
+        //? 1) Guardar la lista completa (incluye inválidos) en estado
         setBeneficiaryData(data.beneficiarios);
 
-        //* Seleccionar automáticamente el primer beneficiario válido
-        setSelectedBeneficiary(data.beneficiarios[0]);
-        document.querySelector("select").value = 0; //* Actualizar el select
+        //? 2) Encontrar el índice del primer beneficiario válido
+        const ahora = new Date();
+        let indiceValido = null;
+        for (let i = 0; i < data.beneficiarios.length; i++) {
+          const b = data.beneficiarios[i];
+
+          //* Validación de hijo/a
+          if (Number(b.PARENTESCO) !== 2) {
+            indiceValido = i;
+            break;
+          }
+
+          if (b.F_NACIMIENTO) {
+            const [fechaParte] = b.F_NACIMIENTO.split(" ");
+            const nacimiento = new Date(fechaParte);
+            const diffMs = ahora - nacimiento;
+            const edadAnios = new Date(diffMs).getUTCFullYear() - 1970;
+
+            if (edadAnios <= 16) {
+              indiceValido = i;
+              break;
+            }
+          }
+
+          if (Number(b.ESDISCAPACITADO) === 1) {
+            indiceValido = i;
+            break;
+          }
+
+          if (Number(b.ESESTUDIANTE) === 0) {
+            continue; //! inválido, chequear siguiente
+          }
+
+          if (b.VIGENCIA_ESTUDIOS) {
+            const vigencia = new Date(b.VIGENCIA_ESTUDIOS);
+            if (vigencia.getTime() >= ahora.getTime()) {
+              indiceValido = i;
+              break;
+            } else {
+              continue;
+            }
+          } else {
+            continue;
+          }
+        }
+
+        if (indiceValido !== null) {
+          //? 3) Seleccionar automáticamente el primer válido
+          setSelectedBeneficiary(data.beneficiarios[indiceValido]);
+          //* Ajustar el <select> para que muestre ese índice
+          const selectElem = document.querySelector("select");
+          if (selectElem) selectElem.value = indiceValido;
+        } else {
+          //! Ningún válido, no marcamos ninguno pero dejamos la lista visible
+          setSelectedBeneficiary(null);
+          playSound(false);
+          MySwal.fire({
+            icon: "info",
+            title:
+              "<span style='color: #00bcd4; font-weight: bold; font-size: 1.5em;'>ℹ️ Sin beneficiarios válidos</span>",
+            html: `<p style='color: #fff; font-size: 1.1em;'>Ningún beneficiario cumple con los requisitos o tiene constancia vigente.</p>`,
+            background: "linear-gradient(145deg, #004d40, #00251a)",
+            confirmButtonColor: "#00bcd4",
+            confirmButtonText:
+              "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
+            customClass: {
+              popup:
+                "border border-cyan-600 shadow-[0px_0px_20px_5px_rgba(0,188,212,0.9)] rounded-lg",
+            },
+          });
+        }
       } else {
-        //* No hay beneficiarios
+        //! No hay beneficiarios en absoluto
         setBeneficiaryData([]);
         setConsultaSeleccionada("empleado");
-
         playSound(false);
         MySwal.fire({
           icon: "info",
           title:
             "<span style='color: #00bcd4; font-weight: bold; font-size: 1.5em;'>ℹ️ Sin beneficiarios</span>",
-          html: "<p style='color: #fff; font-size: 1.1em;'>Este empleado no tiene beneficiarios registrados en el sistema.</p>",
+          html: `<p style='color: #fff; font-size: 1.1em;'>Este empleado no tiene beneficiarios registrados en el sistema.</p>`,
           background: "linear-gradient(145deg, #004d40, #00251a)",
           confirmButtonColor: "#00bcd4",
           confirmButtonText:
