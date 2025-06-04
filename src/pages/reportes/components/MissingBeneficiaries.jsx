@@ -59,7 +59,7 @@ const labelPorKey = {
   URL_INE: "INE",
   URL_CONCUBINATO: "Acta de Concubinato",
   URL_ACTAMATRIMONIO: "Acta de Matrimonio",
-  URL_NOISSTE: "Carta No ISSSTE",
+  URL_NOISSTE: "Carta No Afiliación IMSS/ISSSTE",
   URL_INCAP: "Acta de Incapacidad",
   URL_ACTADEPENDENCIAECONOMICA: "Acta Dependencia Económica",
   VIGENCIA_ESTUDIOS: "Vigencia de Estudios",
