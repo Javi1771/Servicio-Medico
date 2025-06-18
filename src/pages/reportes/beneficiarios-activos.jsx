@@ -9,7 +9,6 @@ import {
   FaCoins,
   FaPercentage,
   FaLayerGroup,
-  FaChartPie,
   FaChevronUp,
   FaChevronDown,
   FaFilePdf,
@@ -612,17 +611,17 @@ export default function EmpleadosBeneficiarios() {
         </div>
 
         {/* MÉTRICAS */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-6">
           {[
             {
               icon: <FaUsers className="text-2xl" />,
-              label: "Empleados",
+              label: "Empleados Con Beneficiarios",
               value: stats.total,
               color: "from-indigo-500 to-indigo-600",
             },
             {
               icon: <FaCoins className="text-2xl" />,
-              label: "Beneficiarios",
+              label: "Total De Beneficiarios",
               value: totalBeneficiaries,
               color: "from-cyan-500 to-cyan-600",
             },
@@ -637,14 +636,6 @@ export default function EmpleadosBeneficiarios() {
               label: "Departamentos",
               value: departments.length,
               color: "from-amber-500 to-amber-600",
-            },
-            {
-              icon: <FaChartPie className="text-2xl" />,
-              label: "Con Beneficiarios",
-              value: `${((stats.withBenefits / stats.total) * 100).toFixed(
-                1
-              )}%`,
-              color: "from-purple-500 to-purple-600",
             },
             {
               icon: <TbFolderCancel className="text-2xl" />,

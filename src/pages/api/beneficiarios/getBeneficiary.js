@@ -1,5 +1,28 @@
-// /api/getBeneficiary.js
 import { connectToDatabase } from "../connectToDatabase";
+
+//* Función para formatear la fecha con día de la semana incluido
+function formatFecha(fecha) {
+  const date = new Date(fecha);
+
+  //* Días de la semana en español
+  const diasSemana = [
+    "Domingo",
+    "Lunes",
+    "Martes",
+    "Miércoles",
+    "Jueves",
+    "Viernes",
+    "Sábado",
+  ];
+
+  //* Obtener los valores en UTC para preservar la hora exacta de la base de datos
+  const diaSemana = diasSemana[date.getUTCDay()];
+  const dia = String(date.getUTCDate()).padStart(2, "0");
+  const mes = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const año = date.getUTCFullYear();
+
+  return `${diaSemana}, ${dia}/${mes}/${año}`;
+}
 
 export default async function handler(req, res) {
   if (req.method !== "GET") {
@@ -17,7 +40,7 @@ export default async function handler(req, res) {
 
   try {
     const pool = await connectToDatabase();
-    
+
     const result = await pool.request()
       .input("idBeneficiario", idBeneficiario)
       .query(`
@@ -56,8 +79,14 @@ export default async function handler(req, res) {
       return res.status(404).json({ error: "Beneficiario no encontrado" });
     }
 
-    // Retornar el beneficiario encontrado
-    res.status(200).json(result.recordset[0]);
+    const beneficiario = result.recordset[0];
+
+    //* Formatear F_NACIMIENTO con día de la semana
+    if (beneficiario.F_NACIMIENTO) {
+      beneficiario.F_NACIMIENTO = formatFecha(beneficiario.F_NACIMIENTO);
+    }
+
+    res.status(200).json(beneficiario);
   } catch (error) {
     console.error("Error al obtener el beneficiario:", error);
     res.status(500).json({ error: "Error al obtener el beneficiario" });

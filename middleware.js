@@ -4,12 +4,13 @@ import { NextResponse } from 'next/server';
 const rolePermissions = {
   "7": ["/inicio-presidente", "/consultas", "/especialista", "/catalogos", "/estadisticas", "/capturas", "/reportes", "/farmacia", "/dashboard"], //* Permisos para presidente
   "6": ["/inicio-servicio-medico", "/consultas", "/catalogos", "/capturas", "/reportes", "/especialista", "/farmacia"], //* Permisos para administrador
-  "1": ["/inicio-servicio-medico", "/consultas", "/especialista", "/capturas/orden-de-estudio-de-laboratorio"], //* Permisos para médico
+  "1": ["/inicio-servicio-medico", "/consultas", "/capturas/orden-de-estudio-de-laboratorio"], //* Permisos para médico general
   "2": ["/inicio-servicio-medico", "/consultas/signos-vitales", "/consultas/face-test", "consultas/signos-vitales-facial"], //* Permisos para enfermera
   "3": ["/inicio-servicio-medico", "/capturas", "/consultas/recetas", "/consultas/components/HistorialMedicamentos"], //* Permisos para capturista
   "8": ["/inicio-servicio-medico", "/reportes", "/catalogos/beneficiarios", "/catalogos/historial-incapacidades-completo", "/capturas/incapacidades"], //* Permisos para RRHH
   "9": ["/inicio-servicio-medico", "/farmacia"], //* Permisos para farmacia 
   "10": ["/inicio-servicio-medico", "/farmacia", "/catalogos", "/consultas", "/dashboard", "/especialista", "/estadisticas", "/reportes"], //* Permisos para director de servicios médicos 
+  "11": ["/inicio-servicio-medico", "/especialista", "/capturas/orden-de-estudio-de-laboratorio"], //* Permisos para médico especialista
 };
 
 export function middleware(request) {

@@ -3,42 +3,73 @@ import soap from 'soap';
 import pLimit from 'p-limit';
 
 const WSDL_URL = 'http://172.16.0.7:8082/ServiceEmp/ServiceEmp.svc?wsdl';
-//* Limitar a 10 tareas concurrentes al procesar cada nómina
 const limitConcurrency = pLimit(10);
 
-//** SOAP → GetEmpleadoResult */
+let soapClientPromise = null;
+
+/*
+ * Obtiene (o crea) un cliente SOAP único para reutilizarlo en cada llamada.
+ */
+async function getSoapClient() {
+  if (!soapClientPromise) {
+    soapClientPromise = soap.createClientAsync(WSDL_URL);
+  }
+  return soapClientPromise;
+}
+
+/*
+ * Llama al servicio SOAP GetEmpleado y retorna el resultado o null en caso de error.
+ */
 async function fetchEmpleadoSOAP(no_nomina) {
   try {
-    const client = await soap.createClientAsync(WSDL_URL);
-    const [result] = await client.GetEmpleadoAsync({ emp: { num_nom: no_nomina } });
-    return result?.GetEmpleadoResult || null;
+    const client = await getSoapClient();
+    const [resultado] = await client.GetEmpleadoAsync({ emp: { num_nom: no_nomina } });
+    return resultado?.GetEmpleadoResult || null;
   } catch (err) {
     console.error(`❌ Error SOAP empleado ${no_nomina}:`, err);
     return null;
   }
 }
 
-//** Parsea "DD/MM/YYYY hh:mm:ss a. m." → Date (solo para filtrar bajas) */
+/*
+ * Parsea "DD/MM/YYYY hh:mm:ss a. m." (o similar) a Date, incluyendo la hora.
+ * Devuelve null si no se pudo parsear correctamente.
+ */
 function parseFechaBaja(fechaStr) {
   if (!fechaStr) return null;
-  const [datePart] = fechaStr.split(' ');
-  const [dd, mm, yyyy] = datePart.split('/');
-  return new Date(`${yyyy}-${mm}-${dd}T00:00:00Z`);
+
+  //* Suponemos formato exacto: "DD/MM/YYYY hh:mm:ss a.m." o "DD/MM/YYYY hh:mm:ss p.m."
+  //* Separar fecha y hora
+  const [fecha, hora, periodo] = fechaStr.split(' '); 
+  const [dd, mm, yyyy] = fecha.split('/');
+  let [hh, min, ss] = hora.split(':');
+  hh = parseInt(hh, 10);
+  if (periodo.toLowerCase().startsWith('p')) {
+    if (hh < 12) hh += 12;
+  } else {
+    if (hh === 12) hh = 0;
+  }
+  const iso = `${yyyy}-${mm}-${dd}T${String(hh).padStart(2,'0')}:${min}:${ss}Z`;
+  const d = new Date(iso);
+  return isNaN(d) ? null : d;
 }
 
-//** Date → "DíaSemana, DD/MM/YYYY, hh:mm a. m." */
+/*
+ * Formatea una fecha a "DíaSemana, DD/MM/YYYY, hh:mm a.m./p.m."
+ * Usa hora local en lugar de UTC.
+ */
 function formatFecha(fecha) {
   const date = fecha instanceof Date ? fecha : new Date(fecha);
   if (isNaN(date)) return null;
 
   const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-  const diaSemana = dias[date.getUTCDay()];
-  const dd = String(date.getUTCDate()).padStart(2, '0');
-  const mm = String(date.getUTCMonth() + 1).padStart(2, '0');
-  const yyyy = date.getUTCFullYear();
+  const diaSemana = dias[date.getDay()]; 
+  const dd = String(date.getDate()).padStart(2, '0');
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const yyyy = date.getFullYear();
 
-  let hh = date.getUTCHours();
-  const min = String(date.getUTCMinutes()).padStart(2, '0');
+  let hh = date.getHours();
+  const min = String(date.getMinutes()).padStart(2, '0');
   const periodo = hh >= 12 ? 'p.m.' : 'a.m.';
   hh = hh % 12 || 12;
 
@@ -59,17 +90,17 @@ export default async function handler(req, res) {
       .request()
       .query(`
         SELECT DISTINCT NO_NOMINA
-        FROM BENEFICIARIO
-        WHERE ACTIVO = 'A'
-        ORDER BY NO_NOMINA
+          FROM BENEFICIARIO
+         WHERE ACTIVO = 'A'
+         ORDER BY NO_NOMINA
       `);
 
     //? 2️⃣ Procesar cada nómina con concurrencia limitada
     const raw = await Promise.all(
       nominas.map(({ NO_NOMINA }) =>
         limitConcurrency(async () => {
-          //? 2.a) Obtener beneficiarios en formato JSON
-          const { recordset: ben } = await pool
+          //? 2.a) Obtener beneficiarios (sin FOR JSON)
+          const { recordset: rows } = await pool
             .request()
             .input('nomina', NO_NOMINA)
             .query(`
@@ -91,19 +122,10 @@ export default async function handler(req, res) {
               INNER JOIN PARENTESCO p2
                 ON b2.PARENTESCO = p2.ID_PARENTESCO
               WHERE b2.ACTIVO = 'A'
-                AND b2.NO_NOMINA = @nomina
-              FOR JSON PATH
+                AND b2.NO_NOMINA = @nomina;
             `);
 
-          //* Parsear la cadena JSON que devuelve FOR JSON PATH
-          let beneficiarios = [];
-          if (ben[0]) {
-            try {
-              beneficiarios = JSON.parse(Object.values(ben[0])[0]);
-            } catch {
-              beneficiarios = [];
-            }
-          }
+          const beneficiarios = Array.isArray(rows) ? rows : [];
 
           //? 2.b) Llamar al servicio SOAP para obtener datos del empleado
           const emp = await fetchEmpleadoSOAP(NO_NOMINA);
@@ -112,7 +134,7 @@ export default async function handler(req, res) {
           //! Filtrar empleados dados de baja
           if (emp.fecha_baja) {
             const fb = parseFechaBaja(emp.fecha_baja);
-            if (fb < new Date()) {
+            if (fb && fb < new Date()) {
               return null;
             }
           }
@@ -133,13 +155,13 @@ export default async function handler(req, res) {
             no_nomina: NO_NOMINA,
             empleado: emp,
             beneficiarios: beneficiariosFmt,
-            sinActaCount, //! número de beneficiarios sin acta
+            sinActaCount,
           };
         })
       )
     );
 
-    //* Filtrar valores nulos (empleados dados de baja, errores SOAP, etc.)
+    //! Filtrar valores nulos
     const consolidado = raw.filter(item => item !== null);
 
     res.status(200).json(consolidado);

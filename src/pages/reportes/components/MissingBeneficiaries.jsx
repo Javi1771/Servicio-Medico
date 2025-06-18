@@ -1,7 +1,21 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { FaArrowLeft,  FaChevronUp, FaSearch, FaIdCard, FaUserAlt, FaUserFriends, FaLayerGroup, FaChartPie, FaChild, FaUser, FaFilter, FaPercentage, FaFileExport, } from "react-icons/fa";
+import {
+  FaArrowLeft,
+  FaChevronUp,
+  FaSearch,
+  FaIdCard,
+  FaUserAlt,
+  FaUserFriends,
+  FaLayerGroup,
+  FaChartPie,
+  FaChild,
+  FaUser,
+  FaFilter,
+  FaPercentage,
+  FaFileExport,
+} from "react-icons/fa";
 import { TbFolderCancel } from "react-icons/tb";
 import { motion } from "framer-motion";
 import ExcelJS from "exceljs";
@@ -16,14 +30,14 @@ const PAGE_SIZE = 7;
  */
 const extractIsoFromFormatted = (fechaFormateada) => {
   if (!fechaFormateada) return null;
-  //* Ejemplo de entrada: "Sábado, 20/06/1964, 6:00 a.m."
+  // Ejemplo: "Sábado, 20/06/1964, 6:00 a.m."
   const m = fechaFormateada.match(/,\s*(\d{2})\/(\d{2})\/(\d{4})\s*,/);
   if (!m) return null;
   const [, dd, mm, yyyy] = m;
   return `${yyyy}-${mm}-${dd}T00:00:00Z`;
 };
 
-/*
+/**
  * Devuelve la fecha ISO a usar para el cálculo de edad:
  * 1) Si existe `iso` (fechanacimientoISO), la devuelve tal cual.
  * 2) Si no, intenta extraerla desde `formatted` (fechanacimiento).
@@ -34,7 +48,7 @@ const getFechaParaEdad = (iso, formatted) => {
   return extractIsoFromFormatted(formatted);
 };
 
-/*
+/**
  * Calcula la edad en años completos a partir de una fecha ISO.
  * Si `fechaIso` es null o inválida, retorna 0.
  */
@@ -51,7 +65,7 @@ const calcularEdad = (fechaIso) => {
   return edad;
 };
 
-//* Etiquetas legibles para cada clave de documento
+// Etiquetas legibles para cada clave de documento
 const labelPorKey = {
   URL_CONSTANCIA: "Constancia de Estudios",
   URL_CURP: "CURP",
@@ -65,28 +79,40 @@ const labelPorKey = {
   VIGENCIA_ESTUDIOS: "Vigencia de Estudios",
 };
 
-/*
+/**
  * Según parentesco, edad, discapacidad y estudiante, devuelve un array
  * con las claves (keys) de los documentos que son obligatorios.
+ *
+ * Nuevo comportamiento para "Hijo(a)":
+ *  - Si es menor de 16 → solo Acta de Nacimiento y CURP.
+ *  - Si es >= 16:
+ *     • Si ESDISCAPACITADO === true → URL_INE + URL_INCAP.
+ *     • Si NO es discapacitado → URL_INE + URL_CONSTANCIA + VIGENCIA_ESTUDIOS.
  */
 const getRequiredKeys = (b) => {
-  //* Obtenemos la ISO real a usar (fechanacimientoISO o parseada desde fechanacimiento)
   const fechaIso = getFechaParaEdad(b.fechanacimientoISO, b.fechanacimiento);
   const edad = calcularEdad(fechaIso);
-  const docs = ["URL_ACTA_NAC", "URL_CURP"]; 
+  const docs = ["URL_ACTA_NAC", "URL_CURP"];
 
   const parentesco = b.parentesco;
   const esDisca = b.ESDISCAPACITADO === true;
-  const esEstu = b.ESESTUDIANTE === true;
 
   switch (parentesco) {
     case "Esposo(a)":
       docs.push("URL_ACTAMATRIMONIO", "URL_NOISSTE", "URL_INE");
       break;
     case "Hijo(a)":
-      if (edad >= 16) docs.push("URL_INE");
-      if (esDisca) docs.push("URL_INCAP");
-      if (esEstu) docs.push("URL_CONSTANCIA", "VIGENCIA_ESTUDIOS");
+      if (edad >= 16) {
+        // siempre pedimos INE a partir de 16
+        docs.push("URL_INE");
+        if (esDisca) {
+          // si es discapacitado, pide Acta Incapacidad
+          docs.push("URL_INCAP");
+        } else {
+          // si NO es discapacitado, pide Constancia y Vigencia
+          docs.push("URL_CONSTANCIA", "VIGENCIA_ESTUDIOS");
+        }
+      }
       break;
     case "Concubino(a)":
       docs.push("URL_CONCUBINATO", "URL_NOISSTE", "URL_INE");
@@ -101,22 +127,45 @@ const getRequiredKeys = (b) => {
   return docs;
 };
 
-/*
+/**
  * Recorre las claves requeridas y devuelve las etiquetas
- * de aquellos documentos que falten (null o cadena vacía).
+ * de aquellos documentos que falten (null, cadena vacía) o estén vencidos:
+ *  - Si es VIGENCIA_ESTUDIOS y la fecha está en el pasado → "Vigencia de Estudios Vencida".
+ *  - Si es cualquier otro (p. ej. URL_INCAP) y no existe o está vacío → "Acta de Incapacidad", etc.
  */
 const getMissingDocs = (b) => {
   const required = getRequiredKeys(b);
   const faltantes = [];
+
   required.forEach((key) => {
-    if (!b[key] || b[key].toString().trim() === "") {
-      faltantes.push(labelPorKey[key] || key);
+    const valor = b[key];
+    if (key === "VIGENCIA_ESTUDIOS") {
+      if (!valor || valor.toString().trim() === "") {
+        // no tiene vigencia
+        faltantes.push(labelPorKey[key]);
+      } else {
+        // intentamos convertir a ISO (si viene formateada) o usarla directamente
+        const iso = extractIsoFromFormatted(valor) || valor;
+        const fechaVig = new Date(iso);
+        const hoy = new Date();
+        // comparamos solo la fecha (ignoramos horas)
+        const hoySinHora = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
+        if (isNaN(fechaVig) || fechaVig < hoySinHora) {
+          faltantes.push("Vigencia de Estudios Vencida");
+        }
+      }
+    } else {
+      // Para el resto de documentos: si no existe o está vacío → faltar
+      if (!valor || valor.toString().trim() === "") {
+        faltantes.push(labelPorKey[key] || key);
+      }
     }
   });
+
   return faltantes;
 };
 
-//? Borde fino color negro para ExcelJS
+// Borde fino color negro para ExcelJS
 const thinBorder = {
   top: { style: "thin", color: { argb: "000000" } },
   bottom: { style: "thin", color: { argb: "000000" } },
@@ -127,10 +176,10 @@ const thinBorder = {
 const buildMainSheet = (items, wb) => {
   const ws = wb.addWorksheet("Faltantes", {
     pageSetup: { fitToWidth: 1 },
-    properties: { tabColor: { argb: "920A0A" } }, 
+    properties: { tabColor: { argb: "920A0A" } },
   });
 
-  //* Título en A1:F1, fondo 900 (#920A0A), texto blanco
+  // Título en A1:F1
   ws.mergeCells("A1:F1");
   const titleCell = ws.getCell("A1");
   titleCell.value = "Reporte de Beneficiarios Faltantes";
@@ -139,10 +188,10 @@ const buildMainSheet = (items, wb) => {
   titleCell.fill = {
     type: "pattern",
     pattern: "solid",
-    fgColor: { argb: "920A0A" }, 
+    fgColor: { argb: "920A0A" },
   };
 
-  //* Fecha de generación en A2:F2, fondo 800 (#B10303), texto blanco
+  // Fecha de generación en A2:F2
   ws.mergeCells("A2:F2");
   const dateCell = ws.getCell("A2");
   dateCell.value = `Generado el ${new Date().toLocaleDateString()}`;
@@ -156,7 +205,7 @@ const buildMainSheet = (items, wb) => {
 
   ws.addRow([]);
 
-  //* Encabezados de columna en la fila 4, fondo 700 (#D70000), texto blanco
+  // Encabezados de columna en fila 4
   const headerRow = ws.addRow([
     "Nómina",
     "Empleado",
@@ -176,12 +225,11 @@ const buildMainSheet = (items, wb) => {
     c.border = thinBorder;
   });
 
-  //* Congelar hasta la fila 4
+  // Congelar hasta la fila 4
   ws.views = [{ state: "frozen", ySplit: 4 }];
 
-  //* Filas con datos (alternando fondo 50 (#FFF0F0) y blanco)
+  // Filas con datos
   items.forEach((item, idx) => {
-    //* Obtenemos la ISO definitiva (fechanacimientoISO o parseada desde fechanacimiento)
     const fechaParaEdad = getFechaParaEdad(
       item.fechanacimientoISO,
       item.fechanacimiento
@@ -198,7 +246,7 @@ const buildMainSheet = (items, wb) => {
       faltantes.join(", "),
     ]);
 
-    const bgColor = idx % 2 === 0 ? "FFF0F0" : "FFFFFF"; 
+    const bgColor = idx % 2 === 0 ? "FFF0F0" : "FFFFFF";
     row.eachCell((c) => {
       c.font = { color: { argb: "000000" } };
       c.fill = {
@@ -211,26 +259,23 @@ const buildMainSheet = (items, wb) => {
     });
   });
 
-  //* Anchos de columna
+  // Anchos de columna
   ws.columns = [
-    { width: 10 }, //? A: Nómina
-    { width: 25 }, //? B: Empleado
-    { width: 30 }, //? C: Beneficiario
-    { width: 15 }, //? D: Parentesco
-    { width: 8 },  //? E: Edad
-    { width: 40 }, //? F: Documentos faltantes
+    { width: 10 }, // A: Nómina
+    { width: 25 }, // B: Empleado
+    { width: 30 }, // C: Beneficiario
+    { width: 15 }, // D: Parentesco
+    { width: 8 },  // E: Edad
+    { width: 40 }, // F: Documentos faltantes
   ];
 };
 
-/*
- * Construye la hoja “Resumen” con métricas, usando la paleta de rojos.
- */
 const buildSummarySheet = (items, wb) => {
   const ws = wb.addWorksheet("Resumen", {
     properties: { tabColor: { argb: "800000" } },
   });
 
-  //* Título en A1:C1, fondo 900 (#920A0A), texto blanco
+  // Título en A1:C1
   ws.mergeCells("A1:C1");
   const title = ws.getCell("A1");
   title.value = "Resumen de Beneficiarios Faltantes";
@@ -239,12 +284,12 @@ const buildSummarySheet = (items, wb) => {
   title.fill = {
     type: "pattern",
     pattern: "solid",
-    fgColor: { argb: "920A0A" }, 
+    fgColor: { argb: "920A0A" },
   };
 
   ws.addRow([]);
 
-  //* Métricas
+  // Métricas
   const total = items.length;
   const uniqueEmp = new Set(items.map((b) => b.no_nomina)).size;
   const counts = items.reduce((acc, curr) => {
@@ -258,7 +303,7 @@ const buildSummarySheet = (items, wb) => {
   const totalBen = hijos + esposos + concubinos + padres;
   const pct = (val) => ((val / (totalBen || 1)) * 100).toFixed(1);
 
-  //* Encabezados tabla resumen (fila 3), fondo 700 (#D70000), texto blanco
+  // Encabezados tabla resumen (fila 3)
   const hdr = ws.addRow(["Métrica", "Valor", "Detalle"]);
   hdr.eachCell((c) => {
     c.font = { bold: true, color: { argb: "FFFFFF" } };
@@ -271,7 +316,7 @@ const buildSummarySheet = (items, wb) => {
     c.border = thinBorder;
   });
 
-  //* Filas de datos
+  // Filas de datos
   const rows = [
     ["Total Faltantes", total, ""],
     ["Empleados Afectados", uniqueEmp, ""],
@@ -284,19 +329,19 @@ const buildSummarySheet = (items, wb) => {
 
   rows.forEach((r, i) => {
     const row = ws.addRow(r);
-    const bgColor = i % 2 === 0 ? "FFDDDD" : "FFFFFF"; 
+    const bgColor = i % 2 === 0 ? "FFDDDD" : "FFFFFF";
     row.eachCell((c, col) => {
       c.border = thinBorder;
       if (col === 1) {
-        //* Métrica → fondo 300 (#FF9494), texto blanco
+        // Métrica → fondo 300 (#FF9494), texto blanco
         c.font = { bold: true, color: { argb: "FFFFFF" } };
         c.fill = {
           type: "pattern",
           pattern: "solid",
-          fgColor: { argb: "FF9494" }, 
+          fgColor: { argb: "FF9494" },
         };
       } else if (col === 2) {
-        //* Valor → fondo 200 (#FFC0C0), texto negro
+        // Valor → fondo 200 (#FFC0C0), texto negro
         c.font = { color: { argb: "000000" } };
         c.fill = {
           type: "pattern",
@@ -304,7 +349,7 @@ const buildSummarySheet = (items, wb) => {
           fgColor: { argb: "FF9494" },
         };
       } else {
-        //* Detalle → fondo alternante 100 (#FFDDDD) o blanco
+        // Detalle → fondo alternante 100 (#FFDDDD) o blanco
         c.font = { color: { argb: "000000" } };
         c.fill = {
           type: "pattern",
@@ -316,15 +361,15 @@ const buildSummarySheet = (items, wb) => {
     });
   });
 
-  //* Anchos de columna en “Resumen”
+  // Anchos de columna en “Resumen”
   ws.columns = [
-    { width: 25 }, //? A: Métrica
-    { width: 15 }, //? B: Valor
-    { width: 20 }, //? C: Detalle
+    { width: 25 }, // A: Métrica
+    { width: 15 }, // B: Valor
+    { width: 20 }, // C: Detalle
   ];
 };
 
-/*
+/**
  * Exporta a Excel usando ExcelJS + FileSaver.js
  */
 const exportToExcel = async (items) => {
@@ -347,14 +392,12 @@ export default function MissingBeneficiaries({
   beneficiariesWithoutActa,
   missingPage,
   setMissingPage,
-  missingTotalPages,
-  changeMissingPage,
   setShowMissingList,
 }) {
   const [missingSearchTerm, setMissingSearchTerm] = useState("");
   const [parentescoFilter, setParentescoFilter] = useState("Todos");
 
-  //* Filtrado por término de búsqueda y parentesco
+  // Filtrado por término de búsqueda y parentesco
   const filteredMissing = useMemo(() => {
     const term = missingSearchTerm.trim().toLowerCase();
     return beneficiariesWithoutActa.filter((b) => {
@@ -368,13 +411,21 @@ export default function MissingBeneficiaries({
     });
   }, [beneficiariesWithoutActa, missingSearchTerm, parentescoFilter]);
 
-  //* Paginación
+  // Recalcular total de páginas cada vez que cambie filteredMissing
+  const totalMissing = filteredMissing.length;
+  const totalPages = Math.ceil(totalMissing / PAGE_SIZE) || 1;
+
+  // Si la página actual excede totalPages, la ajustamos hacia atrás
+  if (missingPage > totalPages) {
+    setMissingPage(totalPages);
+  }
+
+  // Items de la página actual
   const missingPageItems = useMemo(() => {
     const start = (missingPage - 1) * PAGE_SIZE;
     return filteredMissing.slice(start, start + PAGE_SIZE);
   }, [filteredMissing, missingPage]);
 
-  const totalMissing = filteredMissing.length;
   const uniqueEmployeesCount = useMemo(() => {
     const setIds = new Set(filteredMissing.map((b) => b.no_nomina));
     return setIds.size;
@@ -401,6 +452,18 @@ export default function MissingBeneficiaries({
     const setPar = new Set(beneficiariesWithoutActa.map((b) => b.parentesco));
     return ["Todos", ...Array.from(setPar)];
   }, [beneficiariesWithoutActa]);
+
+  // Funciones para cambiar página
+  const goToPrevious = () => {
+    if (missingPage > 1) {
+      setMissingPage(missingPage - 1);
+    }
+  };
+  const goToNext = () => {
+    if (missingPage < totalPages) {
+      setMissingPage(missingPage + 1);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-50 to-red-100 p-8">
@@ -603,7 +666,7 @@ export default function MissingBeneficiaries({
         </div>
       </div>
 
-      {/* Contenedor de tabla con cabecera fija */}
+      {/* Tabla de resultados */}
       <div className="overflow-x-auto bg-white rounded-3xl shadow-xl ring-1 ring-red-200 mb-8">
         <div className="overflow-y-auto max-h-[500px]">
           <table className="min-w-full table-auto border-separate border-spacing-y-2">
@@ -649,25 +712,10 @@ export default function MissingBeneficiaries({
             <tbody>
               {missingPageItems.length > 0 ? (
                 missingPageItems.map((item, idx) => {
-                  //* DEBUG: mostramos el objeto completo para inspeccionar sus campos
-                  console.log("[DEBUG] item completo:", item);
-
-                  //* Obtenemos la ISO real para edad (puede venir undefined)
                   const fechaParaEdad = getFechaParaEdad(
                     item.fechanacimientoISO,
                     item.fechanacimiento
                   );
-                  console.log(
-                    "[DEBUG] fechanacimientoISO (cruda):",
-                    item.fechanacimientoISO,
-                    "| fechanacimiento:",
-                    item.fechanacimiento,
-                    "| Fecha usada para edad:",
-                    fechaParaEdad,
-                    "| Edad calculada:",
-                    calcularEdad(fechaParaEdad)
-                  );
-
                   const faltantes = getMissingDocs(item);
                   const edad = calcularEdad(fechaParaEdad);
 
@@ -717,11 +765,11 @@ export default function MissingBeneficiaries({
         </div>
       </div>
 
-      {/* Paginación interna */}
-      {filteredMissing.length > PAGE_SIZE && (
+      {/* Paginación interna (solo si hay más de una página) */}
+      {totalMissing > PAGE_SIZE && (
         <div className="flex flex-col md:flex-row items-center justify-between mt-8 gap-6">
           <button
-            onClick={() => changeMissingPage(-1)}
+            onClick={goToPrevious}
             disabled={missingPage === 1}
             className={`flex items-center gap-2 px-5 py-3 bg-white border ${
               missingPage === 1
@@ -734,17 +782,12 @@ export default function MissingBeneficiaries({
           </button>
 
           <div className="flex items-center gap-2">
-            {[...Array(missingTotalPages)].map((_, i) => {
+            {[...Array(totalPages)].map((_, i) => {
               const page = i + 1;
               const isCurrent = page === missingPage;
               const isNear = Math.abs(page - missingPage) <= 1;
 
-              if (
-                isCurrent ||
-                isNear ||
-                page === 1 ||
-                page === missingTotalPages
-              ) {
+              if (isCurrent || isNear || page === 1 || page === totalPages) {
                 return (
                   <button
                     key={page}
@@ -761,8 +804,7 @@ export default function MissingBeneficiaries({
               }
               if (
                 (page === 2 && missingPage > 3) ||
-                (page === missingTotalPages - 1 &&
-                  missingPage < missingTotalPages - 2)
+                (page === totalPages - 1 && missingPage < totalPages - 2)
               ) {
                 return (
                   <span key={page} className="px-2 text-gray-500 text-lg">
@@ -775,10 +817,10 @@ export default function MissingBeneficiaries({
           </div>
 
           <button
-            onClick={() => changeMissingPage(1)}
-            disabled={missingPage === missingTotalPages}
+            onClick={goToNext}
+            disabled={missingPage === totalPages}
             className={`flex items-center gap-2 px-5 py-3 bg-white border ${
-              missingPage === missingTotalPages
+              missingPage === totalPages
                 ? "border-red-200 text-red-200 cursor-not-allowed"
                 : "border-red-300 text-red-600 hover:bg-red-50"
             } rounded-full transition-all duration-200 shadow-sm`}

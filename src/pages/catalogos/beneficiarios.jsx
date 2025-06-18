@@ -151,6 +151,27 @@ export default function RegistroBeneficiario() {
     }, 300); // La duración del fadeOut debe coincidir con la animación CSS
   };
 
+  // Función para calcular edad desde una fecha
+  function calculateAge(date) {
+    const today = new Date();
+    const birthDate = new Date(date);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+
+    return age;
+  }
+
+  // Función para convertir "Lunes, 17/06/2024, 10:23 a.m." a una fecha válida
+  function convertToDate(fechaConDiaSemana) {
+    const fechaStr = fechaConDiaSemana.split(",")[1].trim(); // "17/06/2024"
+    const [dia, mes, año] = fechaStr.split("/"); // ["17", "06", "2024"]
+    return new Date(`${año}-${mes}-${dia}`); // "2024-06-17"
+  }
+
   /**const de modelo facial */
   const [modelsLoaded, setModelsLoaded] = useState(false);
 
@@ -830,34 +851,50 @@ export default function RegistroBeneficiario() {
     }
   };
 
-  /**VIGENCIA DE ESTUDIOS VALIDACION */
+  // /**VIGENCIA DE ESTUDIOS VALIDACION */
+  // const handleVigenciaChange = (e) => {
+  //   const { value } = e.target;
+  //   const selectedDate = new Date(value);
+  //   const currentDate = new Date();
+
+  //   // Verificar si "Es estudiante" está seleccionado
+  //   if (formData.esEstudiante) {
+  //     // Validar si la fecha es menor a la actual
+  //     if (selectedDate < currentDate) {
+  //       playSound(false);
+  //       Swal.fire({
+  //         icon: "error",
+  //         title: "Vigencia de estudio vencida",
+  //         text: "Por favor, selecciona una fecha válida en el futuro.",
+  //         confirmButtonText: "Entendido",
+  //       });
+  //       setIsSaveDisabled(true); // Deshabilitar el botón de guardar
+  //     } else {
+  //       setIsSaveDisabled(false); // Habilitar el botón si la fecha es válida
+  //     }
+  //   }
+
+  //   // Actualizar el estado del formulario
+  //   setFormData((prev) => ({
+  //     ...prev,
+  //     vigenciaEstudios: value,
+  //   }));
+  // };
+
   const handleVigenciaChange = (e) => {
     const { value } = e.target;
-    const selectedDate = new Date(value);
-    const currentDate = new Date();
 
-    // Verificar si "Es estudiante" está seleccionado
+    // SI quieres mantener alguna lógica extra cuando es estudiante, por ejemplo:
     if (formData.esEstudiante) {
-      // Validar si la fecha es menor a la actual
-      if (selectedDate < currentDate) {
-        playSound(false);
-        Swal.fire({
-          icon: "error",
-          title: "Vigencia de estudio vencida",
-          text: "Por favor, selecciona una fecha válida en el futuro.",
-          confirmButtonText: "Entendido",
-        });
-        setIsSaveDisabled(true); // Deshabilitar el botón de guardar
-      } else {
-        setIsSaveDisabled(false); // Habilitar el botón si la fecha es válida
-      }
+      // Aquí podrías hacer efectos secundarios o cortes adicionales,
+      // pero NO bloqueamos ni mostramos mensaje de error.
     }
 
-    // Actualizar el estado del formulario
     setFormData((prev) => ({
       ...prev,
       vigenciaEstudios: value,
     }));
+    setIsSaveDisabled(false);
   };
 
   // Calcula la edad basada en la fecha de nacimiento
@@ -2108,6 +2145,11 @@ export default function RegistroBeneficiario() {
             placeholder="Número de Nómina"
             value={numNomina}
             onChange={(e) => setNumNomina(e.target.value.toUpperCase())}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                handleSearch();
+              }
+            }}
             className={styles.searchInput}
             style={{ textTransform: "uppercase" }}
           />
@@ -3554,17 +3596,13 @@ export default function RegistroBeneficiario() {
                   </li>
                   <li>
                     <strong>Fecha de Nacimiento:</strong>{" "}
-                    {new Date(
-                      selectedBeneficiary.F_NACIMIENTO
-                    ).toLocaleDateString("es-ES", {
-                      day: "2-digit",
-                      month: "2-digit",
-                      year: "numeric",
-                    })}
+                    {selectedBeneficiary.F_NACIMIENTO}
                   </li>
                   <li>
                     <strong>Edad:</strong>{" "}
-                    {calculateAge(new Date(selectedBeneficiary.F_NACIMIENTO))}
+                    {calculateAge(
+                      convertToDate(selectedBeneficiary.F_NACIMIENTO)
+                    )}
                   </li>
                   <li>
                     <strong>Activo:</strong>{" "}

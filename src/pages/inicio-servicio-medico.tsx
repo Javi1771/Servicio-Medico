@@ -85,12 +85,24 @@ const Home = () => {
         },
         {
           title: "Catalogos",
-          options: [ "Beneficiarios", "Especialidades", "Enfermedades Cronicas", "Usuarios y Proveedores", ],
+          options: [
+            "Beneficiarios",
+            "Especialidades",
+            "Enfermedades Cronicas",
+            "Usuarios y Proveedores",
+          ],
           icon: <FaBriefcaseMedical className="inline-block mr-2" />,
         },
         {
           title: "Capturas",
-          options: ["Pases a Especialidades", "Surtimientos", "Orden de Estudio de Laboratorio", "Incapacidades", "Costos", "Cancelaciones", ],
+          options: [
+            "Pases a Especialidades",
+            "Surtimientos",
+            "Orden de Estudio de Laboratorio",
+            "Incapacidades",
+            "Costos",
+            "Cancelaciones",
+          ],
           icon: <FaHeartbeat className="inline-block mr-2" />,
         },
         {
@@ -100,7 +112,13 @@ const Home = () => {
         },
         {
           title: "Farmacia",
-          options: ["Medicamentos", "Farmacia Surtimientos", "Alertas de Stock", "Unidades de Medida", "Recetas Pendientes", ],
+          options: [
+            "Medicamentos",
+            "Farmacia Surtimientos",
+            "Alertas de Stock",
+            "Unidades de Medida",
+            "Recetas Pendientes",
+          ],
           icon: <FaCapsules className="inline-block mr-2" />,
         }
       );
@@ -112,11 +130,6 @@ const Home = () => {
           title: "Consultas",
           options: ["Signos Vitales", "Diagnostico"],
           icon: <FaStethoscope className="inline-block mr-2" />,
-        },
-        {
-          title: "Especialista",
-          options: ["Consulta Especialista"],
-          icon: <FaUserMd className="inline-block mr-2" />,
         },
         {
           title: "Capturas",
@@ -137,7 +150,14 @@ const Home = () => {
     if (rol === "3") {
       menuOptions.push({
         title: "Capturas",
-        options: ["Pases a Especialidades", "Surtimientos", "Orden de Estudio de Laboratorio", "Incapacidades", "Costos", "Cancelaciones", ],
+        options: [
+          "Pases a Especialidades",
+          "Surtimientos",
+          "Orden de Estudio de Laboratorio",
+          "Incapacidades",
+          "Costos",
+          "Cancelaciones",
+        ],
         icon: <FaHeartbeat className="inline-block mr-2" />,
       });
     }
@@ -160,7 +180,13 @@ const Home = () => {
     if (rol === "9") {
       menuOptions.push({
         title: "Farmacia",
-        options: ["Medicamentos", "Farmacia Surtimientos", "Alertas de Stock", "Unidades de Medida", "Recetas Pendientes", ],
+        options: [
+          "Medicamentos",
+          "Farmacia Surtimientos",
+          "Alertas de Stock",
+          "Unidades de Medida",
+          "Recetas Pendientes",
+        ],
         icon: <FaCapsules className="inline-block mr-2" />,
       });
     }
@@ -174,22 +200,47 @@ const Home = () => {
         },
         {
           title: "Capturas",
-          options: ["Pases a Especialidades", "Surtimientos", "Orden de Estudio de Laboratorio", "Incapacidades", "Costos", "Cancelaciones", ],
+          options: [
+            "Pases a Especialidades",
+            "Surtimientos",
+            "Orden de Estudio de Laboratorio",
+            "Incapacidades",
+            "Costos",
+            "Cancelaciones",
+          ],
           icon: <FaHeartbeat className="inline-block mr-2" />,
         },
         {
           title: "Farmacia",
-          options: ["Medicamentos", "Farmacia Surtimientos", "Alertas de Stock", "Unidades de Medida", "Recetas Pendientes", ],
+          options: [
+            "Medicamentos",
+            "Farmacia Surtimientos",
+            "Alertas de Stock",
+            "Unidades de Medida",
+            "Recetas Pendientes",
+          ],
           icon: <FaCapsules className="inline-block mr-2" />,
         },
         {
           title: "Catalogos",
-          options: ["Usuarios y Proveedores", "Estudios", "Enfermedades Cronicas", "Especialidades", "Beneficiarios", "Historial Incapacidades Completo"],
+          options: [
+            "Usuarios y Proveedores",
+            "Estudios",
+            "Enfermedades Cronicas",
+            "Especialidades",
+            "Beneficiarios",
+            "Historial Incapacidades Completo",
+          ],
           icon: <FaBriefcaseMedical className="inline-block mr-2" />,
         },
         {
           title: "Estadisticas",
-          options: ["Costo de Surtimientos", "Intervalo de Especialidades", "Intervalos de Consultas", "Total de Pacientes por Especialidad"],
+          options: [
+            "Costo de Surtimientos",
+            "Intervalo de Especialidades",
+            "Intervalos de Consultas",
+            "Total de Pacientes por Especialidad",
+          ],
           icon: <BsGraphUpArrow className="inline-block mr-2" />,
         },
         {
@@ -201,7 +252,22 @@ const Home = () => {
           title: "Dashboard",
           options: ["Actividades"],
           icon: <FaLaptopMedical className="inline-block mr-2" />,
+        }
+      );
+    }
+
+    if (rol === "11") {
+      menuOptions.push(
+        {
+          title: "Especialista",
+          options: ["Consulta Especialista"],
+          icon: <FaUserMd className="inline-block mr-2" />,
         },
+        {
+          title: "Capturas",
+          options: ["Orden de Estudio de Laboratorio"],
+          icon: <FaHeartbeat className="inline-block mr-2" />,
+        }
       );
     }
 
@@ -242,7 +308,6 @@ const Home = () => {
                 <div className="absolute top-5 right-5 z-20">
                   <NotificationBell />
                 </div>
-                
               </div>
             </div>
           </div>
