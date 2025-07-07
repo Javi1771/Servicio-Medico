@@ -11,7 +11,7 @@ import { FaCalendarAlt } from "react-icons/fa";
 
 const MySwal = withReactContent(Swal);
 
-const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
+const Medicamentos = ({ clavenomina, clavepaciente }) => {
   const defaultMed = {
     medicamento: "",
     indicaciones: "",
@@ -122,7 +122,7 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
         title:
           "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Medicamento duplicado</span>",
         html: `
-          <p style='color: #fff; font-size: 1.1em;'>Ya seleccionaste <strong>${nuevo}</strong>. Elige otro medicamento.</p>
+          <p style='color: #fff; font-size: 1.1em;'>Ya seleccionaste ese medicamento. Elige otro.</p>
         `,
         background: "linear-gradient(145deg, #4a0000, #220000)",
         confirmButtonColor: "#ff1744",
