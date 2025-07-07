@@ -1,20 +1,22 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState, useEffect, useContext } from "react";
+import withReactContent from "sweetalert2-react-content";
+import Swal from "sweetalert2";
 import { FormularioContext } from "/src/context/FormularioContext";
 import MedicamentoDropdown from "../components/MedicamentoDropdown";
 import HistorialMedicamentos from "../components/HistorialMedicamentos";
 import TratamientoInput from "../components/TratamientoInput";
-import Swal from "sweetalert2";
 import { FiPackage, FiRefreshCw } from "react-icons/fi";
 import { FaCalendarAlt } from "react-icons/fa";
 
+const MySwal = withReactContent(Swal);
+
 const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
-  // defaultMed incluye ahora tratamientoDias para controlar la lógica de resurtir
   const defaultMed = {
     medicamento: "",
     indicaciones: "",
     tratamiento: "",
-    tratamientoDias: 30,    // ← Nuevo campo
+    tratamientoDias: 30,
     piezas: "",
     resurtir: "no",
     mesesResurtir: null,
@@ -74,7 +76,36 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
     localStorage.setItem("decisionTomada", decisionTomada);
   }, [decisionTomada]);
 
-  const handleDecision = (d) => {
+  const handleDecision = async (d) => {
+    if (d === "no") {
+      playSound(false);
+      const result = await MySwal.fire({
+        icon: "warning",
+        title: "Confirmación requerida",
+        html: `
+          <p style="color: #fff; font-size: 1.1em;">
+            No se asignarán medicamentos, especialidad ni incapacidad en esta consulta.
+          </p>
+          <p style="color: #ffcc00; font-weight: bold;">
+            ¿Desea continuar?
+          </p>
+        `,
+        showCancelButton: true,
+        confirmButtonColor: "#1e90ff",
+        cancelButtonColor: "#ff1744",
+        confirmButtonText:
+          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
+        cancelButtonText:
+          "<span style='color: #fff; font-weight: bold;'>Cancelar</span>",
+        background: "linear-gradient(145deg, #333333, #222222)",
+        customClass: {
+          popup:
+            "border border-yellow-600 shadow-[0px_0px_20px_5px_rgba(255,255,0,0.9)] rounded-lg",
+        },
+      });
+      if (!result.isConfirmed) return;
+    }
+
     setDecisionTomada(d);
     if (d === "no") {
       setMedicamentos([]);
@@ -86,22 +117,33 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
     localStorage.setItem("decisionTomada", d);
   };
 
-  //* Cambia un campo de un medicamento y limpia resurtir si tratamientoDias < 30
-  const handleMedicamentoChange = (i, field, val) => {
+  const handleMedicamentoChange = async (i, field, val) => {
+    if (field === "medicamento") {
+      //! Previene duplicados
+      const ya = medicamentos.some((m, j) => j !== i && m.medicamento === val);
+      if (ya) {
+        playSound(false);
+        await MySwal.fire({
+          icon: "error",
+          title: "Medicamento duplicado",
+          text: "Ya seleccionaste este medicamento en otra fila.",
+          background: "linear-gradient(145deg, #333333, #222222)",
+          confirmButtonColor: "#1e90ff",
+        });
+        return;
+      }
+    }
+
     setMedicamentos((prev) => {
       const tmp = [...prev];
       tmp[i][field] = val;
-
-      //! Si cambian los días de tratamiento a menos de 30, resetear resurtir
       if (field === "tratamientoDias" && Number(val) < 30) {
         tmp[i].resurtir = "no";
         tmp[i].mesesResurtir = null;
       }
-
       return tmp;
     });
   };
-
 
   const agregarMedicamento = () =>
     setMedicamentos([...medicamentos, { ...defaultMed }]);
@@ -199,7 +241,7 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
                 />
               </div>
 
-              {/* Piezas */}
+              {/* Piezas y Resurtir */}
               <div>
                 <label className="flex items-center text-lg font-semibold text-gray-200 mb-2">
                   Piezas
@@ -214,7 +256,6 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
                   placeholder="Cantidad"
                 />
 
-                {/* Solo mostrar Resurtir si tratamientoDias === 30 */}
                 {med.tratamientoDias === 30 && (
                   <>
                     <div className="mt-4 flex items-center justify-between bg-gray-700 p-3 rounded-lg border border-gray-600">
@@ -238,11 +279,7 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
                         <button
                           onClick={() => {
                             handleMedicamentoChange(idx, "resurtir", "no");
-                            handleMedicamentoChange(
-                              idx,
-                              "mesesResurtir",
-                              null
-                            );
+                            handleMedicamentoChange(idx, "mesesResurtir", null);
                           }}
                           className={`w-10 h-6 rounded-full transition-colors ${
                             med.resurtir === "no"
@@ -281,7 +318,6 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
               </div>
             </div>
 
-            {/* Quitar */}
             {medicamentos.length > 1 && (
               <div className="text-right mt-4">
                 <button
@@ -295,7 +331,6 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
           </div>
         ))}
 
-      {/* Agregar Medicamento */}
       {decisionTomada === "si" && (
         <div className="text-right">
           <button
@@ -307,7 +342,6 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
         </div>
       )}
 
-      {/* Historial */}
       <HistorialMedicamentos
         clavenomina={clavenomina}
         clavepaciente={clavepaciente}

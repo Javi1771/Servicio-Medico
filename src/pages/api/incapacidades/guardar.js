@@ -68,7 +68,6 @@ export default async function handler(req, res) {
              diagnostico, estatus, clavepaciente, claveMedico)
           VALUES
             (@claveConsulta, @clavenomina,
-             /* ⬇️ CAMBIO 2: estilo 120 ⬇️ */
              CONVERT(datetime2(7), @fechaInicial, 120),
              CONVERT(datetime2(7), @fechaFinal,   120),
              @diagnostico, @estatus, @clavepaciente, @claveMedico)
