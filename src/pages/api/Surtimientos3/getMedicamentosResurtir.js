@@ -44,6 +44,7 @@ export default async function handler(req, res) {
           dr.descMedicamento       AS clavemedicamento,
           m.medicamento            AS nombreMedicamento,
           dr.indicaciones,
+          dr.cantidad,             -- ✅ AGREGADO: Campo cantidad (texto del tratamiento)
           dr.piezas,
           dr.cantidadMeses,
           dr.surtimientoActual
@@ -60,6 +61,7 @@ export default async function handler(req, res) {
           dr.descMedicamento       AS clavemedicamento,
           m.medicamento            AS nombreMedicamento,
           dr.indicaciones,
+          dr.cantidad,             -- ✅ AGREGADO: Campo cantidad (texto del tratamiento)
           dr.piezas,
           dr.cantidadMeses,
           dr.surtimientoActual
@@ -71,7 +73,7 @@ export default async function handler(req, res) {
           AND dr.surtimientoActual < dr.cantidadMeses
       `;
     }
-    
+        
     // 3) Ejecuta y devuelve
     const result = await pool
       .request()

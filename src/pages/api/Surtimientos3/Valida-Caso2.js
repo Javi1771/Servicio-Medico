@@ -1,4 +1,4 @@
-// pages/api/getResurtimientos.js
+// pages/api/Surtimientos3/Valida-Caso2.js
 import { connectToDatabase } from '../connectToDatabase';
 import sql from 'mssql';
 

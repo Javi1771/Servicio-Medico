@@ -40,9 +40,11 @@ export default async function handler(req, res) {
       const asignaRes = med.resurtir === 'si' ? 1 : 0;
       // Si asigna resurtimiento, cantidadMeses = mesesResurtir; si no, NULL
       const cantidadMeses = asignaRes ? med.mesesResurtir : null;
-      // Guarda en "cantidad" la duración de tratamiento en días (si no hay resurtir)
-      // o bien usa piezas, según tu lógica de negocio
-      const cantidad = asignaRes ? 0 : med.tratamientoDias;
+      
+      // ✅ CORREGIDO: Guardar el TEXTO del tratamiento en lugar del número
+      const cantidad = med.tratamiento || `DURANTE ${med.tratamientoDias || 30} DÍAS`;
+
+      console.log(`💊 Guardando medicamento: ${med.medicamento}, cantidad: "${cantidad}"`);
 
       await transaction.request()
         .input('folio', sql.VarChar, folioReceta)
@@ -50,7 +52,7 @@ export default async function handler(req, res) {
         .input('ind', sql.VarChar, med.indicaciones)
         .input('pzas', sql.Int, med.piezas || 0)
         .input('estatus', sql.Int, 1)
-        .input('cantidad', sql.Int, cantidad)
+        .input('cantidad', sql.VarChar, cantidad)  // ✅ Cambiar a VarChar para texto
         .input('seAsig', sql.Bit, asignaRes)
         .input('meses', sql.Int, cantidadMeses)
         .input('surtAct', sql.Int, 0)

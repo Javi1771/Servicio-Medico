@@ -57,11 +57,15 @@ export default function Surtimientos3() {
     }
     (async () => {
       try {
-        const { items } = await fetch(
-          `/api/Surtimientos3/getMedicamentosResurtir?folioReceta=${encodeURIComponent(
-            folio
-          )}`
-        ).then((r) => r.ok ? r.json() : { items: [] });
+      const { items } = await fetch(
+  `/api/Surtimientos3/getMedicamentosResurtir?folioReceta=${encodeURIComponent(folio)}`
+).then((r) => {
+  if (!r.ok) throw new Error(`getMedicamentosResurtir: ${r.status}`);
+  return r.json();
+});
+
+// ✅ AGREGAR ESTE LOG PARA VER QUÉ LLEGA EXACTAMENTE
+console.log("🔍 Items RAW de getMedicamentosResurtir:", items);
         setNoMeds(!items || items.length === 0);
       } catch {
         setNoMeds(false); // en caso de error, no bloquea la tabla
@@ -116,13 +120,17 @@ export default function Surtimientos3() {
         return r.json();
       });
 
+      console.log("🔍 Items recibidos de getMedicamentosResurtir:", items);
+
       // 2) Mapear al formato que espera tu API
       const medsParaDetalle = items.map((m) => ({
         descMedicamento: m.clavemedicamento,
         indicaciones: m.indicaciones,
-        cantidad: String(m.cantidadMeses),
+        cantidad: m.cantidad || "DURANTE 30 DÍAS", // ✅ CORREGIDO: usar m.cantidad en lugar de m.cantidadMeses
         piezas: String(m.piezas),
       }));
+
+      console.log("🔍 Medicamentos mapeados para detalle:", medsParaDetalle);
 
       // 3) Obtener un claveUsuario válido (number)
       const userId = parseInt(consulta.claveusuario, 10) || 1;

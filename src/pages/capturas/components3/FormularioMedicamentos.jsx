@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
+// src/pages/capturas/components3/FormularioMedicamentos.jsx
 import React, { useState, useEffect, useContext } from "react";
 import MedicamentoDropdown from "../../consultas/components/MedicamentoDropdown";
 import TratamientoInput from "../../consultas/components/TratamientoInput";
