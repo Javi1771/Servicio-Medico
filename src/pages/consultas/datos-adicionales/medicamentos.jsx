@@ -1,20 +1,22 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState, useEffect, useContext } from "react";
+import withReactContent from "sweetalert2-react-content";
+import Swal from "sweetalert2";
 import { FormularioContext } from "/src/context/FormularioContext";
 import MedicamentoDropdown from "../components/MedicamentoDropdown";
 import HistorialMedicamentos from "../components/HistorialMedicamentos";
 import TratamientoInput from "../components/TratamientoInput";
-import Swal from "sweetalert2";
-import { FiPackage, FiRefreshCw } from "react-icons/fi";
+import { FiRefreshCw } from "react-icons/fi";
 import { FaCalendarAlt } from "react-icons/fa";
 
-const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
-  // defaultMed incluye ahora tratamientoDias para controlar la lógica de resurtir
+const MySwal = withReactContent(Swal);
+
+const Medicamentos = ({ clavenomina, clavepaciente }) => {
   const defaultMed = {
     medicamento: "",
     indicaciones: "",
     tratamiento: "",
-    tratamientoDias: 30,    // ← Nuevo campo
+    tratamientoDias: 30,
     piezas: "",
     resurtir: "no",
     mesesResurtir: null,
@@ -29,8 +31,10 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
   const phraseTemplates = ["Durante __ días.", "Por __ días.", "En __ días."];
   const successSound = "/assets/applepay.mp3";
   const errorSound = "/assets/error.mp3";
-  const playSound = (ok) => new Audio(ok ? successSound : errorSound).play();
+  const playSound = (ok) =>
+    new Audio(ok ? successSound : errorSound).play();
 
+  //* Carga la lista de medicamentos de la API
   useEffect(() => {
     setLoadingMedicamentos(true);
     fetch("/api/medicamentos/listar")
@@ -42,6 +46,7 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
       .catch(() => setLoadingMedicamentos(false));
   }, []);
 
+  //* Recupera decisión y lista guardada
   useEffect(() => {
     const sd = localStorage.getItem("decisionTomada");
     const sm = JSON.parse(localStorage.getItem("medicamentos")) || [];
@@ -49,11 +54,14 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
     if (sm.length) setMedicamentos(sm);
   }, []);
 
+  //* Guarda lista en localStorage si dieron "sí"
   useEffect(() => {
-    if (decisionTomada === "si")
+    if (decisionTomada === "si") {
       localStorage.setItem("medicamentos", JSON.stringify(medicamentos));
+    }
   }, [medicamentos, decisionTomada]);
 
+  //* Valida completitud y notifica al formulario padre
   useEffect(() => {
     const completos =
       decisionTomada === "no" ||
@@ -65,11 +73,13 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
             m.tratamiento &&
             m.tratamientoDias &&
             m.piezas &&
-            (m.resurtir === "no" || (m.resurtir === "si" && m.mesesResurtir))
+            (m.resurtir === "no" ||
+              (m.resurtir === "si" && m.mesesResurtir))
         ));
     updateFormulario("Medicamentos", completos);
   }, [medicamentos, decisionTomada, updateFormulario]);
 
+  //* Guarda decisión en localStorage
   useEffect(() => {
     localStorage.setItem("decisionTomada", decisionTomada);
   }, [decisionTomada]);
@@ -86,22 +96,48 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
     localStorage.setItem("decisionTomada", d);
   };
 
-  //* Cambia un campo de un medicamento y limpia resurtir si tratamientoDias < 30
+  //* Cambia un campo y reinicia resurtir si tratamientoDias < 30
   const handleMedicamentoChange = (i, field, val) => {
     setMedicamentos((prev) => {
       const tmp = [...prev];
       tmp[i][field] = val;
-
-      //! Si cambian los días de tratamiento a menos de 30, resetear resurtir
       if (field === "tratamientoDias" && Number(val) < 30) {
         tmp[i].resurtir = "no";
         tmp[i].mesesResurtir = null;
       }
-
       return tmp;
     });
   };
 
+  //! Previene selección duplicada
+  const handleSelectMedicamento = (idx, nuevo) => {
+    if (
+      medicamentos.some(
+        (m, j) => j !== idx && m.medicamento === nuevo
+      )
+    ) {
+      playSound(false);
+      MySwal.fire({
+        icon: "error",
+        title:
+          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Medicamento duplicado</span>",
+        html: `
+          <p style='color: #fff; font-size: 1.1em;'>Ya seleccionaste ese medicamento. Elige otro.</p>
+        `,
+        background: "linear-gradient(145deg, #4a0000, #220000)",
+        confirmButtonColor: "#ff1744",
+        confirmButtonText:
+          "<span style='color: #fff; font-weight: bold;'>Entendido</span>",
+        customClass: {
+          popup:
+            "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
+        },
+      });
+      return;
+    }
+    handleMedicamentoChange(idx, "medicamento", nuevo);
+    playSound(true);
+  };
 
   const agregarMedicamento = () =>
     setMedicamentos([...medicamentos, { ...defaultMed }]);
@@ -114,7 +150,7 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
         Prescripción de Medicamentos
       </h3>
 
-      {/* Pregunta inicial */}
+      {/* ¿Darán medicamentos? */}
       <div className="mb-8">
         <p className="text-white font-semibold mb-2">
           ¿Se darán medicamentos en esta consulta?
@@ -139,7 +175,7 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
         </div>
       </div>
 
-      {/* Formulario de Medicamentos */}
+      {/* Lista de medicamentos */}
       {decisionTomada === "si" &&
         medicamentos.map((med, idx) => (
           <div
@@ -147,7 +183,7 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
             className="mb-6 bg-gradient-to-br from-gray-700 to-gray-800 p-6 rounded-lg shadow-lg transition-shadow hover:shadow-xl"
           >
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              {/* Medicamento */}
+              {/* Dropdown */}
               <div>
                 <label className="text-lg font-semibold text-gray-200">
                   Medicamento
@@ -156,10 +192,10 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
                   listaMedicamentos={listaMedicamentos}
                   value={med.medicamento}
                   playSound={playSound}
-                  onChangeMedicamento={(v) =>
-                    handleMedicamentoChange(idx, "medicamento", v)
-                  }
                   isLoading={loadingMedicamentos}
+                  onChangeMedicamento={(v) =>
+                    handleSelectMedicamento(idx, v)
+                  }
                 />
               </div>
 
@@ -199,7 +235,7 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
                 />
               </div>
 
-              {/* Piezas */}
+              {/* Piezas y resurtir */}
               <div>
                 <label className="flex items-center text-lg font-semibold text-gray-200 mb-2">
                   Piezas
@@ -214,7 +250,6 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
                   placeholder="Cantidad"
                 />
 
-                {/* Solo mostrar Resurtir si tratamientoDias === 30 */}
                 {med.tratamientoDias === 30 && (
                   <>
                     <div className="mt-4 flex items-center justify-between bg-gray-700 p-3 rounded-lg border border-gray-600">
@@ -281,7 +316,7 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
               </div>
             </div>
 
-            {/* Quitar */}
+            {/* Botón quitar */}
             {medicamentos.length > 1 && (
               <div className="text-right mt-4">
                 <button
@@ -295,7 +330,7 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta }) => {
           </div>
         ))}
 
-      {/* Agregar Medicamento */}
+      {/* Agregar medicamento */}
       {decisionTomada === "si" && (
         <div className="text-right">
           <button
