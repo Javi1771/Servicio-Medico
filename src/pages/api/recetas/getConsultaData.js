@@ -1,3 +1,4 @@
+//api/recetas/getConsultaData.js
 import { connectToDatabase } from "../connectToDatabase";
 import sql from "mssql";
 
