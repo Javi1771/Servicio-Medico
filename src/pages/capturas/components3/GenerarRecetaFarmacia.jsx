@@ -8,6 +8,7 @@ import { FaSpinner } from "react-icons/fa";
 import JsBarcode from "jsbarcode";
 
 export default function GenerarReceta() {
+  const [contextoPDF, setContextoPDF] = useState(null); // ✅ NUEVO: Estado para el contexto
   const router = useRouter();
   const [claveconsulta, setClaveConsulta] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -15,14 +16,28 @@ export default function GenerarReceta() {
   const [, setCodigoBarras] = useState("");
   const [errorMessage, setErrorMessage] = useState(null);
 
-  useEffect(() => {
-    if (router.query.claveconsulta) {
-      //* Descifrar la claveconsulta (se espera que venga en base64)
-      const decodedClave = atob(router.query.claveconsulta);
-      console.log("🔍 decodedClave =", decodedClave);
-      setClaveConsulta(decodedClave);
+ useEffect(() => {
+  if (router.query.claveconsulta) {
+    //* Descifrar la claveconsulta (se espera que venga en base64)
+    const decodedClave = atob(router.query.claveconsulta);
+    console.log("🔍 decodedClave =", decodedClave);
+    setClaveConsulta(decodedClave);
+
+    // ✅ CAPTURAR EL CONTEXTO PASADO DESDE LA TABLA
+    if (router.query.escenario && router.query.esPrimerSurtimiento && router.query.isInterconsulta) {
+      const contexto = {
+        escenario: router.query.escenario,
+        esPrimerSurtimiento: router.query.esPrimerSurtimiento,
+        isInterconsulta: router.query.isInterconsulta
+      };
+      setContextoPDF(contexto);
+      console.log("🎯 Contexto recibido para PDF:", contexto);
+    } else {
+      setContextoPDF(null);
+      console.log("📋 No se recibió contexto - usando lógica automática");
     }
-  }, [router.query.claveconsulta]);
+  }
+}, [router.query]);
 
   //? ----------------- Funciones Auxiliares -----------------
 
@@ -118,9 +133,20 @@ export default function GenerarReceta() {
       console.error("⚠️ Clave de consulta no está definida.");
       return null;
     }
-    const response = await fetch(
-      `/api/Surtimientos3/recetaPaciente?claveconsulta=${claveconsulta}`
-    );
+    // ✅ CONSTRUIR URL CON CONTEXTO SI EXISTE
+let apiUrl = `/api/Surtimientos3/recetaPaciente?claveconsulta=${claveconsulta}`;
+if (contextoPDF) {
+  const params = new URLSearchParams({
+    claveconsulta: claveconsulta,
+    escenario: contextoPDF.escenario,
+    esPrimerSurtimiento: contextoPDF.esPrimerSurtimiento,
+    isInterconsulta: contextoPDF.isInterconsulta
+  });
+  apiUrl = `/api/Surtimientos3/recetaPaciente?${params.toString()}`;
+  console.log("📋 Llamando API con contexto:", apiUrl);
+}
+
+const response = await fetch(apiUrl);
     if (!response.ok) {
       console.error("❌ Error en la API:", await response.text());
       throw new Error("Error al obtener los datos de la receta");
@@ -520,17 +546,17 @@ export default function GenerarReceta() {
     }
   };
 
-  useEffect(() => {
-    if (claveconsulta) {
-      fetchRecetaData().then((data) => {
-        if (data) {
-          generatePdf();
-        } else {
-          console.warn("⛔ PDF no generado debido a medicamentos inválidos.");
-        }
-      });
-    }
-  }, [claveconsulta]);
+ useEffect(() => {
+  if (claveconsulta) {
+    fetchRecetaData().then((data) => {
+      if (data) {
+        generatePdf();
+      } else {
+        console.warn("⛔ PDF no generado debido a medicamentos inválidos.");
+      }
+    });
+  }
+}, [claveconsulta, contextoPDF]); // ✅ AGREGAR contextoPDF como dependencia
 
   useEffect(() => {
     if (pdfUrl) {

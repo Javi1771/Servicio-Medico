@@ -1,3 +1,4 @@
+// src/pages/api/Surtimientos3/getConsultaDataSurtimientos.js
 import { connectToDatabase } from "../connectToDatabase";
 import sql from "mssql";
 
@@ -21,8 +22,11 @@ function formatFecha(fecha) {
  * Esta función la usaremos en diferentes endpoints para leer
  * consulta, receta, incapacidades, detalleEspecialidad y el
  * ÚLTIMO folio de surtimiento.
+ * 
+ * @param {number} claveconsulta - ID de la consulta
+ * @param {Object} contextoPDF - Contexto pasado desde la tabla (opcional)
  */
-export async function getConsultaDataSurtimientos(claveconsulta) {
+export async function getConsultaDataSurtimientos(claveconsulta, contextoPDF = null) {
   const db = await connectToDatabase();
 
   // 1) consulta principal (se usa TRY_CAST en el JOIN de parentesco)
@@ -85,41 +89,117 @@ export async function getConsultaDataSurtimientos(claveconsulta) {
     throw new Error(`Fallo en consulta principal: ${err.message}`);
   }
 
-  // 2) detalleReceta (con tipos numéricos para folioReceta)
+  // 2) 🧠 LÓGICA INTELIGENTE PARA MEDICAMENTOS
   let recetaResult;
   try {
-    const recetaQuery = `
-      SELECT
-        dr.idDetalleReceta,
-        dr.indicaciones,
-        dr.cantidad,
-        dr.descMedicamento AS idMedicamento,
-        dr.piezas,
-        dr.seAsignoResurtimiento,
-        dr.cantidadMeses,
-        dr.surtimientoActual,
-        REPLACE(
+    // ✅ Verificar si es interconsulta
+    const isInterconsulta = Boolean(consultaData?.especialidadinterconsulta);
+    
+    let esPrimerSurtimiento = false;
+    let tipoEscenario = "RESURTIMIENTO_REAL";
+    
+    if (isInterconsulta) {
+      // 🚀 OPCIÓN B: Verificar surtimientos EXCLUYENDO el último (recién creado)
+      const surtimientosPrevios = await db
+        .request()
+        .input("claveconsulta", sql.Int, claveconsulta)
+        .query(`
+          SELECT COUNT(*) as totalSurtimientos
+          FROM SURTIMIENTOS 
+          WHERE FOLIO_PASE = @claveconsulta
+            AND FECHA_EMISION < DATEADD(MINUTE, -1, GETDATE()) -- Excluir surtimientos de último minuto
+        `);
+      
+      const yaSeHaSurtidoAntes = surtimientosPrevios.recordset[0]?.totalSurtimientos > 0;
+      esPrimerSurtimiento = !yaSeHaSurtidoAntes;
+      
+      console.log(`📋 PDF - Verificación de surtimientos previos:`);
+      console.log(`   - Surtimientos anteriores: ${surtimientosPrevios.recordset[0]?.totalSurtimientos}`);
+      console.log(`   - Es primer surtimiento (ignorando el recién creado): ${esPrimerSurtimiento}`);
+    }
+
+    tipoEscenario = isInterconsulta && esPrimerSurtimiento 
+      ? "INTERCONSULTA_PRIMER_SURTIMIENTO" 
+      : "RESURTIMIENTO_REAL";
+
+    console.log(`📋 PDF - Análisis CORREGIDO del folio ${claveconsulta}:`);
+    console.log(`   - Es interconsulta: ${isInterconsulta}`);
+    console.log(`   - Es primer surtimiento: ${esPrimerSurtimiento}`);
+    console.log(`   - Escenario aplicado: ${tipoEscenario}`);
+
+    // ✅ APLICAR LA LÓGICA SEGÚN EL ESCENARIO
+    let recetaQuery;
+    if (tipoEscenario === "INTERCONSULTA_PRIMER_SURTIMIENTO") {
+      // PRIMER SURTIMIENTO DE INTERCONSULTA → TODOS los medicamentos
+      recetaQuery = `
+        SELECT
+          dr.idDetalleReceta,
+          dr.indicaciones,
+          dr.cantidad,
+          dr.descMedicamento AS idMedicamento,
+          dr.piezas,
+          dr.seAsignoResurtimiento,
+          dr.cantidadMeses,
+          dr.surtimientoActual,
           REPLACE(
             REPLACE(
-              REPLACE(m.medicamento, ', ', ','),
-              ',', ' , '
+              REPLACE(
+                REPLACE(m.medicamento, ', ', ','),
+                ',', ' , '
+              ),
+              ' / ', '/'
             ),
-            ' / ', '/'
-          ),
-          '/', ' / '
-        ) AS nombreMedicamento,
-        m.clasificacion
-      FROM detalleReceta dr
-      LEFT JOIN MEDICAMENTOS m 
-        ON dr.descMedicamento = m.claveMedicamento
-      WHERE dr.folioReceta = @claveconsulta
-        AND dr.seAsignoResurtimiento = 1
-        AND dr.surtimientoActual < dr.cantidadMeses
-    `;
+            '/', ' / '
+          ) AS nombreMedicamento,
+          m.clasificacion
+        FROM detalleReceta dr
+        LEFT JOIN MEDICAMENTOS m 
+          ON dr.descMedicamento = m.claveMedicamento
+        WHERE dr.folioReceta = @claveconsulta
+        ORDER BY dr.idDetalleReceta
+      `;
+      console.log(`🎯 PDF - Escenario: ${tipoEscenario} - Mostrando TODOS los medicamentos`);
+    } else {
+      // RESURTIMIENTO REAL → Solo medicamentos pendientes
+      recetaQuery = `
+        SELECT
+          dr.idDetalleReceta,
+          dr.indicaciones,
+          dr.cantidad,
+          dr.descMedicamento AS idMedicamento,
+          dr.piezas,
+          dr.seAsignoResurtimiento,
+          dr.cantidadMeses,
+          dr.surtimientoActual,
+          REPLACE(
+            REPLACE(
+              REPLACE(
+                REPLACE(m.medicamento, ', ', ','),
+                ',', ' , '
+              ),
+              ' / ', '/'
+            ),
+            '/', ' / '
+          ) AS nombreMedicamento,
+          m.clasificacion
+        FROM detalleReceta dr
+        LEFT JOIN MEDICAMENTOS m 
+          ON dr.descMedicamento = m.claveMedicamento
+        WHERE dr.folioReceta = @claveconsulta
+          AND dr.seAsignoResurtimiento = 1
+          AND dr.surtimientoActual < dr.cantidadMeses
+        ORDER BY dr.idDetalleReceta
+      `;
+      console.log(`🎯 PDF - Escenario: ${tipoEscenario} - Solo medicamentos pendientes`);
+    }
+
     recetaResult = await db
       .request()
       .input("claveconsulta", sql.Int, claveconsulta)
       .query(recetaQuery);
+
+    console.log(`📋 PDF - Medicamentos encontrados: ${recetaResult.recordset.length}`);
+
   } catch (err) {
     console.error("❌ Error en [detalleReceta]:", err);
     throw new Error(`Fallo en detalleReceta: ${err.message}`);
@@ -200,19 +280,27 @@ export async function getConsultaDataSurtimientos(claveconsulta) {
 
 /**
  * Este handler expone la misma lógica por HTTP GET,
- * pero la parte “pesada” está en getConsultaDataSurtimientos().
+ * pero la parte "pesada" está en getConsultaDataSurtimientos().
  */
 export default async function handler(req, res) {
   if (req.method !== "GET") {
     return res.status(405).json({ message: "Método no permitido" });
   }
-  const { claveconsulta } = req.query;
+  const { claveconsulta, escenario, esPrimerSurtimiento, isInterconsulta } = req.query;
   const numClave = parseInt(claveconsulta, 10);
   if (isNaN(numClave)) {
     return res.status(400).json({ message: "El parámetro 'claveconsulta' debe ser un número válido" });
   }
+  
+  // ✅ PREPARAR CONTEXTO SI SE PASARON PARÁMETROS
+  const contextoPDF = (escenario && esPrimerSurtimiento && isInterconsulta) ? {
+    escenario,
+    esPrimerSurtimiento,
+    isInterconsulta
+  } : null;
+  
   try {
-    const data = await getConsultaDataSurtimientos(numClave);
+    const data = await getConsultaDataSurtimientos(numClave, contextoPDF);
     if (!data.consulta) {
       return res.status(404).json({ message: "Consulta no encontrada" });
     }

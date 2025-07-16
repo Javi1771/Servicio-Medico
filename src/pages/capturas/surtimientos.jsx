@@ -57,15 +57,11 @@ export default function Surtimientos3() {
     }
     (async () => {
       try {
-      const { items } = await fetch(
-  `/api/Surtimientos3/getMedicamentosResurtir?folioReceta=${encodeURIComponent(folio)}`
-).then((r) => {
-  if (!r.ok) throw new Error(`getMedicamentosResurtir: ${r.status}`);
-  return r.json();
-});
-
-// ✅ AGREGAR ESTE LOG PARA VER QUÉ LLEGA EXACTAMENTE
-console.log("🔍 Items RAW de getMedicamentosResurtir:", items);
+        const { items } = await fetch(
+          `/api/Surtimientos3/getMedicamentosResurtir?folioReceta=${encodeURIComponent(
+            folio
+          )}`
+        ).then((r) => r.ok ? r.json() : { items: [] });
         setNoMeds(!items || items.length === 0);
       } catch {
         setNoMeds(false); // en caso de error, no bloquea la tabla
@@ -110,8 +106,8 @@ console.log("🔍 Items RAW de getMedicamentosResurtir:", items);
     if (!consulta) return;
 
     try {
-      // 1) Traer sólo el array de items
-      const { items } = await fetch(
+      // 1) Traer la información completa incluyendo el escenario
+      const { items, isInterconsulta, esPrimerSurtimiento, tipoEscenario } = await fetch(
         `/api/Surtimientos3/getMedicamentosResurtir?folioReceta=${encodeURIComponent(
           folio
         )}`
@@ -121,12 +117,15 @@ console.log("🔍 Items RAW de getMedicamentosResurtir:", items);
       });
 
       console.log("🔍 Items recibidos de getMedicamentosResurtir:", items);
+      console.log("🎯 Escenario detectado para PDF:", tipoEscenario);
 
       // 2) Mapear al formato que espera tu API
       const medsParaDetalle = items.map((m) => ({
         descMedicamento: m.clavemedicamento,
         indicaciones: m.indicaciones,
-        cantidad: m.cantidad || "DURANTE 30 DÍAS", // ✅ CORREGIDO: usar m.cantidad en lugar de m.cantidadMeses
+        cantidad: m.cantidad === "0" || !m.cantidad 
+          ? `DURANTE ${m.cantidadMeses * 30} DÍAS` // ✅ SOLUCIÓN TEMPORAL: generar texto si cantidad es "0"
+          : m.cantidad,
         piezas: String(m.piezas),
       }));
 
@@ -183,12 +182,19 @@ console.log("🔍 Items RAW de getMedicamentosResurtir:", items);
         throw new Error(data.error || "Error al generar surtimiento");
       }
 
-      // 6) Redirigir al PDF con el nuevo folio
+      // 6) Redirigir al PDF con el nuevo folio Y la información del escenario
       const { folioSurtimiento } = data;
       const claveConsulta64 = btoa(String(consulta.claveconsulta));
-      router.push(
-        `/capturas/components3/GenerarRecetaFarmacia?claveconsulta=${claveConsulta64}`
-      );
+      
+      // ✅ PASAR EL ESCENARIO AL PDF VÍA URL
+      const urlParams = new URLSearchParams({
+        claveconsulta: claveConsulta64,
+        escenario: tipoEscenario,
+        esPrimerSurtimiento: esPrimerSurtimiento.toString(),
+        isInterconsulta: isInterconsulta.toString()
+      });
+      
+      router.push(`/capturas/components3/GenerarRecetaFarmacia?${urlParams.toString()}`);
     } catch (error) {
       console.error("❌ Error en handleGenerate:", error);
       alert(`Error al generar surtimiento: ${error.message}`);
