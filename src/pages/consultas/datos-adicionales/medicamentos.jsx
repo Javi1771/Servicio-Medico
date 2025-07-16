@@ -308,6 +308,15 @@ const Medicamentos = ({ clavenomina, clavepaciente }) => {
                           <option value="">Selecciona</option>
                           <option value={2}>2 meses</option>
                           <option value={3}>3 meses</option>
+                          {/* <option value={4}>4 meses</option>
+                          <option value={5}>5 meses</option>
+                          <option value={6}>6 meses</option>
+                          <option value={7}>7 meses</option>
+                          <option value={8}>8 meses</option>
+                          <option value={9}>9 meses</option>
+                          <option value={10}>10 meses</option>
+                          <option value={11}>11 meses</option>
+                          <option value={12}>12 meses</option> */}
                         </select>
                       </div>
                     )}
