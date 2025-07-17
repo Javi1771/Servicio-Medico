@@ -3,6 +3,7 @@
 import Link from "next/link";
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
+import Cookies from "js-cookie";
 import {
   FaHeartbeat,
   FaTemperatureHigh,
@@ -11,7 +12,7 @@ import {
   FaWeight,
   FaNotesMedical,
 } from "react-icons/fa";
-
+import { Stethoscope } from 'lucide-react';
 import {
   FaUser,
   FaBirthdayCake,
@@ -83,6 +84,7 @@ const calcularEdad = (fechaNacimiento) => {
 
 const SignosVitales = () => {
   const router = useRouter();
+  const [username, setUsername] = useState("");
   const [patientData, setPatientData] = useState({
     photo: "/user_icon_.png",
     name: "",
@@ -664,8 +666,32 @@ const SignosVitales = () => {
     cargarPacientesDelDia();
   }, []);
 
+  useEffect(() => {
+    const user = Cookies.get("nombreusuario") || "Enfermer@";
+    setUsername(user);
+  }, []);
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-900 to-black text-white">
+      <header className="relative">
+        <h1
+          className="
+      absolute top-4 right-4
+      flex items-center
+      px-6 py-3 md:px-8 md:py-4
+      rounded-full
+      text-white font-bold text-sm md:text-lg uppercase
+      bg-gradient-to-r from-[#890677] via-[#0ea5e9] to-[#8b5cf6]
+      shadow-lg hover:shadow-xl
+      transition-transform duration-300 ease-out
+      focus:outline-none focus:ring-4 focus:ring-[#0ea5e9]/50
+    "
+        >
+          <Stethoscope className="mr-2 h-6 w-6" />
+          Bienvenid@ {username}
+        </h1>
+      </header>
+
       {/* Encabezado con botón "Regresar" */}
       <header className="px-4 py-4 md:px-12 flex items-center">
         <Link href="/inicio-servicio-medico">
