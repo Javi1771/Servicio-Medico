@@ -12,7 +12,7 @@ import {
   FaWeight,
   FaNotesMedical,
 } from "react-icons/fa";
-import { Stethoscope } from 'lucide-react';
+import { Stethoscope } from "lucide-react";
 import {
   FaUser,
   FaBirthdayCake,
@@ -674,22 +674,22 @@ const SignosVitales = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-900 to-black text-white">
       <header className="relative">
-        <h1
+        <div
           className="
       absolute top-4 right-4
       flex items-center
       px-6 py-3 md:px-8 md:py-4
-      rounded-full
-      text-white font-bold text-sm md:text-lg uppercase
-      bg-gradient-to-r from-[#890677] via-[#0ea5e9] to-[#8b5cf6]
-      shadow-lg hover:shadow-xl
-      transition-transform duration-300 ease-out
-      focus:outline-none focus:ring-4 focus:ring-[#0ea5e9]/50
+      rounded-lg
+      text-white font-medium text-sm md:text-lg
+      bg-gradient-to-r from-[#890677] via-[#075e85] to-[#890677]
+      shadow-md
+      backdrop-blur-sm
+      border border-white/20
     "
         >
           <Stethoscope className="mr-2 h-6 w-6" />
           Bienvenid@ {username}
-        </h1>
+        </div>
       </header>
 
       {/* Encabezado con botón "Regresar" */}
