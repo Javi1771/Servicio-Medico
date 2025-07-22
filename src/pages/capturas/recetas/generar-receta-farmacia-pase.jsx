@@ -10,7 +10,7 @@ export default function GenerarReceta() {
   const [claveconsulta, setClaveConsulta] = useState(null);
   const [loading, setLoading] = useState(false);
   const [pdfUrl, setPdfUrl] = useState(null);
-  const [datosFaltantes, setDatosFaltantes] = useState([]);
+  const [, setDatosFaltantes] = useState([]);
   const [errorGeneracion, setErrorGeneracion] = useState(false);
 
   useEffect(() => {
@@ -258,7 +258,7 @@ export default function GenerarReceta() {
       <div className="flex flex-col items-center justify-center relative z-10 w-full">
         {/* Alerta de error con datos faltantes */}
         {errorGeneracion && (
-          <div className="w-full max-w-4xl bg-red-900/80 p-6 rounded-2xl border-2 border-red-500 shadow-lg shadow-red-500/50 mb-8 animate-pulse">
+          <div className="w-full max-w-4xl bg-red-900/80 p-6 rounded-2xl border-2 border-red-500 shadow-lg shadow-red-500/50 mb-8 ">
             <div className="flex items-start gap-3">
               <FaExclamationTriangle className="text-3xl text-red-300 mt-1 flex-shrink-0" />
               <div>
@@ -270,15 +270,6 @@ export default function GenerarReceta() {
                   <p className="text-red-300 mb-3">
                     La receta proviene del sistema ControlMed y presenta inconsistencias que impiden su generación en PANDORA.
                   </p>
-                  
-                  <p className="font-semibold text-red-200 mb-2">
-                    Datos faltantes:
-                  </p>
-                  <ul className="list-disc pl-5 space-y-1 text-red-100">
-                    {datosFaltantes.map((dato, index) => (
-                      <li key={index}>{dato}</li>
-                    ))}
-                  </ul>
                 </div>
                 
                 <div className="bg-yellow-900/40 p-4 rounded-lg border border-yellow-600">
