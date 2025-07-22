@@ -297,9 +297,20 @@ export default function GenerarReceta() {
   //* Generar el PDF automáticamente cuando la claveconsulta esté lista
   useEffect(() => {
     if (claveconsulta) {
-      fetchRecetaData().then((data) => {
-        if (data) generatePdf(data.nombreEmpleado, data.codigoBarrasBase64);
-      });
+      (async () => {
+        try {
+          const data = await fetchRecetaData();
+          if (data) generatePdf(data.nombreEmpleado, data.codigoBarrasBase64);
+        } catch (error) {
+          console.error("❌ Error capturado desde useEffect:", error);
+          if (error.message === "Error al obtener los datos de la receta") {
+            setErrorReceta("No se obtuvieron datos de la receta");
+            setDatosFaltantes(["Datos de la consulta"]);
+          } else {
+            setErrorReceta("Ocurrió un error inesperado");
+          }
+        }
+      })();
     }
   }, [claveconsulta]);
 
