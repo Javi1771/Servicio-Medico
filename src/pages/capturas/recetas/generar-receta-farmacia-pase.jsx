@@ -161,6 +161,7 @@ export default function GenerarReceta() {
       //* Verificar datos faltantes
       const faltantes = data.faltantes || verificarDatosFaltantes(data);
       if (faltantes.length > 0) {
+        console.warn("⚠️ Datos faltantes detectados:", faltantes);
         setDatosFaltantes(faltantes);
         setErrorReceta("Datos insuficientes para generar la receta");
         return;
