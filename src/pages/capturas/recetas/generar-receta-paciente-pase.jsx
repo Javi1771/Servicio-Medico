@@ -382,32 +382,39 @@ export default function GenerarReceta() {
       <div className="flex flex-col items-center justify-center relative z-10 w-full">
         {/* Banner de Error */}
         {errorReceta && (
-          <div className="w-full max-w-4xl mb-6 bg-gradient-to-r from-red-900/90 to-red-800/90 border-2 border-red-500 rounded-2xl p-6 shadow-lg shadow-red-500/30">
+          <div className="w-full max-w-4xl mb-6 border-2 border-red-500 rounded-2xl p-6 shadow-lg shadow-red-500/30 bg-gradient-to-br from-red-800/90 via-red-900 to-black backdrop-blur-md transition-all duration-300">
             <div className="flex items-start space-x-4">
-              <FaExclamationTriangle className="text-yellow-400 text-3xl flex-shrink-0 mt-1" />
+              <div className="flex items-center justify-center h-14 w-14 bg-red-700 rounded-full border-2 border-yellow-300 shadow-lg animate-pulse">
+                <FaExclamationTriangle className="text-yellow-300 text-2xl" />
+              </div>
               <div className="flex-1">
-                <h3 className="text-xl font-bold text-white mb-2">
-                  ⚠️ ALERTA: No se encontraron datos de la receta
+                <h3 className="text-2xl font-extrabold text-red-100 mb-2 tracking-wide">
+                  ⚠️ No se pudo generar el PDF de la receta
                 </h3>
-                <p className="text-red-200 mb-4">
-                  Esta receta fue creada con el sistema{" "}
+
+                <p className="text-red-200 mb-4 leading-relaxed">
+                  Esta receta proviene del sistema antiguo{" "}
                   <span className="font-semibold text-yellow-300">
                     ControlMed
                   </span>
-                  , debido a eso faltan datos para generar las nuevas recetas en{" "}
+                  . Debido a ello,{" "}
+                  <strong className="text-red-100 underline">
+                    faltan datos obligatorios
+                  </strong>{" "}
+                  que impiden generar correctamente el PDF en el sistema{" "}
                   <span className="font-semibold text-cyan-300">PANDORA</span>.
                 </p>
 
                 {datosFaltantes.length > 0 && (
-                  <div className="mt-4">
-                    <h4 className="text-lg font-semibold text-yellow-300 mb-2">
-                      📋 Datos faltantes:
+                  <div className="mb-4">
+                    <h4 className="text-lg font-bold text-yellow-300 mb-2">
+                      🔍 Campos faltantes detectados:
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                       {datosFaltantes.map((dato, index) => (
                         <div
                           key={index}
-                          className="flex items-center space-x-2 text-red-200"
+                          className="flex items-center space-x-2 px-3 py-1 bg-red-950/60 rounded-lg border border-red-700 text-red-200 hover:bg-red-800/70 transition"
                         >
                           <FaTimes className="text-red-400 text-sm" />
                           <span className="text-sm">{dato}</span>
@@ -417,11 +424,16 @@ export default function GenerarReceta() {
                   </div>
                 )}
 
-                <div className="mt-4 p-3 bg-black/30 rounded-lg border border-gray-600">
-                  <p className="text-sm text-gray-300">
-                    <strong>💡 Solución:</strong> Para generar correctamente
-                    esta receta, es necesario completar la información faltante
-                    en el sistema PANDORA o migrar los datos desde ControlMed.
+                <div className="mt-4 p-4 rounded-lg border border-yellow-500 bg-yellow-900/20 text-yellow-200">
+                  <p className="text-sm leading-relaxed">
+                    <strong>🛠️ Recomendación:</strong> Completa los datos
+                    faltantes directamente en el sistema{" "}
+                    <span className="font-semibold text-cyan-300">PANDORA</span>{" "}
+                    o solicita la migración de esta receta desde{" "}
+                    <span className="font-semibold text-yellow-300">
+                      ControlMed
+                    </span>
+                    .
                   </p>
                 </div>
               </div>
