@@ -110,6 +110,7 @@ export default function GenerarReceta() {
     return cookie ? decodeURIComponent(cookie.split("=")[1]) : null;
   };
 
+  // CORREGIDO: Función mejorada para verificar datos faltantes
   const verificarDatosFaltantes = (data) => {
     const camposRequeridos = [
       { campo: "claveconsulta", nombre: "Clave de consulta" },
@@ -129,16 +130,19 @@ export default function GenerarReceta() {
 
     const faltantes = [];
 
-    if (!data.consulta) {
+    if (!data || !data.consulta) {
       return ["Datos completos de la consulta"];
     }
 
+    // Verificar campos dentro de la consulta
     camposRequeridos.forEach(({ campo, nombre }) => {
       if (campo === "folioSurtimiento") {
+        // Folio está en el nivel superior de data
         if (!data[campo] && data[campo] !== 0) {
           faltantes.push(nombre);
         }
       } else {
+        // Todos los demás campos están dentro de data.consulta
         if (!data.consulta[campo] && data.consulta[campo] !== 0) {
           faltantes.push(nombre);
         }
@@ -225,11 +229,7 @@ export default function GenerarReceta() {
       if (faltantes.length > 0) {
         console.warn("⚠️ Datos faltantes detectados:", faltantes);
         setDatosFaltantes(faltantes);
-        const esErrorControlMed = faltantes.includes("Datos completos de la consulta");
-        setErrorReceta(esErrorControlMed
-          ? "Receta incompleta de sistema anterior (ControlMed)"
-          : "Faltan datos esenciales en la receta"
-        );
+        setErrorReceta("Faltan datos esenciales para generar la receta");
         return;
       }
 
@@ -292,16 +292,7 @@ export default function GenerarReceta() {
       setPdfUrl(pdfBlobUrl);
     } catch (error) {
       console.error("❌ Error al generar PDF:", error);
-
-      let mensajeError = "Error en la generación del documento";
-      if (error.message.includes("consulta") || error.message === "Error al obtener los datos de la receta") {
-        mensajeError = "Estructura de datos incompleta";
-        setDatosFaltantes(["Datos completos de la consulta"]);
-      } else if (error.message.includes("PDF base")) {
-        mensajeError = "Error al cargar la plantilla del PDF";
-      }
-      
-      setErrorReceta(mensajeError);
+      setErrorReceta("Error al generar el PDF");
     } finally {
       setLoading(false);
     }
@@ -315,12 +306,8 @@ export default function GenerarReceta() {
           if (data) generatePdf(data.nombreEmpleado, data.codigoBarrasBase64);
         } catch (error) {
           console.error("❌ Error capturado desde useEffect:", error);
-          if (error.message === "Error al obtener los datos de la receta") {
-            setErrorReceta("No se obtuvieron datos de la receta");
-            setDatosFaltantes(["Datos completos de la consulta"]);
-          } else {
-            setErrorReceta("Ocurrió un error inesperado");
-          }
+          setErrorReceta("No se obtuvieron datos de la receta");
+          setDatosFaltantes(["Datos completos de la consulta"]);
         }
       })();
     }
@@ -370,7 +357,7 @@ export default function GenerarReceta() {
                 {datosFaltantes.length > 0 && (
                   <div className="mt-4">
                     <h4 className="text-lg font-semibold text-yellow-300 mb-2 flex items-center">
-                      <FaSearch className="mr-2" /> Campos específicos faltantes:
+                      <FaSearch className="mr-2" /> Campos faltantes detectados:
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                       {datosFaltantes.map((dato, idx) => (

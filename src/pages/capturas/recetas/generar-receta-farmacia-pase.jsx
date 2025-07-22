@@ -74,6 +74,7 @@ export default function GenerarReceta() {
     return cookie ? decodeURIComponent(cookie.split("=")[1]) : null;
   };
 
+  // FUNCIÓN CORREGIDA: Ahora devuelve lista específica de campos faltantes
   const verificarDatosFaltantes = (data) => {
     const camposRequeridos = [
       { campo: "claveconsulta", nombre: "Clave de consulta" },
@@ -91,11 +92,15 @@ export default function GenerarReceta() {
 
     const faltantes = [];
 
+    // Verificar si hay un objeto de consulta
     if (!data.consulta) {
-      return ["Datos completos de la consulta"];
+      // Si no hay consulta, agregar todos los campos como faltantes
+      return camposRequeridos.map(campo => campo.nombre);
     }
 
+    // Verificar cada campo individualmente
     camposRequeridos.forEach(({ campo, nombre }) => {
+      // Considerar valor 0 como válido
       if (!data.consulta[campo] && data.consulta[campo] !== 0) {
         faltantes.push(nombre);
       }
@@ -117,7 +122,6 @@ export default function GenerarReceta() {
       "Fecha de consulta": "Fecha real en que se realizó la consulta",
       "Sindicato": "Afiliación sindical del empleado",
       "Especialidad": "Especialidad médica de la consulta",
-      "Datos completos de la consulta": "Información básica de la consulta médica"
     };
 
     return descripciones[campo] || "Campo obligatorio para generar el documento";
@@ -171,11 +175,7 @@ export default function GenerarReceta() {
       if (faltantes.length > 0) {
         console.warn("⚠️ Datos faltantes detectados:", faltantes);
         setDatosFaltantes(faltantes);
-        const esErrorControlMed = faltantes.includes("Datos completos de la consulta");
-        setErrorReceta(esErrorControlMed
-          ? "Receta incompleta de sistema anterior (ControlMed)"
-          : "Faltan datos esenciales en la receta"
-        );
+        setErrorReceta("Faltan datos esenciales para generar la receta");
         return;
       }
 
@@ -253,7 +253,7 @@ export default function GenerarReceta() {
           console.error("❌ Error capturado desde useEffect:", error);
           if (error.message === "Error al obtener los datos de la receta") {
             setErrorReceta("No se obtuvieron datos de la receta");
-            setDatosFaltantes(["Datos completos de la consulta"]);
+            setDatosFaltantes(verificarDatosFaltantes({}));
           } else {
             setErrorReceta("Ocurrió un error inesperado");
           }
@@ -305,7 +305,7 @@ export default function GenerarReceta() {
                 {datosFaltantes.length > 0 && (
                   <div className="mt-4">
                     <h4 className="text-lg font-semibold text-yellow-300 mb-2 flex items-center">
-                      <FaSearch className="mr-2" /> Campos específicos faltantes:
+                      <FaSearch className="mr-2" /> Campos faltantes detectados:
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                       {datosFaltantes.map((dato, idx) => (
