@@ -22,23 +22,45 @@ export default function GenerarReceta() {
     }
   }, [router.query.claveconsulta]);
 
-  //* Función para validar datos requeridos
+  // Función mejorada para validar datos requeridos
   const validarDatosReceta = (data) => {
+    // Primero verificar si existe data.consulta
+    if (!data || !data.consulta) {
+      return ["No se encontraron datos de consulta"];
+    }
+
     const camposRequeridos = [
-      { nombre: "Clave de consulta", valor: data?.consulta?.claveconsulta },
-      { nombre: "Fecha de cita", valor: data?.consulta?.fechacita },
-      { nombre: "Departamento", valor: data?.consulta?.departamento },
-      { nombre: "Nombre del proveedor", valor: data?.consulta?.nombreproveedor },
-      { nombre: "Clave nómina", valor: data?.consulta?.clavenomina },
-      { nombre: "Nombre del paciente", valor: data?.consulta?.nombrepaciente },
-      { nombre: "Edad del paciente", valor: data?.consulta?.edad },
-      { nombre: "Cédula del proveedor", valor: data?.consulta?.cedulaproveedor },
-      { nombre: "Fecha de consulta", valor: data?.consulta?.fechaconsulta }
+      { nombre: "Clave de consulta", valor: data.consulta.claveconsulta },
+      { nombre: "Fecha de cita", valor: data.consulta.fechacita },
+      { nombre: "Departamento", valor: data.consulta.departamento },
+      { nombre: "Nombre del proveedor", valor: data.consulta.nombreproveedor },
+      { nombre: "Clave nómina", valor: data.consulta.clavenomina },
+      { nombre: "Nombre del paciente", valor: data.consulta.nombrepaciente },
+      { nombre: "Edad del paciente", valor: data.consulta.edad },
+      { nombre: "Cédula del proveedor", valor: data.consulta.cedulaproveedor },
+      { nombre: "Fecha de consulta", valor: data.consulta.fechaconsulta }
     ];
 
     const faltantes = camposRequeridos
-      .filter(campo => !campo.valor)
+      .filter(campo => {
+        const valor = campo.valor;
+        
+        // Validación más robusta
+        if (valor === null || valor === undefined) return true;
+        if (typeof valor === 'string') {
+          const valorLimpio = valor.trim();
+          return valorLimpio === '' || valorLimpio === 'N/A' || valorLimpio === 'null' || valorLimpio === 'undefined';
+        }
+        if (typeof valor === 'number') {
+          return isNaN(valor);
+        }
+        
+        return !valor;
+      })
       .map(campo => campo.nombre);
+
+    console.log("Campos evaluados:", camposRequeridos.map(c => ({nombre: c.nombre, valor: c.valor})));
+    console.log("Campos faltantes:", faltantes);
 
     return faltantes;
   };
@@ -145,25 +167,41 @@ export default function GenerarReceta() {
     }
   };
 
+  // Función generatePdf mejorada con mejor debugging
   const generatePdf = async () => {
     try {
+      console.log("=== INICIANDO GENERACIÓN DE PDF ===");
       setLoading(true);
       setErrorGeneracion(false);
+      setDatosFaltantes([]); // Limpiar datos faltantes anteriores
+      
       const data = await fetchRecetaData();
+      
+      console.log("=== DEBUG: Datos completos recibidos ===");
+      console.log(JSON.stringify(data, null, 2));
       
       if (!data) {
         throw new Error("No se recibieron datos de la receta");
       }
 
-      //! Validar datos faltantes
+      // Validar datos faltantes con debugging mejorado
       const faltantes = validarDatosReceta(data);
+      
+      console.log("=== DEBUG: Validación completada ===");
+      console.log("Cantidad de datos faltantes:", faltantes.length);
+      console.log("Datos faltantes:", faltantes);
+      
       if (faltantes.length > 0) {
+        console.log("=== ERROR: Datos insuficientes ===");
         setDatosFaltantes(faltantes);
         setErrorGeneracion(true);
         setLoading(false);
         return;
       }
 
+      console.log("=== SUCCESS: Todos los datos están presentes ===");
+      
+      // Continuar con la generación del PDF...
       const existingPdfBytes = await fetch("/Receta-Paciente-Especialidad.pdf").then(res => {
         if (!res.ok) throw new Error("Error al cargar el PDF base");
         return res.arrayBuffer();
@@ -173,7 +211,7 @@ export default function GenerarReceta() {
       const pdfDoc = await PDFDocument.load(existingPdfBytes);
       const firstPage = pdfDoc.getPages()[0];
 
-      //? Dibujar datos en el PDF
+      // Dibujar datos en el PDF
       firstPage.drawText(data.consulta?.especialidadinterconsulta === null ? "General" : `Especialidad - ${data.consulta?.especialidadNombre}`, { x: 110, y: 645, size: 10 });
       firstPage.drawText(String(data.consulta?.claveconsulta ?? "N/A"), { x: 177, y: 663, size: 15 });
       firstPage.drawText(String(data.consulta?.fechacita ?? "N/A"), { x: 384, y: 665, size: 10 });
@@ -212,9 +250,12 @@ export default function GenerarReceta() {
       const pdfBlobUrl = URL.createObjectURL(pdfBlob);
       setPdfUrl(pdfBlobUrl);
 
+      console.log("=== PDF GENERADO CON ÉXITO ===");
+
     } catch (error) {
-      console.error("Error al generar PDF:", error);
+      console.error("=== ERROR en generatePdf ===", error);
       setErrorGeneracion(true);
+      setDatosFaltantes(["Error interno al procesar la receta"]);
     } finally {
       setLoading(false);
     }
