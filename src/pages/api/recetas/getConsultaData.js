@@ -69,16 +69,12 @@ export async function getConsultaData(claveConsulta) {
 
     //* Formatear la fecha de la consulta antes de enviarla
     if (consultaData && consultaData.fechaconsulta) {
-      //console.log("📅 Fecha original (fechaconsulta):", consultaData.fechaconsulta);
       consultaData.fechaconsulta = formatFecha(consultaData.fechaconsulta);
-      //console.log("✅ Fecha formateada (fechaconsulta):", consultaData.fechaconsulta);
     }
 
     //* Formatear la fecha de la cita (fechacita)
     if (consultaData && consultaData.fechacita) {
-      //console.log("📅 Fecha original (fechacita):", consultaData.fechacita);
       consultaData.fechacita = formatFecha(consultaData.fechacita);
-      //console.log("✅ Fecha formateada (fechacita):", consultaData.fechacita);
     }
 
     //? Consulta a la tabla "detalleReceta"
@@ -125,8 +121,6 @@ export async function getConsultaData(claveConsulta) {
       .input("claveConsulta", sql.VarChar, claveConsulta)
       .query(incapacidadesQuery);
 
-    //console.log("✅ Datos de incapacidades obtenidos:", incapacidadesResult.recordset);
-
     //* Formatear las fechas de incapacidad antes de enviarlas
     if (incapacidadesResult.recordset.length > 0) {
       incapacidadesResult.recordset = incapacidadesResult.recordset.map(
@@ -136,8 +130,6 @@ export async function getConsultaData(claveConsulta) {
           fechaFinal: formatFecha(incapacidad.fechaFinal),
         })
       );
-
-      //console.log("✅ Fechas de incapacidad formateadas:", incapacidadesResult.recordset);
     }
 
     //? Consulta a la tabla "detalleEspecialidad"
@@ -166,21 +158,36 @@ export async function getConsultaData(claveConsulta) {
 
     const folioSurtimientoResult = await db
       .request()
-      .input("claveConsulta", sql.Int, claveConsulta) //* Asegurar que claveConsulta es Int
+      .input("claveConsulta", sql.Int, claveConsulta)
       .query(folioSurtimientoQuery);
 
-    //? Si no encuentra un FOLIO_SURTIMIENTO, asignar null
     const folioSurtimiento =
       folioSurtimientoResult.recordset[0]?.FOLIO_SURTIMIENTO || null;
 
     console.log("✅ FOLIO_SURTIMIENTO obtenido:", folioSurtimiento);
 
+    //* Validación de campos faltantes
+    const faltantes = [];
+    const c = consultaData || {};
+
+    if (!c.claveconsulta) faltantes.push("Clave de consulta");
+    if (!c.fechaconsulta) faltantes.push("Fecha de consulta");
+    if (!c.clavenomina) faltantes.push("Clave de nómina");
+    if (!c.nombrepaciente) faltantes.push("Nombre del paciente");
+    if (!c.edad) faltantes.push("Edad del paciente");
+    if (!c.nombreproveedor) faltantes.push("Nombre del proveedor");
+    if (!c.cedulaproveedor) faltantes.push("Cédula del proveedor");
+    if (!c.fechacita) faltantes.push("Fecha de cita");
+    if (!c.departamento) faltantes.push("Departamento");
+
+    //* Respuesta completa
     return {
       consulta: consultaData,
       receta: recetaResult.recordset || [],
       incapacidades: incapacidadesResult.recordset || [],
       detalleEspecialidad: detalleEspecialidadResult.recordset || [],
-      folioSurtimiento, //* Enviar al frontend
+      folioSurtimiento,
+      ...(faltantes.length > 0 && { faltantes }), //! Solo incluir si hay campos faltantes
     };
   } catch (error) {
     console.error("❌ Error en getConsultaData:", error);
