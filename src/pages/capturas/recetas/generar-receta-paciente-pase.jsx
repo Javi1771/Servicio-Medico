@@ -335,41 +335,32 @@ export default function GenerarReceta() {
       <div className="flex flex-col items-center justify-center relative z-10 w-full">
         {/* Banner de Error */}
         {errorReceta && (
-          <div className="w-full max-w-4xl mb-6 border-2 border-red-500 rounded-2xl p-6 shadow-lg shadow-red-500/30 bg-gradient-to-br from-red-800/90 via-red-900 to-black backdrop-blur-md transition-all duration-300">
+          <div className="w-full max-w-4xl mb-8 bg-gradient-to-r from-red-900 via-red-800 to-red-700 border-l-8 border-red-500 rounded-xl p-6 shadow-2xl animate-fade-in">
             <div className="flex items-start space-x-4">
-              <div className="flex items-center justify-center h-14 w-14 bg-red-700 rounded-full border-2 border-yellow-300 shadow-lg animate-pulse">
-                <FaExclamationTriangle className="text-yellow-300 text-2xl" />
-              </div>
+              <FaExclamationTriangle className="text-yellow-400 text-4xl flex-shrink-0 mt-1 animate-pulse" />
               <div className="flex-1">
-                <h3 className="text-2xl font-extrabold text-red-100 mb-2 tracking-wide">
+                <h3 className="text-2xl font-bold text-white mb-2">
                   ⚠️ No se pudo generar el PDF de la receta
                 </h3>
-
-                <p className="text-red-200 mb-4 leading-relaxed">
-                  Esta receta proviene del sistema antiguo{" "}
-                  <span className="font-semibold text-yellow-300">
-                    ControlMed
-                  </span>
-                  . Debido a ello,{" "}
-                  <strong className="text-red-100 underline">
-                    faltan datos obligatorios
-                  </strong>{" "}
-                  que impiden generar correctamente el PDF en el sistema{" "}
-                  <span className="font-semibold text-cyan-300">PANDORA</span>.
+                <p className="text-red-200 mb-4">
+                  Esta receta proviene del sistema anterior{" "}
+                  <span className="text-yellow-300 font-semibold">ControlMed</span>. Debido a diferencias en estructura de datos, faltan campos obligatorios para generar correctamente el PDF en el sistema{" "}
+                  <span className="text-cyan-300 font-semibold">PANDORA</span>.
                 </p>
 
                 {datosFaltantes.length > 0 && (
-                  <div className="mb-4">
-                    <h4 className="text-lg font-bold text-yellow-300 mb-2">
+                  <div className="mt-4">
+                    <h4 className="text-lg font-semibold text-yellow-300 mb-2">
                       🔍 Campos faltantes detectados:
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                      {datosFaltantes.map((dato, index) => (
+                      {datosFaltantes.map((dato, idx) => (
                         <div
-                          key={index}
-                          className="flex items-center space-x-2 px-3 py-1 bg-red-950/60 rounded-lg border border-red-700 text-red-200 hover:bg-red-800/70 transition"
+                          key={idx}
+                          className="flex items-center space-x-2 bg-red-800/30 p-2 rounded-md border border-red-400 text-red-100 hover:bg-red-700/30 transition-colors"
+                          title={`Este campo es obligatorio para generar el PDF`}
                         >
-                          <FaTimes className="text-red-400 text-sm" />
+                          <FaTimes className="text-red-300 text-sm" />
                           <span className="text-sm">{dato}</span>
                         </div>
                       ))}
@@ -377,16 +368,11 @@ export default function GenerarReceta() {
                   </div>
                 )}
 
-                <div className="mt-4 p-4 rounded-lg border border-yellow-500 bg-yellow-900/20 text-yellow-200">
-                  <p className="text-sm leading-relaxed">
-                    <strong>🛠️ Recomendación:</strong> Completa los datos
-                    faltantes directamente en el sistema{" "}
-                    <span className="font-semibold text-cyan-300">PANDORA</span>{" "}
-                    o solicita la migración de esta receta desde{" "}
-                    <span className="font-semibold text-yellow-300">
-                      ControlMed
-                    </span>
-                    .
+                <div className="mt-6 p-4 bg-black/40 rounded-md border border-gray-500 shadow-inner">
+                  <p className="text-sm text-gray-300 leading-relaxed">
+                    <strong className="text-yellow-200">🛠 Recomendación:</strong> Completa los campos faltantes directamente en el sistema{" "}
+                    <span className="font-semibold text-cyan-300">PANDORA</span> o solicita al área correspondiente la migración de la receta desde el sistema{" "}
+                    <span className="font-semibold text-yellow-300">ControlMed</span>.
                   </p>
                 </div>
               </div>
