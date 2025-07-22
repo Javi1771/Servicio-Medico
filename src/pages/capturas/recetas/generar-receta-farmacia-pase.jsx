@@ -3,13 +3,15 @@ import { PDFDocument, StandardFonts } from "pdf-lib";
 import { saveAs } from "file-saver";
 import { useRouter } from "next/router";
 import React, { useState, useEffect } from "react";
-import { FaSpinner } from "react-icons/fa";
+import { FaSpinner, FaExclamationTriangle, FaTimes } from "react-icons/fa";
 
 export default function GenerarReceta() {
   const router = useRouter();
   const [claveconsulta, setClaveConsulta] = useState(null);
   const [loading, setLoading] = useState(false);
   const [pdfUrl, setPdfUrl] = useState(null); //* Estado para previsualizar el PDF
+  const [errorReceta, setErrorReceta] = useState(null); //* Estado para manejar errores de receta
+  const [datosFaltantes, setDatosFaltantes] = useState([]); //* Estado para datos faltantes
 
   useEffect(() => {
     if (router.query.claveconsulta) {
@@ -79,6 +81,28 @@ export default function GenerarReceta() {
     return cookie ? decodeURIComponent(cookie.split("=")[1]) : null;
   };  
 
+    //* Función para verificar datos faltantes
+    const verificarDatosFaltantes = (data) => {
+        const faltantes = [];
+        
+        if (!data.consulta) {
+            faltantes.push("Datos de la consulta");
+            return faltantes;
+        }
+
+        if (!data.consulta.claveconsulta) faltantes.push("Clave de consulta");
+        if (!data.consulta.fechacita) faltantes.push("Fecha de cita");
+        if (!data.consulta.departamento) faltantes.push("Departamento");
+        if (!data.consulta.nombreproveedor) faltantes.push("Nombre del proveedor");
+        if (!data.consulta.clavenomina) faltantes.push("Clave de nómina");
+        if (!data.consulta.nombrepaciente) faltantes.push("Nombre del paciente");
+        if (!data.consulta.edad) faltantes.push("Edad del paciente");
+        if (!data.consulta.cedulaproveedor) faltantes.push("Cédula del proveedor");
+        if (!data.consulta.fechaconsulta) faltantes.push("Fecha de consulta");
+
+        return faltantes;
+    };
+
     //* Función para obtener los datos de la receta
     const fetchRecetaData = async () => {
         if (!claveconsulta) {
@@ -115,11 +139,21 @@ export default function GenerarReceta() {
         try {
         //console.log("🖨️ Iniciando la generación del PDF...");
         setLoading(true);
+        setErrorReceta(null); //* Limpiar errores previos
 
         //* Obtener la información desde el endpoint
         const data = await fetchRecetaData();
         if (!data) {
             console.error("❌ Error: No se recibieron datos de la API.");
+            setErrorReceta("No se obtuvieron datos de la receta");
+            return;
+        }
+
+        //* Verificar datos faltantes
+        const faltantes = verificarDatosFaltantes(data);
+        if (faltantes.length > 0) {
+            setDatosFaltantes(faltantes);
+            setErrorReceta("Datos insuficientes para generar la receta");
             return;
         }
 
@@ -187,6 +221,7 @@ export default function GenerarReceta() {
         //console.log("✅ PDF generado y listo para previsualización.");
         } catch (error) {
         console.error("❌ Error al generar PDF:", error);
+        setErrorReceta("Error al generar el PDF");
         } finally {
         setLoading(false);
         }
@@ -223,6 +258,43 @@ export default function GenerarReceta() {
       )}
 
       <div className="flex flex-col items-center justify-center relative z-10 w-full">
+
+        {/* Banner de Error */}
+        {errorReceta && (
+          <div className="w-full max-w-4xl mb-6 bg-gradient-to-r from-red-900/90 to-red-800/90 border-2 border-red-500 rounded-2xl p-6 shadow-lg shadow-red-500/30">
+            <div className="flex items-start space-x-4">
+              <FaExclamationTriangle className="text-yellow-400 text-3xl flex-shrink-0 mt-1" />
+              <div className="flex-1">
+                <h3 className="text-xl font-bold text-white mb-2">⚠️ ALERTA: No se encontraron datos de la receta</h3>
+                <p className="text-red-200 mb-4">
+                  Esta receta fue creada con el sistema <span className="font-semibold text-yellow-300">ControlMed</span>, 
+                  debido a eso faltan datos para generar las nuevas recetas en <span className="font-semibold text-cyan-300">PANDORA</span>.
+                </p>
+                
+                {datosFaltantes.length > 0 && (
+                  <div className="mt-4">
+                    <h4 className="text-lg font-semibold text-yellow-300 mb-2">📋 Datos faltantes:</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      {datosFaltantes.map((dato, index) => (
+                        <div key={index} className="flex items-center space-x-2 text-red-200">
+                          <FaTimes className="text-red-400 text-sm" />
+                          <span className="text-sm">{dato}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                <div className="mt-4 p-3 bg-black/30 rounded-lg border border-gray-600">
+                  <p className="text-sm text-gray-300">
+                    <strong>💡 Solución:</strong> Para generar correctamente esta receta, es necesario completar 
+                    la información faltante en el sistema PANDORA o migrar los datos desde ControlMed.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
       {/* Previsualización del PDF */}
       {pdfUrl && (
