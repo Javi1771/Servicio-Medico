@@ -1,25 +1,14 @@
-//api/recetas/getConsultaData.js
+// /api/recetas/getConsultaData.js
 import { connectToDatabase } from "../connectToDatabase";
 import sql from "mssql";
 
 //* Función para formatear la fecha con día de la semana
 function formatFecha(fecha) {
-  if (!fecha) return "N/A"; //* Si la fecha es nula, retorna "N/A"
-
+  if (!fecha) return "N/A";
   const date = new Date(fecha);
-
-  //* Días de la semana en español
   const diasSemana = [
-    "Domingo",
-    "Lunes",
-    "Martes",
-    "Miércoles",
-    "Jueves",
-    "Viernes",
-    "Sábado",
+    "Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado",
   ];
-
-  //* Obtener los valores en UTC para preservar la hora exacta de la base de datos
   const diaSemana = diasSemana[date.getUTCDay()];
   const dia = String(date.getUTCDate()).padStart(2, "0");
   const mes = String(date.getUTCMonth() + 1).padStart(2, "0");
@@ -28,18 +17,49 @@ function formatFecha(fecha) {
   const minutos = String(date.getUTCMinutes()).padStart(2, "0");
   const periodo = horas >= 12 ? "p.m." : "a.m.";
   const horas12 = horas % 12 === 0 ? 12 : horas % 12;
-
   return `${diaSemana}, ${dia}/${mes}/${año}, ${horas12}:${minutos} ${periodo}`;
+}
+
+//* Función para validar recursivamente un objeto plano
+function validarCampos(obj, nombrePadre = "") {
+  const faltantes = [];
+  for (const [key, value] of Object.entries(obj)) {
+    const nombreCompleto = nombrePadre ? `${nombrePadre}.${key}` : key;
+    if (
+      value === null ||
+      value === undefined ||
+      (typeof value === "string" && value.trim() === "")
+    ) {
+      faltantes.push(nombreCompleto);
+    }
+  }
+  return faltantes;
+}
+
+//* Función para validar arrays de objetos
+function validarArray(arr, nombreArray) {
+  const faltantes = [];
+  arr.forEach((item, index) => {
+    for (const [key, value] of Object.entries(item)) {
+      if (
+        value === null ||
+        value === undefined ||
+        (typeof value === "string" && value.trim() === "")
+      ) {
+        faltantes.push(`${nombreArray}[${index + 1}].${key}`);
+      }
+    }
+  });
+  return faltantes;
 }
 
 export async function getConsultaData(claveConsulta) {
   try {
-    //console.log("🔍 Conectando a la base de datos...");
     const db = await connectToDatabase();
 
     console.log("📡 Buscando consulta en la BD con claveconsulta:", claveConsulta);
 
-    //? Consulta a la tabla "consultas"
+    //? Consulta principal
     const consultaQuery = `
       SELECT 
         c.claveconsulta, c.fechaconsulta, c.clavenomina, 
@@ -59,7 +79,6 @@ export async function getConsultaData(claveConsulta) {
       LEFT JOIN especialidades es ON c.especialidadinterconsulta = es.claveespecialidad
       WHERE c.claveconsulta = @claveConsulta
     `;
-
     const consultaResult = await db
       .request()
       .input("claveConsulta", sql.Int, claveConsulta)
@@ -67,72 +86,60 @@ export async function getConsultaData(claveConsulta) {
 
     let consultaData = consultaResult.recordset[0] || null;
 
-    //* Formatear la fecha de la consulta antes de enviarla
-    if (consultaData && consultaData.fechaconsulta) {
+    if (consultaData?.fechaconsulta) {
       consultaData.fechaconsulta = formatFecha(consultaData.fechaconsulta);
     }
-
-    //* Formatear la fecha de la cita (fechacita)
-    if (consultaData && consultaData.fechacita) {
+    if (consultaData?.fechacita) {
       consultaData.fechacita = formatFecha(consultaData.fechacita);
     }
 
-    //? Consulta a la tabla "detalleReceta"
+    //? Receta
     const recetaQuery = `
-    SELECT 
-      dr.indicaciones, 
-      dr.cantidad, 
-      dr.descMedicamento AS idMedicamento, 
-      dr.piezas,
-      dr.seAsignoResurtimiento,
-      dr.cantidadMeses,
-      REPLACE(
+      SELECT 
+        dr.indicaciones, 
+        dr.cantidad, 
+        dr.descMedicamento AS idMedicamento, 
+        dr.piezas,
+        dr.seAsignoResurtimiento,
+        dr.cantidadMeses,
         REPLACE(
           REPLACE(
-            REPLACE(m.medicamento, ', ', ','), 
-            ',', ', '
+            REPLACE(
+              REPLACE(m.medicamento, ', ', ','), 
+              ',', ', '
+            ),
+            ' / ', '/'
           ),
-          ' / ', '/'
-        ),
-        '/', ' / '
-      ) AS nombreMedicamento,
-      m.clasificacion
-    FROM detalleReceta dr
-    LEFT JOIN MEDICAMENTOS m ON dr.descMedicamento = m.claveMedicamento
-    WHERE dr.folioReceta = @claveConsulta
-  `;
-
+          '/', ' / '
+        ) AS nombreMedicamento,
+        m.clasificacion
+      FROM detalleReceta dr
+      LEFT JOIN MEDICAMENTOS m ON dr.descMedicamento = m.claveMedicamento
+      WHERE dr.folioReceta = @claveConsulta
+    `;
     const recetaResult = await db
       .request()
       .input("claveConsulta", sql.VarChar, claveConsulta)
       .query(recetaQuery);
 
-    console.log("✅ Datos de la receta obtenidos:", recetaResult.recordset);
-
-    //? Consulta a la tabla "incapacidades"
+    //? Incapacidades
     const incapacidadesQuery = `
       SELECT fechaInicial, fechaFinal, claveConsulta
       FROM detalleIncapacidad
       WHERE claveConsulta = @claveConsulta
     `;
-
     const incapacidadesResult = await db
       .request()
       .input("claveConsulta", sql.VarChar, claveConsulta)
       .query(incapacidadesQuery);
 
-    //* Formatear las fechas de incapacidad antes de enviarlas
-    if (incapacidadesResult.recordset.length > 0) {
-      incapacidadesResult.recordset = incapacidadesResult.recordset.map(
-        (incapacidad) => ({
-          ...incapacidad,
-          fechaInicial: formatFecha(incapacidad.fechaInicial),
-          fechaFinal: formatFecha(incapacidad.fechaFinal),
-        })
-      );
-    }
+    const incapacidades = incapacidadesResult.recordset.map((i) => ({
+      ...i,
+      fechaInicial: formatFecha(i.fechaInicial),
+      fechaFinal: formatFecha(i.fechaFinal),
+    }));
 
-    //? Consulta a la tabla "detalleEspecialidad"
+    //? Especialidad
     const detalleEspecialidadQuery = `
       SELECT 
       de.observaciones, de.claveespecialidad,
@@ -141,21 +148,17 @@ export async function getConsultaData(claveConsulta) {
       LEFT JOIN especialidades e ON de.claveespecialidad = e.claveespecialidad
       WHERE claveconsulta = @claveConsulta
     `;
-
     const detalleEspecialidadResult = await db
       .request()
       .input("claveConsulta", sql.VarChar, claveConsulta)
       .query(detalleEspecialidadQuery);
 
-    console.log("✅ Datos de detalleEspecialidad obtenidos:", detalleEspecialidadResult.recordset);
-
-    //? Nueva consulta para obtener el FOLIO_SURTIMIENTO basado en la claveConsulta
+    //? Folio surtimiento
     const folioSurtimientoQuery = `
       SELECT FOLIO_SURTIMIENTO 
       FROM SURTIMIENTOS 
       WHERE FOLIO_PASE = @claveConsulta
     `;
-
     const folioSurtimientoResult = await db
       .request()
       .input("claveConsulta", sql.Int, claveConsulta)
@@ -164,30 +167,21 @@ export async function getConsultaData(claveConsulta) {
     const folioSurtimiento =
       folioSurtimientoResult.recordset[0]?.FOLIO_SURTIMIENTO || null;
 
-    console.log("✅ FOLIO_SURTIMIENTO obtenido:", folioSurtimiento);
+    //? Validación completa de campos
+    const faltantes = [
+      ...validarCampos(consultaData || {}, "consulta"),
+      ...validarArray(recetaResult.recordset || [], "receta"),
+      ...validarArray(incapacidades || [], "incapacidades"),
+      ...validarArray(detalleEspecialidadResult.recordset || [], "detalleEspecialidad"),
+    ];
 
-    //* Validación de campos faltantes
-    const faltantes = [];
-    const c = consultaData || {};
-
-    if (!c.claveconsulta) faltantes.push("Clave de consulta");
-    if (!c.fechaconsulta) faltantes.push("Fecha de consulta");
-    if (!c.clavenomina) faltantes.push("Clave de nómina");
-    if (!c.nombrepaciente) faltantes.push("Nombre del paciente");
-    if (!c.edad) faltantes.push("Edad del paciente");
-    if (!c.nombreproveedor) faltantes.push("Nombre del proveedor");
-    if (!c.cedulaproveedor) faltantes.push("Cédula del proveedor");
-    if (!c.fechacita) faltantes.push("Fecha de cita");
-    if (!c.departamento) faltantes.push("Departamento");
-
-    //* Respuesta completa
     return {
       consulta: consultaData,
       receta: recetaResult.recordset || [],
-      incapacidades: incapacidadesResult.recordset || [],
+      incapacidades,
       detalleEspecialidad: detalleEspecialidadResult.recordset || [],
       folioSurtimiento,
-      ...(faltantes.length > 0 && { faltantes }), //! Solo incluir si hay campos faltantes
+      ...(faltantes.length > 0 && { faltantes }),
     };
   } catch (error) {
     console.error("❌ Error en getConsultaData:", error);
