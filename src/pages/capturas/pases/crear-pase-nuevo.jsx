@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { AiOutlineUserAdd } from "react-icons/ai";
 import Image from "next/image";
 import Swal from "sweetalert2";
@@ -133,6 +133,16 @@ const CrearPaseNuevo = () => {
   const [claveusuario, setClaveUsuario] = useState("");
   const [costo, setCosto] = useState("");
   const router = useRouter();
+
+  //* Beneficiario seleccionado para usar en el render
+  const selectedBeneficiary = useMemo(
+    () =>
+      selectedBeneficiaryIndex > -1
+        ? beneficiaryData[selectedBeneficiaryIndex]
+        : null,
+    [selectedBeneficiaryIndex, beneficiaryData]
+  );
+
 
   const handleRegresar = () => {
     router.push("/capturas/pases-a-especialidades");
@@ -407,6 +417,7 @@ const CrearPaseNuevo = () => {
   };
 
   const handleBeneficiarySelect = (index) => {
+    index = Number(index);
     const selected = beneficiaryData[index];
     const fechaActual = new Date();
 
@@ -546,8 +557,6 @@ const CrearPaseNuevo = () => {
         employeeData.grupoNomina,
         employeeData.cuotaSindical
       );
-
-      const selectedBeneficiary = selectedBeneficiaryIndex >= 0 ? beneficiaryData[selectedBeneficiaryIndex] : null;
 
       if (fechaCita) {
         const fechaAjustada = new Date(
@@ -827,13 +836,14 @@ const CrearPaseNuevo = () => {
                     <label className="block text-teal-300 font-semibold mb-2 text-center">
                       Seleccionar Beneficiario:
                     </label>
-                    <select
-                      id="beneficiarioSelect"
-                      className="w-full md:w-1/2 p-3 rounded-md bg-gray-800 text-white 
-                 focus:outline-none focus:ring-2 focus:ring-teal-400 
-                 shadow-md hover:shadow-xl transition"
-                      onChange={(e) => handleBeneficiarySelect(e.target.value)}
-                    >
+                      <select
+                        id="beneficiarioSelect"
+                        className="w-full md:w-1/2 p-3 rounded-md bg-gray-800 text-white 
+                              focus:outline-none focus:ring-2 focus:ring-teal-400 
+                              shadow-md hover:shadow-xl transition"
+                        value={selectedBeneficiaryIndex}
+                        onChange={(e) => handleBeneficiarySelect(parseInt(e.target.value, 10))}
+                      >
                       {beneficiaryData.map((beneficiary, index) => (
                         <option key={index} value={index}>
                           {`${beneficiary.NOMBRE} ${beneficiary.A_PATERNO} ${beneficiary.A_MATERNO} 
