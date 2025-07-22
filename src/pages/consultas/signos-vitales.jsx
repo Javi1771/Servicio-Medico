@@ -26,26 +26,21 @@ import withReactContent from "sweetalert2-react-content";
 import { useRouter } from "next/router";
 import ConsultasAtendidas from "./consultas-adicionales/consultas-atendidas";
 
-//* Inicializa SweetAlert2 con React
 const MySwal = withReactContent(Swal);
 
-//* Define las rutas de los sonidos de éxito y error
 const successSound = "/assets/applepay.mp3";
 const errorSound = "/assets/error.mp3";
 
-//! Reproduce un sonido de éxito/error
 const playSound = (isSuccess) => {
   const audio = new Audio(isSuccess ? successSound : errorSound);
   audio.play();
 };
 
-//* Función para calcular la edad en años, meses y días
 const calcularEdad = (fechaNacimiento) => {
   if (!fechaNacimiento)
     return { display: "0 años, 0 meses, 0 días", dbFormat: "0 años y 0 meses" };
 
   try {
-    //* Verifica si la fecha de nacimiento está en el formato `DD/MM/YYYY` o `YYYY-MM-DD`
     let dia, mes, año;
     if (fechaNacimiento.includes("/")) {
       [dia, mes, año] = fechaNacimiento.split(" ")[0].split("/");
@@ -96,7 +91,7 @@ const SignosVitales = () => {
   });
   const [nomina, setNomina] = useState("");
   const [showConsulta, setShowConsulta] = useState(false);
-  const [selectedBeneficiary, setSelectedBeneficiary] = useState(null);
+  const [selectedBeneficiaryIndex, setSelectedBeneficiaryIndex] = useState(-1);
   const [signosVitales, setSignosVitales] = useState({
     ta: "",
     temperatura: "",
@@ -119,105 +114,172 @@ const SignosVitales = () => {
     router.push("/consultas/face-test");
   };
 
+  const validateBeneficiariesOnLoad = (beneficiaryData) => {
+    if (!beneficiaryData || beneficiaryData.length === 0) {
+      return;
+    }
+
+    const fechaActual = new Date();
+    const beneficiariosValidosConIndice = [];
+
+    beneficiaryData.forEach((beneficiario, index) => {
+      if (Number(beneficiario.PARENTESCO) !== 2) {
+        beneficiariosValidosConIndice.push({ beneficiario, index });
+        return;
+      }
+
+      if (beneficiario.F_NACIMIENTO) {
+        const [fechaParte] = beneficiario.F_NACIMIENTO.split(" ");
+        const nacimiento = new Date(fechaParte);
+        const diffMs = fechaActual - nacimiento;
+        const edadAnios = new Date(diffMs).getUTCFullYear() - 1970;
+
+        if (edadAnios <= 15) {
+          beneficiariosValidosConIndice.push({ beneficiario, index });
+          return;
+        }
+
+        if (Number(beneficiario.ESDISCAPACITADO) === 1) {
+          beneficiariosValidosConIndice.push({ beneficiario, index });
+          return;
+        }
+
+        if (Number(beneficiario.ESESTUDIANTE) === 0) {
+          return;
+        }
+
+        if (beneficiario.VIGENCIA_ESTUDIOS) {
+          const vigencia = new Date(beneficiario.VIGENCIA_ESTUDIOS);
+          if (vigencia.getTime() >= fechaActual.getTime()) {
+            beneficiariosValidosConIndice.push({ beneficiario, index });
+          }
+          return;
+        }
+
+        beneficiariosValidosConIndice.push({ beneficiario, index });
+      }
+    });
+
+    if (beneficiariosValidosConIndice.length === 0) {
+      setConsultaSeleccionada("empleado");
+      playSound(false);
+
+      MySwal.fire({
+        icon: "info",
+        title: "<span style='color: #ff9800; font-weight: bold; font-size: 1.5em;'>ℹ️ Redirección automática</span>",
+        html: `<p style='color: #fff; font-size: 1.1em;'>No hay beneficiarios válidos disponibles. Se ha seleccionado automáticamente la consulta para el empleado.</p>`,
+        background: "linear-gradient(145deg, #4a2600, #220f00)",
+        confirmButtonColor: "#ff9800",
+        confirmButtonText: "<span style='color: #000; font-weight: bold;'>Continuar</span>",
+        customClass: {
+          popup: "border border-yellow-600 shadow-[0px_0px_20px_5px_rgba(255,152,0,0.9)] rounded-lg",
+        },
+        timer: 2500,
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
+      return;
+    }
+
+    const primerValido = beneficiariosValidosConIndice[0];
+    setSelectedBeneficiaryIndex(primerValido.index);
+    window.beneficiariosValidos = beneficiariosValidosConIndice;
+  };
+
   const handleBeneficiarySelect = (index) => {
     const selected = beneficiaryData[index];
     const fechaActual = new Date();
 
-    //? 0) Si no es hijo/a (PARENTESCO !== 2), dejar pasar sin más
+    const regresarABeneficiarioValido = () => {
+      if (window.beneficiariosValidos && window.beneficiariosValidos.length > 0) {
+        const primerValido = window.beneficiariosValidos[0];
+        setSelectedBeneficiaryIndex(primerValido.index);
+      }
+    };
+
     if (Number(selected.PARENTESCO) !== 2) {
-      setSelectedBeneficiary(selected);
+      setSelectedBeneficiaryIndex(index);
       return;
     }
 
-    //? 1) Si es hijo/a, calcular edad en años
     if (selected.F_NACIMIENTO) {
-      // Fecha viene como "YYYY-MM-DD HH:MM:SS.sss"
       const [fechaParte] = selected.F_NACIMIENTO.split(" ");
       const nacimiento = new Date(fechaParte);
       const diffMs = fechaActual - nacimiento;
       const edadAnios = new Date(diffMs).getUTCFullYear() - 1970;
 
-      //* 1.a) Si tiene 16 años o menos, dejamos pasar directamente
-      if (edadAnios <= 16) {
-        setSelectedBeneficiary(selected);
+      if (edadAnios <= 15) {
+        setSelectedBeneficiaryIndex(index);
         return;
       }
     }
 
-    //? 2) Para hijos/as mayores de 16 años, aplicar validaciones
-
-    //* 2.a) Discapacitado?
     if (Number(selected.ESDISCAPACITADO) === 1) {
-      //! si falta incapacidad, avisar pero permitir
       if (!selected.URL_INCAP) {
         playSound(false);
         MySwal.fire({
           icon: "info",
-          title:
-            "<span style='color: #00bcd4; font-weight: bold; font-size: 1.5em;'>ℹ️ Falta incapacidad</span>",
+          title: "<span style='color: #00bcd4; font-weight: bold; font-size: 1.5em;'>ℹ️ Falta incapacidad</span>",
           html: `<p style='color: #fff; font-size: 1.1em;'>El beneficiario <strong>${selected.NOMBRE} ${selected.A_PATERNO} ${selected.A_MATERNO}</strong> es discapacitado y aún no ha subido su documento de incapacidad.</p>`,
           background: "linear-gradient(145deg, #004d40, #00251a)",
           confirmButtonColor: "#00bcd4",
-          confirmButtonText:
-            "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
+          confirmButtonText: "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
           customClass: {
-            popup:
-              "border border-cyan-600 shadow-[0px_0px_20px_5px_rgba(0,188,212,0.9)] rounded-lg",
+            popup: "border border-cyan-600 shadow-[0px_0px_20px_5px_rgba(0,188,212,0.9)] rounded-lg",
           },
         });
       }
-      setSelectedBeneficiary(selected);
+      setSelectedBeneficiaryIndex(index);
       return;
     }
 
-    //? 2.b) No es alumno (ESESTUDIANTE === 0) → bloquear
     if (Number(selected.ESESTUDIANTE) === 0) {
       playSound(false);
       MySwal.fire({
         icon: "error",
-        title:
-          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ No es estudiante</span>",
-        html: `<p style='color: #fff; font-size: 1.1em;'>El beneficiario <strong>${selected.NOMBRE} ${selected.A_PATERNO} ${selected.A_MATERNO}</strong> no está registrado como estudiante.</p>`,
+        title: "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Datos incompletos</span>",
+        html: `<p style='color: #fff; font-size: 1.1em;'>El beneficiario <strong>${selected.NOMBRE} ${selected.A_PATERNO} ${selected.A_MATERNO}</strong> no está registrado como estudiante ni como discapacitado.</p>
+             <p style='color: #ffcdd2; font-size: 1em; margin-top: 10px;'>⚠️ Debe completar sus datos en el empadronamiento para tener acceso.</p>`,
         background: "linear-gradient(145deg, #4a0000, #220000)",
         confirmButtonColor: "#ff1744",
-        confirmButtonText:
-          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
+        confirmButtonText: "<span style='color: #fff; font-weight: bold;'>Entendido</span>",
         customClass: {
-          popup:
-            "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
+          popup: "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
         },
+      }).then(() => {
+        regresarABeneficiarioValido();
       });
+
+      regresarABeneficiarioValido();
       return;
     }
 
-    //? 2.c) Es estudiante → validar vigencia de estudios
     if (selected.VIGENCIA_ESTUDIOS) {
       const vigencia = new Date(selected.VIGENCIA_ESTUDIOS);
       if (vigencia.getTime() < fechaActual.getTime()) {
         playSound(false);
         MySwal.fire({
           icon: "warning",
-          title:
-            "<span style='color: #ff9800; font-weight: bold; font-size: 1.5em;'>⚠️ Constancia vencida</span>",
-          html: `<p style='color: #fff; font-size: 1.1em;'>El beneficiario <strong>${selected.NOMBRE} ${selected.A_PATERNO} ${selected.A_MATERNO}</strong> tiene la constancia de estudios vencida.</p>`,
+          title: "<span style='color: #ff9800; font-weight: bold; font-size: 1.5em;'>⚠️ Constancia vencida</span>",
+          html: `<p style='color: #fff; font-size: 1.1em;'>El beneficiario <strong>${selected.NOMBRE} ${selected.A_PATERNO} ${selected.A_MATERNO}</strong> tiene la constancia de estudios vencida. Se ha regresado al beneficiario válido.</p>`,
           background: "linear-gradient(145deg, #4a2600, #220f00)",
           confirmButtonColor: "#ff9800",
-          confirmButtonText:
-            "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
+          confirmButtonText: "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
           customClass: {
-            popup:
-              "border border-yellow-600 shadow-[0px_0px_20px_5px_rgba(255,152,0,0.9)] rounded-lg",
+            popup: "border border-yellow-600 shadow-[0px_0px_20px_5px_rgba(255,152,0,0.9)] rounded-lg",
           },
+        }).then(() => {
+          regresarABeneficiarioValido();
         });
+
+        regresarABeneficiarioValido();
         return;
       }
     }
 
-    //? 3) Todo OK: asignar beneficiario
-    setSelectedBeneficiary(selected);
+    setSelectedBeneficiaryIndex(index);
   };
 
-  //* Función para cargar la lista de espera
   const cargarPacientesDelDia = async () => {
     try {
       const response = await fetch(
@@ -231,13 +293,12 @@ const SignosVitales = () => {
         );
 
         setPacientes((prevPacientes) => {
-          //? Solo actualiza si los datos son diferentes
           if (
             JSON.stringify(prevPacientes) !== JSON.stringify(consultasOrdenadas)
           ) {
             return consultasOrdenadas;
           }
-          return prevPacientes; //! No actualiza si los datos son iguales
+          return prevPacientes;
         });
       }
     } catch (error) {
@@ -263,16 +324,13 @@ const SignosVitales = () => {
       playSound(true);
       MySwal.fire({
         icon: "success",
-        title:
-          "<span style='color: #00e676; font-weight: bold; font-size: 1.5em;'>✔️ Estatus actualizado</span>",
+        title: "<span style='color: #00e676; font-weight: bold; font-size: 1.5em;'>✔️ Estatus actualizado</span>",
         html: "<p style='color: #fff; font-size: 1.1em;'>La consulta fue marcada como atendida.</p>",
         background: "linear-gradient(145deg, #004d40, #00251a)",
         confirmButtonColor: "#00e676",
-        confirmButtonText:
-          "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
+        confirmButtonText: "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
         customClass: {
-          popup:
-            "border border-green-600 shadow-[0px_0px_20px_5px_rgba(0,230,118,0.9)] rounded-lg",
+          popup: "border border-green-600 shadow-[0px_0px_20px_5px_rgba(0,230,118,0.9)] rounded-lg",
         },
       });
     } catch (error) {
@@ -280,42 +338,36 @@ const SignosVitales = () => {
       playSound(false);
       MySwal.fire({
         icon: "error",
-        title:
-          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error al actualizar el estatus</span>",
+        title: "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error al actualizar el estatus</span>",
         html: "<p style='color: #fff; font-size: 1.1em;'>No se pudo actualizar el estatus de la consulta. Intenta nuevamente.</p>",
         background: "linear-gradient(145deg, #4a0000, #220000)",
         confirmButtonColor: "#ff1744",
-        confirmButtonText:
-          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
+        confirmButtonText: "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
         customClass: {
-          popup:
-            "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
+          popup: "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
         },
       });
     }
   };
 
   const handleSave = async () => {
-    if (isSaving) return; //! Evitar múltiples ejecuciones si ya está en curso
-    setIsSaving(true); //* Activar el estado de guardando
+    if (isSaving) return;
+    setIsSaving(true);
 
     if (!nomina) {
       playSound(false);
       MySwal.fire({
         icon: "error",
-        title:
-          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>⚠️ Número de nómina requerido</span>",
+        title: "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>⚠️ Número de nómina requerido</span>",
         html: "<p style='color: #fff; font-size: 1.1em;'>Por favor, ingresa el número de nómina antes de guardar.</p>",
         background: "linear-gradient(145deg, #4a0000, #220000)",
         confirmButtonColor: "#ff1744",
-        confirmButtonText:
-          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
+        confirmButtonText: "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
         customClass: {
-          popup:
-            "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
+          popup: "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
         },
       });
-      setIsSaving(false); //! Desactivar el estado de guardando si falla
+      setIsSaving(false);
       return;
     }
 
@@ -327,6 +379,10 @@ const SignosVitales = () => {
     ).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}:${String(
       now.getSeconds()
     ).padStart(2, "0")}`;
+
+    const selectedBeneficiary = selectedBeneficiaryIndex >= 0 
+      ? beneficiaryData[selectedBeneficiaryIndex] 
+      : null;
 
     const consultaData = {
       fechaconsulta: fechaConsulta,
@@ -364,7 +420,7 @@ const SignosVitales = () => {
             ? "SITAM"
             : null
           : null,
-      clavestatus: 1, //* Inicialmente en espera
+      clavestatus: 1,
     };
 
     try {
@@ -382,16 +438,13 @@ const SignosVitales = () => {
         playSound(true);
         MySwal.fire({
           icon: "success",
-          title:
-            "<span style='color: #00e676; font-weight: bold; font-size: 1.5em;'>✔️ Consulta guardada correctamente</span>",
+          title: "<span style='color: #00e676; font-weight: bold; font-size: 1.5em;'>✔️ Consulta guardada correctamente</span>",
           html: "<p style='color: #fff; font-size: 1.1em;'>La consulta ha sido registrada y atendida exitosamente.</p>",
           background: "linear-gradient(145deg, #004d40, #00251a)",
           confirmButtonColor: "#00e676",
-          confirmButtonText:
-            "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
+          confirmButtonText: "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
           customClass: {
-            popup:
-              "border border-green-600 shadow-[0px_0px_20px_5px_rgba(0,230,118,0.9)] rounded-lg",
+            popup: "border border-green-600 shadow-[0px_0px_20px_5px_rgba(0,230,118,0.9)] rounded-lg",
           },
         });
 
@@ -405,20 +458,17 @@ const SignosVitales = () => {
       playSound(false);
       MySwal.fire({
         icon: "error",
-        title:
-          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error al guardar la consulta</span>",
+        title: "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error al guardar la consulta</span>",
         html: "<p style='color: #fff; font-size: 1.1em;'>Hubo un problema al intentar guardar la consulta. Por favor, intenta nuevamente.</p>",
         background: "linear-gradient(145deg, #4a0000, #220000)",
         confirmButtonColor: "#ff1744",
-        confirmButtonText:
-          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
+        confirmButtonText: "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
         customClass: {
-          popup:
-            "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
+          popup: "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
         },
       });
     } finally {
-      setIsSaving(false); //* Finalizar el estado de guardando
+      setIsSaving(false);
     }
   };
 
@@ -445,7 +495,7 @@ const SignosVitales = () => {
     setNomina("");
     setEmpleadoEncontrado(false);
     setBeneficiaryData([]);
-    setSelectedBeneficiary(null);
+    setSelectedBeneficiaryIndex(-1);
   };
 
   const handleRadioChange = (value) => {
@@ -454,7 +504,7 @@ const SignosVitales = () => {
       handleSearchBeneficiary();
     } else {
       setBeneficiaryData([]);
-      setSelectedBeneficiary(null);
+      setSelectedBeneficiaryIndex(-1);
     }
   };
 
@@ -462,7 +512,6 @@ const SignosVitales = () => {
     setShowConsulta(false);
   };
 
-  //* Calcula y asigna la edad cuando obtienes los datos del empleado o beneficiario
   const handleSearch = async () => {
     try {
       const response = await fetch("/api/empleado", {
@@ -484,21 +533,18 @@ const SignosVitales = () => {
         playSound(false);
         MySwal.fire({
           icon: "error",
-          title:
-            "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>⚠️ Nómina no encontrada</span>",
+          title: "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>⚠️ Nómina no encontrada</span>",
           html: "<p style='color: #fff; font-size: 1.1em;'>El número de nómina ingresado no existe o no se encuentra en el sistema. Intenta nuevamente.</p>",
           background: "linear-gradient(145deg, #4a0000, #220000)",
           confirmButtonColor: "#ff1744",
-          confirmButtonText:
-            "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
+          confirmButtonText: "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
           customClass: {
-            popup:
-              "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
+            popup: "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
           },
         });
 
         setEmpleadoEncontrado(false);
-        setShowConsulta(false); //! Cierra la ventana emergente si no se encuentra el empleado
+        setShowConsulta(false);
         return;
       }
 
@@ -525,20 +571,17 @@ const SignosVitales = () => {
       playSound(false);
       MySwal.fire({
         icon: "error",
-        title:
-          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error al buscar la nómina</span>",
+        title: "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error al buscar la nómina</span>",
         html: "<p style='color: #fff; font-size: 1.1em;'>Hubo un problema al buscar la nómina. Intenta nuevamente.</p>",
         background: "linear-gradient(145deg, #4a0000, #220000)",
         confirmButtonColor: "#ff1744",
-        confirmButtonText:
-          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
+        confirmButtonText: "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
         customClass: {
-          popup:
-            "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
+          popup: "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
         },
       });
       setEmpleadoEncontrado(false);
-      setShowConsulta(false); //! Cierra la ventana emergente en caso de error de red
+      setShowConsulta(false);
     }
   };
 
@@ -555,97 +598,21 @@ const SignosVitales = () => {
       const data = await response.json();
 
       if (data.beneficiarios && data.beneficiarios.length > 0) {
-        //? 1) Guardar la lista completa (incluye inválidos) en estado
         setBeneficiaryData(data.beneficiarios);
-
-        //? 2) Encontrar el índice del primer beneficiario válido
-        const ahora = new Date();
-        let indiceValido = null;
-        for (let i = 0; i < data.beneficiarios.length; i++) {
-          const b = data.beneficiarios[i];
-
-          //* Validación de hijo/a
-          if (Number(b.PARENTESCO) !== 2) {
-            indiceValido = i;
-            break;
-          }
-
-          if (b.F_NACIMIENTO) {
-            const [fechaParte] = b.F_NACIMIENTO.split(" ");
-            const nacimiento = new Date(fechaParte);
-            const diffMs = ahora - nacimiento;
-            const edadAnios = new Date(diffMs).getUTCFullYear() - 1970;
-
-            if (edadAnios <= 16) {
-              indiceValido = i;
-              break;
-            }
-          }
-
-          if (Number(b.ESDISCAPACITADO) === 1) {
-            indiceValido = i;
-            break;
-          }
-
-          if (Number(b.ESESTUDIANTE) === 0) {
-            continue; //! inválido, chequear siguiente
-          }
-
-          if (b.VIGENCIA_ESTUDIOS) {
-            const vigencia = new Date(b.VIGENCIA_ESTUDIOS);
-            if (vigencia.getTime() >= ahora.getTime()) {
-              indiceValido = i;
-              break;
-            } else {
-              continue;
-            }
-          } else {
-            continue;
-          }
-        }
-
-        if (indiceValido !== null) {
-          //? 3) Seleccionar automáticamente el primer válido
-          setSelectedBeneficiary(data.beneficiarios[indiceValido]);
-          //* Ajustar el <select> para que muestre ese índice
-          const selectElem = document.querySelector("select");
-          if (selectElem) selectElem.value = indiceValido;
-        } else {
-          //! Ningún válido, no marcamos ninguno pero dejamos la lista visible
-          setSelectedBeneficiary(null);
-          playSound(false);
-          MySwal.fire({
-            icon: "info",
-            title:
-              "<span style='color: #00bcd4; font-weight: bold; font-size: 1.5em;'>ℹ️ Sin beneficiarios válidos</span>",
-            html: `<p style='color: #fff; font-size: 1.1em;'>Ningún beneficiario cumple con los requisitos o tiene constancia vigente.</p>`,
-            background: "linear-gradient(145deg, #004d40, #00251a)",
-            confirmButtonColor: "#00bcd4",
-            confirmButtonText:
-              "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
-            customClass: {
-              popup:
-                "border border-cyan-600 shadow-[0px_0px_20px_5px_rgba(0,188,212,0.9)] rounded-lg",
-            },
-          });
-        }
+        validateBeneficiariesOnLoad(data.beneficiarios);
       } else {
-        //! No hay beneficiarios en absoluto
         setBeneficiaryData([]);
         setConsultaSeleccionada("empleado");
         playSound(false);
         MySwal.fire({
           icon: "info",
-          title:
-            "<span style='color: #00bcd4; font-weight: bold; font-size: 1.5em;'>ℹ️ Sin beneficiarios</span>",
+          title: "<span style='color: #00bcd4; font-weight: bold; font-size: 1.5em;'>ℹ️ Sin beneficiarios</span>",
           html: `<p style='color: #fff; font-size: 1.1em;'>Este empleado no tiene beneficiarios registrados en el sistema.</p>`,
           background: "linear-gradient(145deg, #004d40, #00251a)",
           confirmButtonColor: "#00bcd4",
-          confirmButtonText:
-            "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
+          confirmButtonText: "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
           customClass: {
-            popup:
-              "border border-blue-600 shadow-[0px_0px_20px_5px_rgba(0,188,212,0.9)] rounded-lg",
+            popup: "border border-blue-600 shadow-[0px_0px_20px_5px_rgba(0,188,212,0.9)] rounded-lg",
           },
         });
       }
@@ -671,6 +638,12 @@ const SignosVitales = () => {
     setUsername(user);
   }, []);
 
+  useEffect(() => {
+    if (consultaSeleccionada === "beneficiario") {
+      validateBeneficiariesOnLoad(beneficiaryData);
+    }
+  }, [beneficiaryData]);
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-900 to-black text-white">
       <header className="relative">
@@ -692,7 +665,6 @@ const SignosVitales = () => {
         </div>
       </header>
 
-      {/* Encabezado con botón "Regresar" */}
       <header className="px-4 py-4 md:px-12 flex items-center">
         <Link href="/inicio-servicio-medico">
           <button className="flex items-center px-4 py-2 bg-gradient-to-r from-[#00ffee] to-[#ec0dea] hover:from-[#00d9c1] hover:to-[#e600b8] rounded-full text-white font-semibold shadow-lg shadow-teal-500/50 transition-all duration-300 transform hover:scale-105 hover:rotate-1 active:scale-95 focus:outline-none focus:ring-2 focus:ring-teal-400">
@@ -715,7 +687,6 @@ const SignosVitales = () => {
         </Link>
       </header>
 
-      {/* Contenido Principal */}
       <main className="px-4 py-8 md:px-12 flex flex-col items-center">
         <div className="flex flex-col items-center">
           <Image
@@ -730,9 +701,7 @@ const SignosVitales = () => {
           </h1>
         </div>
 
-        {/* Botones de acción */}
         <div className="mt-8 flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-6">
-          {/* Agregar Paciente Por Nómina */}
           <button
             onClick={handleAdd}
             className="flex items-center justify-center px-6 py-3 md:px-8 md:py-4 rounded-full text-white font-bold text-sm md:text-lg uppercase bg-gradient-to-r from-[#6b00ff] via-[#b400ff] to-[#ff00ff] shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:outline-none"
@@ -753,7 +722,6 @@ const SignosVitales = () => {
             Agregar Paciente Por Nómina
           </button>
 
-          {/* Agregar Paciente Por Escaneo Facial */}
           <button
             onClick={handleFaceRecognition}
             className="flex items-center justify-center px-6 py-3 md:px-8 md:py-4 rounded-full text-white font-bold text-sm md:text-lg uppercase bg-gradient-to-r from-[#00ff87] via-[#00d4ff] to-[#0095ff] shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:outline-none"
@@ -777,7 +745,6 @@ const SignosVitales = () => {
       </main>
 
       <div className="w-full space-y-8">
-        {/* Tabla de registros */}
         <div className="w-full overflow-x-auto p-6 bg-gradient-to-b from-gray-900 to-gray-800 rounded-xl shadow-lg mb-8">
           <h1 className="text-3xl font-bold mb-6 text-center text-yellow-300 tracking-wide">
             Pacientes en Lista de Espera
@@ -823,13 +790,11 @@ const SignosVitales = () => {
           </table>
         </div>
 
-        {/* Renderizar cada tabla de estado específico con el mismo ancho y espaciado */}
         <div className="w-full overflow-x-auto p-6 bg-gradient-to-b from-gray-900 to-gray-800 rounded-xl shadow-lg mb-8">
           <ConsultasAtendidas data={consultasAtendidas} />
         </div>
       </div>
 
-      {/* Modal para agregar signos vitales */}
       {showConsulta && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div
@@ -849,11 +814,10 @@ const SignosVitales = () => {
               Fecha: {new Date().toLocaleDateString()}
             </p>
 
-            {/* Campo de Número de Nómina */}
             <input
               type="text"
               value={nomina}
-              onChange={(e) => setNomina(e.target.value.toUpperCase())} //* Convierte a mayúsculas
+              onChange={(e) => setNomina(e.target.value.toUpperCase())}
               placeholder="Número de Nómina"
               className="mt-2 mb-4 p-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:border-blue-400 transition duration-200 w-full"
             />
@@ -865,12 +829,10 @@ const SignosVitales = () => {
               Buscar
             </button>
 
-            {/* Contenido deshabilitado hasta que se encuentre el empleado */}
             <fieldset
               disabled={!empleadoEncontrado}
               className={!empleadoEncontrado ? "opacity-50" : ""}
             >
-              {/* Sección para seleccionar Empleado o Beneficiario */}
               <fieldset
                 disabled={!empleadoEncontrado}
                 className={
@@ -950,7 +912,8 @@ const SignosVitales = () => {
                       Seleccionar Beneficiario:
                     </label>
                     <select
-                      onChange={(e) => handleBeneficiarySelect(e.target.value)}
+                      value={selectedBeneficiaryIndex}
+                      onChange={(e) => handleBeneficiarySelect(parseInt(e.target.value))}
                       className="bg-gray-700 p-2 rounded-md text-white w-full"
                     >
                       {beneficiaryData.map((beneficiary, index) => (
@@ -963,12 +926,11 @@ const SignosVitales = () => {
                 )}
 
               <div className="flex flex-col md:flex-row md:items-start mt-6 bg-gray-900 p-6 rounded-3xl shadow-2xl border border-teal-500">
-                {/* 📸 Imagen del Paciente */}
                 <div className="relative">
                   {consultaSeleccionada === "beneficiario" &&
-                  selectedBeneficiary ? (
+                  selectedBeneficiaryIndex >= 0 ? (
                     <Image
-                      src={selectedBeneficiary.FOTO_URL || "/user_icon_.png"}
+                      src={beneficiaryData[selectedBeneficiaryIndex].FOTO_URL || "/user_icon_.png"}
                       alt="Foto del Beneficiario"
                       width={120}
                       height={120}
@@ -998,7 +960,6 @@ const SignosVitales = () => {
                   </div>
                 </div>
 
-                {/* 🏥 Información del Paciente */}
                 <div className="flex-1 ml-6">
                   <div className="mb-4">
                     <p className="text-xl md:text-2xl font-semibold text-teal-300 flex items-center">
@@ -1006,25 +967,23 @@ const SignosVitales = () => {
                       Paciente:{" "}
                       <span className="font-normal text-white ml-2">
                         {consultaSeleccionada === "beneficiario" &&
-                        selectedBeneficiary
-                          ? `${selectedBeneficiary.NOMBRE} ${selectedBeneficiary.A_PATERNO} ${selectedBeneficiary.A_MATERNO}`
+                        selectedBeneficiaryIndex >= 0
+                          ? `${beneficiaryData[selectedBeneficiaryIndex].NOMBRE} ${beneficiaryData[selectedBeneficiaryIndex].A_PATERNO} ${beneficiaryData[selectedBeneficiaryIndex].A_MATERNO}`
                           : patientData.name || ""}
                       </span>
                     </p>
 
-                    {/* 🎂 Edad */}
                     <p className="text-lg text-gray-300 flex items-center mt-2">
                       <FaBirthdayCake className="mr-3 text-yellow-400 text-xl" />
                       Edad:{" "}
                       <span className="font-normal text-white ml-2">
                         {consultaSeleccionada === "beneficiario" &&
-                        selectedBeneficiary
-                          ? selectedBeneficiary.EDAD
+                        selectedBeneficiaryIndex >= 0
+                          ? beneficiaryData[selectedBeneficiaryIndex].EDAD
                           : patientData.age || ""}
                       </span>
                     </p>
 
-                    {/* 🆔 Puesto y Departamento */}
                     {consultaSeleccionada === "empleado" && (
                       <>
                         <p className="text-lg text-gray-300 flex items-center mt-2">
@@ -1044,21 +1003,19 @@ const SignosVitales = () => {
                       </>
                     )}
 
-                    {/* 👨‍👩‍👧 Parentesco */}
                     {consultaSeleccionada === "beneficiario" &&
-                      selectedBeneficiary && (
+                      selectedBeneficiaryIndex >= 0 && (
                         <p className="text-lg text-gray-300 flex items-center mt-2">
                           <FaUsers className="mr-3 text-pink-400 text-xl" />
                           Parentesco:{" "}
                           <span className="font-normal text-white ml-2">
-                            {selectedBeneficiary.PARENTESCO_DESC || ""}
+                            {beneficiaryData[selectedBeneficiaryIndex].PARENTESCO_DESC || ""}
                           </span>
                         </p>
                       )}
                   </div>
                 </div>
 
-                {/* 🔥 Sección de Sindicato */}
                 {patientData.grupoNomina === "NS" && (
                   <div className="md:ml-auto mt-4 md:mt-0 p-6 bg-gradient-to-br from-gray-800 to-gray-700 rounded-3xl shadow-lg border border-yellow-500">
                     <p className="text-xl font-bold text-yellow-400 flex items-center justify-center">
@@ -1084,7 +1041,6 @@ const SignosVitales = () => {
                 </h3>
 
                 <form className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* T/A */}
                   <label className="flex items-center bg-gray-800 p-4 rounded-xl shadow-lg border border-gray-700 hover:border-teal-400 transition-all duration-300">
                     <FaHeartbeat className="text-red-400 text-3xl mr-4" />
                     <div className="flex-1">
@@ -1102,7 +1058,6 @@ const SignosVitales = () => {
                     </div>
                   </label>
 
-                  {/* Temperatura */}
                   <label className="flex items-center bg-gray-800 p-4 rounded-xl shadow-lg border border-gray-700 hover:border-teal-400 transition-all duration-300">
                     <FaTemperatureHigh className="text-yellow-400 text-3xl mr-4" />
                     <div className="flex-1">
@@ -1120,7 +1075,6 @@ const SignosVitales = () => {
                     </div>
                   </label>
 
-                  {/* FC */}
                   <label className="flex items-center bg-gray-800 p-4 rounded-xl shadow-lg border border-gray-700 hover:border-teal-400 transition-all duration-300">
                     <FaHeartbeat className="text-red-500 text-3xl mr-4" />
                     <div className="flex-1">
@@ -1138,7 +1092,6 @@ const SignosVitales = () => {
                     </div>
                   </label>
 
-                  {/* Oxigenación */}
                   <label className="flex items-center bg-gray-800 p-4 rounded-xl shadow-lg border border-gray-700 hover:border-teal-400 transition-all duration-300">
                     <FaTint className="text-blue-400 text-3xl mr-4" />
                     <div className="flex-1">
@@ -1156,7 +1109,6 @@ const SignosVitales = () => {
                     </div>
                   </label>
 
-                  {/* Altura */}
                   <label className="flex items-center bg-gray-800 p-4 rounded-xl shadow-lg border border-gray-700 hover:border-teal-400 transition-all duration-300">
                     <FaRuler className="text-green-400 text-3xl mr-4" />
                     <div className="flex-1">
@@ -1174,7 +1126,6 @@ const SignosVitales = () => {
                     </div>
                   </label>
 
-                  {/* Peso */}
                   <label className="flex items-center bg-gray-800 p-4 rounded-xl shadow-lg border border-gray-700 hover:border-teal-400 transition-all duration-300">
                     <FaWeight className="text-orange-400 text-3xl mr-4" />
                     <div className="flex-1">
@@ -1192,7 +1143,6 @@ const SignosVitales = () => {
                     </div>
                   </label>
 
-                  {/* Glucosa */}
                   <label className="flex items-center bg-gray-800 p-4 rounded-xl shadow-lg border border-gray-700 hover:border-teal-400 transition-all duration-300">
                     <FaNotesMedical className="text-purple-400 text-3xl mr-4" />
                     <div className="flex-1">
@@ -1211,11 +1161,10 @@ const SignosVitales = () => {
                   </label>
                 </form>
 
-                {/* Botón de Guardar */}
                 <div className="mt-8 flex justify-center">
                   <button
                     onClick={handleSave}
-                    disabled={isSaving} //* Solo se deshabilita mientras se está guardando
+                    disabled={isSaving}
                     className={`relative px-8 py-4 text-lg font-bold uppercase rounded-lg 
       bg-gray-900 border border-transparent 
       shadow-[0_0_20px_4px_rgba(255,255,0,0.7)] hover:shadow-[0_0_40px_8px_rgba(255,255,0,0.9)] 

@@ -1,11 +1,21 @@
 //? -----------------------------------------------------------------------------
 //? Genera un Excel con formato profesional usando la paleta Regal Blue
-//? (shades 50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950).
-//? Instalación previa:  npm i exceljs file-saver
 //? -----------------------------------------------------------------------------
 
-import ExcelJS from 'exceljs';
-import { saveAs } from 'file-saver';
+import ExcelJS from "exceljs";
+import { saveAs } from "file-saver";
+
+//? Paleta de colores Regal Blue
+const COLORS = {
+  DARK_900: "0B3B60",
+  DARK_800: "085184",
+  MEDIUM_700: "045EA0",
+  MEDIUM_600: "0377C6",
+  LIGHT_500: "0F96E8",
+  LIGHT_200: "BAE1FD",
+  LIGHT_50: "F0F8FF",
+  FILTER_BG: "E3F2FD",
+};
 
 /* -------------------------------------------------- */
 //*  🛠️  Utilidades                                     */
@@ -17,281 +27,479 @@ import { saveAs } from 'file-saver';
  * Si el patrón no coincide devuelve "N/A".
  */
 const calcEdad = (fechaStr) => {
-  if (!fechaStr) return 'N/A';
-  const m = fechaStr.match(/,\s*(\d{2})\/(\d{2})\/(\d{4})/); //* captura DD/MM/YYYY
-  if (!m) return 'N/A';
-  const [, dd, mm, yyyy] = m;
-  const date = new Date(+yyyy, +mm - 1, +dd);
-  if (isNaN(date)) return 'N/A';
-  return Math.floor((Date.now() - date.getTime()) / (365.25 * 24 * 3600 * 1000));
+  if (!fechaStr) return "N/A";
+
+  //* Intentar diferentes formatos de fecha
+  try {
+    //? Formato 1: "DíaSemana, DD/MM/YYYY, hh:mm a. m."
+    let match = fechaStr.match(/,\s*(\d{2})\/(\d{2})\/(\d{4})/);
+
+    //? Formato 2: ISO 8601
+    if (!match) {
+      const isoDate = new Date(fechaStr);
+      if (!isNaN(isoDate)) {
+        return Math.floor(
+          (Date.now() - isoDate.getTime()) / (365.25 * 24 * 3600 * 1000)
+        );
+      }
+    }
+
+    //? Formato 1 encontrado
+    if (match) {
+      const [, dd, mm, yyyy] = match;
+      const date = new Date(+yyyy, +mm - 1, +dd);
+      if (isNaN(date)) return "N/A";
+      return Math.floor(
+        (Date.now() - date.getTime()) / (365.25 * 24 * 3600 * 1000)
+      );
+    }
+
+    return "N/A";
+  } catch {
+    return "N/A";
+  }
 };
 
 /*
  * Devuelve un objeto ExcelJS.Border con borde fino y color negro.
  */
 const thinBorder = {
-  top:    { style: 'thin' },
-  bottom: { style: 'thin' },
-  left:   { style: 'thin' },
-  right:  { style: 'thin' }
+  top: { style: "thin" },
+  bottom: { style: "thin" },
+  left: { style: "thin" },
+  right: { style: "thin" },
+};
+
+/*
+ * Función para aplicar estilos a una celda
+ */
+const applyCellStyle = (
+  cell,
+  bgColor,
+  textColor = "000000",
+  bold = false,
+  horizontal = "left"
+) => {
+  cell.font = {
+    bold,
+    color: { argb: textColor },
+    name: "Arial",
+    size: textColor === "FFFFFF" ? 12 : 11,
+  };
+
+  if (bgColor) {
+    cell.fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: bgColor },
+    };
+  }
+
+  cell.border = thinBorder;
+  cell.alignment = {
+    vertical: "middle",
+    wrapText: true,
+    horizontal: horizontal,
+  };
 };
 
 /* -------------------------------------------------- */
 //?  📄  Hoja principal                                 */
 /* -------------------------------------------------- */
 
-const buildMainSheet = (normalized, wb) => {
-  // Crear hoja “Beneficiarios” y asignar el color de pestaña 900 (#0B3B60)
-  const ws = wb.addWorksheet('Beneficiarios', {
-    pageSetup: { fitToWidth: 1 },
-    properties: { tabColor: { argb: '0B3B60' } } // Regal Blue 900
+const buildMainSheet = (filteredData, wb, filters) => {
+  const ws = wb.addWorksheet("Beneficiarios", {
+    pageSetup: {
+      fitToWidth: 1,
+      orientation: "landscape",
+    },
+    properties: { tabColor: { argb: COLORS.DARK_900 } },
   });
 
-  //? ---------- Título y fecha ---------- */
-  ws.mergeCells('A1:G1');
-  ws.mergeCells('A2:G2');
+  //? Título principal
+  ws.mergeCells("A1:H1");
+  const titleCell = ws.getCell("A1");
+  titleCell.value = "Reporte de Beneficiarios";
+  applyCellStyle(titleCell, COLORS.DARK_900, "FFFFFF", true, "center");
+  titleCell.font.size = 16;
 
-  //? Título principal (fondo Regal Blue 900)
-  const titleCell = ws.getCell('A1');
-  titleCell.value = 'Reporte de Beneficiarios';
-  titleCell.font  = { bold: true, size: 16, color: { argb: 'FFFFFF' } };
-  titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
-  titleCell.fill = {
-    type: 'pattern',
-    pattern: 'solid',
-    fgColor: { argb: '0B3B60' } 
-  };
+  //? Fecha generación
+  ws.mergeCells("A2:H2");
+  const dateCell = ws.getCell("A2");
+  dateCell.value = `Generado el ${new Date().toLocaleDateString("es-MX", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  })}`;
+  applyCellStyle(dateCell, COLORS.DARK_900, "FFFFFF", true, "center");
 
-  //? Fecha generación (fondo Regal Blue 900, texto blanco)
-  const dateCell = ws.getCell('A2');
-  dateCell.value = `Generado el ${new Date().toLocaleDateString()}`;
-  dateCell.font  = { bold: true, size: 12, color: { argb: 'FFFFFF' } };
-  dateCell.alignment = { horizontal: 'center', vertical: 'middle' };
-  dateCell.fill = {
-    type: 'pattern',
-    pattern: 'solid',
-    fgColor: { argb: '0B3B60' } 
-  };
+  //? Filtros aplicados
+  const filterValues = [
+    `Búsqueda: ${filters.searchTerm || "Ninguna"}`,
+    `Departamento: ${filters.deptFilter || "Todos"}`,
+    `Sindicato: ${filters.sindFilter || "Todos"}`,
+    `Tipo: ${filters.beneficiaryTypeFilter || "Todos"}`,
+  ];
 
-  ws.addRow([]); 
-
-  //* ---------- Encabezado “Empleado / Beneficiarios” ---------- */
-  //? Fondo Regal Blue 700 (#045EA0), texto blanco
-  const sectionRow = ws.addRow(['Empleado', '', '', '', 'Beneficiarios', '', '']);
-  sectionRow.eachCell((c) => {
-    c.font = { bold: true, color: { argb: 'FFFFFF' }, size: 12 };
-    c.fill = {
-      type: 'pattern',
-      pattern: 'solid',
-      fgColor: { argb: '045EA0' } 
-    };
-    c.alignment = { horizontal: 'center', vertical: 'middle' };
-    c.border = thinBorder;
+  ws.addRow(filterValues);
+  const filterRow = ws.getRow(3);
+  filterRow.eachCell((cell, colNumber) => {
+    if (colNumber <= filterValues.length) {
+      applyCellStyle(cell, COLORS.FILTER_BG, "000000", true, "center");
+    }
   });
+  ws.mergeCells("A3:H3");
 
-  //* ---------- Encabezados de columnas ---------- */
-  //? Fondo Regal Blue 600 (#0377C6), texto blanco
-  const headerRow = ws.addRow([
-    'Nómina', 'Nombre', 'Departamento', 'Puesto',
-    'Nombre Completo', 'Parentesco', 'Edad'
+  ws.addRow([]);
+
+  //? Encabezado "Empleado / Beneficiarios"
+  const sectionRow = ws.addRow([
+    "Empleado",
+    "",
+    "",
+    "",
+    "Beneficiarios",
+    "",
+    "",
+    "",
   ]);
-  headerRow.eachCell((c) => {
-    c.font = { bold: true, color: { argb: 'FFFFFF' } };
-    c.fill = {
-      type: 'pattern',
-      pattern: 'solid',
-      fgColor: { argb: '0377C6' } 
-    };
-    c.alignment = { horizontal: 'center', vertical: 'middle' };
-    c.border = thinBorder;
+  sectionRow.eachCell((cell) => {
+    applyCellStyle(cell, COLORS.MEDIUM_700, "FFFFFF", true, "center");
   });
 
-  //* Congelar la parte superior (hasta fila 5) */
-  ws.views = [{ state: 'frozen', ySplit: 5 }];
+  //? Encabezados de columnas
+  const headerRow = ws.addRow([
+    "Nómina",
+    "Nombre",
+    "Departamento",
+    "Puesto",
+    "Sindicato",
+    "Nombre Completo",
+    "Parentesco",
+    "Edad",
+  ]);
 
-  //? ---------- Datos ---------- */
-  normalized.forEach((emp) => {
+  headerRow.eachCell((cell) => {
+    applyCellStyle(cell, COLORS.MEDIUM_600, "FFFFFF", true, "center");
+  });
+
+  //? Congelar encabezados
+  ws.views = [{ state: "frozen", ySplit: 5 }];
+
+  //? Datos filtrados
+  let rowCounter = 0;
+
+  filteredData.forEach((emp) => {
+    rowCounter++;
     const startRow = ws.rowCount + 1;
 
-    //? --- Fila del empleado ---
-    //? Fondo Regal Blue 200 (#BAE1FD), texto negro
+    //* Fila del empleado
     const empRow = ws.addRow([
       emp.no_nomina,
       emp.empName,
       emp.departamento,
       emp.puesto,
-      '', '', ''
+      emp.sindicato || "N/A",
+      "",
+      "",
+      "",
     ]);
-    empRow.eachCell((c) => {
-      c.font = { bold: true, color: { argb: '000000' } };
-      c.fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: 'BAE1FD' } 
-      };
-      c.border = thinBorder;
-      c.alignment = { vertical: 'middle', wrapText: true };
+
+    empRow.eachCell((cell) => {
+      applyCellStyle(cell, COLORS.LIGHT_200, "000000", true);
     });
 
-    //? --- Beneficiarios ---
-    emp.beneficiarios.forEach((b) => {
-      const edad = calcEdad(b.F_NACIMIENTO);
+    //* Beneficiarios
+    if (emp.beneficiarios && emp.beneficiarios.length > 0) {
+      emp.beneficiarios.forEach((b) => {
+        const edad = calcEdad(b.F_NACIMIENTO);
+        const benRow = ws.addRow([
+          "",
+          "",
+          "",
+          "",
+          "",
+          `${b.NOMBRE} ${b.A_PATERNO} ${b.A_MATERNO}`,
+          b.PARENTESCO_DESCRIPCION,
+          isNaN(edad) ? "N/A" : edad,
+        ]);
 
-      //? Fondo Regal Blue 50 (#F0F8FF), texto negro
-      const benRow = ws.addRow([
-        '', '', '', '',
-        `${b.NOMBRE} ${b.A_PATERNO} ${b.A_MATERNO}`,
-        b.PARENTESCO_DESCRIPCION,
-        edad
-      ]);
-      benRow.eachCell((c) => {
-        c.font = { color: { argb: '000000' } };
-        c.fill = {
-          type: 'pattern',
-          pattern: 'solid',
-          fgColor: { argb: 'F0F8FF' } // 50
-        };
-        c.border = thinBorder;
-        c.alignment = { vertical: 'middle', wrapText: true };
+        benRow.eachCell((cell, colNumber) => {
+          if (colNumber >= 6) {
+            //! Solo aplicar estilo a las celdas de beneficiario
+            applyCellStyle(cell, COLORS.LIGHT_50);
+          }
+        });
       });
-    });
+    } else {
+      //! Si no hay beneficiarios
+      const emptyRow = ws.addRow([
+        "",
+        "",
+        "",
+        "",
+        "",
+        "Sin beneficiarios",
+        "",
+        "",
+      ]);
+      emptyRow.eachCell((cell) => {
+        applyCellStyle(cell, COLORS.LIGHT_50);
+      });
+    }
 
-    //? Combinar columnas A–D en el bloque del empleado (vertical)
+    //* Combinar celdas del empleado
     const endRow = ws.rowCount;
-    ['A', 'B', 'C', 'D'].forEach((col) => {
+    ["A", "B", "C", "D", "E"].forEach((col) => {
       ws.mergeCells(`${col}${startRow}:${col}${endRow}`);
     });
 
-    ws.addRow([]); 
+    ws.addRow([]);
   });
 
-  //* ---------- Anchos de columnas ---------- */
+  //* Anchos de columnas
   ws.columns = [
-    { width: 10 },  //! A: Nómina
-    { width: 30 },  //! B: Nombre
-    { width: 25 },  //! C: Departamento
-    { width: 25 },  //! D: Puesto
-    { width: 35 },  //! E: Beneficiario
-    { width: 15 },  //! F: Parentesco
-    { width: 8 }    //! G: Edad
+    { width: 12 }, //? Nómina
+    { width: 32 }, //? Nombre
+    { width: 22 }, //? Departamento
+    { width: 22 }, //? Puesto
+    { width: 15 }, //? Sindicato
+    { width: 35 }, //? Beneficiario
+    { width: 18 }, //? Parentesco
+    { width: 8 }, //? Edad
   ];
 
-  //* Agregar filtros automáticos en la fila de encabezados (fila 5) */
-  ws.autoFilter = { from: 'A5', to: 'G5' };
+  //* Filtros automáticos
+  ws.autoFilter = {
+    from: {
+      row: 5,
+      column: 1,
+    },
+    to: {
+      row: 5,
+      column: 8,
+    },
+  };
+
+  //* Total de registros en el pie
+  const totalRow = ws.addRow([`Total empleados: ${rowCounter}`]);
+  totalRow.eachCell((cell) => {
+    applyCellStyle(cell, COLORS.DARK_800, "FFFFFF", true, "center");
+  });
+  ws.mergeCells(`A${ws.rowCount}:H${ws.rowCount}`);
 };
 
 /* -------------------------------------------------- */
 //?  📊  Hoja Resumen                                   */
 /* -------------------------------------------------- */
 
-const buildSummarySheet = (stats, wb) => {
-  //* Crear hoja “Resumen” y color de pestaña Regal Blue 800 (#085184)
-  const ws = wb.addWorksheet('Resumen', {
-    properties: { tabColor: { argb: '085184' } }
+const buildSummarySheet = (stats, wb, filters) => {
+  const ws = wb.addWorksheet("Resumen", {
+    properties: { tabColor: { argb: COLORS.DARK_800 } },
   });
 
-  //* Título de resumen (merge A1:D1), fondo Regal Blue 900 (#0B3B60)
-  ws.mergeCells('A1:D1');
-  const title = ws.getCell('A1');
-  title.value = 'Resumen Estadístico';
-  title.font  = { bold: true, size: 16, color: { argb: 'FFFFFF' } };
-  title.alignment = { horizontal: 'center', vertical: 'middle' };
-  title.fill = {
-    type: 'pattern',
-    pattern: 'solid',
-    fgColor: { argb: '0B3B60' } 
-  };
+  //* Título
+  ws.mergeCells("A1:D1");
+  const titleCell = ws.getCell("A1");
+  titleCell.value = "Resumen Estadístico";
+  applyCellStyle(titleCell, COLORS.DARK_900, "FFFFFF", true, "center");
+  titleCell.font.size = 16;
 
-  ws.addRow([]); 
+  //* Filtros aplicados
+  ws.addRow(["Filtros aplicados:", "", "", ""]);
+  ws.addRow(["Búsqueda:", filters.searchTerm || "Ninguna"]);
+  ws.addRow(["Departamento:", filters.deptFilter || "Todos"]);
+  ws.addRow(["Sindicato:", filters.sindFilter || "Todos"]);
+  ws.addRow(["Tipo beneficiario:", filters.beneficiaryTypeFilter || "Todos"]);
 
-  //* Encabezados de la tabla de resumen (fila 3), fondo Regal Blue 700 (#045EA0)
-  const hdr = ws.addRow(['Métrica', 'Valor', '', 'Detalle']);
-  hdr.eachCell((c) => {
-    c.font = { bold: true, color: { argb: 'FFFFFF' } };
-    c.fill = {
-      type: 'pattern',
-      pattern: 'solid',
-      fgColor: { argb: '045EA0' } 
-    };
-    c.alignment = { horizontal: 'center', vertical: 'middle' };
-    c.border = thinBorder;
-  });
-
-  const totalBenef = stats.hijos + stats.esposos + stats.concubinos + stats.padres;
-  const filas = [
-    ['Total Empleados', stats.total, '', 'Empleados con beneficiarios'],
-    [
-      'Empleados con Beneficiarios',
-      stats.withBenefits,
-      '',
-      `(${((stats.withBenefits / stats.total) * 100 || 0).toFixed(1)}%)`
-    ],
-    ['Total Beneficiarios', totalBenef, '', 'Distribución por parentesco'],
-    ['Hijos', stats.hijos, '', `(${((stats.hijos / totalBenef) * 100 || 0).toFixed(1)}%)`],
-    ['Esposos', stats.esposos, '', `(${((stats.esposos / totalBenef) * 100 || 0).toFixed(1)}%)`],
-    ['Concubinos', stats.concubinos, '', `(${((stats.concubinos / totalBenef) * 100 || 0).toFixed(1)}%)`],
-    ['Padres', stats.padres, '', `(${((stats.padres / totalBenef) * 100 || 0).toFixed(1)}%)`],
-    ['Promedio por Empleado', stats.total ? (totalBenef / stats.total).toFixed(2) : 0, '', '']
-  ];
-
-  rows: for (let i = 0; i < filas.length; i++) {
-    const r = filas[i];
-    const row = ws.addRow(r);
-    row.eachCell((c, col) => {
-      c.border = thinBorder;
-
-      if (col === 1) {
-        //? Columna "Métrica": fondo Regal Blue 500 (#0F96E8), texto blanco
-        c.font = { bold: true, color: { argb: 'FFFFFF' } };
-        c.fill = {
-          type: 'pattern',
-          pattern: 'solid',
-          fgColor: { argb: '0F96E8' }
-        };
-      } else if (col === 2) {
-        //? Columna "Valor": fondo Regal Blue 200 (#BAE1FD), texto negro
-        c.font = { color: { argb: '000000' } };
-        c.fill = {
-          type: 'pattern',
-          pattern: 'solid',
-          fgColor: { argb: 'BAE1FD' } 
-        };
-      } else {
-        //? Columnas vacías o "Detalle": texto negro, sin relleno
-        c.font = { color: { argb: '000000' } };
+  //* Aplicar estilo a la sección de filtros
+  for (let i = 2; i <= 6; i++) {
+    const row = ws.getRow(i);
+    row.eachCell((cell, colNumber) => {
+      if (colNumber === 1) {
+        applyCellStyle(cell, COLORS.LIGHT_200, "000000", true);
+      } else if (colNumber === 2) {
+        applyCellStyle(cell, null, "000000");
       }
     });
   }
 
-  ws.columns = [
-    { width: 25 }, // A: Métrica
-    { width: 15 }, // B: Valor
-    { width: 5 },  // C: (vacío)
-    { width: 35 }  // D: Detalle
+  ws.addRow([]);
+
+  //* Datos estadísticos
+  const totalBenef =
+    stats.hijos + stats.esposos + stats.concubinos + stats.padres;
+  const withBenefitsPercentage = stats.total
+    ? (stats.withBenefits / stats.total) * 100
+    : 0;
+
+  const rows = [
+    ["Total Empleados", stats.total, "", "Empleados con beneficiarios"],
+    [
+      "Empleados con Beneficiarios",
+      stats.withBenefits,
+      "",
+      `(${withBenefitsPercentage.toFixed(1)}%)`,
+    ],
+    ["Total Beneficiarios", totalBenef, "", "Distribución por parentesco"],
+    [
+      "Hijos",
+      stats.hijos,
+      "",
+      `(${totalBenef ? ((stats.hijos / totalBenef) * 100).toFixed(1) : 0}%)`,
+    ],
+    [
+      "Esposos",
+      stats.esposos,
+      "",
+      `(${totalBenef ? ((stats.esposos / totalBenef) * 100).toFixed(1) : 0}%)`,
+    ],
+    [
+      "Concubinos",
+      stats.concubinos,
+      "",
+      `(${
+        totalBenef ? ((stats.concubinos / totalBenef) * 100).toFixed(1) : 0
+      }%)`,
+    ],
+    [
+      "Padres",
+      stats.padres,
+      "",
+      `(${totalBenef ? ((stats.padres / totalBenef) * 100).toFixed(1) : 0}%)`,
+    ],
+    [
+      "Promedio por Empleado",
+      stats.total ? (totalBenef / stats.total).toFixed(2) : 0,
+      "",
+      "",
+    ],
   ];
+
+  rows.forEach((rowData) => {
+    const row = ws.addRow(rowData);
+    row.eachCell((cell, colNumber) => {
+      if (colNumber === 1) {
+        applyCellStyle(cell, COLORS.LIGHT_500, "FFFFFF", true);
+      } else if (colNumber === 2) {
+        applyCellStyle(cell, COLORS.LIGHT_200);
+      } else if (colNumber === 4) {
+        applyCellStyle(cell, null, "000000", false, "right");
+      } else {
+        applyCellStyle(cell, null);
+      }
+    });
+  });
+
+  //* Agregar gráfico (solo estructura, ExcelJS requiere configuración adicional)
+  ws.addRow([]);
+  ws.addRow([
+    "Nota: Abra este archivo en Excel para ver los gráficos interactivos",
+  ]);
+  const noteRow = ws.getRow(ws.rowCount);
+  noteRow.font = { italic: true, color: { argb: "666666" } };
+
+  //* Anchos de columnas
+  ws.columns = [{ width: 28 }, { width: 18 }, { width: 5 }, { width: 35 }];
+
+  //* Proteger la hoja de modificaciones
+  ws.protect("", {
+    selectLockedCells: false,
+    selectUnlockedCells: false,
+  });
 };
 
 /* -------------------------------------------------- */
-/*  🚀  Exportador principal                            */
+//*  🚀  Exportador principal                            */
 /* -------------------------------------------------- */
 
-export const exportToExcel = async (normalized, stats) => {
-  // 1) Crear el Workbook y metadatos básicos
-  const wb = new ExcelJS.Workbook();
-  wb.creator = 'Servicio Médico SJR';
-  wb.created = new Date();
+export const exportToExcel = async (filteredData, stats, filters = {}) => {
+  //* Validar datos antes de exportar
+  if (
+    !filteredData ||
+    !Array.isArray(filteredData) ||
+    filteredData.length === 0
+  ) {
+    console.warn("No hay datos válidos para exportar");
+    return;
+  }
 
-  // 2) Construir cada hoja
-  buildMainSheet(normalized, wb);
-  buildSummarySheet(stats, wb);
+  try {
+    const wb = new ExcelJS.Workbook();
+    wb.creator = "Servicio Médico PANDORA";
+    wb.created = new Date();
+    wb.modified = new Date();
+    wb.lastPrinted = new Date();
 
-  // 3) Generar el buffer y disparar la descarga
-  const buffer = await wb.xlsx.writeBuffer();
-  const blob = new Blob(
-    [buffer],
-    { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }
-  );
+    //* Normalizar nombres de filtros para el nombre de archivo
+    const filterAliases = {
+      searchTerm: "busq",
+      deptFilter: "depto",
+      sindFilter: "sind",
+      beneficiaryTypeFilter: "tipo",
+    };
 
-  const dateStr = new Date().toISOString().slice(0, 10);
-  saveAs(blob, `Reporte_Beneficiarios_${dateStr}.xlsx`);
+    //* Construir nombre de archivo
+    const activeFilters = Object.entries(filters)
+      .filter(([, value]) => value && value !== "Ninguno" && value !== "Todos")
+      .map(([key, value]) => {
+        const alias = filterAliases[key] || key.substring(0, 4);
+        return `${alias}_${value.replace(/\s+/g, "_")}`;
+      })
+      .join("_");
+
+    const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+    const fileName = `Beneficiarios_${dateStr}${
+      activeFilters ? `_${activeFilters}` : ""
+    }`;
+
+    //* Construir hojas
+    buildMainSheet(filteredData, wb, filters);
+    buildSummarySheet(stats, wb, filters);
+
+    wb.eachSheet((ws) => {
+      ws.protect("P4nd0r4!", {
+        //! qué acciones permites tras desbloquear (o bloquear)
+        selectLockedCells: false,
+        selectUnlockedCells: false,
+        formatCells: false,
+        formatColumns: false,
+        formatRows: false,
+        insertColumns: false,
+        insertRows: false,
+        deleteColumns: false,
+        deleteRows: false,
+        sort: false,
+        autoFilter: false,
+        //! si quieres habilitar solo la ordenación/auto-filtros:
+        //! sort: true,
+        //! autoFilter: true
+      });
+    });
+
+    //* Generar Excel
+    const buffer = await wb.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+
+    //* Descargar
+    saveAs(blob, `${fileName}.xlsx`);
+
+    return true;
+  } catch (error) {
+    console.error("Error crítico al generar el Excel:", error);
+
+    //* Mostrar alerta al usuario
+    if (typeof window !== "undefined" && window.alert) {
+      alert(
+        `Error al generar el reporte: ${error.message || "Intente nuevamente"}`
+      );
+    }
+
+    return false;
+  }
 };

@@ -531,7 +531,9 @@ export default function EmpleadosBeneficiarios() {
                 whileTap={{ scale: 0.95 }}
                 onClick={() => {
                   tapSound.play();
-                  exportToExcel(normalized, stats);
+
+                  //* Pasar los datos FILTRADOS (filtered) en lugar de normalized
+                  exportToExcel(filtered, stats);
                 }}
                 className="flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-green-600 px-5 py-3 rounded-xl font-medium shadow-lg hover:shadow-xl transition-all"
               >

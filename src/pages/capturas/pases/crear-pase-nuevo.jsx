@@ -121,7 +121,7 @@ const CrearPaseNuevo = () => {
   const [employeeData, setEmployeeData] = useState({});
   const [beneficiaryData, setBeneficiaryData] = useState([]);
   const [selectedPersona, setSelectedPersona] = useState("empleado");
-  const [selectedBeneficiary, setSelectedBeneficiary] = useState(null);
+  const [selectedBeneficiaryIndex, setSelectedBeneficiaryIndex] = useState(-1);
   const [especialidades, setEspecialidades] = useState([]);
   const [selectedEspecialidad, setSelectedEspecialidad] = useState("");
   const [proveedores, setProveedores] = useState([]);
@@ -135,16 +135,89 @@ const CrearPaseNuevo = () => {
   const router = useRouter();
 
   const handleRegresar = () => {
-    router.push("/capturas/pases-a-especialidades"); //* Navegar a la pantalla anterior
+    router.push("/capturas/pases-a-especialidades");
   };
 
   const resetState = () => {
     setEmployeeData({});
     setBeneficiaryData([]);
     setSelectedPersona("empleado");
-    setSelectedBeneficiary(null);
+    setSelectedBeneficiaryIndex(-1);
     setSelectedEspecialidad("");
     setSelectedProveedor("");
+  };
+
+  // Función para validar automáticamente al cargar la lista de beneficiarios
+  const validateBeneficiariesOnLoad = (beneficiaryData) => {
+    if (!beneficiaryData || beneficiaryData.length === 0) {
+      return;
+    }
+
+    const fechaActual = new Date();
+    const beneficiariosValidosConIndice = [];
+
+    beneficiaryData.forEach((beneficiario, index) => {
+      if (Number(beneficiario.PARENTESCO) !== 2) {
+        beneficiariosValidosConIndice.push({ beneficiario, index });
+        return;
+      }
+
+      if (beneficiario.F_NACIMIENTO) {
+        const [fechaParte] = beneficiario.F_NACIMIENTO.split(" ");
+        const nacimiento = new Date(fechaParte);
+        const diffMs = fechaActual - nacimiento;
+        const edadAnios = new Date(diffMs).getUTCFullYear() - 1970;
+
+        if (edadAnios <= 15) {
+          beneficiariosValidosConIndice.push({ beneficiario, index });
+          return;
+        }
+
+        if (Number(beneficiario.ESDISCAPACITADO) === 1) {
+          beneficiariosValidosConIndice.push({ beneficiario, index });
+          return;
+        }
+
+        if (Number(beneficiario.ESESTUDIANTE) === 0) {
+          return;
+        }
+
+        if (beneficiario.VIGENCIA_ESTUDIOS) {
+          const vigencia = new Date(beneficiario.VIGENCIA_ESTUDIOS);
+          if (vigencia.getTime() >= fechaActual.getTime()) {
+            beneficiariosValidosConIndice.push({ beneficiario, index });
+          }
+          return;
+        }
+
+        beneficiariosValidosConIndice.push({ beneficiario, index });
+      }
+    });
+
+    if (beneficiariosValidosConIndice.length === 0) {
+      setSelectedPersona("empleado");
+      playSound(false);
+
+      MySwal.fire({
+        icon: "info",
+        title: "<span style='color: #ff9800; font-weight: bold; font-size: 1.5em;'>ℹ️ Redirección automática</span>",
+        html: `<p style='color: #fff; font-size: 1.1em;'>No hay beneficiarios válidos disponibles. Se ha seleccionado automáticamente la consulta para el empleado.</p>`,
+        background: "linear-gradient(145deg, #4a2600, #220f00)",
+        confirmButtonColor: "#ff9800",
+        confirmButtonText: "<span style='color: #000; font-weight: bold;'>Continuar</span>",
+        customClass: {
+          popup: "border border-yellow-600 shadow-[0px_0px_20px_5px_rgba(255,152,0,0.9)] rounded-lg",
+        },
+        timer: 2500,
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
+      return;
+    }
+
+    const primerValido = beneficiariosValidosConIndice[0];
+    setSelectedBeneficiaryIndex(primerValido.index);
+    window.beneficiariosValidos = beneficiariosValidosConIndice;
   };
 
   const handleSearch = async () => {
@@ -157,7 +230,7 @@ const CrearPaseNuevo = () => {
     }
 
     try {
-      //* 1️⃣ Buscar el empleado
+      //? 1️⃣ Buscar el empleado
       const response = await fetch("/api/empleado", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -187,7 +260,7 @@ const CrearPaseNuevo = () => {
         photo: "/user_icon_.png",
       });
 
-      //* 2️⃣ Obtener beneficiarios ya filtrados del backend
+      //? 2️⃣ Obtener beneficiarios ya filtrados del backend
       const beneficiariesResponse = await fetch(
         "/api/beneficiarios/beneficiario",
         {
@@ -197,7 +270,6 @@ const CrearPaseNuevo = () => {
         }
       );
 
-      //* NUEVO — si el endpoint devuelve 4xx/5xx lo tratamos como “sin beneficiarios”
       if (!beneficiariesResponse.ok) {
         showInfoAlert(
           "ℹ Sin beneficiarios válidos",
@@ -205,9 +277,8 @@ const CrearPaseNuevo = () => {
         );
         setBeneficiaryData([]);
         setHideHistorial(true);
-        return; //! evitamos entrar al bloque JSON / catch
+        return;
       }
-      //* FIN NUEVO
 
       const beneficiaries = await beneficiariesResponse.json();
 
@@ -222,12 +293,11 @@ const CrearPaseNuevo = () => {
         setBeneficiaryData([]);
       } else {
         setBeneficiaryData(beneficiaries.beneficiarios);
+        validateBeneficiariesOnLoad(beneficiaries.beneficiarios);
       }
 
       setHideHistorial(true);
     } catch (error) {
-      //! Este catch solo se mostrará ante fallos de red o excepciones inesperadas,
-      //! ya no cuando simplemente no haya beneficiarios.
       console.error("Error al buscar empleado o beneficiarios:", error);
       showErrorAlert(
         "❌ Error en la búsqueda",
@@ -265,14 +335,12 @@ const CrearPaseNuevo = () => {
 
       const json = await response.json();
 
-      //! Si el endpoint devolvió un error
       if (!json.success) {
         showErrorAlert("Error", json.message);
         setProveedores([]);
         return;
       }
 
-      //* json.data es el array de proveedores
       setProveedores(json.data);
     } catch (error) {
       console.error("Error al cargar proveedores:", error);
@@ -286,7 +354,6 @@ const CrearPaseNuevo = () => {
   }, []);
 
   useEffect(() => {
-    //* Obtener cookies
     const allCookies = document.cookie.split(";");
     let userClaveUsuario = "";
     let userCosto = "";
@@ -307,9 +374,16 @@ const CrearPaseNuevo = () => {
     setCosto(userCosto);
   }, []);
 
+  // Función auxiliar para regresar al beneficiario válido
+  const regresarABeneficiarioValido = () => {
+    if (window.beneficiariosValidos && window.beneficiariosValidos.length > 0) {
+      const primerValido = window.beneficiariosValidos[0];
+      setSelectedBeneficiaryIndex(primerValido.index);
+    }
+  };
+
   const handlePersonaChange = async (persona) => {
     if (persona === "beneficiario") {
-      //! Si no hay beneficiarios, regresa a empleado con alerta
       if (beneficiaryData.length === 0) {
         showInfoAlert(
           "ℹ️ Sin beneficiarios",
@@ -319,69 +393,41 @@ const CrearPaseNuevo = () => {
         return;
       }
 
-      //* Buscamos el primer beneficiario que NO esté vencido
-      const fechaActual = new Date();
-      const validBeneficiaryIndex = beneficiaryData.findIndex((b) => {
-        const vigencia = new Date(b.VIGENCIA_ESTUDIOS);
-        return (
-          vigencia.getTime() >= fechaActual.getTime() || !b.VIGENCIA_ESTUDIOS
-        );
-      });
-
-      if (validBeneficiaryIndex !== -1) {
-        //* Si encontramos uno válido, lo seleccionamos
-        setSelectedBeneficiary(beneficiaryData[validBeneficiaryIndex]);
-        //* Opcional: actualizamos el value del <select>
-        setTimeout(() => {
-          const selectEl = document.querySelector("#beneficiarioSelect");
-          if (selectEl) {
-            selectEl.value = validBeneficiaryIndex;
-          }
-        }, 0);
+      if (window.beneficiariosValidos?.length > 0) {
+        setSelectedBeneficiaryIndex(window.beneficiariosValidos[0].index);
       } else {
-        //! Si no hay ninguno válido, alerta y regresa a empleado
         showInfoAlert("Sin beneficiarios vigentes", "Todos están vencidos");
         setSelectedPersona("empleado");
-        setSelectedBeneficiary(null);
       }
     } else {
-      //* Modo empleado
-      setSelectedBeneficiary(null);
+      setSelectedBeneficiaryIndex(-1);
     }
 
     setSelectedPersona(persona);
   };
 
-  const handleBeneficiarySelect = (rawIndex) => {
-    const index = Number(rawIndex);
+  const handleBeneficiarySelect = (index) => {
     const selected = beneficiaryData[index];
-    const now = new Date();
+    const fechaActual = new Date();
 
-    //? 0) Si no es hijo/a (PARENTESCO !== 2), permitimos cualquiera directamente
     if (Number(selected.PARENTESCO) !== 2) {
-      setSelectedBeneficiary(selected);
+      setSelectedBeneficiaryIndex(index);
       return;
     }
 
-    //? 1) Si es hijo/a: calculamos edad a partir de F_NACIMIENTO ("YYYY-MM-DD HH:MM:SS.sss")
     if (selected.F_NACIMIENTO) {
       const [fechaParte] = selected.F_NACIMIENTO.split(" ");
       const nacimiento = new Date(fechaParte);
-      const diffMs = now - nacimiento;
+      const diffMs = fechaActual - nacimiento;
       const edadAnios = new Date(diffMs).getUTCFullYear() - 1970;
 
-      //* 1.a) Si tiene 16 años o menos, lo dejamos pasar sin más validaciones
-      if (edadAnios <= 16) {
-        setSelectedBeneficiary(selected);
+      if (edadAnios <= 15) {
+        setSelectedBeneficiaryIndex(index);
         return;
       }
     }
 
-    //? 2) Para hijos/as mayores de 16 años, aplicamos el resto de validaciones
-
-    //* 2.a) Si es discapacitado
     if (Number(selected.ESDISCAPACITADO) === 1) {
-      //! 2.a.i) Si falta URL_INCAP, avisar pero permitir
       if (!selected.URL_INCAP) {
         playSound(false);
         MySwal.fire({
@@ -395,44 +441,45 @@ const CrearPaseNuevo = () => {
             "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
           customClass: {
             popup:
-              "border border-blue-600 shadow-[0px_0px_20px_5px_rgba(0,188,212,0.9)] rounded-lg",
+              "border border-cyan-600 shadow-[0px_0px_20px_5px_rgba(0,188,212,0.9)] rounded-lg",
           },
         });
       }
-      setSelectedBeneficiary(selected);
+      setSelectedBeneficiaryIndex(index);
       return;
     }
 
-    //? 2.b) No es discapacitado → debe ser estudiante
     if (Number(selected.ESESTUDIANTE) === 0) {
       playSound(false);
       MySwal.fire({
         icon: "error",
         title:
-          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ No es estudiante</span>",
-        html: `<p style='color: #fff; font-size: 1.1em;'>El beneficiario <strong>${selected.NOMBRE} ${selected.A_PATERNO} ${selected.A_MATERNO}</strong> no está registrado como estudiante.</p>`,
+          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Datos incompletos</span>",
+        html: `<p style='color: #fff; font-size: 1.1em;'>El beneficiario <strong>${selected.NOMBRE} ${selected.A_PATERNO} ${selected.A_MATERNO}</strong> no está registrado como estudiante ni como discapacitado.</p>
+             <p style='color: #ffcdd2; font-size: 1em; margin-top: 10px;'>⚠️ Debe completar sus datos en el empadronamiento para tener acceso.</p>`,
         background: "linear-gradient(145deg, #4a0000, #220000)",
         confirmButtonColor: "#ff1744",
         confirmButtonText:
-          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
+          "<span style='color: #fff; font-weight: bold;'>Entendido</span>",
         customClass: {
           popup:
             "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
         },
+      }).then(() => {
+        regresarABeneficiarioValido();
       });
       return;
     }
 
-    //? 2.c) Es estudiante → validar vigencia de estudios
     if (selected.VIGENCIA_ESTUDIOS) {
       const vigencia = new Date(selected.VIGENCIA_ESTUDIOS);
-      if (vigencia.getTime() < now.getTime()) {
+      if (vigencia.getTime() < fechaActual.getTime()) {
         playSound(false);
         MySwal.fire({
           icon: "warning",
           title:
             "<span style='color: #ff9800; font-weight: bold; font-size: 1.5em;'>⚠️ Constancia vencida</span>",
-          html: `<p style='color: #fff; font-size: 1.1em;'>El beneficiario <strong>${selected.NOMBRE} ${selected.A_PATERNO} ${selected.A_MATERNO}</strong> tiene la constancia de estudios vencida.</p>`,
+          html: `<p style='color: #fff; font-size: 1.1em;'>El beneficiario <strong>${selected.NOMBRE} ${selected.A_PATERNO} ${selected.A_MATERNO}</strong> tiene la constancia de estudios vencida. Se ha regresado al beneficiario válido.</p>`,
           background: "linear-gradient(145deg, #4a2600, #220f00)",
           confirmButtonColor: "#ff9800",
           confirmButtonText:
@@ -441,17 +488,17 @@ const CrearPaseNuevo = () => {
             popup:
               "border border-yellow-600 shadow-[0px_0px_20px_5px_rgba(255,152,0,0.9)] rounded-lg",
           },
+        }).then(() => {
+          regresarABeneficiarioValido();
         });
         return;
       }
     }
 
-    //? 3) Todo OK: asignar beneficiario
-    setSelectedBeneficiary(selected);
+    setSelectedBeneficiaryIndex(index);
   };
 
   const obtenerSindicato = (grupoNomina, cuotaSindical) => {
-    //! Mostrar solo si es NS y S (SUTSMSJR) o "" (SITAM)
     if (grupoNomina === "NS") {
       if (cuotaSindical === "S") return "SUTSMSJR";
       if (cuotaSindical === "") return "SITAM";
@@ -478,13 +525,10 @@ const CrearPaseNuevo = () => {
     try {
       const fechaActual = new Date();
 
-      //* Formatear la fecha y hora en formato ISO sin convertir a UTC
       const fechaconsulta = `${fechaActual.toISOString().split("T")[0]} 
         ${String(fechaActual.getHours()).padStart(2, "0")}:${String(
         fechaActual.getMinutes()
       ).padStart(2, "0")}:${String(fechaActual.getSeconds()).padStart(2, "0")}`;
-
-      //console.log("Fecha y hora en formato 24 hrs:", fechaconsulta);
 
       let claveproveedor = selectedProveedor;
       let clavenomina = nomina;
@@ -503,6 +547,8 @@ const CrearPaseNuevo = () => {
         employeeData.cuotaSindical
       );
 
+      const selectedBeneficiary = selectedBeneficiaryIndex >= 0 ? beneficiaryData[selectedBeneficiaryIndex] : null;
+
       if (fechaCita) {
         const fechaAjustada = new Date(
           fechaCita.getTime() - fechaCita.getTimezoneOffset() * 60000
@@ -520,7 +566,6 @@ const CrearPaseNuevo = () => {
       let costoValor = costo;
       let claveUsuarioValor = claveusuario;
 
-      //* Determinar si es empleado o beneficiario
       if (selectedPersona === "empleado") {
         clavepaciente = nomina;
         nombrepaciente = employeeData.name;
@@ -537,7 +582,6 @@ const CrearPaseNuevo = () => {
         }
       }
 
-      //* Construir el objeto para enviar al backend
       const bodyConsultas = {
         fechaconsulta,
         claveproveedor,
@@ -556,7 +600,6 @@ const CrearPaseNuevo = () => {
         sindicato,
       };
 
-      //* Llamada al endpoint para guardar en DB
       const response = await fetch("/api/especialidades/guardarPaseNuevo", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -570,24 +613,18 @@ const CrearPaseNuevo = () => {
       const data = await response.json();
       const claveConsulta = data.claveConsulta;
 
-      //* Mostrar alerta de éxito con la clave de consulta generada
       showSuccessAlert(
         "Consulta Guardada",
         "La consulta se ha guardado correctamente.",
         claveConsulta
       );
 
-      //console.log("Clave consulta generada:", claveConsulta);
-
-      //* Restablecer formulario
       setNomina("");
       resetState();
       setFechaCita(null);
 
-      //* Cifrar la claveConsulta con Base64
       const encryptedClaveConsulta = btoa(claveConsulta.toString());
 
-      //* Navegar a la otra pantalla enviando la claveConsulta cifrada
       router.push(
         `/capturas/recetas/ver-recetas-pases?claveconsulta=${encryptedClaveConsulta}`
       );
@@ -607,7 +644,6 @@ const CrearPaseNuevo = () => {
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-black via-blue-900 to-teal-500 text-white py-8 px-12 flex flex-col items-center overflow-hidden">
       <div className="max-w-7xl w-full bg-gray-900 bg-opacity-90 rounded-3xl shadow-2xl p-12 border border-teal-500 border-opacity-40">
-        {/* Contenedor con botón, título y placeholder */}
         <div className="flex items-center justify-between mb-10">
           <button
             onClick={handleRegresar}
@@ -618,13 +654,11 @@ const CrearPaseNuevo = () => {
           <h1 className="text-5xl font-extrabold text-center text-teal-300 tracking-wider">
             Crear Pase Nuevo
           </h1>
-          {/* Placeholder para centrar el título */}
           <div className="w-32"></div>
         </div>
 
         <hr className="border-teal-400 opacity-40 my-6" />
 
-        {/* Sección de Búsqueda */}
         <section className="mb-10">
           <h2 className="text-2xl font-bold text-teal-300 mb-4 text-center tracking-wider">
             Búsqueda de Paciente
@@ -633,7 +667,7 @@ const CrearPaseNuevo = () => {
             <input
               type="text"
               value={nomina}
-              onChange={(e) => setNomina(e.target.value.toUpperCase())} //* Convierte a mayúsculas
+              onChange={(e) => setNomina(e.target.value.toUpperCase())}
               placeholder="Número de Nómina"
               className="flex-1 p-4 text-lg rounded-full bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-4 focus:ring-teal-400 transition-shadow shadow-lg placeholder-gray-400"
             />
@@ -647,7 +681,6 @@ const CrearPaseNuevo = () => {
           </div>
         </section>
 
-        {/* Condicional: mostrar la tabla de historial si hideHistorial es false */}
         <div
           className={`overflow-hidden transition-all duration-500 ${
             hideHistorial ? "max-h-0 opacity-0" : "max-h-[1000px] opacity-100"
@@ -656,7 +689,7 @@ const CrearPaseNuevo = () => {
           <HistorialTable />
         </div>
 
-        {Object.keys(employeeData).length > 0 && (
+{Object.keys(employeeData).length > 0 && (
           <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-3xl p-8 shadow-2xl transition-opacity opacity-100 border border-gray-700 border-opacity-60">
             {/* Información del Paciente */}
             <section className="mb-10">

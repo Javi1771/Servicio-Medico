@@ -118,7 +118,7 @@ export default function SignosVitalesFacial() {
     fetchEmpleado(decNomina);
   }, [router.isReady, nomina, idBeneficiario]);
 
-  //* Obtiene al beneficiario (beneficiarioFacial)
+  //* Cargar beneficiario facial
   const fetchBeneficiarioFacial = async (decNomina, decIdBenef) => {
     try {
       const response = await fetch("/api/beneficiarios/beneficiarioFacial", {
@@ -129,6 +129,7 @@ export default function SignosVitalesFacial() {
           ID_BENEFICIARIO: Number(decIdBenef),
         }),
       });
+
       if (!response.ok) {
         throw new Error("Error al obtener el beneficiario.");
       }
@@ -143,35 +144,35 @@ export default function SignosVitalesFacial() {
       const b = data.beneficiarios[0];
       const ahora = new Date();
 
-      //? 0) Si no es hijo/a (PARENTESCO !== 2), permitir sin más chequeos
+      //? 0) Si no es hijo/a → válido directo
       if (Number(b.PARENTESCO) !== 2) {
         setBeneficiario(b);
         setIsLoadingBenef(false);
         return;
       }
 
-      //? 1) Si es hijo/a, calcular edad en años a partir de F_NACIMIENTO ("YYYY-MM-DD HH:MM:SS.sss")
+      //? 1) Es hijo/a → calcular edad
       if (b.F_NACIMIENTO) {
         const [fechaParte] = b.F_NACIMIENTO.split(" ");
         const nacimiento = new Date(fechaParte);
-        const diffMs = ahora - nacimiento;
-        const edadAnios = new Date(diffMs).getUTCFullYear() - 1970;
+        let edad = ahora.getFullYear() - nacimiento.getFullYear();
+        const mes = ahora.getMonth() - nacimiento.getMonth();
+        if (mes < 0 || (mes === 0 && ahora.getDate() < nacimiento.getDate())) {
+          edad--;
+        }
 
-        //* 1.a) si tiene 16 años o menos, dejamos pasar
-        if (edadAnios <= 16) {
+        if (edad <= 15) {
           setBeneficiario(b);
           setIsLoadingBenef(false);
           return;
         }
       }
 
-      //? 2) Para hijos/as mayores de 16 años, aplicar discapacitado, estudiante y vigencia
-
-      //? 2.a) ¿Es discapacitado?
+      //? 2) Hijos mayores de 15 años → discapacidad o estudiante
       if (Number(b.ESDISCAPACITADO) === 1) {
         if (!b.URL_INCAP) {
           playSound(false);
-          MySwal.fire({
+          await MySwal.fire({
             icon: "info",
             title:
               "<span style='color: #00bcd4; font-weight: bold; font-size: 1.5em;'>ℹ️ Falta incapacidad</span>",
@@ -182,7 +183,7 @@ export default function SignosVitalesFacial() {
               "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
             customClass: {
               popup:
-                "border border-blue-600 shadow-[0px_0px_20px_5px_rgba(0,188,212,0.9)] rounded-lg",
+                "border border-cyan-600 shadow-[0px_0px_20px_5px_rgba(0,188,212,0.9)] rounded-lg",
             },
           });
         }
@@ -191,34 +192,32 @@ export default function SignosVitalesFacial() {
         return;
       }
 
-      //? 2.b) No es discapacitado → debe ser estudiante
       if (Number(b.ESESTUDIANTE) === 0) {
         playSound(false);
-        MySwal.fire({
+        await MySwal.fire({
           icon: "error",
           title:
             "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ No es estudiante</span>",
-          html: `<p style='color: #fff; font-size: 1.1em;'>El beneficiario <strong>${b.NOMBRE} ${b.A_PATERNO} ${b.A_MATERNO}</strong> no está registrado como estudiante.</p>`,
+          html: `<p style='color: #fff; font-size: 1.1em;'>El beneficiario <strong>${b.NOMBRE} ${b.A_PATERNO} ${b.A_MATERNO}</strong> no está registrado como estudiante ni como discapacitado.</p>
+               <p style='color: #ffcdd2; font-size: 1em; margin-top: 10px;'>⚠️ Debe completar sus datos en el empadronamiento para tener acceso.</p>`,
           background: "linear-gradient(145deg, #4a0000, #220000)",
           confirmButtonColor: "#ff1744",
           confirmButtonText:
-            "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
+            "<span style='color: #fff; font-weight: bold;'>Entendido</span>",
           customClass: {
             popup:
               "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
           },
-        }).then(() => {
-          router.back();
         });
+        router.back();
         return;
       }
 
-      //? 2.c) Es estudiante → validar vigencia de estudios
       if (b.VIGENCIA_ESTUDIOS) {
         const vig = new Date(b.VIGENCIA_ESTUDIOS);
         if (vig.getTime() < ahora.getTime()) {
           playSound(false);
-          MySwal.fire({
+          await MySwal.fire({
             icon: "warning",
             title:
               "<span style='color: #ff9800; font-weight: bold; font-size: 1.5em;'>⚠️ Constancia vencida</span>",
@@ -231,14 +230,13 @@ export default function SignosVitalesFacial() {
               popup:
                 "border border-yellow-600 shadow-[0px_0px_20px_5px_rgba(255,152,0,0.9)] rounded-lg",
             },
-          }).then(() => {
-            router.back();
           });
+          router.back();
           return;
         }
       }
 
-      //? 3) Todo OK: asignar beneficiario
+      //? Todo válido
       setBeneficiario(b);
       setIsLoadingBenef(false);
     } catch (error) {
