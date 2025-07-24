@@ -245,7 +245,7 @@ const Home = () => {
         },
         {
           title: "Reportes",
-          options: ["Incapacidades", "Beneficiarios Activos", "Reportes OIC"], // ← Agregado "Reportes OIC"
+          options: ["Incapacidades", "Beneficiarios Activos",], 
           icon: <BsGraphUpArrow className="inline-block mr-2" />,
         },
         {
