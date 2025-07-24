@@ -107,7 +107,7 @@ const Home = () => {
         },
         {
           title: "Reportes",
-          options: ["Incapacidades", "Beneficiarios Activos", "Reportes OIC"], // ← Agregado "Reportes OIC"
+          options: ["Incapacidades", "Beneficiarios Activos", "Reportes OIC"], 
           icon: <FaFeatherAlt className="inline-block mr-2" />,
         },
         {
@@ -171,7 +171,7 @@ const Home = () => {
         },
         {
           title: "Reportes",
-          options: ["Incapacidades", "Beneficiarios Activos", "Reportes OIC"], // ← Agregado "Reportes OIC"
+          options: ["Incapacidades", "Beneficiarios Activos"],
           icon: <FaFeatherAlt className="inline-block mr-2" />,
         }
       );
@@ -245,7 +245,7 @@ const Home = () => {
         },
         {
           title: "Reportes",
-          options: ["Incapacidades", "Beneficiarios Activos",], 
+          options: ["Incapacidades", "Beneficiarios Activos", "Reportes OIC"], 
           icon: <BsGraphUpArrow className="inline-block mr-2" />,
         },
         {
