@@ -113,11 +113,13 @@ export default function EmpleadosBeneficiarios() {
     fetchData();
   }, []);
 
-  //* Normalización de datos
+  //* Normalización de datos (coerce no_nomina a string)
   const normalized = useMemo(
     () =>
       data.map((item) => {
-        const { empleado = {}, no_nomina, sinActaCount } = item;
+        const { empleado = {}, no_nomina: rawNomina, sinActaCount } = item;
+        // forzamos siempre string y quitamos espacios
+        const no_nomina = String(rawNomina).trim();
         const rawName = [
           empleado.nombre,
           empleado.a_paterno,
@@ -127,6 +129,7 @@ export default function EmpleadosBeneficiarios() {
           .join(" ");
         return {
           ...item,
+          no_nomina,
           empName: rawName || `Empleado #${no_nomina}`,
           departamento: empleado.departamento,
           puesto: empleado.puesto,
@@ -142,10 +145,22 @@ export default function EmpleadosBeneficiarios() {
     [data]
   );
 
+  //! ────────────────────────────────────────────────────────────────────────────
+  //! Eliminar duplicados por no_nomina (string key)
+  const uniqueNormalized = useMemo(() => {
+    const map = new Map();
+    normalized.forEach((emp) => {
+      const key = emp.no_nomina; // ya es string
+      map.set(key, emp);
+    });
+    return Array.from(map.values());
+  }, [normalized]);
+  //! ────────────────────────────────────────────────────────────────────────────
+
   //* Lista de beneficiarios sin “URL_ACTA_NAC”
   const beneficiariesWithoutActa = useMemo(() => {
     const list = [];
-    normalized.forEach((emp) => {
+    uniqueNormalized.forEach((emp) => {
       emp.beneficiarios.forEach((b) => {
         if (!b.URL_ACTA_NAC) {
           list.push({
@@ -161,50 +176,64 @@ export default function EmpleadosBeneficiarios() {
       });
     });
     return list;
-  }, [normalized]);
+  }, [uniqueNormalized]);
 
   //* Suma global de beneficiarios sin acta
   const sinActaCount = useMemo(
-    () => normalized.reduce((total, emp) => total + (emp.sinActaCount || 0), 0),
-    [normalized]
+    () =>
+      uniqueNormalized.reduce(
+        (total, emp) => total + (emp.sinActaCount || 0),
+        0
+      ),
+    [uniqueNormalized]
   );
 
   //* Listas de filtro
   const departments = useMemo(
-    () => [...new Set(normalized.map((i) => i.departamento).filter(Boolean))],
-    [normalized]
+    () => [
+      ...new Set(uniqueNormalized.map((i) => i.departamento).filter(Boolean)),
+    ],
+    [uniqueNormalized]
   );
 
   //* Datos filtrados con búsqueda
   const filtered = useMemo(
     () =>
-      normalized.filter(
-        (i) =>
-          (!searchTerm ||
-            i.empName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            i.no_nomina.toString().includes(searchTerm) ||
-            i.beneficiarios.some((b) =>
-              `${b.NOMBRE} ${b.A_PATERNO} ${b.A_MATERNO}`
-                .toLowerCase()
-                .includes(searchTerm.toLowerCase())
-            )) &&
-          (!deptFilter || i.departamento === deptFilter) &&
-          (!sindFilter || i.sindicato === sindFilter) &&
-          (!beneficiaryTypeFilter ||
-            i.beneficiarios.some((b) =>
-              beneficiaryTypeFilter === "hijos"
-                ? b.PARENTESCO_DESCRIPCION === "Hijo(a)"
-                : beneficiaryTypeFilter === "esposos"
-                ? b.PARENTESCO_DESCRIPCION === "Esposo(a)"
-                : beneficiaryTypeFilter === "concubinos"
-                ? b.PARENTESCO_DESCRIPCION === "Concubino(a)"
-                : beneficiaryTypeFilter === "padres"
-                ? b.PARENTESCO_DESCRIPCION === "Padre" ||
-                  b.PARENTESCO_DESCRIPCION === "Madre"
-                : true
-            ))
-      ),
-    [normalized, searchTerm, deptFilter, sindFilter, beneficiaryTypeFilter]
+      uniqueNormalized.filter((i) => {
+        const matchesSearch =
+          !searchTerm ||
+          i.empName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          i.no_nomina.includes(searchTerm) ||
+          i.beneficiarios.some((b) =>
+            `${b.NOMBRE} ${b.A_PATERNO} ${b.A_MATERNO}`
+              .toLowerCase()
+              .includes(searchTerm.toLowerCase())
+          );
+        const matchesDept = !deptFilter || i.departamento === deptFilter;
+        const matchesSind = !sindFilter || i.sindicato === sindFilter;
+        const matchesType =
+          !beneficiaryTypeFilter ||
+          i.beneficiarios.some((b) =>
+            beneficiaryTypeFilter === "hijos"
+              ? b.PARENTESCO_DESCRIPCION === "Hijo(a)"
+              : beneficiaryTypeFilter === "esposos"
+              ? b.PARENTESCO_DESCRIPCION === "Esposo(a)"
+              : beneficiaryTypeFilter === "concubinos"
+              ? b.PARENTESCO_DESCRIPCION === "Concubino(a)"
+              : beneficiaryTypeFilter === "padres"
+              ? b.PARENTESCO_DESCRIPCION === "Padre" ||
+                b.PARENTESCO_DESCRIPCION === "Madre"
+              : true
+          );
+        return matchesSearch && matchesDept && matchesSind && matchesType;
+      }),
+    [
+      uniqueNormalized,
+      searchTerm,
+      deptFilter,
+      sindFilter,
+      beneficiaryTypeFilter,
+    ]
   );
 
   //* Paginación empleados
