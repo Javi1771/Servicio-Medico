@@ -82,7 +82,7 @@ export default async function handler(req, res) {
   try {
     const pool = await connectToDatabase();
 
-    // 1️⃣ Obtener todas las nóminas activas
+    //? 1️⃣ Obtener todas las nóminas activas
     const { recordset: nominas } = await pool
       .request()
       .query(`
@@ -92,11 +92,11 @@ export default async function handler(req, res) {
          ORDER BY NO_NOMINA
       `);
 
-    // 2️⃣ Procesar cada nómina con concurrencia limitada
+    //? 2️⃣ Procesar cada nómina con concurrencia limitada
     const raw = await Promise.all(
       nominas.map(({ NO_NOMINA }) =>
         limitConcurrency(async () => {
-          // 2.a) Obtener beneficiarios
+          //? 2.a) Obtener beneficiarios
           const { recordset: rows } = await pool
             .request()
             .input('nomina', NO_NOMINA)
@@ -122,21 +122,21 @@ export default async function handler(req, res) {
                AND b2.NO_NOMINA = @nomina;
             `);
 
-          // Validación de estructura de beneficiarios
+          //* Validación de estructura de beneficiarios
           if (!Array.isArray(rows)) {
             console.warn(`❌ Beneficiarios malformados para nómina ${NO_NOMINA}`, rows);
             return null;
           }
           const beneficiarios = rows;
 
-          // 2.b) Llamar al servicio SOAP para obtener datos del empleado
+          //? 2.b) Llamar al servicio SOAP para obtener datos del empleado
           const emp = await fetchEmpleadoSOAP(NO_NOMINA);
-          // Validación de respuesta SOAP
+          //* Validación de respuesta SOAP
           if (!emp || !emp.num_nom) {
             console.warn(`❌ Empleado inválido o sin num_nom para nómina ${NO_NOMINA}`, emp);
             return null;
           }
-          // Filtrar empleados dados de baja
+          //! Filtrar empleados dados de baja
           if (emp.fecha_baja) {
             const fb = parseFechaBaja(emp.fecha_baja);
             if (fb && fb < new Date()) {
@@ -144,7 +144,7 @@ export default async function handler(req, res) {
             }
           }
 
-          // 2.c) Formatear fechas de beneficiarios
+          //? 2.c) Formatear fechas de beneficiarios
           const beneficiariosFmt = beneficiarios.map(b => ({
             ...b,
             F_NACIMIENTO_ISO: b.F_NACIMIENTO,
@@ -153,7 +153,7 @@ export default async function handler(req, res) {
             VIGENCIA_ESTUDIOS: b.VIGENCIA_ESTUDIOS ? formatFecha(b.VIGENCIA_ESTUDIOS) : null,
           }));
 
-          // 2.d) Contar cuántos beneficiarios no tienen URL_ACTA_NAC
+          //? 2.d) Contar cuántos beneficiarios no tienen URL_ACTA_NAC
           const sinActaCount = beneficiariosFmt.filter(b => !b.URL_ACTA_NAC).length;
 
           return {
@@ -166,10 +166,10 @@ export default async function handler(req, res) {
       )
     );
 
-    // Filtrar valores nulos
+    //* Filtrar valores nulos
     const consolidado = raw.filter(item => item !== null);
 
-    // Dedupe por nómina
+    //* Dedupe por nómina
     const seen = new Set();
     const uniqueConsolidado = [];
     for (const item of consolidado) {
@@ -181,7 +181,7 @@ export default async function handler(req, res) {
       uniqueConsolidado.push(item);
     }
 
-    // Devolver el listado sin duplicados
+    //* Devolver el listado sin duplicados
     res.status(200).json(uniqueConsolidado);
   } catch (err) {
     console.error('❌ Error /api/beneficiarios/consolidado:', err);
