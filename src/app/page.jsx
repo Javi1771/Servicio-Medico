@@ -1,8 +1,7 @@
 "use client";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { FaUser, FaLock } from "react-icons/fa";
-import { MdVisibility, MdVisibilityOff } from "react-icons/md";
+import { FaUser, FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
 import Image from "next/image";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
@@ -12,15 +11,19 @@ import "../styles/globals.css";
 
 const MySwal = withReactContent(Swal);
 const successSound = "/assets/applepay.mp3";
-const errorSound   = "/assets/error.mp3";
+const errorSound = "/assets/error.mp3";
 
 const playSound = (isSuccess) => {
   const audio = new Audio(isSuccess ? successSound : errorSound);
-  audio.play();
+  audio.play().catch(e => console.error("Error al reproducir sonido:", e));
 };
 
 const showSuccessAlert = (title, message) => {
-  playSound(true);
+  try {
+    playSound(true);
+  } catch (soundError) {
+    console.error("Error al reproducir sonido de éxito:", soundError);
+  }
   return MySwal.fire({
     icon: "success",
     title: (
@@ -44,7 +47,11 @@ const showSuccessAlert = (title, message) => {
 };
 
 const showErrorAlert = (title, message) => {
-  playSound(false);
+  try {
+    playSound(false);
+  } catch (soundError) {
+    console.error("Error al reproducir sonido de error:", soundError);
+  }
   return MySwal.fire({
     icon: "error",
     title: (
@@ -73,49 +80,127 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [attempts, setAttempts] = useState(0);
+  
+  const usuarioRef = useRef(null);
+  const passwordRef = useRef(null);
+
+  //* Sincronizar con autocompletado del navegador
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (usuarioRef.current?.value && passwordRef.current?.value) {
+        setUsuario(usuarioRef.current.value);
+        setPassword(passwordRef.current.value);
+      }
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    if (isSubmitting) return;
+    console.log("Iniciando proceso de login");
+    
+    if (isSubmitting) {
+      console.log("Login ya en proceso, ignorando clic");
+      return;
+    }
+    
+    //! Bloquear después de 5 intentos fallidos
+    if (attempts >= 5) {
+      showErrorAlert(
+        "Demasiados intentos", 
+        "Por favor espera 1 minuto antes de volver a intentar."
+      );
+      return;
+    }
 
     const userTrim = usuario.trim();
-    if (!userTrim || !password) {
-      return showErrorAlert("Campos incompletos", "Por favor completa todos los campos.");
+    const passTrim = password.trim();
+
+    if (!userTrim || !passTrim) {
+      showErrorAlert("Campos incompletos", "Por favor completa todos los campos.");
+      return;
     }
-    if (userTrim.length < 3) {
-      return showErrorAlert("Usuario muy corto", "Debe tener al menos 3 caracteres.");
+    
+    if (userTrim.length < 3 || userTrim.length > 20) {
+      showErrorAlert("Usuario inválido", "Debe tener entre 3 y 20 caracteres.");
+      return;
     }
-    if (password.length < 3) {
-      return showErrorAlert("Contraseña muy corta", "Debe tener al menos 3 caracteres.");
+    
+    if (passTrim.length < 6) {
+      showErrorAlert("Contraseña insegura", "Debe tener al menos 6 caracteres.");
+      return;
     }
 
     setIsSubmitting(true);
+    console.log("Enviando solicitud de login...");
+    
     try {
       const res = await fetch("/api/loginApi", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ usuario: userTrim, password }),
+        body: JSON.stringify({ usuario: userTrim, password: passTrim }),
       });
-      const data = await res.json();
+      
+      console.log("Respuesta recibida:", res.status);
+      
       if (!res.ok) {
-        return showErrorAlert("Error", data.message || "Algo salió mal");
+        const errorData = await res.json();
+        throw new Error(errorData.message || `Error en la solicitud: ${res.status}`);
       }
+      
+      const data = await res.json();
+      console.log("Datos de respuesta:", data);
+      
       if (data.success) {
-        await showSuccessAlert("¡Bienvenido!", "Redirigiendo...");
-        router.replace("/inicio-servicio-medico");
-      } else if (data.message.toLowerCase().includes("usuario")) {
-        showErrorAlert("Usuario no encontrado", "Verifica tus datos.");
-      } else if (data.message.toLowerCase().includes("contraseña")) {
-        showErrorAlert("Contraseña incorrecta", "Vuelve a intentarlo.");
+        console.log("Login exitoso, mostrando alerta...");
+        //* Mostrar alerta pero no esperar a que se cierre
+        showSuccessAlert("¡Bienvenido!", "Redirigiendo...")
+          .then(() => {
+            console.log("Alerta cerrada, redirigiendo...");
+            router.replace("/inicio-servicio-medico")
+              .catch(err => {
+                console.error("Error en router.replace:", err);
+                window.location.href = "/inicio-servicio-medico";
+              });
+          })
+          .catch(alertErr => {
+            console.error("Error mostrando alerta:", alertErr);
+            router.replace("/inicio-servicio-medico");
+          });
       } else {
-        showErrorAlert("Error desconocido", "Intenta nuevamente más tarde.");
+        console.log("Login fallido, aumentando intentos...");
+        setAttempts(prev => prev + 1);
+        if (data.message.toLowerCase().includes("usuario")) {
+          showErrorAlert("Usuario no encontrado", "Verifica tus datos.");
+        } else if (data.message.toLowerCase().includes("contraseña") || 
+                   data.message.toLowerCase().includes("credenciales")) {
+          showErrorAlert("Contraseña incorrecta", "Vuelve a intentarlo.");
+        } else {
+          showErrorAlert("Error desconocido", "Intenta nuevamente más tarde.");
+        }
       }
     } catch (err) {
-      console.error(err);
-      showErrorAlert("Conexión fallida", "No se pudo conectar al servidor.");
+      console.error("Error en el login:", err);
+      setAttempts(prev => prev + 1);
+      
+      if (err.message.includes('Failed to fetch') || err.message.includes('NetworkError')) {
+        showErrorAlert("Error de conexión", "No se pudo conectar al servidor. Intenta de nuevo.");
+      } else {
+        showErrorAlert("Error", err.message || "Ocurrió un error inesperado");
+      }
     } finally {
+      console.log("Finalizando proceso de login");
       setIsSubmitting(false);
+    }
+  };
+
+  //* Prevenir recarga al presionar Enter en campos vacíos
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && (!usuario.trim() || !password.trim())) {
+      e.preventDefault();
     }
   };
 
@@ -161,64 +246,71 @@ export default function Login() {
             width={550}
             height={520}
             className={styles.image}
+            priority
           />
         </div>
 
         <div className={styles.formSection}>
           <h1 className={styles.formTitle}>Bienvenido, Inicia Sesión</h1>
 
-          {/* <-- Añadimos method="POST" para evitar GET en la URL -->
-           */}
           <form
             onSubmit={handleLogin}
             method="POST"
             className={styles.form}
           >
-            <label className="block mb-2 text-lg font-semibold text-white">
+            <label htmlFor="usuario-input" className="block mb-2 text-lg font-semibold text-white">
               Usuario
             </label>
             <div className={styles.inputContainer} style={containerStyle}>
               <FaUser style={{ marginLeft: "10px" }} />
               <input
+                id="usuario-input"
+                ref={usuarioRef}
                 name="usuario"
                 type="text"
                 autoComplete="username"
                 value={usuario}
                 onChange={(e) => setUsuario(e.target.value)}
+                onKeyDown={handleKeyDown}
                 placeholder="Ingresa tu usuario"
                 className={styles.input}
                 style={inputStyle}
+                aria-label="Ingresa tu usuario"
               />
             </div>
 
-            <label className="block mt-6 mb-2 text-lg font-semibold text-white">
+            <label htmlFor="password-input" className="block mt-6 mb-2 text-lg font-semibold text-white">
               Contraseña
             </label>
             <div className={styles.inputContainer} style={containerStyle}>
               <FaLock style={{ marginLeft: "10px" }} />
               <input
+                id="password-input"
+                ref={passwordRef}
                 name="password"
                 type={showPassword ? "text" : "password"}
                 autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                onKeyDown={handleKeyDown}
                 placeholder="Ingresa tu contraseña"
                 className={styles.input}
                 style={inputStyle}
+                aria-label="Ingresa tu contraseña"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword((v) => !v)}
-                aria-label="Mostrar / ocultar contraseña"
+                aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
                 style={eyeButtonStyle}
               >
-                {showPassword ? <MdVisibilityOff /> : <MdVisibility />}
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
               </button>
             </div>
 
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || attempts >= 3}
               className={`${styles.button} ${isSubmitting ? styles.buttonDisabled : ""}`}
               style={{
                 marginTop: "2rem",
@@ -227,10 +319,14 @@ export default function Login() {
                 border: "none",
                 fontSize: "1rem",
                 fontWeight: "bold",
-                cursor: isSubmitting ? "not-allowed" : "pointer",
+                cursor: (isSubmitting || attempts >= 3) ? "not-allowed" : "pointer",
               }}
+              aria-label="Iniciar sesión"
             >
-              {isSubmitting ? "Procesando..." : "Ingresar"}
+              {attempts >= 3 
+                ? "Demasiados intentos" 
+                : isSubmitting ? "Procesando..." : "Ingresar"
+              }
             </button>
           </form>
         </div>
