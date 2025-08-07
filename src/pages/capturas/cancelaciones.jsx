@@ -1,19 +1,14 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { useState } from "react";
 import { useRouter } from "next/router";
-import Swal from "sweetalert2";
-import withReactContent from "sweetalert2-react-content";
 import { FaClipboardList, FaSearch } from "react-icons/fa";
 import { BiCategory, BiXCircle } from "react-icons/bi";
 import { CiBarcode } from "react-icons/ci";
-
+import { showCustomAlert } from "../../utils/alertas";
 import PaseEspecialidad from "./components/PaseEspecialidad";
 import Laboratorio from "./components/Laboratorio";
 import Incapacidad from "./components/Incapacidad";
 import Surtimiento from "./components/Surtimiento";
-
-const successSound = "/assets/applepay.mp3";
-const errorSound = "/assets/error.mp3";
 
 const red50 = "#FFF0F0";
 const red100 = "#FFDDDD";
@@ -27,61 +22,12 @@ const red800 = "#B10033";
 const red900 = "#920A1A";
 const red950 = "#500000";
 
-const MySwal = withReactContent(Swal);
-
 export default function CancelarOrden() {
   const router = useRouter();
   const [tipo, setTipo] = useState("paseEspecialidad");
   const [folio, setFolio] = useState("");
   const [datos, setDatos] = useState(null);
   const [cargando, setCargando] = useState(false);
-
-  const playSound = (isSuccess) => {
-    const audio = new Audio(isSuccess ? successSound : errorSound);
-    audio.play();
-  };
-
-  const showAlert = (icon, title, message) => {
-    playSound(icon === "success");
-
-    const alertConfig = {
-      success: {
-        title: `<span style='color: #00e676; font-weight: bold; font-size: 1.5em;'>✔️ ${title}</span>`,
-        html: `<p style='color: #fff; font-size: 1.1em;'>${message}</p>`,
-        background: "linear-gradient(145deg, #004d40, #00251a)",
-        confirmButtonColor: "#00e676",
-        confirmButtonText: `<span style='color: #000; font-weight: bold;'>Aceptar</span>`,
-        customClass: {
-          popup:
-            "border border-green-600 shadow-[0px_0px_20px_5px_rgba(0,230,118,0.9)] rounded-lg",
-        },
-      },
-      error: {
-        title: `<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ ${title}</span>`,
-        html: `<p style='color: #fff; font-size: 1.1em;'>${message}</p>`,
-        background: "linear-gradient(145deg, #4a0000, #220000)",
-        confirmButtonColor: "#ff1744",
-        confirmButtonText: `<span style='color: #fff; font-weight: bold;'>Aceptar</span>`,
-        customClass: {
-          popup:
-            "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-        },
-      },
-      warning: {
-        title: `<span style='color: #ffc107; font-weight: bold; font-size: 1.5em;'>⚠️ ${title}</span>`,
-        html: `<p style='color: #fff; font-size: 1.1em;'>${message}</p>`,
-        background: "linear-gradient(145deg, #7f6000, #332600)",
-        confirmButtonColor: "#ffc107",
-        confirmButtonText: `<span style='color: #000; font-weight: bold;'>Aceptar</span>`,
-        customClass: {
-          popup:
-            "border border-yellow-600 shadow-[0px_0px_20px_5px_rgba(255,193,7,0.9)] rounded-lg",
-        },
-      },
-    };
-
-    MySwal.fire(alertConfig[icon]);
-  };
 
   const handleBuscar = async () => {
     setDatos(null);
@@ -109,7 +55,12 @@ export default function CancelarOrden() {
 
       if (!res.ok) {
         // **Sin fallback**: mostramos SOLO el message del endpoint
-        showAlert("warning", "Advertencia", result.message);
+        await showCustomAlert(
+          "warning",
+          "Advertencia",
+          result.message,
+          "Aceptar"
+        );
         return;
       }
 
@@ -121,7 +72,8 @@ export default function CancelarOrden() {
       // En ese caso tu servidor NO te está devolviendo tu JSON de error:
       // asegúrate de tener un catch-all en pages/api/cancelaciones
       // para que siempre entregue JSON (incluso en rutas no definidas).
-      showAlert(
+
+      await showCustomAlert(
         "error",
         "Error inesperado",
         "No se recibió respuesta, verifique el folio e intente nuevamente."
@@ -146,36 +98,50 @@ export default function CancelarOrden() {
       });
       const result = await res.json();
       if (!res.ok) {
-        showAlert("error", "Error", result.message || "Error al cancelar");
+        await showCustomAlert(
+          "error",
+          "Error al cancelar",
+          result.message || "Error al cancelar la solicitud",
+          "Aceptar"
+        );
       } else {
-        showAlert("success", "¡Cancelado!", result.message);
+        await showCustomAlert(
+          "success",
+          "Cancelación exitosa",
+          result.message || "La solicitud ha sido cancelada correctamente",
+          "Aceptar"
+        );
         setDatos(null);
         setFolio("");
       }
     } catch (error) {
-      showAlert("error", "Error", error.message);
+      await showCustomAlert(
+        "error",
+        "Error al cancelar",
+        error.message || "Ocurrió un error al intentar cancelar la solicitud",
+        "Aceptar"
+      );
     }
   };
 
-  const handleConfirmCancel = () => {
-    playSound(false);
-    MySwal.fire({
-      icon: "warning",
-      title:
-        "<span style='color: #ffc107; font-weight: bold; font-size: 1.5em;'>⚠️ Confirmar Cancelación</span>",
-      html: "<p style='color: #fff; font-size: 1.1em;'>¿Seguro que deseas cancelar esta solicitud?</p>",
-      background: "linear-gradient(145deg, #7f6000, #332600)",
-      confirmButtonColor: "#ffc107",
-      cancelButtonColor: "#666",
-      confirmButtonText:
-        "<span style='color: #000; font-weight: bold;'>Sí, cancelar</span>",
-      cancelButtonText: "<span style='color: #fff;'>No, mantener</span>",
-      showCancelButton: true,
-      customClass: {
-        popup:
-          "border border-yellow-600 shadow-[0px_0px_20px_5px_rgba(255,193,7,0.9)] rounded-lg",
-      },
-    }).then((result) => {
+  const handleConfirmCancel = async () => {
+    await showCustomAlert(
+      "warning",
+      "Confirmar Cancelación",
+      "¿Seguro que deseas cancelar esta solicitud?",
+      "Sí, cancelar",
+      {
+        background: "linear-gradient(145deg, #7f6000, #332600)",
+        showCancelButton: true,
+        confirmButtonColor: "#ffc107",
+        cancelButtonColor: "#666",
+        cancelButtonText: "No, mantener",
+        customClass: {
+          popup:
+            "border border-yellow-600 shadow-[0px_0px_20px_5px_rgba(255,193,7,0.9)] rounded-lg",
+        },
+      }
+    ).then((result) => {
       if (result.isConfirmed) handleCancelar();
     });
   };

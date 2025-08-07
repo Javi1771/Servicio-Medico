@@ -17,10 +17,9 @@ import {
   FaEyeSlash,
   FaSpinner,
 } from "react-icons/fa";
-import Swal from "sweetalert2";
 import Image from "next/image"; //* Asegúrate de importar Image desde next/image
 import { useRouter } from "next/router";
-import { arrayAsString } from "pdf-lib";
+import { showCustomAlert } from "../../utils/alertas";
 
 export default function UsuariosTable() {
   const [usuarios, setUsuarios] = useState([]);
@@ -104,25 +103,18 @@ export default function UsuariosTable() {
   }, []);
 
   const handleDeleteUser = async (usuario) => {
-    playSound(false); //! Reproducir sonido de error
-    const confirmDelete = await Swal.fire({
-      title:
-        "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>⚠️ ¿Estás seguro?</span>",
-      html: "<p style='color: #fff; font-size: 1.1em;'>El usuario será desactivado y no podrás revertir esta acción.</p>",
-      icon: "warning",
-      background: "linear-gradient(145deg, #4a0000, #220000)",
-      confirmButtonColor: "#ff1744",
-      cancelButtonColor: "#d33",
-      confirmButtonText:
-        "<span style='color: #fff; font-weight: bold;'>Sí, desactivar</span>",
-      cancelButtonText:
-        "<span style='color: #fff; font-weight: bold;'>Cancelar</span>",
-      showCancelButton: true,
-      customClass: {
-        popup:
-          "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-      },
-    });
+    const confirmDelete = showCustomAlert(
+      "warning",
+      "¿Estás seguro?",
+      "El usuario será desactivado y no podrás revertir esta acción.",
+      "Sí, desactivar",
+      {
+        showCancelButton: true,
+        confirmButtonColor: "#ce8218ff",
+        cancelButtonColor: "#d33",
+        cancelButtonText: "Cancelar",
+      }
+    );
 
     if (confirmDelete.isConfirmed) {
       try {
@@ -144,38 +136,20 @@ export default function UsuariosTable() {
         const usuariosData = await usuariosResponse.json();
         setUsuarios(usuariosData);
 
-        playSound(true); //* Reproducir sonido de éxito
-        await Swal.fire({
-          icon: "success",
-          title:
-            "<span style='color: #4caf50; font-weight: bold; font-size: 1.5em;'>✔️ Desactivado</span>",
-          html: "<p style='color: #fff; font-size: 1.1em;'>El usuario ha sido desactivado correctamente.</p>",
-          background: "linear-gradient(145deg, #003d00, #001f00)",
-          confirmButtonColor: "#4caf50",
-          confirmButtonText:
-            "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-          customClass: {
-            popup:
-              "border border-green-600 shadow-[0px_0px_20px_5px_rgba(76,175,80,0.9)] rounded-lg",
-          },
-        });
+        await showCustomAlert(
+          "success",
+          "Desactivado",
+          "El usuario ha sido desactivado correctamente.",
+          "Aceptar"
+        );
       } catch (error) {
         console.error("Error al desactivar el usuario:", error);
-        playSound(false); //! Reproducir sonido de error
-        await Swal.fire({
-          icon: "error",
-          title:
-            "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error</span>",
-          html: "<p style='color: #fff; font-size: 1.1em;'>Hubo un problema al desactivar el usuario. Intenta nuevamente.</p>",
-          background: "linear-gradient(145deg, #4a0000, #220000)",
-          confirmButtonColor: "#ff1744",
-          confirmButtonText:
-            "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-          customClass: {
-            popup:
-              "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-          },
-        });
+        await showCustomAlert(
+          "error",
+          "Error",
+          "Hubo un problema al desactivar el usuario. Intenta nuevamente.",
+          "Aceptar"
+        );
       }
     }
   };
@@ -349,40 +323,24 @@ export default function UsuariosTable() {
     setIsSubmitting(true);
 
     if (!isUsuarioValido) {
-      playSound(false); //! Reproducir sonido de error
-      await Swal.fire({
-        icon: "error",
-        title:
-          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>El nombre de usuario no es válido.</p>",
-        background: "linear-gradient(145deg, #4a0000, #220000)",
-        confirmButtonColor: "#ff1744",
-        confirmButtonText:
-          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-        },
-      });
+      await showCustomAlert(
+        "error",
+        "Error",
+        "El nombre de usuario no es válido.",
+        "Aceptar"
+      );
+
       return;
     }
 
     if (!newUsuario.password || newUsuario.password.length < 6) {
-      playSound(false); //! Reproducir sonido de error
-      await Swal.fire({
-        icon: "error",
-        title:
-          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>La contraseña debe tener al menos 6 caracteres.</p>",
-        background: "linear-gradient(145deg, #4a0000, #220000)",
-        confirmButtonColor: "#ff1744",
-        confirmButtonText:
-          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-        },
-      });
+      await showCustomAlert(
+        "error",
+        "❌ Error",
+        "La contraseña debe tener al menos 6 caracteres.",
+        "Aceptar"
+      );
+
       return;
     }
 
@@ -419,21 +377,12 @@ export default function UsuariosTable() {
         setUsuarios(usuariosData);
 
         //* Mostrar notificación de éxito con SweetAlert2
-        playSound(true); //* Reproducir sonido de éxito
-        await Swal.fire({
-          icon: "success",
-          title:
-            "<span style='color: #4caf50; font-weight: bold; font-size: 1.5em;'>✔️ Usuario Actualizado</span>",
-          html: "<p style='color: #fff; font-size: 1.1em;'>El usuario se actualizó correctamente.</p>",
-          background: "linear-gradient(145deg, #003d00, #001f00)",
-          confirmButtonColor: "#4caf50",
-          confirmButtonText:
-            "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-          customClass: {
-            popup:
-              "border border-green-600 shadow-[0px_0px_20px_5px_rgba(76,175,80,0.9)] rounded-lg",
-          },
-        });
+        await showCustomAlert(
+          "success",
+          "Usuario Actualizado",
+          "El usuario se actualizó correctamente.",
+          "Aceptar"
+        );
 
         //* Mostrar el mensaje de éxito
         setShowSuccessMessage(true);
@@ -450,21 +399,13 @@ export default function UsuariosTable() {
           !usuarioData.usuario ||
           !usuarioData.password
         ) {
-          playSound(false); //! Reproducir sonido de error
-          await Swal.fire({
-            icon: "error",
-            title:
-              "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Campos Vacíos</span>",
-            html: "<p style='color: #fff; font-size: 1.1em;'>Por favor, completa todos los campos requeridos para agregar un usuario.</p>",
-            background: "linear-gradient(145deg, #4a0000, #220000)",
-            confirmButtonColor: "#ff1744",
-            confirmButtonText:
-              "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-            customClass: {
-              popup:
-                "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-            },
-          });
+          await showCustomAlert(
+            "error",
+            "Campos Vacíos",
+            "Por favor, completa todos los campos requeridos para agregar un usuario.",
+            "Aceptar"
+          );
+
           return;
         }
 
@@ -492,21 +433,12 @@ export default function UsuariosTable() {
         setUsuarios(usuariosData);
 
         //* Mostrar notificación de éxito con SweetAlert2
-        playSound(true); //* Reproducir sonido de éxito
-        await Swal.fire({
-          icon: "success",
-          title:
-            "<span style='color: #4caf50; font-weight: bold; font-size: 1.5em;'>✔️ Usuario Agregado</span>",
-          html: "<p style='color: #fff; font-size: 1.1em;'>El usuario se agregó correctamente.</p>",
-          background: "linear-gradient(145deg, #003d00, #001f00)",
-          confirmButtonColor: "#4caf50",
-          confirmButtonText:
-            "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-          customClass: {
-            popup:
-              "border border-green-600 shadow-[0px_0px_20px_5px_rgba(76,175,80,0.9)] rounded-lg",
-          },
-        });
+        await showCustomAlert(
+          "success",
+          "Usuario Agregado",
+          "El usuario se agregó correctamente.",
+          "Aceptar"
+        );
 
         //* Mostrar el mensaje de éxito
         setShowSuccessMessage(true);
@@ -519,25 +451,16 @@ export default function UsuariosTable() {
       }
     } catch (error) {
       console.error(error);
-      playSound(false); //! Reproducir sonido de error
-      await Swal.fire({
-        icon: "error",
-        title:
-          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error</span>",
-        html: `<p style='color: #fff; font-size: 1.1em;'>${
+      await showCustomAlert(
+        "error",
+        "Error",
+        `<p style='color: #fff; font-size: 1.1em;'>${
           selectedUsuario
             ? "Hubo un problema al actualizar el usuario."
             : "Hubo un problema al agregar el usuario."
         }</p>`,
-        background: "linear-gradient(145deg, #4a0000, #220000)",
-        confirmButtonColor: "#ff1744",
-        confirmButtonText:
-          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-        },
-      });
+        "Aceptar"
+      );
     } finally {
       setIsSubmitting(false);
     }

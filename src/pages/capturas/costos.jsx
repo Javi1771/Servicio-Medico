@@ -1,7 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState } from "react";
-import Swal from "sweetalert2";
-import withReactContent from "sweetalert2-react-content";
 import {
   FaHospital,
   FaUser,
@@ -20,17 +18,7 @@ import {
   FaPrint,
 } from "react-icons/fa";
 import { useRouter } from "next/router";
-
-const MySwal = withReactContent(Swal);
-
-const successSound = "/assets/applepay.mp3";
-const errorSound = "/assets/error.mp3";
-
-//* Reproduce un sonido de éxito/error
-const playSound = (isSuccess) => {
-  const audio = new Audio(isSuccess ? successSound : errorSound);
-  audio.play();
-};
+import { showCustomAlert } from "../../utils/alertas";
 
 function formatCurrency(value) {
   if (!value) return "";
@@ -41,54 +29,6 @@ function formatCurrency(value) {
     currency: "MXN",
   });
 }
-
-const showAlert = (type, titleText, message) => {
-  let icon = "info";
-  let color = "#1976d2";
-  let background = "linear-gradient(145deg, #1a237e, #0d47a1)";
-  let confirmButtonColor = "#1976d2";
-  let borderColor = "blue";
-  let neonShadow = "rgba(25, 118, 210, 0.9)";
-
-  if (type === "error") {
-    icon = "error";
-    color = "#ff1744";
-    background = "linear-gradient(145deg, #4a0000, #220000)";
-    confirmButtonColor = "#ff1744";
-    borderColor = "red";
-    neonShadow = "rgba(255,23,68,0.9)";
-    playSound(false);
-  } else if (type === "success") {
-    icon = "success";
-    color = "#00e676";
-    background = "linear-gradient(145deg, #004d40, #00251a)";
-    confirmButtonColor = "#00e676";
-    borderColor = "green";
-    neonShadow = "rgba(0,230,118,0.9)";
-    playSound(true);
-  } else if (type === "warning") {
-    icon = "warning";
-    color = "#ff9800";
-    background = "linear-gradient(145deg, #4a2600, #220f00)";
-    confirmButtonColor = "#ff9800";
-    borderColor = "yellow";
-    neonShadow = "rgba(255,152,0,0.9)";
-    playSound(false);
-  }
-
-  MySwal.fire({
-    icon: icon,
-    title: `<span style='color: ${color}; font-weight: bold; font-size: 1.5em;'>${titleText}</span>`,
-    html: `<p style='color: #fff; font-size: 1.1em;'>${message}</p>`,
-    background: background,
-    confirmButtonColor: confirmButtonColor,
-    confirmButtonText:
-      "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
-    customClass: {
-      popup: `border border-${borderColor}-600 shadow-[0px_0px_20px_5px_${neonShadow}] rounded-lg`,
-    },
-  });
-};
 
 export default function Costos() {
   const [claveconsulta, setClaveconsulta] = useState("");
@@ -112,10 +52,11 @@ export default function Costos() {
       }
       const data = await res.json();
       if (data.length === 0) {
-        showAlert(
-          "error",
-          "❌ Error",
-          "No se encontró registro para la claveconsulta proporcionada."
+        await showCustomAlert(
+          "info",
+          "Sin resultados",
+          "No se encontraron datos para la clave de consulta proporcionada.",
+          "Aceptar"
         );
         setCostosData([]);
         setClaveconsulta("");
@@ -126,25 +67,12 @@ export default function Costos() {
       }
 
       if (data[0].factura !== "" && Number(data[0].costo) !== 0) {
-        playSound(false);
-        MySwal.fire({
-          icon: "warning",
-          title:
-            "<span style='color: #ff9800; font-weight: bold; font-size: 1.5em;'>⚠️ Consulta facturada</span>",
-          html: "<p style='color: #fff; font-size: 1.1em;'>Esta consulta ya fue facturada. ¿Quieres verla?</p>",
-          background: "linear-gradient(145deg, #4a2600, #220f00)",
-          confirmButtonColor: "#0c6b09",
-          confirmButtonText:
-            "<span style='color: #fff; font-weight: bold;'>Sí</span>",
-          showCancelButton: true,
-          cancelButtonColor: "#af0505",
-          cancelButtonText:
-            "<span style='color: #fff; font-weight: bold;'>No</span>",
-          customClass: {
-            popup:
-              "border border-yellow-600 shadow-[0px_0px_20px_5px_rgba(255,152,0,0.9)] rounded-lg",
-          },
-        }).then((result) => {
+        await showCustomAlert(
+          "warning",
+          "Atención",
+          "Esta consulta ya fue facturada y no puede ser actualizada.",
+          "Aceptar"
+        ).then((result) => {
           if (result.isConfirmed) {
             setCostosData(data);
             setFacturada(true);
@@ -165,10 +93,11 @@ export default function Costos() {
     } catch (error) {
       console.error("Error al obtener datos:", error);
       setCostosData([]);
-      showAlert(
+      await showCustomAlert(
         "error",
-        "❌ Error en la búsqueda",
-        "Hubo un problema al buscar la información. Intenta nuevamente."
+        "Error al obtener datos",
+        "Hubo un problema al intentar obtener los datos de costos. Por favor, intenta nuevamente.",
+        "Aceptar"
       );
     }
   };
@@ -176,17 +105,18 @@ export default function Costos() {
   const handleSubmitForm = async (e) => {
     e.preventDefault();
     if (!costo || !numeroFactura) {
-      showAlert(
+      await showCustomAlert(
         "error",
-        "❌ Error",
+        "Error",
         "Debes ingresar el costo y el número de factura"
       );
+
       return;
     }
     if (facturada) {
-      showAlert(
+      await showCustomAlert(
         "warning",
-        "⚠️ Atención",
+        "Atención",
         "Esta consulta ya fue facturada y no puede ser actualizada"
       );
       return;
@@ -211,21 +141,13 @@ export default function Costos() {
       if (!res.ok) {
         throw new Error("No se pudo guardar la información");
       }
-      playSound(true);
-      MySwal.fire({
-        icon: "success",
-        title:
-          "<span style='color: #00e676; font-weight: bold; font-size: 1.5em;'>✔️ Consulta guardada correctamente</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>La consulta ha sido registrada y atendida exitosamente.</p>",
-        background: "linear-gradient(145deg, #004d40, #00251a)",
-        confirmButtonColor: "#00e676",
-        confirmButtonText:
-          "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-green-600 shadow-[0px_0px_20px_5px_rgba(0,230,118,0.9)] rounded-lg",
-        },
-      });
+      await showCustomAlert(
+        "success",
+        "Consulta guardada correctamente",
+        "La consulta ha sido registrada y atendida exitosamente.",
+        "Aceptar"
+      );
+
       setCosto("");
       setNumeroFactura("");
       setFacturada(true);
@@ -234,7 +156,12 @@ export default function Costos() {
       handleSearch();
     } catch (error) {
       console.error("Error al guardar el costo:", error);
-      showAlert("error", "❌ Error", "Error al guardar el costo");
+      await showCustomAlert(
+        "error",
+        "Error",
+        "Hubo un problema al intentar guardar la información. Por favor, intenta nuevamente.",
+        "Aceptar"
+      );
     }
   };
 

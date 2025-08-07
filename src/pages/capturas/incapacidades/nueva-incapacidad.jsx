@@ -4,22 +4,9 @@ import { useRouter } from "next/router";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import { FaCalendarAlt, FaArrowLeft } from "react-icons/fa";
-import Swal from "sweetalert2";
-import withReactContent from "sweetalert2-react-content";
 import HistorialIncapacidadesTable from "../../consultas/components/HistorialIncapacidades";
 import { motion } from "framer-motion";
-
-const MySwal = withReactContent(Swal);
-
-//* Sonidos
-const successSound = "/assets/applepay.mp3";
-const errorSound = "/assets/error.mp3";
-
-//* Reproduce el sonido de éxito o error
-const playSound = (isSuccess) => {
-  const audio = new Audio(isSuccess ? successSound : errorSound);
-  audio.play();
-};
+import { showCustomAlert } from "../../../utils/alertas";
 
 const NuevaIncapacidad = () => {
   const router = useRouter();
@@ -28,7 +15,9 @@ const NuevaIncapacidad = () => {
     clavenomina,
     clavepaciente,
   } = router.query;
-  const claveConsulta = encryptedClaveConsulta ? atob(encryptedClaveConsulta) : "";
+  const claveConsulta = encryptedClaveConsulta
+    ? atob(encryptedClaveConsulta)
+    : "";
 
   //* Estados
   const [fechaInicio, setFechaInicio] = useState(null);
@@ -43,60 +32,6 @@ const NuevaIncapacidad = () => {
   //* Refs para los calendarios
   const startCalendarRef = useRef(null);
   const endCalendarRef = useRef(null);
-
-  // ================================
-  //! ALERTAS con el DISEÑO REQUERIDO
-  // ================================
-  const showWarning = (title, message) => {
-    playSound(false);
-    MySwal.fire({
-      icon: "warning",
-      title: `<span style='color: #ffbb33; font-weight: bold; font-size: 1.5em;'>${title}</span>`,
-      html: `<p style='color: #fff; font-size: 1.1em;'>${message}</p>`,
-      background: "linear-gradient(145deg, #664d00, #332600)",
-      confirmButtonColor: "#ffbb33",
-      confirmButtonText:
-        "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-      customClass: {
-        popup:
-          "border border-yellow-500 shadow-[0px_0px_20px_5px_rgba(255,187,51,0.9)] rounded-lg",
-      },
-    });
-  };
-
-  const showError = (title, message) => {
-    playSound(false);
-    MySwal.fire({
-      icon: "error",
-      title: `<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>${title}</span>`,
-      html: `<p style='color: #fff; font-size: 1.1em;'>${message}</p>`,
-      background: "linear-gradient(145deg, #4a0000, #220000)",
-      confirmButtonColor: "#ff1744",
-      confirmButtonText:
-        "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-      customClass: {
-        popup:
-          "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-      },
-    });
-  };
-
-  const showSuccess = (title, message) => {
-    playSound(true);
-    MySwal.fire({
-      icon: "success",
-      title: `<span style='color: #00e676; font-weight: bold; font-size: 1.5em;'>${title}</span>`,
-      html: `<p style='color: #fff; font-size: 1.1em;'>${message}</p>`,
-      background: "linear-gradient(145deg, #003300, #001a00)",
-      confirmButtonColor: "#00e676",
-      confirmButtonText:
-        "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-      customClass: {
-        popup:
-          "border border-green-500 shadow-[0px_0px_20px_5px_rgba(0,230,118,0.9)] rounded-lg",
-      },
-    });
-  };
 
   //! Cierra el calendario si se hace clic fuera
   useEffect(() => {
@@ -195,15 +130,17 @@ const NuevaIncapacidad = () => {
   const handleGuardar = async () => {
     try {
       if (!fechaInicio || !fechaFin || !diagnostico.trim()) {
-        return showWarning(
-          "Campos incompletos",
-          "Selecciona las fechas y escribe un diagnóstico."
+        return await showCustomAlert(
+          "warning",
+          "Datos incompletos",
+          "Por favor, completa todos los campos antes de guardar."
         );
       }
       if (!datosFaltantes) {
-        return showError(
-          "Error",
-          "No se pudieron cargar los datos faltantes. Intenta más tarde."
+        return await showCustomAlert(
+          "error",
+          "Datos incompletos",
+          "No se pudieron obtener los datos del paciente. No es posible guardar la incapacidad."
         );
       }
 
@@ -271,8 +208,9 @@ const NuevaIncapacidad = () => {
       if (!resCaptura.ok)
         throw new Error("Error al guardar la captura de incapacidad");
 
-      showSuccess(
-        "✔️ Incapacidad guardada",
+      await showCustomAlert(
+        "success",
+        "Incapacidad guardada",
         "La incapacidad se registró con éxito."
       );
 
@@ -282,9 +220,10 @@ const NuevaIncapacidad = () => {
       );
     } catch (error) {
       console.error("Error al guardar incapacidad:", error);
-      showError(
-        "❌ Error al guardar",
-        "No se pudo completar el registro de la incapacidad."
+      await showCustomAlert(
+        "error",
+        "Error al guardar incapacidad",
+        error.message || "No se pudo completar el registro de la incapacidad."
       );
       setIsSaving(false);
     }

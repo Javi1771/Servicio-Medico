@@ -2,12 +2,12 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useContext, useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import Swal from "sweetalert2";
-import withReactContent from "sweetalert2-react-content";
+import { showCustomAlert } from "../../utils/alertas";
+
 import Cookies from "js-cookie";
 import { FormularioContext } from "/src/context/FormularioContext";
 
-/* ============  🔹 HELPER PARA FORMATEAR FECHAS 🔹  ============ */
+//* ============  🔹 HELPER PARA FORMATEAR FECHAS 🔹  ============ */
 const normalizeDateForSQL = (value, start) => {
   if (!value) return null;
   if (typeof value === "string" && !value.includes("T")) return value;
@@ -18,19 +18,7 @@ const normalizeDateForSQL = (value, start) => {
     ` ${start ? "00:00:00.000" : "23:59:00.000"}`
   );
 };
-/* ============================================================= */
-
-const MySwal = withReactContent(Swal);
-
-//* Define las rutas de los sonidos de éxito y error
-const successSound = "/assets/applepay.mp3";
-const errorSound = "/assets/error.mp3";
-
-//! Reproduce un sonido de éxito/error
-const playSound = (isSuccess) => {
-  const audio = new Audio(isSuccess ? successSound : errorSound);
-  audio.play();
-};
+//* ============================================================= */
 
 const AccionesConsulta = ({
   claveConsulta,
@@ -404,27 +392,23 @@ const AccionesConsulta = ({
         formulariosCompletos["PaseEspecialidad"] === false &&
         formulariosCompletos["Incapacidades"] === false
       ) {
-        playSound(false);
-        const result = await MySwal.fire({
-          icon: "warning",
-          title: "Confirmación requerida",
-          html: `
-            <p style="color: #fff; font-size: 1.1em;">No se asignarán medicamentos, especialidad ni incapacidad en esta consulta.</p>
-            <p style="color: #ffcc00; font-weight: bold;">¿Desea continuar?</p>
-          `,
-          showCancelButton: true,
-          confirmButtonColor: "#1e90ff",
-          cancelButtonColor: "#ff1744",
-          confirmButtonText:
-            "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-          cancelButtonText:
-            "<span style='color: #fff; font-weight: bold;'>Cancelar</span>",
-          background: "linear-gradient(145deg, #333333, #222222)",
-          customClass: {
-            popup:
-              "border border-yellow-600 shadow-[0px_0px_20px_5px_rgba(255,255,0,0.9)] rounded-lg",
-          },
-        });
+        const result = await showCustomAlert(
+          "warning",
+          "Confirmación requerida",
+          `No se asignarán medicamentos, especialidad ni incapacidad en esta consulta.<br/><span style="color: #ffcc00; font-weight: bold;">¿Desea continuar?</span>`,
+          "Aceptar",
+          {
+            showCancelButton: true,
+            confirmButtonColor: "#1e90ff",
+            cancelButtonColor: "#ff1744",
+            cancelButtonText: "Cancelar",
+            background: "linear-gradient(145deg, #333333, #222222)",
+            customClass: {
+              popup:
+                "border border-yellow-600 shadow-[0px_0px_20px_5px_rgba(255,255,0,0.9)] rounded-lg",
+            },
+          }
+        );
 
         if (!result.isConfirmed) {
           //console.log("🚫 Guardado cancelado por el usuario.");
@@ -458,47 +442,30 @@ const AccionesConsulta = ({
       );
 
       //* Mostrar alerta de éxito con claveConsulta en grande
-      playSound(true);
-      MySwal.fire({
-        icon: "success",
-        title: `<span style='color: #00e676; font-weight: bold; font-size: 2em;'>✔️ Consulta Guardada</span>`,
-        html: `
-          <p style='color: #fff; font-size: 1.2em;'>La consulta se ha guardado correctamente.</p>
-          <p style='color: #00e676; font-weight: bold; font-size: 1.5em;'>Clave Consulta: ${claveConsulta}</p>
-        `,
-        background: "linear-gradient(145deg, #003300, #001a00)",
-        confirmButtonColor: "#00e676",
-        confirmButtonText:
-          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-green-600 shadow-[0px_0px_20px_5px_rgba(0,230,118,0.9)] rounded-lg",
-        },
-      });
+      await showCustomAlert(
+        "success",
+        "Consulta Guardada",
+        `
+    La consulta se ha guardado correctamente.<br/>
+    <strong style="color: #00e676; font-size: 1.2em;">Clave Consulta: ${claveConsulta}</strong>
+  `,
+        "Aceptar"
+      );
     } catch (error) {
       console.error("❌ Error durante el guardado global:", error);
 
       //! Mostrar alerta de error estilizada
-      playSound(false);
-      MySwal.fire({
-        icon: "error",
-        title:
-          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error en el guardado</span>",
-        html: `
-          <p style='color: #fff; font-size: 1.1em;'>Hubo un problema al guardar los datos. Por favor, revisa los errores e intenta nuevamente.</p>
-          <p style='color: #ff1744; font-weight: bold;'>Error: ${
-            error.message || "No especificado"
-          }</p>
-        `,
-        background: "linear-gradient(145deg, #4a0000, #220000)",
-        confirmButtonColor: "#ff1744",
-        confirmButtonText:
-          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-        },
-      });
+      await showCustomAlert(
+        "error",
+        "Error en el guardado",
+        `
+    Hubo un problema al guardar los datos. Por favor, revisa los errores e intenta nuevamente.<br/>
+    <strong style="color: #ff1744;">Error: ${
+      error.message || "No especificado"
+    }</strong>
+  `,
+        "Aceptar"
+      );
     } finally {
       setLoading(false);
     }
@@ -541,32 +508,6 @@ const AccionesConsulta = ({
           </div>
         </div>
       </div>
-
-      {/* <button
-        onClick={() => {
-          actualizarClavestatus(0);
-          limpiarFormulario();
-          localStorage.clear(); //* Limpiar localStorage al cancelar la consulta
-          playSound(false);
-          MySwal.fire({
-            icon: "info",
-            title:
-              "<span style='color: #1e90ff; font-weight: bold; font-size: 1.5em;'>ℹ️ Consulta Cancelada</span>",
-            html: "<p style='color: #fff; font-size: 1.1em;'>La consulta ha sido cancelada correctamente.</p>",
-            background: "linear-gradient(145deg, #003366, #001933)",
-            confirmButtonColor: "#1e90ff",
-            confirmButtonText:
-              "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-            customClass: {
-              popup:
-                "border border-blue-600 shadow-[0px_0px_20px_5px_rgba(30,144,255,0.9)] rounded-lg",
-            },
-          });
-        }}
-        className="px-6 py-3 text-sm font-semibold text-white rounded-xl bg-red-600 hover:bg-red-700 transition-all duration-300"
-      >
-        Cancelar Consulta
-      </button> */}
     </div>
   );
 };

@@ -1,25 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import Swal from "sweetalert2";
 import Image from "next/image";
-import withReactContent from "sweetalert2-react-content";
 import DatosAdicionales from "./datos-adicionales/datos-adicionales";
 import Cookies from "js-cookie";
 import { useRouter } from "next/router";
 import React, { useState, useEffect, useRef, useContext } from "react";
 import { FormularioContext } from "/src/context/FormularioContext";
 import AccionesConsulta from "./AccionesConsulta";
-
-const MySwal = withReactContent(Swal);
-
-//* Define las rutas de los sonidos de éxito y error
-const successSound = "/assets/applepay.mp3";
-const errorSound = "/assets/error.mp3";
-
-//! Reproduce un sonido de éxito/error
-const playSound = (isSuccess) => {
-  const audio = new Audio(isSuccess ? successSound : errorSound);
-  audio.play();
-};
+import { showCustomAlert } from "../../utils/alertas";
 
 const formatearFecha = (fecha) => {
   if (!fecha) return "N/A";
@@ -127,53 +114,22 @@ const Diagnostico = () => {
         setPacientes(pacientesOrdenados);
       } else {
         console.error("Error al cargar consultas del día:", data.message);
-        playSound(false);
-        MySwal.fire({
-          icon: "error",
-          title:
-            "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error al cargar pacientes</span>",
-          html: "<p style='color: #fff; font-size: 1.1em;'>No se pudo cargar la información. Inténtalo nuevamente.</p>",
-          background: "linear-gradient(145deg, #4a0000, #220000)",
-          confirmButtonColor: "#ff1744",
-          confirmButtonText:
-            "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-          customClass: {
-            popup:
-              "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-          },
-        });
+        await showCustomAlert(
+          "error",
+          "Error al cargar pacientes",
+          "No se pudo cargar la información. Inténtalo nuevamente.",
+          "Aceptar"
+        );
       }
     } catch (error) {
       console.error("Error al cargar consultas del día:", error);
-      playSound(false);
-      MySwal.fire({
-        icon: "error",
-        title:
-          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error al cargar pacientes</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>No se pudo cargar la información. Inténtalo nuevamente.</p>",
-        background: "linear-gradient(145deg, #4a0000, #220000)",
-        confirmButtonColor: "#ff1744",
-        confirmButtonText:
-          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-        },
-      });
+      await showCustomAlert(
+        "error",
+        "Error al cargar pacientes",
+        "No se pudo cargar la información. Inténtalo nuevamente.",
+        "Aceptar"
+      );
     }
-  };
-
-  const recolectarDatos = () => {
-    return {
-      claveConsulta,
-      diagnostico,
-      motivoConsulta,
-      signosVitales,
-      alergias,
-      observaciones,
-      especialidadSeleccionada,
-      pasarEspecialidad,
-    };
   };
 
   const obtenerDatosEmpleado = async (num_nom) => {
@@ -196,39 +152,21 @@ const Diagnostico = () => {
           "Error al obtener datos del empleado:",
           await response.json()
         );
-        playSound(false);
-        MySwal.fire({
-          icon: "error",
-          title:
-            "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error al obtener datos</span>",
-          html: "<p style='color: #fff; font-size: 1.1em;'>Hubo un problema al obtener los datos del empleado. Inténtalo nuevamente más tarde.</p>",
-          background: "linear-gradient(145deg, #4a0000, #220000)",
-          confirmButtonColor: "#ff1744",
-          confirmButtonText:
-            "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-          customClass: {
-            popup:
-              "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-          },
-        });
+        await showCustomAlert(
+          "error",
+          "Error al obtener datos",
+          "Hubo un problema al obtener los datos del empleado. Inténtalo nuevamente más tarde.",
+          "Aceptar"
+        );
       }
     } catch (error) {
       console.error("Error al conectar con el servicio de empleado:", error);
-      playSound(false);
-      MySwal.fire({
-        icon: "error",
-        title:
-          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error en el servicio de empleado</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>Hubo un problema al obtener datos del empleado. Inténtalo nuevamente más tarde.</p>",
-        background: "linear-gradient(145deg, #4a0000, #220000)",
-        confirmButtonColor: "#ff1744",
-        confirmButtonText:
-          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-        },
-      });
+      await showCustomAlert(
+        "error",
+        "Error al obtener datos",
+        "Hubo un problema al obtener los datos del empleado. Inténtalo nuevamente más tarde.",
+        "Aceptar"
+      );
     }
   };
 

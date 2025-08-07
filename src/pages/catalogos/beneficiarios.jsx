@@ -28,6 +28,7 @@ import {
   FaUsers,
   FaVenusMars,
 } from "react-icons/fa";
+import { showCustomAlert } from "../../utils/alertas";
 
 Modal.setAppElement("#__next"); // Configuración del modal en Next.js
 
@@ -93,7 +94,7 @@ export default function RegistroBeneficiario() {
   };
 
   // Al pulsar “Guardar Firma” en el modal de la firma
-  const handleSaveFirma = () => {
+  const handleSaveFirma = async () => {
     if (!signatureRef.current) return;
 
     const firmaBase64 = signatureRef.current.getCanvas().toDataURL("image/png");
@@ -104,7 +105,12 @@ export default function RegistroBeneficiario() {
     }));
 
     setIsFirmaOpen(false);
-    Swal.fire("Firmado", "La firma se guardó correctamente.", "success");
+    await showCustomAlert(
+      "success",
+      "Firmado",
+      "La firma se guardó correctamente.",
+      "Aceptar"
+    );
   };
 
   // Al pulsar “Limpiar”
@@ -120,16 +126,6 @@ export default function RegistroBeneficiario() {
       signatureRef.current.fromDataURL(formData.firma);
     }
   }, [isFirmaOpen, formData.firma]);
-
-  //* Define las rutas de los sonidos de éxito y error
-  const successSound = "/assets/applepay.mp3";
-  const errorSound = "/assets/error.mp3";
-
-  //! Reproduce un sonido de éxito/error
-  const playSound = (isSuccess) => {
-    const audio = new Audio(isSuccess ? successSound : errorSound);
-    audio.play();
-  };
 
   const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -277,27 +273,27 @@ export default function RegistroBeneficiario() {
           ...prev,
           actaConcubinatoUrl: data.url, // Guardar la URL del archivo
         }));
-        playSound(true);
-        Swal.fire(
+        await showCustomAlert(
+          "success",
           "Éxito",
           "Acta de Concubinato Manual subida correctamente.",
-          "success"
+          "Aceptar"
         );
       } else {
-        playSound(false);
-        Swal.fire(
+        await showCustomAlert(
+          "error",
           "Error",
           "Error al subir el Acta de Concubinato Manual. Intenta nuevamente.",
-          "error"
+          "Aceptar"
         );
       }
     } catch (error) {
       console.error("Error al subir el Acta de Concubinato Manual:", error);
-      playSound(false);
-      Swal.fire(
+      await showCustomAlert(
+        "error",
         "Error",
         "No se pudo subir el Acta de Concubinato Manual.",
-        "error"
+        "Aceptar"
       );
     }
   };
@@ -334,27 +330,27 @@ export default function RegistroBeneficiario() {
           ...prev,
           actaMatrimonioUrl: data.url, // Guardar la URL del Acta de Matrimonio
         }));
-        playSound(true);
-        Swal.fire(
+        await showCustomAlert(
+          "success",
           "Éxito",
           "Acta de Matrimonio subida manualmente con éxito.",
-          "success"
+          "Aceptar"
         );
       } else {
-        playSound(false);
-        Swal.fire(
+        await showCustomAlert(
+          "error",
           "Error",
           "Error al subir el Acta de Matrimonio manual.",
-          "error"
+          "Aceptar"
         );
       }
     } catch (error) {
       console.error("Error al subir el Acta de Matrimonio manual:", error);
-      playSound(false);
-      Swal.fire(
+      await showCustomAlert(
+        "error",
         "Error",
         "No se pudo subir el Acta de Matrimonio manual.",
-        "error"
+        "Aceptar"
       );
     }
   };
@@ -383,29 +379,32 @@ export default function RegistroBeneficiario() {
       const data = await response.json();
 
       if (response.ok) {
-        //console.log("Acta de Incapacidad subida exitosamente:", data.url);
         setFormData((prev) => ({
           ...prev,
           urlIncap: data.url, // Guardar la URL en el estado
         }));
-        playSound(true);
-        Swal.fire(
+        await showCustomAlert(
+          "success",
           "Éxito",
           "Acta de Incapacidad subida correctamente.",
-          "success"
+          "Aceptar"
         );
       } else {
-        playSound(false);
-        Swal.fire(
-          "Error",
-          "Error al subir el Acta de Incapacidad. Intenta nuevamente.",
-          "error"
+        await showCustomAlert(
+          "error",
+          "Error al subir el Acta de Incapacidad",
+          "Intenta nuevamente.",
+          "Aceptar"
         );
       }
     } catch (error) {
       console.error("Error al subir el Acta de Incapacidad:", error);
-      playSound(false);
-      Swal.fire("Error", "No se pudo subir el Acta de Incapacidad.", "error");
+      await showCustomAlert(
+        "error",
+        "Error",
+        "No se pudo subir el Acta de Incapacidad.",
+        "Aceptar"
+      );
     }
   };
 
@@ -461,7 +460,6 @@ export default function RegistroBeneficiario() {
             .catch((error) => {
               console.error("Error al acceder a la cámara:", error);
               // Evita que SweetAlert se cierre si la cámara falla
-              playSound(false);
               Swal.showValidationMessage("No se pudo acceder a la cámara.");
             });
         },
@@ -512,8 +510,13 @@ export default function RegistroBeneficiario() {
         // 2. (Opcional) Detectar rostro con face-api
         const descriptor = await computeDescriptorFromBase64(base64Image);
         if (!descriptor) {
-          playSound(false);
-          Swal.fire("Error", "No se detectó un rostro en la imagen.", "error");
+          await showCustomAlert(
+            "error",
+            "Error",
+            "No se detectó un rostro en la imagen.",
+            "Aceptar"
+          );
+
           return;
         }
         const descriptorArray = Array.from(descriptor);
@@ -529,15 +532,24 @@ export default function RegistroBeneficiario() {
       }
     } catch (error) {
       console.error("Error al capturar/subir la foto:", error);
-      playSound(false);
-      Swal.fire("Error", "Ocurrió un problema al capturar la foto.", "error");
+      await showCustomAlert(
+        "error",
+        "Error",
+        "Error al capturar o subir la foto.",
+        "Aceptar"
+      );
     }
   };
 
   const uploadImage = async (base64Image) => {
     if (!numNomina) {
-      playSound(false);
-      Swal.fire("Error", "Por favor, ingresa el número de nómina.", "error");
+      await showCustomAlert(
+        "warning",
+        "Error",
+        "Por favor, ingresa el número de nómina.",
+        "Aceptar"
+      );
+
       return;
     }
 
@@ -561,20 +573,28 @@ export default function RegistroBeneficiario() {
 
       if (response.ok && data.imageUrl) {
         setFormData((prev) => ({ ...prev, imageUrl: data.imageUrl }));
-        playSound(true);
-        Swal.fire("Éxito", "Imagen subida correctamente.", "success");
+        await showCustomAlert(
+          "success",
+          "Éxito",
+          "Imagen subida correctamente.",
+          "Aceptar"
+        );
       } else {
-        playSound(false);
-        Swal.fire(
+        await showCustomAlert(
+          "error",
           "Error",
           data.error || "No se pudo subir la imagen.",
-          "error"
+          "Aceptar"
         );
       }
     } catch (error) {
       console.error("Error al subir la imagen:", error);
-      playSound(false);
-      Swal.fire("Error", "Error al subir la imagen.", "error");
+      await showCustomAlert(
+        "error",
+        "Error",
+        "Error al subir la imagen.",
+        "Aceptar"
+      );
     }
   };
 
@@ -606,23 +626,26 @@ export default function RegistroBeneficiario() {
       const data = await response.json();
 
       if (response.ok) {
-        //console.log("INE subida exitosamente:", data.url);
         setFormData((prev) => ({
           ...prev,
-          ineUrl: data.url, // Guardar la URL del INE en el estado
+          ineUrl: data.url, //* Guardar la URL del INE en el estado
         }));
       } else {
-        playSound(false);
-        Swal.fire(
+        await showCustomAlert(
+          "error",
           "Error",
           "Error al subir el INE. Intenta nuevamente.",
-          "error"
+          "Aceptar"
         );
       }
     } catch (error) {
       console.error("Error al subir el INE:", error);
-      playSound(false);
-      Swal.fire("Error", "No se pudo subir el INE.", "error");
+      await showCustomAlert(
+        "error",
+        "Error",
+        "No se pudo subir el INE.",
+        "Aceptar"
+      );
     }
   };
 
@@ -651,26 +674,25 @@ export default function RegistroBeneficiario() {
       const data = await response.json();
 
       if (response.ok) {
-        //console.log("Carta de No Afiliación subida exitosamente:", data.url);
         setFormData((prev) => ({
           ...prev,
           cartaNoAfiliacionUrl: data.url, // Guardar la URL correcta
         }));
       } else {
-        playSound(false);
-        Swal.fire(
+        await showCustomAlert(
+          "error",
           "Error",
           "Error al subir la Carta de No Afiliación. Intenta nuevamente.",
-          "error"
+          "Aceptar"
         );
       }
     } catch (error) {
       console.error("Error al subir la Carta de No Afiliación:", error);
-      playSound(false);
-      Swal.fire(
+      await showCustomAlert(
+        "error",
         "Error",
         "No se pudo subir la Carta de No Afiliación.",
-        "error"
+        "Aceptar"
       );
     }
   };
@@ -697,23 +719,26 @@ export default function RegistroBeneficiario() {
       const data = await response.json();
 
       if (response.ok) {
-        //console.log("CURP subida exitosamente:", data.url);
         setFormData((prev) => ({
           ...prev,
-          urlCurp: data.url, // Guardar la URL resultante en el estado
+          urlCurp: data.url, //* Guardar la URL resultante en el estado
         }));
       } else {
-        playSound(false);
-        Swal.fire(
+        await showCustomAlert(
+          "error",
           "Error",
           "Error al subir la CURP. Intenta nuevamente.",
-          "error"
+          "Aceptar"
         );
       }
     } catch (error) {
       console.error("Error al subir la CURP:", error);
-      playSound(false);
-      Swal.fire("Error", "No se pudo subir la CURP.", "error");
+      await showCustomAlert(
+        "error",
+        "Error",
+        "No se pudo subir la CURP.",
+        "Aceptar"
+      );
     }
   };
 
@@ -740,23 +765,26 @@ export default function RegistroBeneficiario() {
       const data = await response.json();
 
       if (response.ok) {
-        //console.log("Acta de Nacimiento subida exitosamente:", data.url);
         setFormData((prev) => ({
           ...prev,
-          urlActaNac: data.url, // Guardar la URL del Acta de Nacimiento
+          urlActaNac: data.url, //* Guardar la URL del Acta de Nacimiento
         }));
       } else {
-        playSound(false);
-        Swal.fire(
+        await showCustomAlert(
+          "error",
           "Error",
           "Error al subir el Acta de Nacimiento. Intenta nuevamente.",
-          "error"
+          "Aceptar"
         );
       }
     } catch (error) {
       console.error("Error al subir el Acta de Nacimiento:", error);
-      playSound(false);
-      Swal.fire("Error", "No se pudo subir el Acta de Nacimiento.", "error");
+      await showCustomAlert(
+        "error",
+        "Error",
+        "No se pudo subir el Acta de Nacimiento.",
+        "Aceptar"
+      );
     }
   };
 
@@ -780,26 +808,25 @@ export default function RegistroBeneficiario() {
       const data = await response.json();
 
       if (response.ok) {
-        // **Usar el mismo nombre que en tu estado y en el JSX**:
         setFormData((prev) => ({
           ...prev,
           actaDependenciaEconomicaUrl: data.url,
         }));
       } else {
-        playSound(false);
-        Swal.fire(
-          "Error",
+        await showCustomAlert(
+          "error",
+          "Error al subir el Acta de Dependencia Económica",
           "Error al subir el Acta de Dependencia Económica. Intenta nuevamente.",
-          "error"
+          "Aceptar"
         );
       }
     } catch (error) {
       console.error("Error al subir el Acta de Dependencia Económica:", error);
-      playSound(false);
-      Swal.fire(
+      await showCustomAlert(
+        "error",
         "Error",
         "No se pudo subir el Acta de Dependencia Económica.",
-        "error"
+        "Aceptar"
       );
     }
   };
@@ -826,60 +853,29 @@ export default function RegistroBeneficiario() {
       const data = await response.json();
 
       if (response.ok) {
-        //console.log("Constancia de Estudios subida exitosamente:", data.url);
         setFormData((prev) => ({
           ...prev,
-          urlConstancia: data.url, // Guardar la URL pública del archivo
-          fileName: file.name, // Guardar también el nombre del archivo (opcional)
+          urlConstancia: data.url,
+          fileName: file.name,
         }));
       } else {
-        playSound(false);
-        Swal.fire(
+        await showCustomAlert(
+          "error",
           "Error",
           "Error al subir la Constancia de Estudios. Intenta nuevamente.",
-          "error"
+          "Aceptar"
         );
       }
     } catch (error) {
       console.error("Error al subir la Constancia de Estudios:", error);
-      playSound(false);
-      Swal.fire(
+      await showCustomAlert(
+        "error",
         "Error",
         "No se pudo subir la Constancia de Estudios.",
-        "error"
+        "Aceptar"
       );
     }
   };
-
-  // /**VIGENCIA DE ESTUDIOS VALIDACION */
-  // const handleVigenciaChange = (e) => {
-  //   const { value } = e.target;
-  //   const selectedDate = new Date(value);
-  //   const currentDate = new Date();
-
-  //   // Verificar si "Es estudiante" está seleccionado
-  //   if (formData.esEstudiante) {
-  //     // Validar si la fecha es menor a la actual
-  //     if (selectedDate < currentDate) {
-  //       playSound(false);
-  //       Swal.fire({
-  //         icon: "error",
-  //         title: "Vigencia de estudio vencida",
-  //         text: "Por favor, selecciona una fecha válida en el futuro.",
-  //         confirmButtonText: "Entendido",
-  //       });
-  //       setIsSaveDisabled(true); // Deshabilitar el botón de guardar
-  //     } else {
-  //       setIsSaveDisabled(false); // Habilitar el botón si la fecha es válida
-  //     }
-  //   }
-
-  //   // Actualizar el estado del formulario
-  //   setFormData((prev) => ({
-  //     ...prev,
-  //     vigenciaEstudios: value,
-  //   }));
-  // };
 
   const handleVigenciaChange = (e) => {
     const { value } = e.target;
@@ -940,8 +936,13 @@ export default function RegistroBeneficiario() {
 
   const handleGenerateCard = async (beneficiary) => {
     if (beneficiary.ACTIVO !== "A") {
-      playSound(false);
-      Swal.fire("Error", "El beneficiario no está activo.", "error");
+      await showCustomAlert(
+        "error",
+        "Error",
+        "El beneficiario no está activo.",
+        "Aceptar"
+      );
+
       return;
     }
 
@@ -1071,11 +1072,11 @@ export default function RegistroBeneficiario() {
       //console.log("Carnet generado exitosamente");
     } catch (error) {
       console.error("Error al generar el carnet:", error.message);
-      playSound(false);
-      Swal.fire(
+      await showCustomAlert(
+        "error",
         "Error",
         "No se pudo generar el carnet. Intenta nuevamente.",
-        "error"
+        "Aceptar"
       );
     }
   };
@@ -1083,8 +1084,13 @@ export default function RegistroBeneficiario() {
   const handlePrintCredential = async (beneficiary) => {
     try {
       if (beneficiary.ACTIVO !== "A") {
-        playSound(false);
-        Swal.fire("Error", "El beneficiario no está activo.", "error");
+        await showCustomAlert(
+          "error",
+          "Error",
+          "El beneficiario no está activo.",
+          "Aceptar"
+        );
+
         return;
       }
 
@@ -1252,8 +1258,12 @@ export default function RegistroBeneficiario() {
       doc.save(`Credencial_${NOMBRE}_${A_PATERNO}.pdf`);
     } catch (err) {
       console.error(err);
-      playSound(false);
-      Swal.fire("Error", "No se pudo generar la credencial.", "error");
+      await showCustomAlert(
+        "error",
+        "Error",
+        "No se pudo generar la credencial.",
+        "Aceptar"
+      );
     }
   };
 
@@ -1342,8 +1352,13 @@ export default function RegistroBeneficiario() {
     setSelectedBeneficiary(null); // Limpia el estado anterior
     try {
       if (beneficiario.ACTIVO !== "A") {
-        playSound(false);
-        Swal.fire("Error", "El beneficiario no está activo.", "error");
+        await showCustomAlert(
+          "error",
+          "Error",
+          "El beneficiario no está activo.",
+          "Aceptar"
+        );
+
         return;
       }
 
@@ -1357,16 +1372,15 @@ export default function RegistroBeneficiario() {
         setIsViewModalOpen(true);
       } else {
         console.error("Error fetching beneficiary:", data.error);
-        playSound(false);
-        Swal.fire("Error", data.error, "error");
+        await showCustomAlert("error", "Error", data.error, "Aceptar");
       }
     } catch (error) {
       console.error("Error fetching beneficiary:", error);
-      playSound(false);
-      Swal.fire(
+      await showCustomAlert(
+        "error",
         "Error",
         "No se pudo obtener la información del beneficiario.",
-        "error"
+        "Aceptar"
       );
     }
   };
@@ -1394,20 +1408,28 @@ export default function RegistroBeneficiario() {
           const data = await response.json();
           if (response.ok && data.imageUrl) {
             setFormData({ ...formData, imageUrl: data.imageUrl });
-            playSound(true);
-            Swal.fire("Éxito", "Imagen subida correctamente.", "success");
+            await showCustomAlert(
+              "success",
+              "Éxito",
+              "Imagen subida correctamente.",
+              "Aceptar"
+            );
           } else {
-            playSound(false);
-            Swal.fire(
+            await showCustomAlert(
+              "error",
               "Error",
               data.error || "No se pudo subir la imagen.",
-              "error"
+              "Aceptar"
             );
           }
         } catch (error) {
           console.error("Error al subir la imagen:", error);
-          playSound(false);
-          Swal.fire("Error", "Error al subir la imagen.", "error");
+          await showCustomAlert(
+            "error",
+            "Error",
+            "Error al subir la imagen.",
+            "Aceptar"
+          );
         }
       };
     }
@@ -1424,20 +1446,13 @@ export default function RegistroBeneficiario() {
     return null;
   };
 
-  function showEmployeeNotFoundAlert() {
-    playSound(false);
-    Swal.fire({
-      title: "Empleado No Encontrado",
-      text: "No se ha encontrado ningún empleado con ese número de nómina.",
-      icon: "error",
-      confirmButtonText: "Cerrar",
-      background: "#2b2f3a",
-      color: "#ffffff",
-      confirmButtonColor: "#ff5722",
-      customClass: {
-        popup: "custom-swal-popup",
-      },
-    });
+  async function showEmployeeNotFoundAlert() {
+    await showCustomAlert(
+      "error",
+      "Empleado No Encontrado",
+      "No se ha encontrado ningún empleado con ese número de nómina.",
+      "Cerrar",
+    );
   }
 
   const handleBack = () => {
@@ -1518,8 +1533,13 @@ export default function RegistroBeneficiario() {
 
   const handleSearch = async () => {
     if (!numNomina) {
-      playSound(false);
-      Swal.fire("Error", "Por favor, ingresa el número de nómina.", "warning");
+      await showCustomAlert(
+        "warning",
+        "Error",
+        "Por favor, ingresa el número de nómina.",
+        "Aceptar"
+      );
+
       return;
     }
 
@@ -1549,10 +1569,15 @@ export default function RegistroBeneficiario() {
   };
   /******************* */
 
-  const handleAddBeneficiary = () => {
+  const handleAddBeneficiary = async () => {
     if (!empleado) {
-      playSound(false);
-      Swal.fire("Error", "Por favor, busca primero un empleado.", "warning");
+      await showCustomAlert(
+        "warning",
+        "Error",
+        "Por favor, busca primero un empleado.",
+        "Aceptar"
+      );
+
       return;
     }
 
@@ -1656,12 +1681,13 @@ export default function RegistroBeneficiario() {
         Number(formData.parentesco) === 5) &&
       formData.edad < 40
     ) {
-      playSound(false);
-      Swal.fire({
-        icon: "error",
-        title: "Edad insuficiente",
-        text: "Para registrar a un Padre o Madre, la edad debe ser de al menos 40 años.",
-      });
+      await showCustomAlert(
+        "error",
+        "Edad insuficiente",
+        "Para registrar a un Padre o Madre, la edad debe ser de al menos 40 años.",
+        "Aceptar"
+      );
+
       setIsSubmitting(false);
       return;
     }
@@ -1670,7 +1696,7 @@ export default function RegistroBeneficiario() {
     const { success, message } = validateDocuments(formData);
     if (!success) {
       playSound(false);
-      Swal.fire("Error", message, "error");
+      await showCustomAlert("error", "Error", message, "Aceptar");
       setIsSubmitting(false);
       return; // Detenemos el proceso si falta algún documento obligatorio
     }
@@ -1688,12 +1714,13 @@ export default function RegistroBeneficiario() {
       !formData.telEmergencia ||
       !formData.nombreEmergencia
     ) {
-      playSound(false);
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "Todos los campos obligatorios deben completarse.",
-      });
+      await showCustomAlert(
+        "error",
+        "Error",
+        "Todos los campos obligatorios deben completarse.",
+        "Aceptar"
+      );
+
       setIsSubmitting(false);
       return;
     }
@@ -1705,34 +1732,35 @@ export default function RegistroBeneficiario() {
         formData.parentesco
       );
       if (conflict) {
-        playSound(false);
-        Swal.fire({
-          icon: "error",
-          title: "Conflicto detectado",
-          text: message,
-        });
+        await showCustomAlert(
+          "error",
+          "Error",
+          error.message || "Ocurrió un error desconocido.",
+          "Aceptar"
+        );
         setIsSubmitting(false);
         return;
       }
     } catch (error) {
-      playSound(false);
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: error.message,
-      });
+      await showCustomAlert(
+        "error",
+        "Error",
+        error.message || "Ocurrió un error desconocido.",
+        "Aceptar"
+      );
       setIsSubmitting(false);
       return;
     }
 
     //? Validar la URL de la imagen SOLO si el usuario realmente seleccionó o capturó una foto.
     if (formData.imageUrl && !formData.imageUrl.startsWith("http")) {
-      playSound(false);
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "Por favor, sube una imagen válida.",
-      });
+      await showCustomAlert(
+        "error",
+        "Error",
+        "Por favor, sube una imagen válida.",
+        "Aceptar"
+      );
+
       setIsSubmitting(false);
       return;
     }
@@ -1742,12 +1770,13 @@ export default function RegistroBeneficiario() {
       formData.actaConcubinatoUrl &&
       !formData.actaConcubinatoUrl.startsWith("http")
     ) {
-      playSound(false);
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "Por favor, sube un enlace válido para el acta de concubinato.",
-      });
+      await showCustomAlert(
+        "error",
+        "Error",
+        "Por favor, sube un enlace válido para el acta de concubinato.",
+        "Aceptar"
+      );
+
       setIsSubmitting(false);
       return;
     }
@@ -1780,12 +1809,13 @@ export default function RegistroBeneficiario() {
         throw new Error(validationData.message || "Error en la validación");
       }
       if (validationData.conflict) {
-        playSound(false);
-        Swal.fire({
-          icon: "error",
-          title: "Conflicto detectado",
-          text: validationData.message,
-        });
+        await showCustomAlert(
+          "error",
+          "Conflicto detectado",
+          validationData.message,
+          "Aceptar"
+        );
+
         setIsSubmitting(false);
         return;
       }
@@ -1794,12 +1824,8 @@ export default function RegistroBeneficiario() {
         "Error durante la validación de parentesco:",
         error.message
       );
-      playSound(false);
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: error.message,
-      });
+      await showCustomAlert("error", "Error", error.message, "Aceptar");
+
       setIsSubmitting(false);
       return;
     }
@@ -1886,14 +1912,13 @@ export default function RegistroBeneficiario() {
       const responseData = await response.json();
       //console.log("Respuesta del backend:", responseData);
 
-      playSound(true);
-      Swal.fire({
-        icon: "success",
-        title: "Éxito",
-        text: isEditMode
+      await showCustomAlert(
+        "success",
+        "Éxito",
+        isEditMode
           ? "Beneficiario actualizado correctamente."
-          : "Beneficiario registrado correctamente.",
-      });
+          : "Beneficiario registrado correctamente."
+      );
 
       // Resetear formulario tras guardar o actualizar
       setFormData({
@@ -1929,11 +1954,7 @@ export default function RegistroBeneficiario() {
     } catch (error) {
       console.error("Error al enviar el formulario:", error.message);
       playSound(false);
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: error.message,
-      });
+      await showCustomAlert("error", "Error", error.message, "Aceptar");
     } finally {
       setIsSubmitting(false);
     }
@@ -2031,18 +2052,18 @@ export default function RegistroBeneficiario() {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
 
   // Función para confirmar y eliminar beneficiario
-  const handleDeleteBeneficiary = (idBeneficiario) => {
-    playSound(false);
-    Swal.fire({
-      title: "¿Estás seguro?",
-      text: "Esta acción eliminará al beneficiario y su imagen asociada. No se puede deshacer.",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#d33",
-      cancelButtonColor: "#3085d6",
-      confirmButtonText: "Sí, eliminar",
-      cancelButtonText: "Cancelar",
-    }).then((result) => {
+  const handleDeleteBeneficiary = async (idBeneficiario) => {
+    const result = await showCustomAlert(
+      "warning",
+      "¿Estás seguro?",
+      "Esta acción eliminará al beneficiario y su imagen asociada. No se puede deshacer.",
+      "Sí, eliminar",
+      {
+        showCancelButton: true,
+        cancelButtonColor: "#3085d6",
+        cancelButtonText: "Cancelar",
+      }
+    ).then((result) => {
       if (result.isConfirmed) {
         // 1. Aquí NO eliminamos directo, sino que guardamos el ID
         setBeneficiaryIdToDelete(idBeneficiario);
@@ -2055,7 +2076,12 @@ export default function RegistroBeneficiario() {
   // En tu confirmDeleteWithReason:
   const confirmDeleteWithReason = async (motivo) => {
     if (!motivo.trim()) {
-      Swal.fire("Error", "Por favor, ingresa un motivo.", "warning");
+      await showCustomAlert(
+        "warning",
+        "Error",
+        "Por favor, ingresa un motivo.",
+        "Aceptar"
+      );
       return;
     }
 
@@ -2079,11 +2105,11 @@ export default function RegistroBeneficiario() {
         );
       }
 
-      playSound(true);
-      Swal.fire(
+      await showCustomAlert(
+        "success",
         "Eliminado",
         "El beneficiario y su imagen asociada han sido eliminados correctamente.",
-        "success"
+        "Aceptar"
       );
 
       // Cierra el modal de motivo
@@ -2094,8 +2120,12 @@ export default function RegistroBeneficiario() {
       // Refresca la lista
       fetchBeneficiarios();
     } catch (error) {
-      playSound(false);
-      Swal.fire("Error", error.message, "error");
+      console.error("Error al eliminar beneficiario:", error);
+      await showCustomAlert(
+        "Error",
+        error.message || "No se pudo eliminar el beneficiario.",
+        "error"
+      );
     }
   };
 
@@ -2504,15 +2534,15 @@ export default function RegistroBeneficiario() {
                       <button
                         type="button"
                         className={styles.viewButton2}
-                        onClick={() => {
+                        onClick={async () => {
                           if (formData.urlActaNac) {
                             window.open(formData.urlActaNac, "_blank");
                           } else {
-                            playSound(false);
-                            Swal.fire(
+                            await showCustomAlert(
+                              "error",
                               "Error",
                               "No se encontró un Acta de Nacimiento válida.",
-                              "error"
+                              "Aceptar"
                             );
                           }
                         }}
@@ -2553,15 +2583,15 @@ export default function RegistroBeneficiario() {
                       <button
                         type="button"
                         className={styles.viewButton2}
-                        onClick={() => {
+                        onClick={async () => {
                           if (formData.urlCurp) {
                             window.open(formData.urlCurp, "_blank");
                           } else {
-                            playSound(false);
-                            Swal.fire(
+                            await showCustomAlert(
+                              "error",
                               "Error",
                               "No se encontró un CURP válido.",
-                              "error"
+                              "Aceptar"
                             );
                           }
                         }}
@@ -2719,11 +2749,11 @@ export default function RegistroBeneficiario() {
                                   console.error(
                                     "[ERROR] Número de nómina no ingresado."
                                   );
-                                  playSound(false);
-                                  Swal.fire(
-                                    "Error",
-                                    "Por favor, ingresa un número de nómina válido.",
-                                    "error"
+                                  await showCustomAlert(
+                                    "error",
+                                    "Nómina no encontrada",
+                                    "El número de nómina ingresado no existe o no se encuentra en el sistema. Intenta nuevamente.",
+                                    "Aceptar"
                                   );
                                   return;
                                 }
@@ -2764,19 +2794,24 @@ export default function RegistroBeneficiario() {
                                     actaMatrimonioUrl: result.url,
                                   }));
 
-                                  playSound(true);
-                                  Swal.fire(
+                                  await showCustomAlert(
+                                    "success",
                                     "Éxito",
                                     "Acta de Matrimonio cargada correctamente.",
-                                    "success"
+                                    "Aceptar"
                                   );
                                 } catch (error) {
                                   console.error(
                                     "[ERROR] Error al cargar el acta de matrimonio:",
                                     error.message
                                   );
-                                  playSound(false);
-                                  Swal.fire("Error", error.message, "error");
+                                  await showCustomAlert(
+                                    "error",
+                                    "Error",
+                                    error.message ||
+                                      "Ocurrió un error al cargar el acta de matrimonio.",
+                                    "Aceptar"
+                                  );
                                 }
                               }}
                               className={styles.uploadButton3}
@@ -2862,15 +2897,15 @@ export default function RegistroBeneficiario() {
                           <button
                             type="button"
                             className={styles.viewButton2}
-                            onClick={() => {
+                            onClick={async () => {
                               if (formData.ineUrl) {
                                 window.open(formData.ineUrl, "_blank");
                               } else {
-                                playSound(false);
-                                Swal.fire(
+                                await showCustomAlert(
+                                  "error",
                                   "Error",
                                   "No se encontró un INE válido.",
-                                  "error"
+                                  "Aceptar"
                                 );
                               }
                             }}
@@ -2914,18 +2949,18 @@ export default function RegistroBeneficiario() {
                           <button
                             type="button"
                             className={styles.viewButton2}
-                            onClick={() => {
+                            onClick={async () => {
                               if (formData.cartaNoAfiliacionUrl) {
                                 window.open(
                                   formData.cartaNoAfiliacionUrl,
                                   "_blank"
                                 );
                               } else {
-                                playSound(false);
-                                Swal.fire(
+                                await showCustomAlert(
+                                  "error",
                                   "Error",
                                   "No se encontró una Carta de No Afiliación válida.",
-                                  "error"
+                                  "Aceptar"
                                 );
                               }
                             }}
@@ -2952,11 +2987,11 @@ export default function RegistroBeneficiario() {
                           type="button"
                           onClick={async () => {
                             if (!numNomina) {
-                              playSound(false);
-                              Swal.fire(
-                                "Error",
-                                "Por favor, ingresa un número de nómina válido.",
-                                "error"
+                              await showCustomAlert(
+                                "error",
+                                "Nómina no encontrada",
+                                "El número de nómina ingresado no existe o no se encuentra en el sistema. Intenta nuevamente.",
+                                "Aceptar"
                               );
                               return;
                             }
@@ -2977,15 +3012,20 @@ export default function RegistroBeneficiario() {
                                 ...prev,
                                 actaConcubinatoUrl: result.url,
                               }));
-                              playSound(true);
-                              Swal.fire(
+                              await showCustomAlert(
+                                "success",
                                 "Éxito",
                                 "Acta de Concubinato cargada correctamente.",
-                                "success"
+                                "Aceptar"
                               );
                             } catch (error) {
-                              playSound(false);
-                              Swal.fire("Error", error.message, "error");
+                              await showCustomAlert(
+                                "error",
+                                "Error",
+                                error.message ||
+                                  "Ocurrió un error desconocido.",
+                                "Aceptar"
+                              );
                             }
                           }}
                           className={styles.uploadButton3}
@@ -3214,15 +3254,15 @@ export default function RegistroBeneficiario() {
                     <button
                       type="button"
                       className={styles.viewButton2}
-                      onClick={() => {
+                      onClick={async () => {
                         if (formData.urlIncap) {
                           window.open(formData.urlIncap, "_blank");
                         } else {
-                          playSound(false);
-                          Swal.fire(
+                          await showCustomAlert(
+                            "error",
                             "Error",
                             "No se encontró un Acta de Incapacidad válida.",
-                            "error"
+                            "Aceptar"
                           );
                         }
                       }}
@@ -3292,15 +3332,15 @@ export default function RegistroBeneficiario() {
                     <button
                       type="button"
                       className={styles.viewButton2}
-                      onClick={() => {
+                      onClick={async () => {
                         if (formData.urlConstancia) {
                           window.open(formData.urlConstancia, "_blank");
                         } else {
-                          playSound(false);
-                          Swal.fire(
+                          await showCustomAlert(
+                            "error",
                             "Error",
                             "No se encontró una constancia válida.",
-                            "error"
+                            "Aceptar"
                           );
                         }
                       }}
@@ -3652,11 +3692,11 @@ export default function RegistroBeneficiario() {
                       await handleGenerateCard(selectedBeneficiary);
                     } catch (error) {
                       console.error("Error al generar el carnet:", error);
-                      playSound(false);
-                      Swal.fire(
+                      await showCustomAlert(
+                        "error",
                         "Error",
                         "No se pudo generar el carnet. Intenta nuevamente.",
-                        "error"
+                        "Aceptar"
                       );
                     }
                   }}

@@ -1,15 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState, useEffect, useContext } from "react";
-import withReactContent from "sweetalert2-react-content";
-import Swal from "sweetalert2";
+import { showCustomAlert } from "../../utils/alertas";
 import { FormularioContext } from "/src/context/FormularioContext";
 import MedicamentoDropdown from "../components/MedicamentoDropdown";
 import HistorialMedicamentos from "../components/HistorialMedicamentos";
 import TratamientoInput from "../components/TratamientoInput";
 import { FiRefreshCw } from "react-icons/fi";
 import { FaCalendarAlt } from "react-icons/fa";
-
-const MySwal = withReactContent(Swal);
 
 const Medicamentos = ({ clavenomina, clavepaciente }) => {
   const defaultMed = {
@@ -31,8 +28,7 @@ const Medicamentos = ({ clavenomina, clavepaciente }) => {
   const phraseTemplates = ["Durante __ días.", "Por __ días.", "En __ días."];
   const successSound = "/assets/applepay.mp3";
   const errorSound = "/assets/error.mp3";
-  const playSound = (ok) =>
-    new Audio(ok ? successSound : errorSound).play();
+  const playSound = (ok) => new Audio(ok ? successSound : errorSound).play();
 
   //* Carga la lista de medicamentos de la API
   useEffect(() => {
@@ -73,8 +69,7 @@ const Medicamentos = ({ clavenomina, clavepaciente }) => {
             m.tratamiento &&
             m.tratamientoDias &&
             m.piezas &&
-            (m.resurtir === "no" ||
-              (m.resurtir === "si" && m.mesesResurtir))
+            (m.resurtir === "no" || (m.resurtir === "si" && m.mesesResurtir))
         ));
     updateFormulario("Medicamentos", completos);
   }, [medicamentos, decisionTomada, updateFormulario]);
@@ -110,29 +105,15 @@ const Medicamentos = ({ clavenomina, clavepaciente }) => {
   };
 
   //! Previene selección duplicada
-  const handleSelectMedicamento = (idx, nuevo) => {
-    if (
-      medicamentos.some(
-        (m, j) => j !== idx && m.medicamento === nuevo
-      )
-    ) {
-      playSound(false);
-      MySwal.fire({
-        icon: "error",
-        title:
-          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Medicamento duplicado</span>",
-        html: `
-          <p style='color: #fff; font-size: 1.1em;'>Ya seleccionaste ese medicamento. Elige otro.</p>
-        `,
-        background: "linear-gradient(145deg, #4a0000, #220000)",
-        confirmButtonColor: "#ff1744",
-        confirmButtonText:
-          "<span style='color: #fff; font-weight: bold;'>Entendido</span>",
-        customClass: {
-          popup:
-            "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-        },
-      });
+  const handleSelectMedicamento = async (idx, nuevo) => {
+    if (medicamentos.some((m, j) => j !== idx && m.medicamento === nuevo)) {
+      await showCustomAlert(
+        "error",
+        "Medicamento duplicado",
+        "Ya seleccionaste ese medicamento. Elige otro.",
+        "Aceptar"
+      );
+
       return;
     }
     handleMedicamentoChange(idx, "medicamento", nuevo);
@@ -193,9 +174,7 @@ const Medicamentos = ({ clavenomina, clavepaciente }) => {
                   value={med.medicamento}
                   playSound={playSound}
                   isLoading={loadingMedicamentos}
-                  onChangeMedicamento={(v) =>
-                    handleSelectMedicamento(idx, v)
-                  }
+                  onChangeMedicamento={(v) => handleSelectMedicamento(idx, v)}
                 />
               </div>
 
@@ -273,11 +252,7 @@ const Medicamentos = ({ clavenomina, clavepaciente }) => {
                         <button
                           onClick={() => {
                             handleMedicamentoChange(idx, "resurtir", "no");
-                            handleMedicamentoChange(
-                              idx,
-                              "mesesResurtir",
-                              null
-                            );
+                            handleMedicamentoChange(idx, "mesesResurtir", null);
                           }}
                           className={`w-10 h-6 rounded-full transition-colors ${
                             med.resurtir === "no"

@@ -1,6 +1,4 @@
 import { useRef } from "react";
-import Swal from "sweetalert2";
-import withReactContent from "sweetalert2-react-content";
 import {
   FaUser,
   FaBirthdayCake,
@@ -8,17 +6,12 @@ import {
   FaMoneyCheckAlt,
 } from "react-icons/fa";
 import { BiBuildings, BiXCircle } from "react-icons/bi";
+import showCustomAlert from "../../utils/alertas";
 
-const MySwal = withReactContent(Swal);
 const red800 = "#B10033";
-
-const successSound = "/assets/applepay.mp3";
-const errorSound = "/assets/error.mp3";
 
 export default function Laboratorio({ datos, onCancelSuccess }) {
   const audioRef = useRef(null);
-  const successAudio = useRef(new Audio(successSound));
-  const errorAudio = useRef(new Audio(errorSound));
 
   if (!audioRef.current) {
     audioRef.current = new Audio("/assets/tap.mp3");
@@ -31,29 +24,17 @@ export default function Laboratorio({ datos, onCancelSuccess }) {
     }
   };
 
-  const playSound = (isSuccess) => {
-    const audio = isSuccess ? successAudio.current : errorAudio.current;
-    if (audio) {
-      audio.currentTime = 0;
-      audio.play();
-    }
-  };
-
   const showConfirmCancel = async (folioOrden) => {
-    const result = await MySwal.fire({
-      icon: "warning",
-      title: `<span style='color: #ffc107; font-weight: bold; font-size: 1.5em;'>⚠️ Confirmar Cancelación</span>`,
-      html: "<p style='color: #fff; font-size: 1.1em;'>¿Deseas cancelar esta orden de laboratorio?</p>",
-      background: "linear-gradient(145deg, #7f6000, #332600)",
-      confirmButtonColor: "#ffc107",
-      cancelButtonColor: "#666",
-      confirmButtonText: "<span style='color: #000; font-weight: bold;'>Sí, cancelar</span>",
-      cancelButtonText: "<span style='color: #fff;'>No, mantener</span>",
-      showCancelButton: true,
-      customClass: {
-        popup: "border border-yellow-600 shadow-[0px_0px_20px_5px_rgba(255,193,7,0.9)] rounded-lg",
-      },
-    });
+    const result = await showCustomAlert(
+      "warning",
+      "Confirmar Cancelación",
+      "¿Deseas cancelar esta orden de laboratorio?",
+      "Sí, cancelar"
+    );
+
+    if (result.isConfirmed) {
+      cancelarOrdenLaboratorio(folioOrden);
+    }
 
     if (result.isConfirmed) {
       cancelarOrdenLaboratorio(folioOrden);
@@ -71,34 +52,22 @@ export default function Laboratorio({ datos, onCancelSuccess }) {
       const result = await res.json();
 
       if (!res.ok) {
-        playSound(false);
-        return MySwal.fire({
-          icon: "error",
-          title: "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error</span>",
-          html: `<p style='color: #fff; font-size: 1.1em;'>${result.message}</p>`,
-          background: "linear-gradient(145deg, #4a0000, #220000)",
-          confirmButtonColor: "#ff1744",
-          confirmButtonText: "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-          customClass: {
-            popup: "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-          },
-        });
+        return await showCustomAlert(
+          "error",
+          "Error",
+          result.message,
+          "Aceptar"
+        );
       }
 
-      playSound(true);
-      await MySwal.fire({
-        icon: "success",
-        title: "<span style='color: #00e676; font-weight: bold; font-size: 1.5em;'>✔️ Cancelado</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>La orden fue cancelada correctamente.</p>",
-        background: "linear-gradient(145deg, #004d40, #00251a)",
-        confirmButtonColor: "#00e676",
-        confirmButtonText: "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup: "border border-green-600 shadow-[0px_0px_20px_5px_rgba(0,230,118,0.9)] rounded-lg",
-        },
-      });
+      await showCustomAlert(
+        "success",
+        "Cancelado",
+        "La orden fue cancelada correctamente.",
+        "Aceptar"
+      );
 
-      if (onCancelSuccess) onCancelSuccess(); // Limpia el formulario si se proporciona esta función
+      if (onCancelSuccess) onCancelSuccess(); //* Limpia el formulario si se proporciona esta función
     } catch (error) {
       playSound(false);
       console.error("Error al cancelar:", error);
@@ -115,7 +84,9 @@ export default function Laboratorio({ datos, onCancelSuccess }) {
       </div>
       <div className="text-left">
         <p className="text-lg font-bold text-red-900">{label}</p>
-        <p className="text-xl font-medium text-red-950 tracking-wide">{value}</p>
+        <p className="text-xl font-medium text-red-950 tracking-wide">
+          {value}
+        </p>
       </div>
     </div>
   );

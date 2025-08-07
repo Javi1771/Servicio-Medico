@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import Swal from "sweetalert2";
 import ModalPdf from "./modalPdf";
 import styles from "../../css/SURTIMIENTOS_ESTILOS/cargaMedicamentos.module.css";
 import {
@@ -10,6 +9,7 @@ import {
   FaPlus,
   FaSave,
 } from "react-icons/fa";
+import { showCustomAlert } from "../../../utils/alertas";
 
 const CargaMedicamentosForm = ({
   medicamentos,
@@ -28,16 +28,6 @@ const CargaMedicamentosForm = ({
   const [cantidad, setCantidad] = useState("");
   const [piezas, setPiezas] = useState("");
   const [showModal, setShowModal] = useState(false);
-
-  // Rutas de sonidos
-  const successSound = "/assets/applepay.mp3";
-  const errorSound = "/assets/error.mp3";
-
-  // Reproduce sonido de éxito o error
-  const playSound = (isSuccess) => {
-    const audio = new Audio(isSuccess ? successSound : errorSound);
-    audio.play();
-  };
 
   /**
    * Maneja el cambio de texto en el input.
@@ -68,53 +58,57 @@ const CargaMedicamentosForm = ({
     return `${med.MEDICAMENTO} - Presentación: c/${med.PRESENTACION} - Piezas: ${med.PIEZAS}`;
   };
 
-  const handleAddMedicamentoLocal = () => {
+  const handleAddMedicamentoLocal = async () => {
     // Validar si se ha seleccionado (por clave) un medicamento
     if (!selectedMedicamentoCode) {
-      playSound(false);
-      Swal.fire({
-        icon: "warning",
-        title: "Atención",
-        text: "Por favor, selecciona un medicamento válido.",
-      });
+      await showCustomAlert(
+        "warning",
+        "Selecciona un medicamento",
+        "Por favor, selecciona un medicamento válido.",
+        "Aceptar"
+      );
       return;
     }
     if (!indicaciones.trim()) {
-      playSound(false);
-      Swal.fire({
-        icon: "warning",
-        title: "Atención",
-        text: "Por favor, proporciona las indicaciones.",
-      });
+      await showCustomAlert(
+        "warning",
+        "Indicaciones requeridas",
+        "Por favor, proporciona las indicaciones del medicamento.",
+        "Aceptar"
+      );
+
       return;
     }
     if (!cantidad.trim()) {
-      playSound(false);
-      Swal.fire({
-        icon: "warning",
-        title: "Atención",
-        text: "Por favor, proporciona la cantidad.",
-      });
+      await showCustomAlert(
+        "warning",
+        "Atención",
+        "Por favor, proporciona la cantidad.",
+        "Aceptar"
+      );
       return;
     }
     if (!piezas.trim()) {
-      playSound(false);
-      Swal.fire({
-        icon: "warning",
-        title: "Atención",
-        text: "Por favor, proporciona las piezas.",
-      });
+      await showCustomAlert(
+        "warning",
+        "Atención",
+        "Por favor, proporciona las piezas.",
+        "Aceptar"
+      );
+
       return;
     }
 
     // Verificar si ya existe en la receta
-    if (receta.find((med) => med.claveMedicamento === selectedMedicamentoCode)) {
-      playSound(false);
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "Este medicamento ya está en la receta.",
-      });
+    if (
+      receta.find((med) => med.claveMedicamento === selectedMedicamentoCode)
+    ) {
+
+      await showCustomAlert(
+        "error",
+        "Error",
+        "Este medicamento ya está en la receta."
+      )
       return;
     }
 
@@ -124,12 +118,12 @@ const CargaMedicamentosForm = ({
     );
 
     if (!medSeleccionado) {
-      playSound(false);
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "El medicamento seleccionado no existe.",
-      });
+
+await showCustomAlert(
+  "error",
+  "Error",
+  "El medicamento seleccionado no existe."
+)
       return;
     }
 
@@ -154,12 +148,12 @@ const CargaMedicamentosForm = ({
 
   const handleSaveAndShowPdf = async () => {
     if (!folio || isNaN(folio)) {
-      playSound(false);
-      Swal.fire({
-        icon: "error",
-        title: "Folio inválido",
-        text: "El folio ingresado es inválido.",
-      });
+
+await showCustomAlert(
+  "error",
+  "Folio Inválido",
+  "El folio ingresado es inválido."
+)
       return;
     }
 

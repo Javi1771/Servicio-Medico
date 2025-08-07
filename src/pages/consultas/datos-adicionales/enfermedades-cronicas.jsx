@@ -1,21 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState, useEffect } from "react";
-import Image from "next/image";
-import Swal from "sweetalert2";
-import withReactContent from "sweetalert2-react-content";
-
-const MySwal = withReactContent(Swal);
-
-//* Define las rutas de los sonidos de éxito y error
-const successSound = "/assets/applepay.mp3";
-const errorSound = "/assets/error.mp3";
-
-//! Reproduce un sonido de éxito/error
-const playSound = (isSuccess) => {
-  const audio = new Audio(isSuccess ? successSound : errorSound);
-  audio.play();
-};
+import { showCustomAlert } from "../../utils/alertas";
 
 const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
   const [historialKPI, setHistorialKPI] = useState([]);
@@ -72,12 +58,13 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
       //* Validar que se obtuvieron datos
       if (!Array.isArray(data) || data.length === 0) {
         console.error("No se encontró detalle para el KPI seleccionado");
-        playSound(false);
-        MySwal.fire({
-          icon: "error",
-          title: "❌ No se encontraron detalles",
-          text: "No se pudo cargar la información de este KPI. Verifica los datos.",
-        });
+
+        await showCustomAlert(
+          "error",
+          "No se encontraron detalles",
+          "No se pudo cargar la información de este KPI. Verifica los datos.",
+          "Aceptar"
+        );
         return;
       }
 
@@ -88,12 +75,13 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
 
       if (!detalleSeleccionado) {
         console.error("No se encontró detalle para el KPI seleccionado");
-        playSound(false);
-        MySwal.fire({
-          icon: "error",
-          title: "❌ No se encontraron detalles",
-          text: "No se pudo cargar la información de este KPI. Verifica los datos.",
-        });
+
+        await showCustomAlert(
+          "error",
+          "No se encontraron detalles",
+          "No se pudo cargar la información de este KPI. Verifica los datos.",
+          "Aceptar"
+        );
         return;
       }
 
@@ -110,12 +98,13 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
       setMostrarVentanaKPI(true);
     } catch (error) {
       console.error("Error al cargar detalles del KPI:", error);
-      playSound(false);
-      MySwal.fire({
-        icon: "error",
-        title: "❌ Error al cargar KPI",
-        text: "Hubo un problema al obtener los datos del KPI. Inténtalo nuevamente.",
-      });
+
+      await showCustomAlert(
+        "error",
+        "Error al cargar KPI",
+        "Hubo un problema al obtener los datos del KPI. Inténtalo nuevamente.",
+        "Aceptar"
+      );
     }
   };
 
@@ -172,21 +161,13 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
         setCatalogoEnfermedades(data);
       } catch (error) {
         console.error("Error al cargar las enfermedades crónicas:", error);
-        playSound(false);
-        MySwal.fire({
-          icon: "error",
-          title:
-            "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error al cargar datos</span>",
-          html: "<p style='color: #fff; font-size: 1.1em;'>No se pudo cargar la información. Inténtalo nuevamente.</p>",
-          background: "linear-gradient(145deg, #4a0000, #220000)",
-          confirmButtonColor: "#ff1744",
-          confirmButtonText:
-            "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-          customClass: {
-            popup:
-              "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-          },
-        });
+
+        await showCustomAlert(
+          "error",
+          "Error al cargar datos",
+          "No se pudo cargar la información. Inténtalo nuevamente.",
+          "Aceptar"
+        );
       }
     }
     fetchEnfermedades();
@@ -199,21 +180,12 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
       !nuevoKPI.valorObjetivo ||
       !nuevoKPI.id_enf_cronica
     ) {
-      playSound(false);
-      MySwal.fire({
-        icon: "warning",
-        title:
-          "<span style='color: #ffcc00; font-weight: bold; font-size: 1.5em;'>⚠️ Campos incompletos</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>Por favor, completa todos los campos del KPI antes de guardar.</p>",
-        background: "linear-gradient(145deg, #4a4a4a, #222)",
-        confirmButtonColor: "#ffcc00",
-        confirmButtonText:
-          "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-yellow-600 shadow-[0px_0px_20px_5px_rgba(255,204,0,0.9)] rounded-lg",
-        },
-      });
+      await showCustomAlert(
+        "error",
+        "Campos incompletos",
+        "Por favor, completa todos los campos del KPI antes de guardar.",
+        "Aceptar"
+      );
       return;
     }
 
@@ -255,38 +227,21 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
         id_enf_cronica: "",
       });
 
-      playSound(true);
-      MySwal.fire({
-        icon: "success",
-        title:
-          "<span style='color: #00e676; font-weight: bold; font-size: 1.5em;'>✔️ KPI registrado</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>El KPI se ha registrado correctamente.</p>",
-        background: "linear-gradient(145deg, #004d40, #00251a)",
-        confirmButtonColor: "#00e676",
-        confirmButtonText:
-          "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-green-600 shadow-[0px_0px_20px_5px_rgba(0,230,118,0.9)] rounded-lg",
-        },
-      });
+      await showCustomAlert(
+        "success",
+        "KPI registrado",
+        "El KPI se ha registrado correctamente.",
+        "Aceptar"
+      );
     } catch (error) {
       console.error("Error al guardar el KPI:", error);
-      playSound(false);
-      MySwal.fire({
-        icon: "error",
-        title:
-          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error al guardar el KPI</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>Hubo un problema al intentar guardar el KPI. Inténtalo nuevamente.</p>",
-        background: "linear-gradient(145deg, #4a0000, #220000)",
-        confirmButtonColor: "#ff1744",
-        confirmButtonText:
-          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-        },
-      });
+
+      await showCustomAlert(
+        "error",
+        "Error al guardar el KPI",
+        "Hubo un problema al intentar guardar el KPI. Inténtalo nuevamente.",
+        "Aceptar"
+      );
     }
   };
 
@@ -296,21 +251,13 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
 
     //* Validación de campos obligatorios
     if (!valorAlcanzado || !calificacion || !observaciones) {
-      playSound(false);
-      MySwal.fire({
-        icon: "warning",
-        title:
-          "<span style='color: #ffcc00; font-weight: bold; font-size: 1.5em;'>⚠️ Campos incompletos</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>Por favor, completa todos los campos antes de guardar.</p>",
-        background: "linear-gradient(145deg, #4a4a4a, #222)",
-        confirmButtonColor: "#ffcc00",
-        confirmButtonText:
-          "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-yellow-600 shadow-[0px_0px_20px_5px_rgba(255,204,0,0.9)] rounded-lg",
-        },
-      });
+      await showCustomAlert(
+        "warning",
+        "Campos incompletos",
+        "Por favor, completa todos los campos antes de guardar.",
+        "Aceptar"
+      );
+
       return;
     }
 
@@ -359,21 +306,12 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
       setMostrarVentanaKPI(false);
       resetFormulario();
 
-      playSound(true);
-      MySwal.fire({
-        icon: "success",
-        title:
-          "<span style='color: #00e676; font-weight: bold; font-size: 1.5em;'>✔️ KPI actualizado</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>Los detalles del KPI se guardaron correctamente:</p>",
-        background: "linear-gradient(145deg, #004d40, #00251a)",
-        confirmButtonColor: "#00e676",
-        confirmButtonText:
-          "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-green-600 shadow-[0px_0px_20px_5px_rgba(0,230,118,0.9)] rounded-lg",
-        },
-      });
+      await showCustomAlert(
+        "success",
+        "KPI actualizado",
+        "Los detalles del KPI se guardaron correctamente",
+        "Aceptar"
+      );
 
       //* Refrescar el historial después de actualizar
       //console.log(
@@ -384,24 +322,13 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
     } catch (error) {
       console.error("Error al actualizar KPI:", error);
 
-      playSound(false);
-      MySwal.fire({
-        icon: "error",
-        title:
-          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error al actualizar el KPI</span>",
-        html: `<p style='color: #fff; font-size: 1.1em;'>${
-          error.message ||
-          "Hubo un problema al intentar guardar el KPI. Inténtalo nuevamente."
-        }</p>`,
-        background: "linear-gradient(145deg, #4a0000, #220000)",
-        confirmButtonColor: "#ff1744",
-        confirmButtonText:
-          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-        },
-      });
+      await showCustomAlert(
+        "error",
+        "Error al actualizar el KPI",
+        error.message ||
+          "Hubo un problema al intentar guardar el KPI. Inténtalo nuevamente.",
+        "Aceptar"
+      );
     }
   };
 
@@ -410,29 +337,14 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
     setMostrarVentanaKPI(false); //* Cerrar ventana
   };
 
-  const handleAgregarEnfermedad = () => {
+  const handleAgregarEnfermedad = async () => {
     if (!enfermedad) {
-      playSound(false);
-      MySwal.fire({
-        icon: "warning",
-        title:
-          "<span style='color: #ffcc00; font-weight: bold; font-size: 1.5em;'>⚠️ Enfermedad requerida</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>Por favor, selecciona o escribe una enfermedad antes de continuar.</p>",
-        background: "linear-gradient(145deg, #4a4a4a, #222)",
-        confirmButtonColor: "#ffcc00",
-        confirmButtonText:
-          "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-yellow-600 shadow-[0px_0px_20px_5px_rgba(255,204,0,0.9)] rounded-lg",
-        },
-        showClass: {
-          popup: "animate__animated animate__fadeInDown",
-        },
-        hideClass: {
-          popup: "animate__animated animate__fadeOutUp",
-        },
-      });
+      await showCustomAlert(
+        "warning",
+        "Enfermedad requerida",
+        "Por favor, selecciona o escribe una enfermedad antes de continuar.",
+        "Aceptar"
+      );
       return;
     }
     setMostrarMotivo(true);
@@ -448,27 +360,13 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
       setPadecimientos(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Error al cargar los padecimientos actuales:", error);
-      playSound(false);
-      MySwal.fire({
-        icon: "error",
-        title:
-          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error al cargar datos</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>No se pudo cargar la información de los padecimientos. Inténtalo nuevamente.</p>",
-        background: "linear-gradient(145deg, #4a0000, #220000)",
-        confirmButtonColor: "#ff1744",
-        confirmButtonText:
-          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-        },
-        showClass: {
-          popup: "animate__animated animate__fadeInDown",
-        },
-        hideClass: {
-          popup: "animate__animated animate__fadeOutUp",
-        },
-      });
+
+      await showCustomAlert(
+        "error",
+        "Error al cargar datos",
+        ">No se pudo cargar la información de los padecimientos. Inténtalo nuevamente.",
+        "Aceptar"
+      );
     }
   };
 
@@ -478,27 +376,13 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
 
   const handleGuardarMotivo = async () => {
     if (!motivo) {
-      playSound(false);
-      MySwal.fire({
-        icon: "warning",
-        title:
-          "<span style='color: #ffcc00; font-weight: bold; font-size: 1.5em;'>⚠️ Motivo requerido</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>Por favor, especifica un motivo antes de continuar.</p>",
-        background: "linear-gradient(145deg, #4a4a4a, #222)",
-        confirmButtonColor: "#ffcc00",
-        confirmButtonText:
-          "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-yellow-600 shadow-[0px_0px_20px_5px_rgba(255,204,0,0.9)] rounded-lg",
-        },
-        showClass: {
-          popup: "animate__animated animate__fadeInDown",
-        },
-        hideClass: {
-          popup: "animate__animated animate__fadeOutUp",
-        },
-      });
+      await showCustomAlert(
+        "warning",
+        "Motivo requerido",
+        "Por favor, especifica un motivo antes de continuar.",
+        "Aceptar"
+      );
+
       return;
     }
 
@@ -507,21 +391,12 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
     );
 
     if (!enfermedadSeleccionada) {
-      playSound(false);
-      MySwal.fire({
-        icon: "error",
-        title:
-          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Enfermedad no válida</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>La enfermedad seleccionada no es válida. Selecciona otra y vuelve a intentarlo.</p>",
-        background: "linear-gradient(145deg, #4a0000, #220000)",
-        confirmButtonColor: "#ff1744",
-        confirmButtonText:
-          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-        },
-      });
+      await showCustomAlert(
+        "error",
+        "Enfermedad no válida",
+        "La enfermedad seleccionada no es válida. Selecciona otra y vuelve a intentarlo.",
+        "Aceptar"
+      );
       return;
     }
 
@@ -552,21 +427,12 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
         setMostrarMotivo(false);
         setMotivo("");
 
-        playSound(true);
-        MySwal.fire({
-          icon: "success",
-          title:
-            "<span style='color: #00e676; font-weight: bold; font-size: 1.5em;'>✔️ Enfermedad registrada</span>",
-          html: "<p style='color: #fff; font-size: 1.1em;'>La enfermedad crónica ha sido guardada exitosamente en el sistema.</p>",
-          background: "linear-gradient(145deg, #004d40, #00251a)",
-          confirmButtonColor: "#00e676",
-          confirmButtonText:
-            "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
-          customClass: {
-            popup:
-              "border border-green-600 shadow-[0px_0px_20px_5px_rgba(0,230,118,0.9)] rounded-lg",
-          },
-        });
+        await showCustomAlert(
+          "success",
+          "Enfermedad registrada",
+          "La enfermedad crónica ha sido guardada exitosamente en el sistema.",
+          "Aceptar"
+        );
       } else {
         console.error(
           "Error al guardar en la base de datos:",
@@ -576,21 +442,13 @@ const EnfermedadesCronicas = ({ clavenomina, clavepaciente }) => {
       }
     } catch (error) {
       console.error("Error en la solicitud:", error);
-      playSound(false);
-      MySwal.fire({
-        icon: "error",
-        title:
-          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error del sistema</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>Ocurrió un error inesperado. Por favor, intenta nuevamente más tarde.</p>",
-        background: "linear-gradient(145deg, #4a0000, #220000)",
-        confirmButtonColor: "#ff1744",
-        confirmButtonText:
-          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-        },
-      });
+
+      await showCustomAlert(
+        "error",
+        "Error del sistema",
+        "Ocurrió un error inesperado. Por favor, intenta nuevamente más tarde.",
+        "Aceptar"
+      );
     }
   };
 

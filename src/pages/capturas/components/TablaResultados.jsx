@@ -2,23 +2,13 @@ import React, { useState, useEffect, useCallback } from "react";
 import useUpdateEstatus from "../../../hooks/surtimientosHook/useUpdateEstatus";
 import HistorialSurtimientos from "./historialSurtimientos";
 import styles from "../../css/estilosSurtimientos/tablaResultados.module.css";
-import Swal from "sweetalert2";
+import { showCustomAlert } from "../../../utils/alertas";
 
 export default function TablaResultados({ data, folioPase, onEstatusUpdated }) {
   const [showHistorial] = useState(false); // Maneja el estado del historial
   const [medicamentosMap, setMedicamentosMap] = useState({});
   const { updateEstatus, loading, error } = useUpdateEstatus();
   //const { surtimientos, loading: loadingSurtimientos, error: errorSurtimientos } = useHistorialByFolio(folioPase);
-
-  //* Define las rutas de los sonidos de éxito y error
-const successSound = "/assets/applepay.mp3";
-const errorSound = "/assets/error.mp3";
-
-//! Reproduce un sonido de éxito/error
-const playSound = (isSuccess) => {
-  const audio = new Audio(isSuccess ? successSound : errorSound);
-  audio.play();
-};
 
   const fetchMedicamentoByClave = async (claveMedicamento) => {
     try {
@@ -32,11 +22,11 @@ const playSound = (isSuccess) => {
       return "No disponible";
     }
   };
-  
+
   const loadMedicamentos = useCallback(async () => {
     const newMedicamentosMap = { ...medicamentosMap };
     let updated = false;
-  
+
     for (const detalle of data) {
       const clave = detalle.descMedicamento;
       if (!newMedicamentosMap[clave]) {
@@ -45,7 +35,7 @@ const playSound = (isSuccess) => {
         updated = true;
       }
     }
-  
+
     // Solo actualizar el estado si hubo cambios
     if (updated) {
       setMedicamentosMap(newMedicamentosMap);
@@ -57,43 +47,45 @@ const playSound = (isSuccess) => {
   }, [loadMedicamentos]);
 
   const handleDelete = async (idDetalleReceta) => {
-    playSound(false);
-    const result = await Swal.fire({
-      title: "¿Estás seguro?",
-      text: "Este medicamento será marcado como inactivo.",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Sí, eliminar",
-      cancelButtonText: "Cancelar",
-      confirmButtonColor: "#d63031",
-      cancelButtonColor: "#6c5ce7",
-    });
+    const result = await showCustomAlert(
+      "warning",
+      "¿Estás seguro?",
+      "Este medicamento será marcado como inactivo.",
+      "Sí, eliminar",
+      {
+        showCancelButton: true,
+        confirmButtonColor: "#d63031",
+        cancelButtonColor: "#6c5ce7",
+        cancelButtonText: "Cancelar",
+      }
+    );
 
     if (!result.isConfirmed) return;
 
     try {
       const updateResult = await updateEstatus(idDetalleReceta, 0);
       if (updateResult.success) {
-        playSound(true);
-        Swal.fire({
-          title: "Eliminado",
-          text: "El medicamento ha sido marcado como inactivo.",
-          icon: "success",
-          confirmButtonColor: "#6c5ce7",
-        });
+
+await showCustomAlert(
+        "success",
+        "Medicamento eliminado",
+        "El medicamento ha sido marcado como inactivo.",
+        "Aceptar"
+      );
+;
         onEstatusUpdated(); // Llamar a la función para refrescar los datos
       } else {
         throw new Error("No se pudo actualizar el registro.");
       }
     } catch (error) {
       console.error("Error al eliminar el medicamento:", error.message);
-      playSound(false);
-      Swal.fire({
-        title: "Error",
-        text: "No se pudo actualizar el registro.",
-        icon: "error",
-        confirmButtonColor: "#d63031",
-      });
+
+      await showCustomAlert(
+        "error",
+        "Error al eliminar",
+        error.message || "Ocurrió un error al eliminar el medicamento.",
+        "Aceptar"
+      );
     }
   };
 
@@ -103,14 +95,25 @@ const playSound = (isSuccess) => {
 
   return (
     <div className={styles.tableContainer}>
-      <div className={`${styles.titleContainer} ${showHistorial ? styles.hide : ""}`}>
+      <div
+        className={`${styles.titleContainer} ${
+          showHistorial ? styles.hide : ""
+        }`}
+      >
         <h2 className={styles.title}>Detalles del Surtimiento</h2>
-       
       </div>
-      <div className={`${styles.slideContainer} ${showHistorial ? styles.show : ""}`}>
+      <div
+        className={`${styles.slideContainer} ${
+          showHistorial ? styles.show : ""
+        }`}
+      >
         <HistorialSurtimientos folioPase={folioPase} />
       </div>
-      <div className={`${styles.slideContainer} ${!showHistorial ? styles.show : ""}`}>
+      <div
+        className={`${styles.slideContainer} ${
+          !showHistorial ? styles.show : ""
+        }`}
+      >
         <table className={styles.table}>
           <thead>
             <tr>
@@ -128,7 +131,9 @@ const playSound = (isSuccess) => {
               .map((detalle) => (
                 <tr key={detalle.idDetalleReceta}>
                   <td>{detalle.idDetalleReceta}</td>
-                  <td>{medicamentosMap[detalle.descMedicamento] || "Cargando..."}</td>
+                  <td>
+                    {medicamentosMap[detalle.descMedicamento] || "Cargando..."}
+                  </td>
                   <td>{detalle.indicaciones}</td>
                   <td>{detalle.cantidad}</td>
                   <td>

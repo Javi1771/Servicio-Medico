@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import Swal from "sweetalert2";
+import { showCustomAlert } from "../../../utils/alertas";
 
 const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
   const [formData, setFormData] = useState({
@@ -60,16 +60,6 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
     }
   }, [medicamento]);
 
-  // Define las rutas de los sonidos de éxito y error
-  const successSound = "/assets/applepay.mp3";
-  const errorSound = "/assets/error.mp3";
-
-  // Reproduce un sonido de éxito/error
-  const playSound = (isSuccess) => {
-    const audio = new Audio(isSuccess ? successSound : errorSound);
-    audio.play();
-  };
-
   // Handler para inputs
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -80,7 +70,7 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
   };
 
   // Al enviar el formulario:
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     // Validación mínima
@@ -93,43 +83,33 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
       !formData.medida ||
       !formData.precio        // <-- Incluimos precio si es obligatorio
     ) {
-      playSound(false);
-      Swal.fire({
-        icon: "error",
-        title:
-          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>⚠️ Campos incompletos</span>",
-        html: "<p style='color: #fff; font-size: 1.2em;'>Todos los campos son obligatorios. Asegúrate de completar la información.</p>",
-        background: "linear-gradient(145deg, #4a0000, #220000)",
-        confirmButtonColor: "#ff1744",
-        confirmButtonText:
-          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-        },
-      });
+await showCustomAlert(
+  "error",
+  "Campos incompletos",
+  "Todos los campos son obligatorios. Asegúrate de completar la información.",
+  "Aceptar"
+);
+
       return;
     }
 
-    playSound(false);
-    Swal.fire({
-      title:
-        "<span style='color: #ff9800; font-weight: bold; font-size: 1.6em;'>⚠️ ¿Estás seguro?</span>",
-      html: "<p style='color: #fff; font-size: 1.2em;'>Los cambios serán permanentes.</p>",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#ff9800",
-      cancelButtonColor: "#d33",
-      confirmButtonText:
-        "<span style='color: #fff; font-weight: bold;'>Sí, guardar</span>",
-      cancelButtonText:
-        "<span style='color: #fff; font-weight: bold;'>Cancelar</span>",
-      background: "linear-gradient(145deg, #4a2600, #220f00)",
-      customClass: {
-        popup:
-          "border border-yellow-600 shadow-[0px_0px_25px_5px_rgba(255,152,0,0.9)] rounded-lg",
-      },
-    }).then((result) => {
+await showCustomAlert(
+  "warning",
+  "¿Estás seguro?",
+  "Los cambios serán permanentes.",
+  "Sí, guardar",
+  {
+    showCancelButton: true,
+    confirmButtonColor: "#ff9800",
+    cancelButtonColor: "#d33",
+    cancelButtonText: "Cancelar",
+    background: "linear-gradient(145deg, #4a2600, #220f00)",
+    customClass: {
+      popup:
+        "border border-yellow-600 shadow-[0px_0px_25px_5px_rgba(255,152,0,0.9)] rounded-lg"
+    }
+  }
+).then(async (result) => {
       if (result.isConfirmed) {
         // Llamamos onEdit con todos los datos, incluyendo precio.
         onEdit({
@@ -145,21 +125,13 @@ const EditMedicamentoForm = ({ medicamento, onEdit, onCancel }) => {
           precio: parseFloat(formData.precio) // <-- Convertir a número
         });
 
-        playSound(true);
-        Swal.fire({
-          icon: "success",
-          title:
-            "<span style='color: #00e676; font-weight: bold; font-size: 1.8em;'>✔️ Cambios guardados</span>",
-          html: "<p style='color: #fff; font-size: 1.2em;'>El medicamento ha sido actualizado exitosamente.</p>",
-          background: "linear-gradient(145deg, #003300, #001a00)",
-          confirmButtonColor: "#00e676",
-          confirmButtonText:
-            "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-          customClass: {
-            popup:
-              "border border-green-600 shadow-[0px_0px_25px_5px_rgba(0,255,118,0.7)] rounded-lg",
-          },
-        });
+await showCustomAlert(
+  "success",
+  "Cambios guardados",
+  "El medicamento ha sido actualizado exitosamente.",
+  "Aceptar",
+);
+
       }
     });
   };

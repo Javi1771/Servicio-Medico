@@ -3,76 +3,10 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { FaUser, FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
 import Image from "next/image";
-import Swal from "sweetalert2";
-import withReactContent from "sweetalert2-react-content";
 
 import styles from "../pages/css/login.module.css";
 import "../styles/globals.css";
-
-const MySwal = withReactContent(Swal);
-const successSound = "/assets/applepay.mp3";
-const errorSound = "/assets/error.mp3";
-
-const playSound = (isSuccess) => {
-  const audio = new Audio(isSuccess ? successSound : errorSound);
-  audio.play().catch(e => console.error("Error al reproducir sonido:", e));
-};
-
-const showSuccessAlert = (title, message) => {
-  try {
-    playSound(true);
-  } catch (soundError) {
-    console.error("Error al reproducir sonido de éxito:", soundError);
-  }
-  return MySwal.fire({
-    icon: "success",
-    title: (
-      <span style={{ color: "#00e676", fontWeight: "bold", fontSize: "1.5em" }}>
-        {title}
-      </span>
-    ),
-    html: (
-      <p style={{ color: "#fff", fontSize: "1.1em" }}>
-        {message}
-      </p>
-    ),
-    background: "linear-gradient(145deg, #004d40, #00251a)",
-    confirmButtonColor: "#00e676",
-    confirmButtonText: "<b>Aceptar</b>",
-    customClass: {
-      popup:
-        "border border-green-600 shadow-[0px_0px_20px_5px_rgba(0,230,118,0.9)] rounded-lg",
-    },
-  });
-};
-
-const showErrorAlert = (title, message) => {
-  try {
-    playSound(false);
-  } catch (soundError) {
-    console.error("Error al reproducir sonido de error:", soundError);
-  }
-  return MySwal.fire({
-    icon: "error",
-    title: (
-      <span style={{ color: "#ff1744", fontWeight: "bold", fontSize: "1.5em" }}>
-        {title}
-      </span>
-    ),
-    html: (
-      <p style={{ color: "#fff", fontSize: "1.1em" }}>
-        {message}
-      </p>
-    ),
-    background: "linear-gradient(145deg, #4a0000, #220000)",
-    confirmButtonColor: "#ff1744",
-    confirmButtonText: "<b>Aceptar</b>",
-    customClass: {
-      popup:
-        "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-    },
-  });
-};
+import { showCustomAlert } from "../utils/alertas";
 
 export default function Login() {
   const router = useRouter();
@@ -81,7 +15,7 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [attempts, setAttempts] = useState(0);
-  
+
   const usuarioRef = useRef(null);
   const passwordRef = useRef(null);
 
@@ -93,23 +27,23 @@ export default function Login() {
         setPassword(passwordRef.current.value);
       }
     }, 100);
-    
+
     return () => clearTimeout(timer);
   }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
     console.log("Iniciando proceso de login");
-    
+
     if (isSubmitting) {
       console.log("Login ya en proceso, ignorando clic");
       return;
     }
-    
+
     //! Bloquear después de 5 intentos fallidos
     if (attempts >= 5) {
-      showErrorAlert(
-        "Demasiados intentos", 
+      await showCustomAlert(
+        "Demasiados intentos",
         "Por favor espera 1 minuto antes de volver a intentar."
       );
       return;
@@ -119,23 +53,38 @@ export default function Login() {
     const passTrim = password.trim();
 
     if (!userTrim || !passTrim) {
-      showErrorAlert("Campos incompletos", "Por favor completa todos los campos.");
+      await showCustomAlert(
+        "error",
+        "Campos incompletos",
+        "Por favor completa todos los campos.",
+        "Aceptar"
+      );
       return;
     }
-    
+
     if (userTrim.length < 3 || userTrim.length > 20) {
-      showErrorAlert("Usuario inválido", "Debe tener entre 3 y 20 caracteres.");
+      await showCustomAlert(
+        "error",
+        "Usuario inválido",
+        "Debe tener entre 3 y 20 caracteres.",
+        "Aceptar"
+      );
       return;
     }
-    
+
     if (passTrim.length < 6) {
-      showErrorAlert("Contraseña insegura", "Debe tener al menos 6 caracteres.");
+      await showCustomAlert(
+        "error",
+        "Contraseña insegura",
+        "Debe tener al menos 6 caracteres.",
+        "Aceptar"
+      );
       return;
     }
 
     setIsSubmitting(true);
     console.log("Enviando solicitud de login...");
-    
+
     try {
       const res = await fetch("/api/loginApi", {
         method: "POST",
@@ -143,53 +92,89 @@ export default function Login() {
         credentials: "include",
         body: JSON.stringify({ usuario: userTrim, password: passTrim }),
       });
-      
+
       console.log("Respuesta recibida:", res.status);
-      
+
       if (!res.ok) {
         const errorData = await res.json();
-        throw new Error(errorData.message || `Error en la solicitud: ${res.status}`);
+        throw new Error(
+          errorData.message || `Error en la solicitud: ${res.status}`
+        );
       }
-      
+
       const data = await res.json();
       console.log("Datos de respuesta:", data);
-      
+
       if (data.success) {
         console.log("Login exitoso, mostrando alerta...");
         //* Mostrar alerta pero no esperar a que se cierre
-        showSuccessAlert("¡Bienvenido!", "Redirigiendo...")
+        await showCustomAlert(
+          "success",
+          "¡Bienvenido!",
+          "Redirigiendo...",
+          "Aceptar"
+        )
           .then(() => {
             console.log("Alerta cerrada, redirigiendo...");
-            router.replace("/inicio-servicio-medico")
-              .catch(err => {
-                console.error("Error en router.replace:", err);
-                window.location.href = "/inicio-servicio-medico";
-              });
+            router.replace("/inicio-servicio-medico").catch((err) => {
+              console.error("Error en router.replace:", err);
+              window.location.href = "/inicio-servicio-medico";
+            });
           })
-          .catch(alertErr => {
+          .catch((alertErr) => {
             console.error("Error mostrando alerta:", alertErr);
             router.replace("/inicio-servicio-medico");
           });
       } else {
         console.log("Login fallido, aumentando intentos...");
-        setAttempts(prev => prev + 1);
+        setAttempts((prev) => prev + 1);
         if (data.message.toLowerCase().includes("usuario")) {
-          showErrorAlert("Usuario no encontrado", "Verifica tus datos.");
-        } else if (data.message.toLowerCase().includes("contraseña") || 
-                   data.message.toLowerCase().includes("credenciales")) {
-          showErrorAlert("Contraseña incorrecta", "Vuelve a intentarlo.");
+          await showCustomAlert(
+            "error",
+            "Usuario no encontrado",
+            "Verifica tus datos.",
+            "Aceptar"
+          );
+        } else if (
+          data.message.toLowerCase().includes("contraseña") ||
+          data.message.toLowerCase().includes("credenciales")
+        ) {
+          await showCustomAlert(
+            "error",
+            "Contraseña incorrecta",
+            "Vuelve a intentarlo.",
+            "Aceptar"
+          );
         } else {
-          showErrorAlert("Error desconocido", "Intenta nuevamente más tarde.");
+          await showCustomAlert(
+            "error",
+            "Error desconocido",
+            "Intenta nuevamente más tarde.",
+            "Aceptar"
+          );
         }
       }
     } catch (err) {
       console.error("Error en el login:", err);
-      setAttempts(prev => prev + 1);
-      
-      if (err.message.includes('Failed to fetch') || err.message.includes('NetworkError')) {
-        showErrorAlert("Error de conexión", "No se pudo conectar al servidor. Intenta de nuevo.");
+      setAttempts((prev) => prev + 1);
+
+      if (
+        err.message.includes("Failed to fetch") ||
+        err.message.includes("NetworkError")
+      ) {
+        await showCustomAlert(
+          "error",
+          "Error de conexión",
+          "No se pudo conectar al servidor. Intenta de nuevo.",
+          "Aceptar"
+        );
       } else {
-        showErrorAlert("Error", err.message || "Ocurrió un error inesperado");
+        await showCustomAlert(
+          "error",
+          "Error",
+          err.message || "Ocurrió un error inesperado",
+          "Aceptar"
+        );
       }
     } finally {
       console.log("Finalizando proceso de login");
@@ -199,7 +184,7 @@ export default function Login() {
 
   //* Prevenir recarga al presionar Enter en campos vacíos
   const handleKeyDown = (e) => {
-    if (e.key === 'Enter' && (!usuario.trim() || !password.trim())) {
+    if (e.key === "Enter" && (!usuario.trim() || !password.trim())) {
       e.preventDefault();
     }
   };
@@ -253,12 +238,11 @@ export default function Login() {
         <div className={styles.formSection}>
           <h1 className={styles.formTitle}>Bienvenido, Inicia Sesión</h1>
 
-          <form
-            onSubmit={handleLogin}
-            method="POST"
-            className={styles.form}
-          >
-            <label htmlFor="usuario-input" className="block mb-2 text-lg font-semibold text-white">
+          <form onSubmit={handleLogin} method="POST" className={styles.form}>
+            <label
+              htmlFor="usuario-input"
+              className="block mb-2 text-lg font-semibold text-white"
+            >
               Usuario
             </label>
             <div className={styles.inputContainer} style={containerStyle}>
@@ -279,7 +263,10 @@ export default function Login() {
               />
             </div>
 
-            <label htmlFor="password-input" className="block mt-6 mb-2 text-lg font-semibold text-white">
+            <label
+              htmlFor="password-input"
+              className="block mt-6 mb-2 text-lg font-semibold text-white"
+            >
               Contraseña
             </label>
             <div className={styles.inputContainer} style={containerStyle}>
@@ -301,7 +288,9 @@ export default function Login() {
               <button
                 type="button"
                 onClick={() => setShowPassword((v) => !v)}
-                aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                aria-label={
+                  showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
+                }
                 style={eyeButtonStyle}
               >
                 {showPassword ? <FaEyeSlash /> : <FaEye />}
@@ -311,7 +300,9 @@ export default function Login() {
             <button
               type="submit"
               disabled={isSubmitting || attempts >= 3}
-              className={`${styles.button} ${isSubmitting ? styles.buttonDisabled : ""}`}
+              className={`${styles.button} ${
+                isSubmitting ? styles.buttonDisabled : ""
+              }`}
               style={{
                 marginTop: "2rem",
                 padding: "12px 24px",
@@ -319,14 +310,16 @@ export default function Login() {
                 border: "none",
                 fontSize: "1rem",
                 fontWeight: "bold",
-                cursor: (isSubmitting || attempts >= 3) ? "not-allowed" : "pointer",
+                cursor:
+                  isSubmitting || attempts >= 3 ? "not-allowed" : "pointer",
               }}
               aria-label="Iniciar sesión"
             >
-              {attempts >= 3 
-                ? "Demasiados intentos" 
-                : isSubmitting ? "Procesando..." : "Ingresar"
-              }
+              {attempts >= 3
+                ? "Demasiados intentos"
+                : isSubmitting
+                ? "Procesando..."
+                : "Ingresar"}
             </button>
           </form>
         </div>

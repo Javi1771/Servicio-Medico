@@ -1,8 +1,7 @@
 import { useState, useRef } from "react";
 import { useRouter } from "next/router";
 import axios from "axios";
-import Swal from "sweetalert2";
-import withReactContent from "sweetalert2-react-content";
+import { showCustomAlert } from "../../../utils/alertas";
 import {
   FaArrowLeft,
   FaSearch,
@@ -22,18 +21,6 @@ import {
   FaUpload,
 } from "react-icons/fa";
 import { BiXCircle } from "react-icons/bi";
-
-const MySwal = withReactContent(Swal);
-
-//* Define las rutas de los sonidos de éxito y error
-const successSound = "/assets/applepay.mp3";
-const errorSound = "/assets/error.mp3";
-
-//! Reproduce un sonido de éxito/error
-const playSound = (isSuccess) => {
-  const audio = new Audio(isSuccess ? successSound : errorSound);
-  audio.play();
-};
 
 export default function LaboratorioScreen() {
   const router = useRouter();
@@ -78,21 +65,12 @@ export default function LaboratorioScreen() {
 
       //* Si ya existe una URL_RESULTADOS, se notifica inmediatamente al usuario
       if (result && result.URL_RESULTADOS) {
-        playSound(false);
-        MySwal.fire({
-          icon: "warning",
-          title:
-            "<span style='color: #ff9800; font-weight: bold; font-size: 1.5em;'>⚠️ Resultado ya Subido</span>",
-          html: `<p style='color: #fff; font-size: 1.1em;'>Ya se ha subido el resultado para este folio. Puedes previsualizar, descargar o imprimir el PDF.</p>`,
-          background: "linear-gradient(145deg, #4a2600, #220f00)",
-          confirmButtonColor: "#ff9800",
-          confirmButtonText:
-            "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
-          customClass: {
-            popup:
-              "border border-yellow-600 shadow-[0px_0px_20px_5px_rgba(255,152,0,0.9)] rounded-lg",
-          },
-        });
+        await showCustomAlert(
+          "warning",
+          "Resultado ya Subido",
+          "Ya se ha subido el resultado para este folio. Puedes previsualizar, descargar o imprimir el PDF.",
+          "Aceptar"
+        );
       }
     } catch (err) {
       console.error("Error al buscar el folio:", err);
@@ -123,20 +101,13 @@ export default function LaboratorioScreen() {
   //* Función para subir el PDF usando alertas personalizadas, bloquea el botón y muestra un loader
   const handleUploadPDF = async () => {
     if (!pdfFile) {
-      MySwal.fire({
-        icon: "warning",
-        title:
-          "<span style='color: #ffbb33; font-weight: bold; font-size: 1.5em;'>⚠️ Archivo Requerido</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>Debes seleccionar primero un archivo PDF.</p>",
-        background: "linear-gradient(145deg, #664d00, #332600)",
-        confirmButtonColor: "#ffbb33",
-        confirmButtonText:
-          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-yellow-500 shadow-[0px_0px_20px_5px_rgba(255,187,51,0.9)] rounded-lg",
-        },
-      });
+      await showCustomAlert(
+        "warning",
+        "Archivo Requerido",
+        "Debes seleccionar primero un archivo PDF.",
+        "Aceptar"
+      );
+
       return;
     }
 
@@ -147,45 +118,28 @@ export default function LaboratorioScreen() {
 
     try {
       setIsUploading(true);
-      playSound(true);
       await axios.post("/api/laboratorio/insertarResultados", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      MySwal.fire({
-        icon: "success",
-        title:
-          "<span style='color: #00e676; font-weight: bold; font-size: 1.5em;'>✔️ PDF Subido</span>",
-        html: `<p style='color: #fff; font-size: 1.1em;'>El PDF se subió exitosamente.</p>`,
-        background: "linear-gradient(145deg, #003300, #001a00)",
-        confirmButtonColor: "#00e676",
-        confirmButtonText:
-          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-green-500 shadow-[0px_0px_20px_5px_rgba(0,230,118,0.9)] rounded-lg",
-        },
-      });
+      await showCustomAlert(
+        "success",
+        "PDF Subido",
+        "El PDF se subió exitosamente.",
+        "Aceptar"
+      );
+
       //! Limpia la pantalla tras la subida exitosa
       setFolio("");
       setLaboratorio(null);
       setPdfFile(null);
     } catch (err) {
       console.error("Error al subir el PDF:", err);
-      playSound(false);
-      MySwal.fire({
-        icon: "error",
-        title:
-          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error al subir el PDF</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>Ocurrió un error al intentar subir el archivo. Por favor, intenta nuevamente.</p>",
-        background: "linear-gradient(145deg, #4a0000, #220000)",
-        confirmButtonColor: "#ff1744",
-        confirmButtonText:
-          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-        },
-      });
+      await showCustomAlert(
+        "error",
+        "Error al subir el PDF",
+        "Ocurrió un error al intentar subir el archivo. Por favor, intenta nuevamente.",
+        "Aceptar"
+      );
     } finally {
       setIsUploading(false);
     }
@@ -435,15 +389,43 @@ export default function LaboratorioScreen() {
           {laboratorio && !error && (
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                {renderDato( <FaCalendarAlt />, "Fecha de Emisión", laboratorio.FECHA_EMISION )}
-                {renderDato( <FaCalendarCheck />, "Fecha de Cita", laboratorio.FECHA_CITA )}
-                {renderDato( <FaUser />, "Nombre del Paciente", laboratorio.NOMBRE_PACIENTE )}
-                {renderDato( <FaBirthdayCake />, "Edad", laboratorio.EDAD)}
-                {renderDato( <FaNotesMedical />, "Diagnóstico", laboratorio.DIAGNOSTICO )}
-                {renderDato( <FaBuilding />, "Departamento", laboratorio.DEPARTAMENTO )}
-                {renderDato( <FaIdCard />, "Empleado", laboratorio.ESEMPLEADO)}
-                {renderDato( <FaHandshake />, "Sindicato", laboratorio.SINDICATO )}
-                {renderDato( <FaStethoscope />, "Médico (Proveedor)", laboratorio.NOMBREPROVEEDOR )}
+                {renderDato(
+                  <FaCalendarAlt />,
+                  "Fecha de Emisión",
+                  laboratorio.FECHA_EMISION
+                )}
+                {renderDato(
+                  <FaCalendarCheck />,
+                  "Fecha de Cita",
+                  laboratorio.FECHA_CITA
+                )}
+                {renderDato(
+                  <FaUser />,
+                  "Nombre del Paciente",
+                  laboratorio.NOMBRE_PACIENTE
+                )}
+                {renderDato(<FaBirthdayCake />, "Edad", laboratorio.EDAD)}
+                {renderDato(
+                  <FaNotesMedical />,
+                  "Diagnóstico",
+                  laboratorio.DIAGNOSTICO
+                )}
+                {renderDato(
+                  <FaBuilding />,
+                  "Departamento",
+                  laboratorio.DEPARTAMENTO
+                )}
+                {renderDato(<FaIdCard />, "Empleado", laboratorio.ESEMPLEADO)}
+                {renderDato(
+                  <FaHandshake />,
+                  "Sindicato",
+                  laboratorio.SINDICATO
+                )}
+                {renderDato(
+                  <FaStethoscope />,
+                  "Médico (Proveedor)",
+                  laboratorio.NOMBREPROVEEDOR
+                )}
                 {renderDato(<FaMoneyCheckAlt />, "Nómina", laboratorio.NOMINA)}
                 {renderLaboratorios(laboratorio.laboratorios)}
                 {renderEstudios(laboratorio.ESTUDIOS)}

@@ -4,14 +4,10 @@ import React, { useRef, useState, useEffect } from "react";
 import { FaCamera } from "react-icons/fa";
 import { FaSpinner } from "react-icons/fa"; //* Ícono de Spinner
 import Swal from "sweetalert2";
-import withReactContent from "sweetalert2-react-content";
 import * as faceapi from "face-api.js";
 import { useRouter } from "next/router";
 import useFaceRecognition from "../../../hooks/hookReconocimiento/useFaceRecognition";
-import Image from "next/image";
-import styles from "../../css/FaceTestPage.module.css";
-
-const MySwal = withReactContent(Swal);
+import { showCustomAlert } from "../../../utils/alertas";
 
 export default function FaceAuth({ beneficiaries }) {
   const router = useRouter();
@@ -117,20 +113,13 @@ export default function FaceAuth({ beneficiaries }) {
     const descriptorCaptured = await getDescriptorFromCanvas(canvasRef.current);
 
     if (!descriptorCaptured) {
-      playSound(false);
-      MySwal.fire({
-        icon: "error",
-        title:
-          "<span style='color: #ff4444; font-weight: bold; font-size: 1.5em;'>❌ Rostro No Detectado</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>No se pudo detectar un rostro en la imagen capturada.</p>",
-        background: "linear-gradient(145deg, #4a0000, #220000)",
-        confirmButtonColor: "#ff4444",
-        confirmButtonText: "Intentar de Nuevo",
-        customClass: {
-          popup:
-            "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,68,68,0.9)] rounded-lg",
-        },
-      });
+      await showCustomAlert(
+        "error",
+        "Rostro No Detectado",
+        "No se pudo detectar un rostro en la imagen capturada.",
+        "Intentar de Nuevo"
+      );
+
       return;
     }
 
@@ -166,22 +155,23 @@ export default function FaceAuth({ beneficiaries }) {
       const encryptedNomina = btoa(bestMatch.NO_NOMINA);
       const encryptedBeneficiario = btoa(bestMatch.ID_BENEFICIARIO);
 
-      MySwal.fire({
-        icon: "success",
-        title:
-          "<span style='color: #00ff44; font-weight: bold; font-size: 1.5em;'>✅ Beneficiario Reconocido</span>",
-        html: `<p style='color: #fff; font-size: 1.1em;'>¿Eres <strong>${bestMatch.NOMBRE} ${bestMatch.A_PATERNO} ${bestMatch.A_MATERNO}</strong>?</p>`,
-        background: "linear-gradient(145deg, #002a00, #001500)",
-        showCancelButton: true,
-        confirmButtonColor: "#00ff44",
-        cancelButtonColor: "#ff4444",
-        confirmButtonText: "Sí, soy yo",
-        cancelButtonText: "No, intentar de nuevo",
-        customClass: {
-          popup:
-            "border border-green-600 shadow-[0px_0px_20px_5px_rgba(0,255,68,0.9)] rounded-lg",
-        },
-      }).then((result) => {
+      await showCustomAlert(
+        "success",
+        "✅ Beneficiario Reconocido",
+        `¿Eres <strong>${bestMatch.NOMBRE} ${bestMatch.A_PATERNO} ${bestMatch.A_MATERNO}</strong>?`,
+        "Sí, soy yo",
+        {
+          showCancelButton: true,
+          confirmButtonColor: "#00ff44",
+          cancelButtonColor: "#ff4444",
+          cancelButtonText: "No, intentar de nuevo",
+          background: "linear-gradient(145deg, #002a00, #001500)",
+          customClass: {
+            popup:
+              "border border-green-600 shadow-[0px_0px_20px_5px_rgba(0,255,68,0.9)] rounded-lg",
+          },
+        }
+      ).then((result) => {
         if (result.isConfirmed) {
           //* Muestra loader al redirigir
           setLoadingMessage("Redirigiendo...");
@@ -196,23 +186,18 @@ export default function FaceAuth({ beneficiaries }) {
         }
       });
     } else {
-      playSound(false);
-      MySwal.fire({
-        icon: "warning",
-        title:
-          "<span style='color: #ff9800; font-weight: bold; font-size: 1.5em;'>⚠️ No se encontró coincidencia</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>No se detectó una coincidencia con los beneficiarios registrados. Intenta de nuevo.</p>",
-        background: "linear-gradient(145deg, #4a2600, #220f00)",
-        showCancelButton: true,
-        confirmButtonColor: "#ff9800",
-        confirmButtonText: "Intentar de Nuevo",
-        cancelButtonColor: "#ff4444",
-        cancelButtonText: "Cancelar",
-        customClass: {
-          popup:
-            "border border-yellow-600 shadow-[0px_0px_20px_5px_rgba(255,152,0,0.9)] rounded-lg",
-        },
-      }).then((result) => {
+      await showCustomAlert(
+        "warning",
+        "⚠️ No se encontró coincidencia",
+        "No se detectó una coincidencia con los beneficiarios registrados. Intenta de nuevo.",
+        "Intentar de Nuevo",
+        {
+          showCancelButton: true,
+          confirmButtonColor: "#ff9800",
+          cancelButtonColor: "#ff4444",
+          cancelButtonText: "Cancelar",
+        }
+      ).then((result) => {
         if (result.isConfirmed) {
           capturePhoto();
         } else if (result.dismiss === Swal.DismissReason.cancel) {

@@ -1,22 +1,9 @@
 import React, { useState } from "react";
-import Swal from "sweetalert2";
-import withReactContent from "sweetalert2-react-content";
 import { FaSpinner } from "react-icons/fa";
 
 import SurtimientosInfo from "./surtimientosInfo";
 import MedicamentosList from "./medicamentosList";
-
-//* Rutas de sonidos de éxito y error
-const successSound = "/assets/applepay.mp3";
-const errorSound = "/assets/error.mp3";
-
-const MySwal = withReactContent(Swal);
-
-//* Función para reproducir sonido de éxito/error
-const playSound = (isSuccess) => {
-  const audio = new Audio(isSuccess ? successSound : errorSound);
-  audio.play();
-};
+import { showCustomAlert } from "../../../utils/alertas";
 
 //* Función para validar EAN
 async function validarEAN(ean, claveMedicamento) {
@@ -75,99 +62,59 @@ const SurtimientosTable = ({ data, resetSurtimiento }) => {
 
     const pendiente = item.piezas - item.delivered;
     if (pendiente <= 0) {
-      playSound(false);
-      await MySwal.fire({
-        icon: "info",
-        title:
-          "<span style='color: #00bcd4; font-weight: bold; font-size: 1.5em;'>⚠️ Todas las piezas entregadas</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>Ya se han entregado todas las piezas requeridas.</p>",
-        background: "linear-gradient(145deg, #004d40, #00251a)",
-        confirmButtonColor: "#00bcd4",
-        confirmButtonText:
-          "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-blue-600 shadow-[0px_0px_20px_5px_rgba(0,188,212,0.9)] rounded-lg",
-        },
-      });
+      await showCustomAlert(
+        "info",
+        "Todas las piezas entregadas",
+        "Ya se han entregado todas las piezas requeridas.",
+        "Aceptar"
+      );
+
       return;
     }
 
     if (item.stock === 0) {
-      playSound(false);
-      await MySwal.fire({
-        icon: "error",
-        title:
-          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Sin Stock</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>No hay unidades disponibles en stock.</p>",
-        background: "linear-gradient(145deg, #4a0000, #220000)",
-        confirmButtonColor: "#ff1744",
-        confirmButtonText:
-          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-        },
-      });
+      await showCustomAlert(
+        "error",
+        "Sin Stock",
+        "No hay unidades disponibles en stock.",
+        "Aceptar"
+      );
+
       return;
     }
 
     if (item.delivered >= item.stock) {
-      playSound(false);
-      await MySwal.fire({
-        icon: "warning",
-        title:
-          "<span style='color: #ff9800; font-weight: bold; font-size: 1.5em;'>⚠️ Límite de Stock Alcanzado</span>",
-        html: `<p style='color: #fff; font-size: 1.1em;'>El máximo permitido es ${item.stock} piezas.</p>`,
-        background: "linear-gradient(145deg, #4a2600, #220f00)",
-        confirmButtonColor: "#ff9800",
-        confirmButtonText:
-          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-orange-600 shadow-[0px_0px_20px_5px_rgba(255,152,0,0.9)] rounded-lg",
-        },
-      });
+      await showCustomAlert(
+        "warning",
+        "Límite de Stock Alcanzado",
+        `El máximo permitido es ${item.stock} piezas.`,
+        "Aceptar"
+      );
+
       return;
     }
 
     const { valido } = await validarEAN(eanValue, item.claveMedicamento);
     if (!valido) {
-      playSound(false);
-      await MySwal.fire({
-        icon: "error",
-        title:
-          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ EAN no válido</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>El EAN escaneado no coincide.</p>",
-        background: "linear-gradient(145deg, #4a0000, #220000)",
-        confirmButtonColor: "#ff1744",
-        confirmButtonText:
-          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-        },
-      });
+      await showCustomAlert(
+        "error",
+        "EAN no válido",
+        "El EAN escaneado no coincide.",
+        "Aceptar"
+      );
+
       return;
     }
 
     const newDelivered = item.delivered + 1;
     if (newDelivered > item.stock) {
-      playSound(false);
-      await MySwal.fire({
-        icon: "warning",
-        title:
-          "<span style='color: #ff9800; font-weight: bold; font-size: 1.5em;'>⚠️ Stock insuficiente</span>",
-        html: `<p style='color: #fff; font-size: 1.1em;'>El máximo permitido es ${item.stock} piezas.</p>`,
-        background: "linear-gradient(145deg, #4a2600, #220000)",
-        confirmButtonColor: "#ff9800",
-        confirmButtonText:
-          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-orange-600 shadow-[0px_0px_20px_5px_rgba(255,152,0,0.9)] rounded-lg",
-        },
-      });
+      await showCustomAlert(
+        "warning",
+        "Stock insuficiente",
+        `El máximo permitido es ${item.stock} piezas.`,
+        "Aceptar"
+      );
+
       return;
     }
 
@@ -208,21 +155,13 @@ const SurtimientosTable = ({ data, resetSurtimiento }) => {
       .filter((it) => it.delta > 0);
 
     if (detallesParaGuardar.length === 0) {
-      playSound(false);
-      await MySwal.fire({
-        icon: "info",
-        title:
-          "<span style='color: #00bcd4; font-weight: bold; font-size: 1.5em;'>ℹ️ Sin cambios</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>No hay nuevas piezas escaneadas.</p>",
-        background: "linear-gradient(145deg, #004d40, #00251a)",
-        confirmButtonColor: "#00bcd4",
-        confirmButtonText:
-          "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-blue-600 shadow-[0px_0px_20px_5px_rgba(0,188,212,0.9)] rounded-lg",
-        },
-      });
+      await showCustomAlert(
+        "info",
+        "Sin cambios",
+        "No hay nuevas piezas escaneadas.",
+        "Aceptar"
+      );
+
       resetSurtimiento();
       setIsSubmitting(false);
       return;
@@ -251,40 +190,22 @@ const SurtimientosTable = ({ data, resetSurtimiento }) => {
         }),
       });
 
-      playSound(true);
-      await MySwal.fire({
-        icon: "success",
-        title:
-          "<span style='color: #00e676; font-weight: bold; font-size: 1.5em;'>✔️ Éxito</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>Cambios guardados correctamente.</p>",
-        background: "linear-gradient(145deg, #003300, #001a00)",
-        confirmButtonColor: "#00e676",
-        confirmButtonText:
-          "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-green-600 shadow-[0px_0px_20px_5px_rgba(0,230,118,0.9)] rounded-lg",
-        },
-      });
+      await showCustomAlert(
+        "success",
+        "Éxito",
+        "Cambios guardados correctamente.",
+        "Aceptar"
+      );
 
       resetSurtimiento();
     } catch (err) {
       console.error("Error al guardar:", err);
-      playSound(false);
-      await MySwal.fire({
-        icon: "error",
-        title:
-          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>Hubo un problema al guardar los cambios. Intenta nuevamente.</p>",
-        background: "linear-gradient(145deg, #4a0000, #220000)",
-        confirmButtonColor: "#ff1744",
-        confirmButtonText:
-          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-        },
-      });
+      await showCustomAlert(
+        "error",
+        "Error",
+        "Hubo un problema al guardar los cambios. Intenta nuevamente.",
+        "Aceptar"
+      );
     } finally {
       setIsSubmitting(false);
     }

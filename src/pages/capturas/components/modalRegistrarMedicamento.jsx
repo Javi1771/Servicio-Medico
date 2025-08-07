@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import styles from "../../css/estilosSurtimientos/modal.module.css";
-import Swal from "sweetalert2";
+import { showCustomAlert } from "../../../utils/alertas";
 import ReactDOM from "react-dom";
 
 export default function ModalRegistrarMedicamento({ isOpen, onClose, onSave }) {
@@ -9,25 +9,15 @@ export default function ModalRegistrarMedicamento({ isOpen, onClose, onSave }) {
 
   if (!isOpen) return null;
 
-  //* Define las rutas de los sonidos de éxito y error
-  const successSound = "/assets/applepay.mp3";
-  const errorSound = "/assets/error.mp3";
-
-  //! Reproduce un sonido de éxito/error
-  const playSound = (isSuccess) => {
-    const audio = new Audio(isSuccess ? successSound : errorSound);
-    audio.play();
-  };
-
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!medicamentoNombre || !clasificacion) {
-      playSound(false);
-      Swal.fire({
-        title: "Error",
-        text: "Por favor completa todos los campos.",
-        icon: "warning",
-        confirmButtonColor: "#f39c12",
-      });
+      await showCustomAlert(
+        "warning",
+        "Campos incompletos",
+        "Por favor completa todos los campos.",
+        "Aceptar"
+      );
+
       return;
     }
 

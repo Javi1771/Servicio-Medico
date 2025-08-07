@@ -18,15 +18,9 @@ import {
   FaCalendarAlt,
   FaCalendarPlus,
 } from "react-icons/fa";
-import Swal from "sweetalert2";
-import withReactContent from "sweetalert2-react-content";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
-
-const MySwal = withReactContent(Swal);
-
-const successSound = "/assets/applepay.mp3";
-const errorSound = "/assets/error.mp3";
+import { showCustomAlert } from "../../utils/alertas";
 
 const EstudioLaboratorio = () => {
   const router = useRouter();
@@ -81,14 +75,6 @@ const EstudioLaboratorio = () => {
     fetchStudies();
   }, []);
 
-  //* Función para reproducir sonidos
-  const playSound = (isSuccess) => {
-    if (typeof window !== "undefined") {
-      const audio = new Audio(isSuccess ? successSound : errorSound);
-      audio.play();
-    }
-  };
-
   //* Reiniciar búsqueda
   const resetearBusqueda = () => {
     setConsultaData(null);
@@ -112,67 +98,16 @@ const EstudioLaboratorio = () => {
     }
   };
 
-  // ================================
-  //! ALERTAS con el DISEÑO REQUERIDO
-  // ================================
-  const showWarning = (title, message) => {
-    playSound(false);
-    MySwal.fire({
-      icon: "warning",
-      title: `<span style='color: #ffbb33; font-weight: bold; font-size: 1.5em;'>${title}</span>`,
-      html: `<p style='color: #fff; font-size: 1.1em;'>${message}</p>`,
-      background: "linear-gradient(145deg, #664d00, #332600)",
-      confirmButtonColor: "#ffbb33",
-      confirmButtonText:
-        "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-      customClass: {
-        popup:
-          "border border-yellow-500 shadow-[0px_0px_20px_5px_rgba(255,187,51,0.9)] rounded-lg",
-      },
-    });
-  };
-
-  const showError = (title, message) => {
-    playSound(false);
-    MySwal.fire({
-      icon: "error",
-      title: `<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>${title}</span>`,
-      html: `<p style='color: #fff; font-size: 1.1em;'>${message}</p>`,
-      background: "linear-gradient(145deg, #4a0000, #220000)",
-      confirmButtonColor: "#ff1744",
-      confirmButtonText:
-        "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-      customClass: {
-        popup:
-          "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-      },
-    });
-  };
-
-  const showSuccess = (title, message) => {
-    playSound(true);
-    MySwal.fire({
-      icon: "success",
-      title: `<span style='color: #00e676; font-weight: bold; font-size: 1.5em;'>${title}</span>`,
-      html: `<p style='color: #fff; font-size: 1.1em;'>${message}</p>`,
-      background: "linear-gradient(145deg, #003300, #001a00)",
-      confirmButtonColor: "#00e676",
-      confirmButtonText:
-        "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-      customClass: {
-        popup:
-          "border border-green-500 shadow-[0px_0px_20px_5px_rgba(0,230,118,0.9)] rounded-lg",
-      },
-    });
-  };
-
   //* Buscar consulta por folio
   const handleSearch = async () => {
     if (!folioConsulta.trim()) {
-      showWarning(
-        "⚠️ Folio Requerido",
-        "Por favor, ingresa un folio de consulta."
-      );
+await showCustomAlert(
+  "warning",
+  "Folio Requerido",
+  "Por favor, ingresa un folio de consulta.",
+  "Aceptar"
+);
+
       return;
     }
     setLoading(true);
@@ -191,9 +126,11 @@ const EstudioLaboratorio = () => {
         setEspecialistas([]);
       }
     } catch (error) {
-      showError(
-        "❌ Error",
-        error.message || "No se encontró la consulta con ese folio."
+      await showCustomAlert(
+        "error",
+        "Consulta no encontrada",
+        "No se pudo encontrar una consulta con ese folio. Verifica el número e intenta nuevamente.",
+        "Aceptar"
       );
     } finally {
       setLoading(false);
@@ -270,38 +207,51 @@ const EstudioLaboratorio = () => {
   //* Guardar estudios para todos los laboratorios
   const handleGuardar = async () => {
     if (labs.length === 0) {
-      showWarning("⚠️ Datos Faltantes", "Agrega al menos un laboratorio.");
+await showCustomAlert(
+      "warning",
+      "No hay laboratorios",
+      "Por favor, agrega al menos un laboratorio antes de guardar.",
+      "Aceptar"
+);
       return;
     }
 
     for (let i = 0; i < labs.length; i++) {
       const lab = labs[i];
       if (!lab.selectedEspecialista) {
-        showWarning(
-          "⚠️ Datos Faltantes",
-          `Selecciona un laboratorio para el registro ${i + 1}.`
-        );
+await showCustomAlert(
+        "warning",
+        "Especialista Requerido",
+        `Selecciona un especialista para el registro ${i + 1}.`,
+        "Aceptar"
+      );
         return;
       }
       if (lab.selectedStudies.some((study) => study === "")) {
-        showWarning(
-          "⚠️ Estudios Requeridos",
-          `Completa la selección de estudios en el registro ${i + 1}.`
-        );
+await showCustomAlert(
+        "warning",
+        "Estudios Requeridos",
+        `Selecciona al menos un estudio para el registro ${i + 1}.`,
+        "Aceptar"
+      );
         return;
       }
       if (!lab.diagnosis.trim()) {
-        showWarning(
-          "⚠️ Diagnóstico Requerido",
-          `Ingresa un diagnóstico para el registro ${i + 1}.`
-        );
+await showCustomAlert(
+        "warning",
+        "Diagnóstico Requerido",
+        `Ingresa un diagnóstico para el registro ${i + 1}.`,
+        "Aceptar"
+      );
         return;
       }
       if (!lab.selectedDate) {
-        showWarning(
-          "⚠️ Fecha Requerida",
-          `Selecciona una fecha para el registro ${i + 1}.`
-        );
+await showCustomAlert(
+        "warning",
+        "Fecha Requerida",
+        `Selecciona una fecha para el registro ${i + 1}.`,
+        "Aceptar"
+      );
         return;
       }
     }
@@ -336,9 +286,11 @@ const EstudioLaboratorio = () => {
         body: JSON.stringify(body),
       });
       if (res.ok) {
-        showSuccess(
-          "✔️ Estudios Guardados",
-          "Los estudios se han registrado correctamente."
+        await showCustomAlert(
+          "success",
+          "Órdenes guardadas correctamente",
+          "Las órdenes de estudio se han guardado exitosamente.",
+          "Aceptar"
         );
         const encryptedClaveConsulta = btoa(folioConsulta.trim());
         router.push(
@@ -349,9 +301,11 @@ const EstudioLaboratorio = () => {
         throw new Error(errorResponse.error || "Error en el servidor");
       }
     } catch (error) {
-      showError(
-        "❌ Error al Guardar",
-        "No se pudo guardar el estudio. Intenta nuevamente."
+      await showCustomAlert(
+        "error",
+        "Error al guardar",
+        error.message || "Ocurrió un error al intentar guardar los estudios.",
+        "Aceptar"
       );
       setIsSaving(false); //* Habilitamos nuevamente el botón si ocurrió un error
     }

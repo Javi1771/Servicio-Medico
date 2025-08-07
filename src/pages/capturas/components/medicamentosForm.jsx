@@ -4,9 +4,9 @@ import HistorialSurtimientos from "./historialSurtimientos"; // Importar el comp
 import styles from "../../css/estilosSurtimientos/tableSurtimientos.module.css";
 import { MdWarningAmber } from "react-icons/md";
 import ModalRegistrarMedicamento from "../components/modalRegistrarMedicamento";
-import Swal from "sweetalert2";
 import { MdAdd } from "react-icons/md";
 import Cookies from "js-cookie";
+import { showCustomAlert } from "../../../utils/alertas"; // Importar la función de alerta personalizada
 
 const MedicamentosForm = ({
   folioConsulta,
@@ -25,16 +25,6 @@ const MedicamentosForm = ({
   const [setIsGuardadoHabilitado] = useState(false);
 
   const [temporalMedicamentos, setTemporalMedicamentos] = useState([]); // Temporal storage
-
-  //* Define las rutas de los sonidos de éxito y error
-  const successSound = "/assets/applepay.mp3";
-  const errorSound = "/assets/error.mp3";
-
-  //! Reproduce un sonido de éxito/error
-  const playSound = (isSuccess) => {
-    const audio = new Audio(isSuccess ? successSound : errorSound);
-    audio.play();
-  };
 
   // Función para obtener el medicamento por clave
   const fetchMedicamentoDescripcion = useCallback(
@@ -83,44 +73,40 @@ const MedicamentosForm = ({
   // Nueva validación: deshabilitar botón si ya existe al menos un medicamento
   const tieneMedicamentos = detalles?.length > 0;
 
-  const handleRemoveFromReceta = (id, event) => {
+  const handleRemoveFromReceta = async (id, event) => {
     event.preventDefault(); // Evita el refresco de la página
-    Swal.fire({
-      title: "¿Estás seguro?",
-      text: "El medicamento será eliminado de la lista temporal.",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Sí, eliminar",
-      cancelButtonText: "Cancelar",
-      confirmButtonColor: "#d63031",
-      cancelButtonColor: "#6c5ce7",
-    }).then((result) => {
+    await showCustomAlert(
+      "warning",
+      "¿Estás seguro?",
+      "El medicamento será eliminado de la lista temporal.",
+      "Sí, eliminar"
+    ).then(async (result) => {
       if (result.isConfirmed) {
         const nuevosMedicamentos = temporalMedicamentos.filter(
           (med) => med.id !== id
         );
         setTemporalMedicamentos(nuevosMedicamentos);
 
-        Swal.fire({
-          title: "Eliminado",
-          text: "El medicamento ha sido eliminado de la lista temporal.",
-          icon: "success",
-          confirmButtonColor: "#6c5ce7",
-        });
+        await showCustomAlert(
+          "success",
+          "Eliminado",
+          "El medicamento ha sido eliminado de la lista temporal.",
+          "Aceptar"
+        );
       }
     });
   };
 
-  const handleAddToReceta = () => {
+  const handleAddToReceta = async () => {
     //console.log("Medicamento seleccionado:", selectedMedicamento); // Aquí debe ser la clave
     if (!selectedMedicamento || !indicaciones || !cantidad) {
-      Swal.fire({
-        title: "Campos incompletos",
-        text: "Por favor completa todos los campos antes de añadir.",
-        icon: "warning",
-        confirmButtonColor: "#f39c12",
-        confirmButtonText: "Ok",
-      });
+      await showCustomAlert(
+        "warning",
+        "Campos incompletos",
+        "Por favor completa todos los campos antes de añadir.",
+        "Aceptar"
+      );
+
       return;
     }
 
@@ -129,13 +115,13 @@ const MedicamentosForm = ({
       (med) => med.medicamento === selectedMedicamento
     );
     if (medicamentoExistente) {
-      Swal.fire({
-        title: "Medicamento duplicado",
-        text: "Este medicamento ya ha sido añadido. No puedes duplicarlo.",
-        icon: "warning",
-        confirmButtonColor: "#f39c12",
-        confirmButtonText: "Ok",
-      });
+      await showCustomAlert(
+        "warning",
+        "Medicamento duplicado",
+        "Este medicamento ya ha sido añadido. No puedes duplicarlo.",
+        "Aceptar"
+      );
+
       return;
     }
     // Agregar el medicamento al estado temporal
@@ -153,13 +139,12 @@ const MedicamentosForm = ({
     setIndicaciones("");
     setCantidad("");
 
-    Swal.fire({
-      title: "Añadido a la receta",
-      text: "El medicamento ha sido añadido temporalmente.",
-      icon: "success",
-      confirmButtonColor: "#6c5ce7",
-      confirmButtonText: "Ok",
-    });
+    await showCustomAlert(
+      "success",
+      "Añadido",
+      "El medicamento ha sido añadido a la lista temporal.",
+      "Aceptar"
+    );
   };
 
   const guardarMedicamentos = async (consultaData) => {
@@ -252,28 +237,25 @@ const MedicamentosForm = ({
       }
 
       // Mostrar SweetAlert de éxito
-      playSound(true);
-      Swal.fire({
-        title: "¡Éxito!",
-        text: "Todos los medicamentos, el diagnóstico y los nuevos datos han sido guardados exitosamente.",
-        icon: "success",
-        confirmButtonColor: "#6c5ce7",
-        confirmButtonText: "Aceptar",
-      });
+      await showCustomAlert(
+        "success",
+        "¡Éxito!",
+        "Todos los medicamentos, el diagnóstico y los nuevos datos han sido guardados exitosamente.",
+        "Aceptar"
+      );
 
       // Limpiar los registros temporales y refrescar los datos en el componente padre
       setTemporalMedicamentos([]);
       onFormSubmitted(); // Refrescar los datos en el componente padre
     } catch (error) {
       console.error("Error al guardar medicamentos:", error.message);
-      playSound(false);
-      Swal.fire({
-        title: "Error",
-        text: "No se pudo guardar uno o más medicamentos.",
-        icon: "error",
-        confirmButtonColor: "#d63031",
-        confirmButtonText: "Intentar de nuevo",
-      });
+
+      await showCustomAlert(
+        "error",
+        "Error",
+        "No se pudo guardar uno o más medicamentos.",
+        "Intentar de nuevo"
+      );
     }
   };
 
@@ -299,38 +281,37 @@ const MedicamentosForm = ({
 
       // Validar que haya al menos un medicamento en el estado temporal
       if (temporalMedicamentos.length === 0) {
-        Swal.fire({
-          title: "Sin medicamentos",
-          text: "No hay medicamentos para guardar. Añade al menos uno.",
-          icon: "warning",
-          confirmButtonColor: "#f39c12",
-          confirmButtonText: "Ok",
-        });
+        await showCustomAlert(
+          "warning",
+          "Sin medicamentos",
+          "No hay medicamentos para guardar. Añade al menos uno.",
+          "Aceptar"
+        );
+
         return;
       }
 
       // Validar que el diagnóstico no esté vacío
       if (!diagnostico || diagnostico.trim() === "") {
-        Swal.fire({
-          title: "Falta el diagnóstico",
-          text: "Es obligatorio registrar un diagnóstico antes de guardar medicamentos.",
-          icon: "warning",
-          confirmButtonColor: "#f39c12",
-          confirmButtonText: "Ok",
-        });
+        await showCustomAlert(
+          "warning",
+          "Falta el diagnóstico",
+          "Es obligatorio registrar un diagnóstico antes de guardar medicamentos.",
+          "Aceptar"
+        );
         return;
       }
 
       await guardarMedicamentos(consultaData);
     } catch (error) {
       console.error("Error al guardar medicamentos:", error.message);
-      Swal.fire({
-        title: "Error",
-        text: "No se pudo guardar uno o más medicamentos.",
-        icon: "error",
-        confirmButtonColor: "#d63031",
-        confirmButtonText: "Intentar de nuevo",
-      });
+
+      await showCustomAlert(
+        "error",
+        "Error al guardar medicamentos",
+        "No se pudo guardar uno o más medicamentos.",
+        "Intentar de nuevo"
+      );
     }
   };
 
@@ -348,24 +329,24 @@ const MedicamentosForm = ({
         throw new Error("No se pudo guardar el medicamento.");
       }
 
-      Swal.fire({
-        title: "¡Éxito!",
-        text: "El medicamento ha sido registrado correctamente.",
-        icon: "success",
-        confirmButtonColor: "#6c5ce7",
-      });
+      await showCustomAlert(
+        "success",
+        "Medicamento registrado",
+        "El medicamento ha sido registrado exitosamente.",
+        "Aceptar"
+      );
 
       fetchMedicamentos();
       setIsModalOpen(false);
     } catch (error) {
       console.error("Error al guardar el medicamento:", error.message);
 
-      Swal.fire({
-        title: "Error",
-        text: "Ocurrió un error al guardar el medicamento.",
-        icon: "error",
-        confirmButtonColor: "#d63031",
-      });
+      await showCustomAlert(
+        "error",
+        "Error al guardar el medicamento",
+        "No se pudo guardar el medicamento. Por favor, intenta de nuevo.",
+        "Aceptar"
+      );
     }
   };
 
@@ -406,12 +387,13 @@ const MedicamentosForm = ({
       );
     } catch (error) {
       console.error("Error fetching medicamentos:", error.message);
-      Swal.fire({
-        title: "Error",
-        text: "No se pudo actualizar la lista de medicamentos.",
-        icon: "error",
-        confirmButtonColor: "#d63031",
-      });
+
+      await showCustomAlert(
+        "error",
+        "Error al obtener medicamentos",
+        "No se pudo obtener la lista de medicamentos. Por favor, intenta de nuevo más tarde.",
+        "Aceptar"
+      );
     }
   };
 
@@ -497,26 +479,22 @@ const MedicamentosForm = ({
             type="button"
             className={styles.saveButton}
             onClick={async () => {
-              const result = await Swal.fire({
-                title: "¿Estás seguro?",
-                text: "Confirma si quieres añadir los medicamentos. Una vez añadidos no podrás editar la receta ni el diagnostico.",
-                icon: "warning",
-                showCancelButton: true,
-                confirmButtonText: "Sí, añadir",
-                cancelButtonText: "Cancelar",
-                confirmButtonColor: "#6c5ce7",
-                cancelButtonColor: "#d63031",
-              });
+              const result = await showCustomAlert(
+                "warning",
+                "¿Estás seguro?",
+                "Confirma si quieres añadir los medicamentos. Una vez añadidos no podrás editar la receta ni el diagnóstico.",
+                "Sí, añadir"
+              );
 
               if (result.isConfirmed) {
                 handleGuardarMedicamentos(); // Llama a la función para guardar los medicamentos
               } else {
-                Swal.fire({
-                  title: "Acción cancelada",
-                  text: "No se añadieron los medicamentos.",
-                  icon: "info",
-                  confirmButtonColor: "#6c5ce7",
-                });
+                await showCustomAlert(
+                  "info",
+                  "Acción cancelada",
+                  "No se añadieron los medicamentos.",
+                  "Aceptar"
+                );
               }
             }}
             disabled={tieneMedicamentos} // Validación existente

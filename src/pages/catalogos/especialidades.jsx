@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { useEffect, useState } from "react";
 import ReactDOM from "react-dom";
-import Swal from "sweetalert2";
+import { showCustomAlert } from "../../utils/alertas";
 import styles from "../css/usuarios.module.css";
 import Image from "next/image";
 import { useRouter } from "next/router";
@@ -16,16 +16,6 @@ export default function EspecialidadesTable() {
     especialidad: "",
   });
   const [selectedEspecialidad, setSelectedEspecialidad] = useState(null);
-
-  //* Define las rutas de los sonidos de éxito y error
-  const successSound = "/assets/applepay.mp3";
-  const errorSound = "/assets/error.mp3";
-
-  //! Reproduce un sonido de éxito/error
-  const playSound = (isSuccess) => {
-    const audio = new Audio(isSuccess ? successSound : errorSound);
-    audio.play();
-  };
 
   useEffect(() => {
     fetchEspecialidades();
@@ -84,13 +74,13 @@ export default function EspecialidadesTable() {
 
       if (response.status === 409) {
         //! Manejo del error de clave duplicada con SweetAlert
-        playSound(false);
-        Swal.fire({
-          icon: "error",
-          title: "Error",
-          text: "Ya existe una especialidad con este nombre. Por favor, ingrese un nombre diferente.",
-          confirmButtonText: "Entendido",
-        });
+        await showCustomAlert(
+          "error",
+          "Error",
+          "Ya existe una especialidad con este nombre. Por favor, ingrese un nombre diferente.",
+          "Entendido"
+        );
+
         return;
       }
 
@@ -102,30 +92,32 @@ export default function EspecialidadesTable() {
         );
       }
 
-      playSound(true);
-      Swal.fire({
-        icon: "success",
-        title: selectedEspecialidad
-          ? "Especialidad Actualizada correctamente"
-          : "Especialidad Agregada correctamente",
-        showConfirmButton: false,
-        timer: 2000,
-      });
+      await showCustomAlert(
+        "success",
+        selectedEspecialidad
+          ? "Especialidad actualizada correctamente"
+          : "Especialidad agregada correctamente",
+        "", // sin contenido adicional
+        "Aceptar",
+        {
+          showConfirmButton: false,
+          timer: 2000,
+        }
+      );
 
       await fetchEspecialidades();
       toggleModal();
     } catch (error) {
       console.error(error);
 
-      playSound(false);
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: selectedEspecialidad
+      await showCustomAlert(
+        "error",
+        "Error",
+        selectedEspecialidad
           ? "Ocurrió un problema al actualizar la especialidad. Inténtelo de nuevo más tarde."
           : "Ocurrió un problema al agregar la especialidad. Inténtelo de nuevo más tarde.",
-        confirmButtonText: "Entendido",
-      });
+        "Entendido"
+      );
 
       setError(
         selectedEspecialidad
@@ -141,30 +133,43 @@ export default function EspecialidadesTable() {
     //   claveespecialidad
     // ); // Agregamos un log para depuración
 
-    playSound(false);
-    const confirmDelete = await Swal.fire({
-      title: "¿Estás seguro?",
-      text: "No podrás revertir esta acción",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Sí, eliminar",
-    });
+    const confirmDelete = await showCustomAlert(
+      "warning",
+      "¿Estás seguro?",
+      "No podrás revertir esta acción",
+      "Sí, eliminar",
+      {
+        showCancelButton: true,
+        cancelButtonText: "Cancelar",
+        cancelButtonColor: "#d33",
+        confirmButtonColor: "#d68030ff",
+      }
+    );
+
+    if (confirmDelete.isConfirmed) {
+      // Lógica para eliminar...
+    }
 
     if (confirmDelete.isConfirmed) {
       try {
-        const response = await fetch("/api/especialidades/eliminarEspecialidades", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ claveespecialidad }), // Enviamos la claveespecialidad
-        });
+        const response = await fetch(
+          "/api/especialidades/eliminarEspecialidades",
+          {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ claveespecialidad }), // Enviamos la claveespecialidad
+          }
+        );
 
         if (!response.ok) throw new Error("Error al eliminar la especialidad");
 
         await fetchEspecialidades(); // Refrescar la lista después de eliminar
-        playSound(true);
-        Swal.fire("Eliminado", "La especialidad ha sido eliminada", "success");
+        await showCustomAlert(
+          "success",
+          "Eliminado",
+          "La especialidad ha sido eliminada",
+          "Aceptar"
+        );
       } catch (error) {
         console.error("Error al intentar eliminar la especialidad:", error);
         setError("Error al eliminar la especialidad");

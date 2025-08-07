@@ -4,7 +4,7 @@
 import React, { useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
-import Swal from "sweetalert2";
+import { showCustomAlert } from "../../utils/alertas";
 import Image from "next/image";
 import {
   FiImage,
@@ -17,63 +17,12 @@ import {
 import { MdImageNotSupported } from "react-icons/md";
 import { FaCalendarAlt } from "react-icons/fa";
 
-/* ───────────── sonidos ───────────── */
+//* ───────────── sonidos ───────────── */
 const successSound = "/assets/applepay.mp3";
-const errorSound = "/assets/error.mp3";
 const playSound = (src) => {
   const a = new Audio(src);
   a.volume = 0.7;
   a.play().catch(() => {});
-};
-
-/* ───────────── alerta neón ───────────── */
-const showAlert = (type, title, html = "") => {
-  const theme = {
-    success: {
-      grad: "145deg,#004d40,#00251a",
-      col: "#00e676",
-      shadow: "0,230,118",
-      sound: successSound,
-      txtBtn: "#000",
-    },
-    error: {
-      grad: "145deg,#4a0000,#220000",
-      col: "#ff1744",
-      shadow: "255,23,68",
-      sound: errorSound,
-      txtBtn: "#fff",
-    },
-    warning: {
-      grad: "145deg,#4d3c00,#231d00",
-      col: "#ffb300",
-      shadow: "255,179,0",
-      sound: errorSound,
-      txtBtn: "#000",
-    },
-    info: {
-      grad: "145deg,#00264d,#001326",
-      col: "#40c4ff",
-      shadow: "64,196,255",
-      sound: successSound,
-      txtBtn: "#000",
-    },
-  }[type];
-
-  playSound(theme.sound);
-
-  return Swal.fire({
-    icon: type,
-    title: `<span style="color:${theme.col};font-weight:bold;font-size:1.5em;">${title}</span>`,
-    html: `<p style="color:#fff;font-size:1.1em;">${html}</p>`,
-    background: `linear-gradient(${theme.grad})`,
-    confirmButtonColor: theme.col,
-    confirmButtonText: `<span style="color:${theme.txtBtn};font-weight:bold;">Aceptar</span>`,
-    customClass: { popup: "rounded-lg" },
-    didOpen: (el) => {
-      el.style.border = `2px solid ${theme.col}`;
-      el.style.boxShadow = `0 0 20px 5px rgba(${theme.shadow},0.9)`;
-    },
-  });
 };
 
 export default function PropuestasMejora() {
@@ -103,7 +52,13 @@ export default function PropuestasMejora() {
       const data = await r.json();
       setPosts(Array.isArray(data) ? normalize(data) : []);
     } catch {
-      showAlert("error", "Error", "No se pudieron obtener las propuestas");
+      await showCustomAlert(
+        "error",
+        "Error",
+        "No se pudieron obtener las propuestas",
+        "Aceptar"
+      );
+
       setPosts([]);
     } finally {
       setLoading(false);
@@ -116,8 +71,14 @@ export default function PropuestasMejora() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.texto.trim())
-      return showAlert("warning", "Describe tu propuesta");
+    if (!form.texto.trim()) return;
+
+    await showCustomAlert(
+      "warning",
+      "Describe tu propuesta",
+      "Escribe alguna propuesta para los desarrolladores",
+      "Aceptar"
+    );
 
     const body = new FormData();
     body.append("texto", form.texto);
@@ -127,12 +88,19 @@ export default function PropuestasMejora() {
     try {
       const r = await fetch("/api/propuestas", { method: "POST", body });
       if (!r.ok) throw new Error((await r.json()).error);
-      showAlert("success", "¡Propuesta publicada!");
+
+      await showCustomAlert(
+        "success",
+        "Hecho",
+        "¡Propuesta publicada!",
+        "Aceptar"
+      );
+
       setForm({ texto: "", motivo: "" });
       setFile(null);
       await fetchPosts();
     } catch (err) {
-      showAlert("error", "Ups", err.message);
+      await showCustomAlert("error", "Ups", err.message, "Aceptar");
     }
   };
 
@@ -163,9 +131,15 @@ export default function PropuestasMejora() {
       setPosts((arr) =>
         arr.map((p) => (p.IdPropuesta === id ? { ...p, Completado: true } : p))
       );
-      showAlert("success", "¡Marcada como completada!");
+
+      await showCustomAlert(
+        "success",
+        "Listo",
+        "¡Marcada como completada!",
+        "Aceptar"
+      );
     } catch (err) {
-      showAlert("error", "Error", err.message);
+      await showCustomAlert("error", "Error", err.message, "Aceptar");
     }
   };
 

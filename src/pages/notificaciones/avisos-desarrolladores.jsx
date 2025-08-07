@@ -4,7 +4,7 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
-import Swal from "sweetalert2";
+import { showCustomAlert } from "../../utils/alertas";
 import Image from "next/image";
 import {
   FiSend,
@@ -16,66 +16,6 @@ import {
   FiEdit3,
 } from "react-icons/fi";
 import { MdImageNotSupported } from "react-icons/md";
-
-//* ░░░ AUDIO + ALERTA CON DISEÑO NEÓN ░░░ */
-const successSound = "/assets/applepay.mp3";
-const errorSound = "/assets/error.mp3";
-
-const playSound = (src) => {
-  const a = new Audio(src);
-  a.volume = 0.7;
-  a.play().catch(() => {});
-};
-
-const showAlert = (type, title, html = "") => {
-  const theme = {
-    success: {
-      grad: "145deg,#004d40,#00251a",
-      col: "#00e676",
-      shadow: "0,230,118",
-      sound: successSound,
-      txt: "#000",
-    },
-    error: {
-      grad: "145deg,#4a0000,#220000",
-      col: "#ff1744",
-      shadow: "255,23,68",
-      sound: errorSound,
-      txt: "#fff",
-    },
-    warning: {
-      grad: "145deg,#4d3c00,#231d00",
-      col: "#ffb300",
-      shadow: "255,179,0",
-      sound: errorSound,
-      txt: "#000",
-    },
-    info: {
-      grad: "145deg,#00264d,#001326",
-      col: "#40c4ff",
-      shadow: "64,196,255",
-      sound: successSound,
-      txt: "#000",
-    },
-  }[type];
-
-  playSound(theme.sound);
-
-  return Swal.fire({
-    icon: type,
-    title: `<span style="color:${theme.col};font-weight:bold;font-size:1.5em;">${title}</span>`,
-    html,
-    background: `linear-gradient(${theme.grad})`,
-    confirmButtonColor: theme.col,
-    confirmButtonText: `<span style="color:${theme.txt};font-weight:bold;">Aceptar</span>`,
-    customClass: { popup: "rounded-lg" },
-    didOpen: (el) => {
-      el.style.border = `2px solid ${theme.col}`;
-      el.style.boxShadow = `0 0 20px 5px rgba(${theme.shadow},0.9)`;
-    },
-  });
-};
-//* ░░░ FIN helper ░░░ */
 
 export default function AvisosDesarrolladores() {
   //* ────────── state & router ────────── */
@@ -109,7 +49,7 @@ export default function AvisosDesarrolladores() {
         const r = await fetch("/api/avisos", { signal: ctrl.signal });
         const payload = await r.json();
         //console.log("[GET /api/avisos] payload:", payload);
-  
+
         //* Si viene un array plano
         if (Array.isArray(payload)) {
           setAvisos(payload);
@@ -117,48 +57,55 @@ export default function AvisosDesarrolladores() {
         //* Si viene { raw, formatted }
         else if (payload.formatted) {
           setAvisos(payload.formatted);
-        }
-        else if (payload.raw) {
+        } else if (payload.raw) {
           setAvisos(payload.raw);
-        } 
-        else {
+        } else {
           setAvisos([]);
         }
       } catch (err) {
         if (err.name !== "AbortError")
-          showAlert("error", "Error", "No se pudieron obtener los avisos");
+          await showCustomAlert(
+            "error",
+            "Error",
+            "No se pudieron obtener los avisos",
+            "Aceptar"
+          );
       } finally {
         setLoading(false);
       }
     })();
     return () => ctrl.abort();
   }, []);
-  
+
   //* ────────── post aviso ────────── */
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     const avisoTxt = form.aviso.trim();
-    if (!avisoTxt) return showAlert("warning", "Escribe un aviso");
-  
+    if (!avisoTxt) return;
+
+    await showCustomAlert("warning", "Alerta", "Escribe un aviso", "Aceptar");
+
     const body = new FormData();
     body.append("aviso", avisoTxt.toUpperCase());
     body.append("motivo", form.motivo);
     body.append("urgencia", form.urgencia);
     if (file) body.append("imagen", file);
-  
+
     try {
       const r = await fetch("/api/avisos", { method: "POST", body });
       if (!r.ok) throw new Error((await r.json()).error);
-      showAlert("success", "¡Aviso publicado!");
+
+      await showCustomAlert("success", "Hecho", "¡Aviso publicado!", "Aceptar");
+
       setForm({ aviso: "", motivo: "", urgencia: "NORMAL" });
       setFile(null);
-  
+
       //* Refrescar lista
       const r2 = await fetch("/api/avisos");
       const payload2 = await r2.json();
       //console.log("[REFRESH GET /api/avisos] payload:", payload2);
-  
+
       if (Array.isArray(payload2)) {
         setAvisos(payload2);
       } else if (payload2.formatted) {
@@ -169,9 +116,9 @@ export default function AvisosDesarrolladores() {
         setAvisos([]);
       }
     } catch (err) {
-      showAlert("error", "Ups", err.message);
+      await showCustomAlert("error", "Ups", err.message, "Aceptar");
     }
-  };  
+  };
 
   //* ────────── view ────────── */
   return (
@@ -392,9 +339,7 @@ export default function AvisosDesarrolladores() {
 
                         {/* Fecha siempre al fondo */}
                         <div className="mt-auto">
-                          <p className="text-xs text-slate-400">
-                          {a.Fecha}
-                          </p>
+                          <p className="text-xs text-slate-400">{a.Fecha}</p>
                         </div>
                       </div>
                     </article>
@@ -478,9 +423,7 @@ export default function AvisosDesarrolladores() {
                     }`}
                 >
                   <FiClock className="shrink-0 mt-0.5" />
-                  <time className="font-medium">
-                  {modal.Fecha}
-                  </time>
+                  <time className="font-medium">{modal.Fecha}</time>
                 </div>
 
                 <div className="flex items-start gap-3">

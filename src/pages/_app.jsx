@@ -4,26 +4,41 @@ import AuthGuard from "../components/AuthGuard";
 import Head from "next/head";
 import ErrorBoundary from "../components/ErrorBoundary";
 import { useEffect } from "react";
+import { useRouter } from "next/router";
 
 function MyApp({ Component, pageProps }) {
+  const router = useRouter();
+
   useEffect(() => {
-    //* Manejador que se ejecuta al intentar recargar/cerrar la pestaña
+    //* Variable para controlar si debemos interceptar
+    let shouldIntercept = true;
+
     const handleBeforeUnload = (event) => {
-      //* Para algunos navegadores, es necesario prevenir el evento
-      //* y asignar algo a event.returnValue (aunque ya no se usa texto personalizado).
+      if (!shouldIntercept) {
+        return;
+      }
+      
       event.preventDefault();
       event.returnValue = "";
-      //* Esto indicará al navegador que muestre el cuadro de confirmación estándar
     };
 
-    //* Suscribimos el evento
+    //* Deshabilitar la interceptación durante navegaciones internas
+    const handleRouteChangeStart = () => {
+      shouldIntercept = false;
+      //* Reactivar después de un breve delay
+      setTimeout(() => {
+        shouldIntercept = true;
+      }, 100);
+    };
+
+    router.events.on('routeChangeStart', handleRouteChangeStart);
     window.addEventListener("beforeunload", handleBeforeUnload);
 
-    //* Al desmontar, quitamos el listener para evitar fugas de memoria
     return () => {
+      router.events.off('routeChangeStart', handleRouteChangeStart);
       window.removeEventListener("beforeunload", handleBeforeUnload);
     };
-  }, []);
+  }, [router]);
 
   return (
     <>

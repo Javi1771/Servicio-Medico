@@ -1,7 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState, useEffect, useContext } from "react";
-import withReactContent from "sweetalert2-react-content";
 import { FormularioContext } from "/src/context/FormularioContext";
 import EspecialidadDropdown from "../components/EspecialidadDropdown";
 import TablaHistorialEspecialidades from "../components/HistorialEspecialidades";

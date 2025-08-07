@@ -9,22 +9,9 @@ import {
   FaUsers,
 } from "react-icons/fa";
 import Calendar from "react-calendar";
-import Swal from "sweetalert2";
-import withReactContent from "sweetalert2-react-content";
+import { showCustomAlert } from "../../utils/alertas";
 import "react-calendar/dist/Calendar.css";
 import Image from "next/image";
-
-const MySwal = withReactContent(Swal);
-
-//* Define las rutas de los sonidos de éxito y error
-const successSound = "/assets/applepay.mp3";
-const errorSound = "/assets/error.mp3";
-
-//! Reproduce un sonido de éxito/error
-const playSound = (isSuccess) => {
-  const audio = new Audio(isSuccess ? successSound : errorSound);
-  audio.play();
-};
 
 const safeDecodeBase64 = (str) => {
   try {
@@ -55,21 +42,12 @@ const CrearPase = () => {
       const result = await res.json();
       setData(result);
     } catch (error) {
-      playSound(false);
-      MySwal.fire({
-        icon: "error",
-        title:
-          "<span style='color: #ff6b6b; font-weight: bold; font-size: 1.5em;'>⚠️ Error al cargar datos</span>",
-        html: "<p style='color: #ddd; font-size: 1.1em;'>No se pudieron cargar los datos. Intenta nuevamente más tarde.</p>",
-        background: "linear-gradient(145deg, #3a0e0e, #220000)",
-        confirmButtonColor: "#ff6b6b",
-        confirmButtonText:
-          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-red-500 shadow-[0px_0px_20px_5px_rgba(255,107,107,0.8)] rounded-lg",
-        },
-      });
+      await showCustomAlert(
+        "error",
+        "Error al cargar datos",
+        "No se pudieron cargar los datos. Intenta nuevamente más tarde.",
+        "Aceptar"
+      );
     }
   }, [folio]);
 
@@ -79,21 +57,13 @@ const CrearPase = () => {
 
   const handleGuardar = async () => {
     if (!selectedEspecialista || !fechaCita) {
-      playSound(false);
-      MySwal.fire({
-        icon: "warning",
-        title:
-          "<span style='color: #ffbb33; font-weight: bold; font-size: 1.5em;'>⚠️ Faltan Datos</span>",
-        html: "<p style='color: #ddd; font-size: 1.1em;'>Por favor selecciona un especialista y una fecha antes de guardar.</p>",
-        background: "linear-gradient(145deg, #2e2c0d, #1c1a06)",
-        confirmButtonColor: "#ffbb33",
-        confirmButtonText:
-          "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-yellow-500 shadow-[0px_0px_20px_5px_rgba(255,187,51,0.7)] rounded-lg",
-        },
-      });
+      await showCustomAlert(
+        "warning",
+        "Faltan Datos",
+        "Por favor selecciona un especialista y una fecha antes de guardar.",
+        "Aceptar"
+      );
+
       return;
     }
 
@@ -132,21 +102,13 @@ const CrearPase = () => {
       if (res.ok) {
         const response = await res.json();
         //console.log("✅ Respuesta del servidor:", response);
-        playSound(true);
-        MySwal.fire({
-          icon: "success",
-          title:
-            "<span style='color: #00e676; font-weight: bold; font-size: 1.5em;'>✔️ Pase Guardado</span>",
-          html: "<p style='color: #ddd; font-size: 1.1em;'>El pase se ha guardado correctamente.</p>",
-          background: "linear-gradient(145deg, #003300, #001a00)",
-          confirmButtonColor: "#00e676",
-          confirmButtonText:
-            "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-          customClass: {
-            popup:
-              "border border-green-500 shadow-[0px_0px_20px_5px_rgba(0,230,118,0.7)] rounded-lg",
-          },
-        });
+
+        await showCustomAlert(
+          "success",
+          "Pase Guardado",
+          "El pase se ha guardado correctamente.",
+          "Aceptar"
+        );
 
         //* Extraer y cifrar la claveconsulta recibida desde el backend
         const encryptedClaveConsulta = btoa(response.claveconsulta.toString());
@@ -162,21 +124,13 @@ const CrearPase = () => {
       }
     } catch (error) {
       console.error("❌ Error al guardar el pase:", error.message);
-      playSound(false);
-      MySwal.fire({
-        icon: "error",
-        title:
-          "<span style='color: #ff6b6b; font-weight: bold; font-size: 1.5em;'>❌ Error al Guardar</span>",
-        html: "<p style='color: #ddd; font-size: 1.1em;'>No se pudo guardar el pase. Intenta nuevamente.</p>",
-        background: "linear-gradient(145deg, #3a0e0e, #220000)",
-        confirmButtonColor: "#ff6b6b",
-        confirmButtonText:
-          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-red-500 shadow-[0px_0px_20px_5px_rgba(255,107,107,0.8)] rounded-lg",
-        },
-      });
+
+      await showCustomAlert(
+        "error",
+        "Error al guardar",
+        "No se pudo guardar el pase. Intenta nuevamente.",
+        "Aceptar"
+      );
     }
   };
 

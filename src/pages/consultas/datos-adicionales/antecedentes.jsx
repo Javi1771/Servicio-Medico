@@ -1,21 +1,8 @@
 import React, { useState, useEffect } from "react";
-import Swal from "sweetalert2";
-import withReactContent from "sweetalert2-react-content";
+import { showCustomAlert } from "../../utils/alertas";
 import { FaCalendarAlt } from "react-icons/fa";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
-
-const MySwal = withReactContent(Swal);
-
-//* Define las rutas de los sonidos de éxito y error
-const successSound = "/assets/applepay.mp3";
-const errorSound = "/assets/error.mp3";
-
-//! Reproduce un sonido de éxito/error
-const playSound = (isSuccess) => {
-  const audio = new Audio(isSuccess ? successSound : errorSound);
-  audio.play();
-};
 
 const Antecedentes = ({ clavenomina, clavepaciente }) => {
   const [descripcion, setDescripcion] = useState("");
@@ -50,21 +37,13 @@ const Antecedentes = ({ clavenomina, clavepaciente }) => {
           setAntecedentes(data);
         } else {
           const errorText = await response.text();
-          playSound(false);
-          MySwal.fire({
-            icon: "error",
-            title:
-              "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error al obtener antecedentes</span>",
-            html: `<p style='color: #fff; font-size: 1.1em;'>${errorText}</p>`,
-            background: "linear-gradient(145deg, #4a0000, #220000)",
-            confirmButtonColor: "#ff1744",
-            confirmButtonText:
-              "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-            customClass: {
-              popup:
-                "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-            },
-          });
+          await showCustomAlert(
+            "error",
+            "Error al obtener antecedentes",
+            errorText,
+            "Aceptar"
+          );
+
           setAntecedentes([]);
         }
       } catch (error) {
@@ -78,21 +57,13 @@ const Antecedentes = ({ clavenomina, clavepaciente }) => {
   //* Guardar un nuevo antecedente
   const handleGuardarAntecedente = async () => {
     if (!descripcion || !tipoAntecedente || !fechaInicioEnfermedad) {
-      playSound(false);
-      MySwal.fire({
-        icon: "warning",
-        title:
-          "<span style='color: #ffc107; font-weight: bold; font-size: 1.5em;'>⚠️ Campos incompletos</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>Por favor, completa todos los campos.</p>",
-        background: "linear-gradient(145deg, #4a4a00, #222200)",
-        confirmButtonColor: "#ffc107",
-        confirmButtonText:
-          "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-yellow-600 shadow-[0px_0px_20px_5px_rgba(255,193,7,0.9)] rounded-lg",
-        },
-      });
+      await showCustomAlert(
+        "warning",
+        "Campos incompletos",
+        "Todos los campos son obligatorios. Asegúrate de completar la información.",
+        "Aceptar"
+      );
+
       return;
     }
 
@@ -116,38 +87,21 @@ const Antecedentes = ({ clavenomina, clavepaciente }) => {
         setTipoAntecedente("");
         setFechaInicioEnfermedad(null);
 
-        playSound(true);
-        MySwal.fire({
-          icon: "success",
-          title:
-            "<span style='color: #4caf50; font-weight: bold; font-size: 1.5em;'>✅ Guardado con éxito</span>",
-          html: "<p style='color: #fff; font-size: 1.1em;'>El antecedente fue guardado correctamente.</p>",
-          background: "linear-gradient(145deg, #004d40, #00251a)",
-          confirmButtonColor: "#4caf50",
-          confirmButtonText:
-            "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
-          customClass: {
-            popup:
-              "border border-green-600 shadow-[0px_0px_20px_5px_rgba(76,175,80,0.9)] rounded-lg",
-          },
-        });
+        await showCustomAlert(
+          "success",
+          "Guardado con éxito",
+          "El antecedente fue guardado correctamente.",
+          "Aceptar"
+        );
       } else {
         const errorText = await response.text();
-        playSound(false);
-        MySwal.fire({
-          icon: "error",
-          title:
-            "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error al guardar</span>",
-          html: `<p style='color: #fff; font-size: 1.1em;'>${errorText}</p>`,
-          background: "linear-gradient(145deg, #4a0000, #220000)",
-          confirmButtonColor: "#ff1744",
-          confirmButtonText:
-            "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-          customClass: {
-            popup:
-              "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-          },
-        });
+
+        await showCustomAlert(
+          "error",
+          "Error al guardar",
+          errorText,
+          "Aceptar"
+        );
       }
     } catch (error) {
       console.error("Error en la solicitud:", error);

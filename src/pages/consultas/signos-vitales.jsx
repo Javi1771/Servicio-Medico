@@ -21,20 +21,9 @@ import {
   FaUsers,
 } from "react-icons/fa";
 
-import Swal from "sweetalert2";
-import withReactContent from "sweetalert2-react-content";
 import { useRouter } from "next/router";
 import ConsultasAtendidas from "./consultas-adicionales/consultas-atendidas";
-
-const MySwal = withReactContent(Swal);
-
-const successSound = "/assets/applepay.mp3";
-const errorSound = "/assets/error.mp3";
-
-const playSound = (isSuccess) => {
-  const audio = new Audio(isSuccess ? successSound : errorSound);
-  audio.play();
-};
+import { showCustomAlert } from "../../utils/alertas";
 
 const calcularEdad = (fechaNacimiento) => {
   if (!fechaNacimiento)
@@ -114,7 +103,7 @@ const SignosVitales = () => {
     router.push("/consultas/face-test");
   };
 
-  const validateBeneficiariesOnLoad = (beneficiaryData) => {
+  const validateBeneficiariesOnLoad = async (beneficiaryData) => {
     if (!beneficiaryData || beneficiaryData.length === 0) {
       return;
     }
@@ -139,8 +128,11 @@ const SignosVitales = () => {
           return;
         }
 
-        if (Number(beneficiario.ESDISCAPACITADO) === 1) {
-          beneficiariosValidosConIndice.push({ beneficiario, index });
+        if (Number(beneficiario.ESDISCAPACITADO) === 0) {
+          return;
+        }
+
+        if (!beneficiario.URL_INCAP) {
           return;
         }
 
@@ -162,22 +154,18 @@ const SignosVitales = () => {
 
     if (beneficiariosValidosConIndice.length === 0) {
       setConsultaSeleccionada("empleado");
-      playSound(false);
 
-      MySwal.fire({
-        icon: "info",
-        title: "<span style='color: #ff9800; font-weight: bold; font-size: 1.5em;'>ℹ️ Redirección automática</span>",
-        html: `<p style='color: #fff; font-size: 1.1em;'>No hay beneficiarios válidos disponibles. Se ha seleccionado automáticamente la consulta para el empleado.</p>`,
-        background: "linear-gradient(145deg, #4a2600, #220f00)",
-        confirmButtonColor: "#ff9800",
-        confirmButtonText: "<span style='color: #000; font-weight: bold;'>Continuar</span>",
-        customClass: {
-          popup: "border border-yellow-600 shadow-[0px_0px_20px_5px_rgba(255,152,0,0.9)] rounded-lg",
-        },
-        timer: 2500,
-        timerProgressBar: true,
-        showConfirmButton: false,
-      });
+      await showCustomAlert(
+        "info",
+        "Redirección automática",
+        "No hay beneficiarios válidos disponibles. Se ha seleccionado automáticamente la consulta para el empleado.",
+        "Continuar",
+        {
+          timer: 2500,
+          timerProgressBar: true,
+          showConfirmButton: false,
+        }
+      );
       return;
     }
 
@@ -186,12 +174,15 @@ const SignosVitales = () => {
     window.beneficiariosValidos = beneficiariosValidosConIndice;
   };
 
-  const handleBeneficiarySelect = (index) => {
+  const handleBeneficiarySelect = async (index) => {
     const selected = beneficiaryData[index];
     const fechaActual = new Date();
 
     const regresarABeneficiarioValido = () => {
-      if (window.beneficiariosValidos && window.beneficiariosValidos.length > 0) {
+      if (
+        window.beneficiariosValidos &&
+        window.beneficiariosValidos.length > 0
+      ) {
         const primerValido = window.beneficiariosValidos[0];
         setSelectedBeneficiaryIndex(primerValido.index);
       }
@@ -216,37 +207,28 @@ const SignosVitales = () => {
 
     if (Number(selected.ESDISCAPACITADO) === 1) {
       if (!selected.URL_INCAP) {
-        playSound(false);
-        MySwal.fire({
-          icon: "info",
-          title: "<span style='color: #00bcd4; font-weight: bold; font-size: 1.5em;'>ℹ️ Falta incapacidad</span>",
-          html: `<p style='color: #fff; font-size: 1.1em;'>El beneficiario <strong>${selected.NOMBRE} ${selected.A_PATERNO} ${selected.A_MATERNO}</strong> es discapacitado y aún no ha subido su documento de incapacidad.</p>`,
-          background: "linear-gradient(145deg, #004d40, #00251a)",
-          confirmButtonColor: "#00bcd4",
-          confirmButtonText: "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
-          customClass: {
-            popup: "border border-cyan-600 shadow-[0px_0px_20px_5px_rgba(0,188,212,0.9)] rounded-lg",
-          },
+        showCustomAlert(
+          "info",
+          "Falta incapacidad",
+          `El beneficiario <strong>${selected.NOMBRE} ${selected.A_PATERNO} ${selected.A_MATERNO}</strong> es discapacitado y aún no ha subido su documento de incapacidad.`,
+          "Aceptar"
+        ).then(() => {
+          regresarABeneficiarioValido();
         });
+        regresarABeneficiarioValido();
       }
       setSelectedBeneficiaryIndex(index);
       return;
     }
 
     if (Number(selected.ESESTUDIANTE) === 0) {
-      playSound(false);
-      MySwal.fire({
-        icon: "error",
-        title: "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Datos incompletos</span>",
-        html: `<p style='color: #fff; font-size: 1.1em;'>El beneficiario <strong>${selected.NOMBRE} ${selected.A_PATERNO} ${selected.A_MATERNO}</strong> no está registrado como estudiante ni como discapacitado.</p>
-             <p style='color: #ffcdd2; font-size: 1em; margin-top: 10px;'>⚠️ Debe completar sus datos en el empadronamiento para tener acceso.</p>`,
-        background: "linear-gradient(145deg, #4a0000, #220000)",
-        confirmButtonColor: "#ff1744",
-        confirmButtonText: "<span style='color: #fff; font-weight: bold;'>Entendido</span>",
-        customClass: {
-          popup: "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-        },
-      }).then(() => {
+      showCustomAlert(
+        "error",
+        "Datos incompletos",
+        `El beneficiario <strong>${selected.NOMBRE} ${selected.A_PATERNO} ${selected.A_MATERNO}</strong> no está registrado como estudiante ni como discapacitado.
+        <p style='color: #ffcdd2; font-size: 1em; margin-top: 10px;'>⚠️ Debe completar sus datos en el empadronamiento para tener acceso.</p>`,
+        "Entendido"
+      ).then(() => {
         regresarABeneficiarioValido();
       });
 
@@ -257,18 +239,12 @@ const SignosVitales = () => {
     if (selected.VIGENCIA_ESTUDIOS) {
       const vigencia = new Date(selected.VIGENCIA_ESTUDIOS);
       if (vigencia.getTime() < fechaActual.getTime()) {
-        playSound(false);
-        MySwal.fire({
-          icon: "warning",
-          title: "<span style='color: #ff9800; font-weight: bold; font-size: 1.5em;'>⚠️ Constancia vencida</span>",
-          html: `<p style='color: #fff; font-size: 1.1em;'>El beneficiario <strong>${selected.NOMBRE} ${selected.A_PATERNO} ${selected.A_MATERNO}</strong> tiene la constancia de estudios vencida. Se ha regresado al beneficiario válido.</p>`,
-          background: "linear-gradient(145deg, #4a2600, #220f00)",
-          confirmButtonColor: "#ff9800",
-          confirmButtonText: "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
-          customClass: {
-            popup: "border border-yellow-600 shadow-[0px_0px_20px_5px_rgba(255,152,0,0.9)] rounded-lg",
-          },
-        }).then(() => {
+        await showCustomAlert(
+          "warning",
+          "Constancia vencida",
+          `El beneficiario <strong>${selected.NOMBRE} ${selected.A_PATERNO} ${selected.A_MATERNO}</strong> tiene la constancia de estudios vencida. Se ha regresado al beneficiario válido.`,
+          "Aceptar"
+        ).then(() => {
           regresarABeneficiarioValido();
         });
 
@@ -306,67 +282,18 @@ const SignosVitales = () => {
     }
   };
 
-  const actualizarEstado = async (claveConsulta) => {
-    try {
-      const response = await fetch(
-        "/api/pacientes-consultas/actualizarclavestatus",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ claveConsulta, clavestatus: 1 }),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Error al actualizar el estatus");
-      }
-
-      playSound(true);
-      MySwal.fire({
-        icon: "success",
-        title: "<span style='color: #00e676; font-weight: bold; font-size: 1.5em;'>✔️ Estatus actualizado</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>La consulta fue marcada como atendida.</p>",
-        background: "linear-gradient(145deg, #004d40, #00251a)",
-        confirmButtonColor: "#00e676",
-        confirmButtonText: "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup: "border border-green-600 shadow-[0px_0px_20px_5px_rgba(0,230,118,0.9)] rounded-lg",
-        },
-      });
-    } catch (error) {
-      console.error("Error al actualizar el estatus:", error);
-      playSound(false);
-      MySwal.fire({
-        icon: "error",
-        title: "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error al actualizar el estatus</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>No se pudo actualizar el estatus de la consulta. Intenta nuevamente.</p>",
-        background: "linear-gradient(145deg, #4a0000, #220000)",
-        confirmButtonColor: "#ff1744",
-        confirmButtonText: "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup: "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-        },
-      });
-    }
-  };
-
   const handleSave = async () => {
     if (isSaving) return;
     setIsSaving(true);
 
     if (!nomina) {
-      playSound(false);
-      MySwal.fire({
-        icon: "error",
-        title: "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>⚠️ Número de nómina requerido</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>Por favor, ingresa el número de nómina antes de guardar.</p>",
-        background: "linear-gradient(145deg, #4a0000, #220000)",
-        confirmButtonColor: "#ff1744",
-        confirmButtonText: "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup: "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-        },
-      });
+      await showCustomAlert(
+        "error",
+        "Número de nómina requerido",
+        "Por favor, ingresa el número de nómina antes de guardar.",
+        "Aceptar"
+      );
+
       setIsSaving(false);
       return;
     }
@@ -380,9 +307,10 @@ const SignosVitales = () => {
       now.getSeconds()
     ).padStart(2, "0")}`;
 
-    const selectedBeneficiary = selectedBeneficiaryIndex >= 0 
-      ? beneficiaryData[selectedBeneficiaryIndex] 
-      : null;
+    const selectedBeneficiary =
+      selectedBeneficiaryIndex >= 0
+        ? beneficiaryData[selectedBeneficiaryIndex]
+        : null;
 
     const consultaData = {
       fechaconsulta: fechaConsulta,
@@ -433,20 +361,12 @@ const SignosVitales = () => {
       if (response.ok) {
         const responseData = await response.json();
 
-        await actualizarEstado(responseData.claveConsulta);
-
-        playSound(true);
-        MySwal.fire({
-          icon: "success",
-          title: "<span style='color: #00e676; font-weight: bold; font-size: 1.5em;'>✔️ Consulta guardada correctamente</span>",
-          html: "<p style='color: #fff; font-size: 1.1em;'>La consulta ha sido registrada y atendida exitosamente.</p>",
-          background: "linear-gradient(145deg, #004d40, #00251a)",
-          confirmButtonColor: "#00e676",
-          confirmButtonText: "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
-          customClass: {
-            popup: "border border-green-600 shadow-[0px_0px_20px_5px_rgba(0,230,118,0.9)] rounded-lg",
-          },
-        });
+        await showCustomAlert(
+          "success",
+          "Consulta guardada correctamente",
+          "La consulta ha sido registrada y atendida exitosamente.",
+          "Aceptar"
+        );
 
         handleCloseModal();
         await cargarPacientesDelDia();
@@ -455,18 +375,12 @@ const SignosVitales = () => {
       }
     } catch (error) {
       console.error("Error al guardar la consulta:", error);
-      playSound(false);
-      MySwal.fire({
-        icon: "error",
-        title: "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error al guardar la consulta</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>Hubo un problema al intentar guardar la consulta. Por favor, intenta nuevamente.</p>",
-        background: "linear-gradient(145deg, #4a0000, #220000)",
-        confirmButtonColor: "#ff1744",
-        confirmButtonText: "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup: "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-        },
-      });
+      await showCustomAlert(
+        "error",
+        "Error al guardar la consulta",
+        "Hubo un problema al intentar guardar la consulta. Por favor, intenta nuevamente.",
+        "Aceptar"
+      );
     } finally {
       setIsSaving(false);
     }
@@ -530,18 +444,12 @@ const SignosVitales = () => {
         !data.nombre ||
         !data.departamento
       ) {
-        playSound(false);
-        MySwal.fire({
-          icon: "error",
-          title: "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>⚠️ Nómina no encontrada</span>",
-          html: "<p style='color: #fff; font-size: 1.1em;'>El número de nómina ingresado no existe o no se encuentra en el sistema. Intenta nuevamente.</p>",
-          background: "linear-gradient(145deg, #4a0000, #220000)",
-          confirmButtonColor: "#ff1744",
-          confirmButtonText: "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-          customClass: {
-            popup: "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-          },
-        });
+        await showCustomAlert(
+          "error",
+          "Nómina no encontrada",
+          "El número de nómina ingresado no existe o no se encuentra en el sistema. Intenta nuevamente.",
+          "Aceptar"
+        );
 
         setEmpleadoEncontrado(false);
         setShowConsulta(false);
@@ -568,18 +476,13 @@ const SignosVitales = () => {
       setEmpleadoEncontrado(true);
     } catch (error) {
       console.error("Error al obtener datos del empleado:", error);
-      playSound(false);
-      MySwal.fire({
-        icon: "error",
-        title: "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error al buscar la nómina</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>Hubo un problema al buscar la nómina. Intenta nuevamente.</p>",
-        background: "linear-gradient(145deg, #4a0000, #220000)",
-        confirmButtonColor: "#ff1744",
-        confirmButtonText: "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup: "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-        },
-      });
+      await showCustomAlert(
+        "error",
+        "Error al buscar la nómina",
+        "Hubo un problema al buscar la nómina. Intenta nuevamente.",
+        "Aceptar"
+      );
+
       setEmpleadoEncontrado(false);
       setShowConsulta(false);
     }
@@ -603,18 +506,12 @@ const SignosVitales = () => {
       } else {
         setBeneficiaryData([]);
         setConsultaSeleccionada("empleado");
-        playSound(false);
-        MySwal.fire({
-          icon: "info",
-          title: "<span style='color: #00bcd4; font-weight: bold; font-size: 1.5em;'>ℹ️ Sin beneficiarios</span>",
-          html: `<p style='color: #fff; font-size: 1.1em;'>Este empleado no tiene beneficiarios registrados en el sistema.</p>`,
-          background: "linear-gradient(145deg, #004d40, #00251a)",
-          confirmButtonColor: "#00bcd4",
-          confirmButtonText: "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
-          customClass: {
-            popup: "border border-blue-600 shadow-[0px_0px_20px_5px_rgba(0,188,212,0.9)] rounded-lg",
-          },
-        });
+        await showCustomAlert(
+          "info",
+          "Sin beneficiarios",
+          "Este empleado no tiene beneficiarios validos registrados en el sistema.",
+          "Aceptar"
+        );
       }
     } catch (error) {
       console.error("Error al buscar beneficiarios:", error);
@@ -913,7 +810,9 @@ const SignosVitales = () => {
                     </label>
                     <select
                       value={selectedBeneficiaryIndex}
-                      onChange={(e) => handleBeneficiarySelect(parseInt(e.target.value))}
+                      onChange={(e) =>
+                        handleBeneficiarySelect(parseInt(e.target.value))
+                      }
                       className="bg-gray-700 p-2 rounded-md text-white w-full"
                     >
                       {beneficiaryData.map((beneficiary, index) => (
@@ -930,7 +829,10 @@ const SignosVitales = () => {
                   {consultaSeleccionada === "beneficiario" &&
                   selectedBeneficiaryIndex >= 0 ? (
                     <Image
-                      src={beneficiaryData[selectedBeneficiaryIndex].FOTO_URL || "/user_icon_.png"}
+                      src={
+                        beneficiaryData[selectedBeneficiaryIndex].FOTO_URL ||
+                        "/user_icon_.png"
+                      }
                       alt="Foto del Beneficiario"
                       width={120}
                       height={120}
@@ -1009,7 +911,8 @@ const SignosVitales = () => {
                           <FaUsers className="mr-3 text-pink-400 text-xl" />
                           Parentesco:{" "}
                           <span className="font-normal text-white ml-2">
-                            {beneficiaryData[selectedBeneficiaryIndex].PARENTESCO_DESC || ""}
+                            {beneficiaryData[selectedBeneficiaryIndex]
+                              .PARENTESCO_DESC || ""}
                           </span>
                         </p>
                       )}

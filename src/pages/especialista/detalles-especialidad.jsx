@@ -2,7 +2,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import Swal from "sweetalert2";
+import { showCustomAlert } from "../../utils/alertas";
 import {
   FaUser,
   FaHeartbeat,
@@ -22,16 +22,6 @@ const formatearFecha = (fecha) => {
   };
   const fechaLocal = new Date(fecha);
   return fechaLocal.toLocaleString("es-MX", opciones);
-};
-
-//* Define las rutas de los sonidos de éxito y error
-const successSound = "/assets/applepay.mp3";
-const errorSound = "/assets/error.mp3";
-
-//! Reproduce un sonido de éxito/error
-const playSound = (isSuccess) => {
-  const audio = new Audio(isSuccess ? successSound : errorSound);
-  audio.play();
 };
 
 const safeDecodeBase64 = (str) => {
@@ -81,22 +71,21 @@ const DetallesEspecialidad = () => {
         setPacienteSeleccionado(data.data); //* Ajustar para subpantallas
         setLoading(false);
       } else {
-        mostrarError("Error al obtener los datos del paciente.");
+        await showCustomAlert(
+          "error",
+          "Error al cargar pacientes",
+          "No se pudo cargar la información. Inténtalo nuevamente.",
+          "Aceptar"
+        );
       }
     } catch (error) {
-      mostrarError("Ocurrió un problema al cargar los datos del paciente.");
+      await showCustomAlert(
+        "error",
+        "Error al cargar pacientes",
+        "No se pudo cargar la información. Inténtalo nuevamente.",
+        "Aceptar"
+      );
     }
-  };
-
-  const mostrarError = (mensaje) => {
-    playSound(false);
-    Swal.fire({
-      icon: "error",
-      title: "Error",
-      text: mensaje,
-      confirmButtonColor: "#ff1744",
-    });
-    setLoading(false);
   };
 
   const limpiarFormulario = () => {

@@ -6,21 +6,9 @@ import {
   FaArrowLeft,
   FaBarcode,
 } from "react-icons/fa";
-import Swal from "sweetalert2";
-import withReactContent from "sweetalert2-react-content";
 import SurtimientosTable from "./components/surtimientosTable";
 import useSurtimientos from "../../hooks/farmaciaHook/useSurtimientos";
-
-//* Inicializa SweetAlert2 con React
-const MySwal = withReactContent(Swal);
-
-//* Rutas de sonidos
-const successSound = "/assets/applepay.mp3";
-const errorSound = "/assets/error.mp3";
-const playSound = (isSuccess) => {
-  const audio = new Audio(isSuccess ? successSound : errorSound);
-  audio.play();
-};
+import { showCustomAlert } from "../../utils/alertas";
 
 const FarmaciaSurtimientos = () => {
   const router = useRouter();
@@ -28,26 +16,18 @@ const FarmaciaSurtimientos = () => {
   const { data, setData, loading, error, fetchSurtimientos } =
     useSurtimientos();
 
-  //! Efecto para lanzar SweetAlert cuando cambie el error
-  useEffect(() => {
-    if (error) {
-      playSound(false);
-      MySwal.fire({
-        icon: "error",
-        title:
-          "<span style='color: #ff0000; font-weight: bold; font-size: 1.5em;'>❌ Código de Barras Incorrecto</span>",
-        html: `<p style='color: #fff; font-size: 1.1em;'>Por favor, verifique nuevamente el código de barras.</p>`,
-        background: "linear-gradient(145deg, #660000, #330000)",
-        confirmButtonColor: "#ff0000",
-        confirmButtonText:
-          "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,0,0,0.9)] rounded-lg",
-        },
-      });
-    }
-  }, [error]);
+useEffect(() => {
+  if (error) {
+    (async () => {
+      await showCustomAlert(
+        "error",
+        "Código de Barras Incorrecto",
+        "Por favor, verifique nuevamente el código de barras.",
+        "Aceptar",
+      );
+    })();
+  }
+}, [error]);
 
   const handleSearch = async () => {
     //* limpia datos previos

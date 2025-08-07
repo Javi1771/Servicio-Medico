@@ -1,12 +1,11 @@
 // src/pages/capturas/components3/FormularioMedicamentos.jsx
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, } from "react";
 import MedicamentoDropdown from "../../consultas/components/MedicamentoDropdown";
 import TratamientoInput from "../../consultas/components/TratamientoInput";
-import Swal from "sweetalert2";
-import { FiPackage, FiRefreshCw } from "react-icons/fi";
+import { FiRefreshCw } from "react-icons/fi";
 import { FaCalendarAlt } from "react-icons/fa";
 
-const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta,onChangeMedicamentos  }) => {
+const Medicamentos = ({onChangeMedicamentos  }) => {
   // defaultMed incluye ahora tratamientoDias para controlar la lógica de resurtir
   const defaultMed = {
     medicamento: "",
@@ -21,7 +20,7 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta,onChangeMedica
 
   const [listaMedicamentos, setListaMedicamentos] = useState([]);
   const [loadingMedicamentos, setLoadingMedicamentos] = useState(true);
-  const [decisionTomada, setDecisionTomada] = useState("si");
+  const [decisionTomada, ] = useState("si");
 
   const phraseTemplates = ["Durante __ días.", "Por __ días.", "En __ días."];
   const successSound = "/assets/applepay.mp3";
@@ -45,19 +44,6 @@ const Medicamentos = ({ clavenomina, clavepaciente, claveConsulta,onChangeMedica
   }, []);
 
 useEffect(() => {
-  const completos =
-    decisionTomada === "no" ||
-    (decisionTomada === "si" &&
-      medicamentos.every(
-        (m) =>
-          m.medicamento &&
-          m.indicaciones &&
-          m.tratamiento &&
-          m.tratamientoDias &&
-          m.piezas &&
-          (m.resurtir === "no" || (m.resurtir === "si" && m.mesesResurtir))
-      ));
-
   // Ya no llamamos a updateFormulario aquí
   // Puedes hacer algo con 'completos' si lo necesitas
 }, [medicamentos, decisionTomada]);

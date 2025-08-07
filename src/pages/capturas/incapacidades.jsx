@@ -17,24 +17,12 @@ import {
   FaSave,
   FaTimes,
 } from "react-icons/fa";
-import Swal from "sweetalert2";
-import withReactContent from "sweetalert2-react-content";
 
 //* Componentes de historial
 import HistorialIncapacidadesTable from "./incapacidades/historial-incapacidades-captura";
 import HistorialCompletoPage from "./incapacidades/historial-incapacidades-completo";
 
-const MySwal = withReactContent(Swal);
-
-//* Define las rutas de los sonidos de éxito y error
-const successSound = "/assets/applepay.mp3";
-const errorSound = "/assets/error.mp3";
-
-//! Reproduce un sonido de éxito/error
-const playSound = (isSuccess) => {
-  const audio = new Audio(isSuccess ? successSound : errorSound);
-  audio.play();
-};
+import { showCustomAlert } from "../../utils/alertas";
 
 //* Calcula edad en años/meses/días
 const calcularEdad = (fechaNacimiento) => {
@@ -137,25 +125,24 @@ const CapturaIncapacidades = () => {
         const data = await response.json();
         //console.log("✅ Respuesta de obtenerConsulta:", data);
         if (data.seAsignoIncapacidad === null) {
-          playSound(false);
-          MySwal.fire({
-            icon: "question",
-            title:
-              "<span style='color: #00acc1; font-weight: bold; font-size: 1.5em;'>Incapacidad no asignada</span>",
-            html: "<p style='color: #fff; font-size: 1.1em;'>No se encontró una incapacidad asignada para el folio de consulta ingresado. ¿Desea asignar una nueva incapacidad?</p>",
-            background: "linear-gradient(145deg, #004d40, #00251a)",
-            showCancelButton: true,
-            confirmButtonColor: "#00e676",
-            cancelButtonColor: "#ff1744",
-            confirmButtonText:
-              "<span style='color: #000; font-weight: bold;'>Asignar Incapacidad</span>",
-            cancelButtonText:
-              "<span style='color: #fff; font-weight: bold;'>Cancelar</span>",
-            customClass: {
-              popup:
-                "border border-cyan-400 shadow-[0_0_20px_5px_rgba(0,230,118,0.8)] rounded-lg",
-            },
-          }).then((result) => {
+          await showCustomAlert(
+            "info",
+            "Incapacidad no asignada",
+            "No se encontró una incapacidad asignada para el folio de consulta ingresado. ¿Desea asignar una nueva incapacidad?",
+            "Asignar Incapacidad",
+            {
+              icon: "question",
+              background: "linear-gradient(145deg, #004d40, #00251a)",
+              showCancelButton: true,
+              confirmButtonColor: "#00e676",
+              cancelButtonColor: "#ff1744",
+              cancelButtonText: "Cancelar",
+              customClass: {
+                popup:
+                  "border border-cyan-400 shadow-[0_0_20px_5px_rgba(0,230,118,0.8)] rounded-lg",
+              },
+            }
+          ).then((result) => {
             if (result.isConfirmed) {
               const encryptedClaveConsulta = btoa(folioConsulta.trim());
               router.push(
@@ -181,21 +168,13 @@ const CapturaIncapacidades = () => {
         const empleadoData = await responseEmpleado.json();
         //console.log("✅ Datos del empleado:", empleadoData);
         if (!empleadoData || !empleadoData.nombre) {
-          playSound(false);
-          MySwal.fire({
-            icon: "error",
-            title:
-              "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Empleado no encontrado</span>",
-            html: "<p style='color: #fff; font-size: 1.1em;'>No se pudo recuperar la información del empleado.</p>",
-            background: "linear-gradient(145deg, #4a0000, #220000)",
-            confirmButtonColor: "#ff1744",
-            confirmButtonText:
-              "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-            customClass: {
-              popup:
-                "border border-red-600 shadow-[0_0_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-            },
-          });
+          await showCustomAlert(
+            "error",
+            "Empleado no encontrado",
+            "No se encontró un empleado con la nómina proporcionada. Verifica el número e intenta nuevamente.",
+            "Aceptar"
+          );
+
           limpiarFormulario();
           setIsLoading(false);
           return;
@@ -216,21 +195,13 @@ const CapturaIncapacidades = () => {
       }
     } catch (error) {
       console.error("Error en fetchEmpleado:", error);
-      playSound(false);
-      MySwal.fire({
-        icon: "error",
-        title:
-          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error al obtener información</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>Hubo un error. Intenta nuevamente.</p>",
-        background: "linear-gradient(145deg, #4a0000, #220000)",
-        confirmButtonColor: "#ff1744",
-        confirmButtonText:
-          "<span style='color: #fff; font-weight: bold;'>Reintentar</span>",
-        customClass: {
-          popup:
-            "border border-red-600 shadow-[0_0_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-        },
-      });
+      await showCustomAlert(
+        "error",
+        "Error al obtener información",
+        "Hubo un error. Intenta nuevamente.",
+        "Reintentar"
+      );
+
       setIsLoading(false);
     }
   };
@@ -260,25 +231,12 @@ const CapturaIncapacidades = () => {
     } catch (error) {
       console.error("Error en fetchIncapacidad:", error);
       setIncapacidadData(null);
-      playSound(false);
-      MySwal.fire({
-        icon: "warning",
-        title:
-          "<span style='color: #ff9800; font-weight: bold; font-size: 1.5em;'>⚠️ Folio ya atendido</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>El folio de consulta ya fue atendido. ¿Deseas ver el historial o regresar?</p>",
-        background: "linear-gradient(145deg, #4a2600, #220f00)",
-        showCancelButton: true,
-        confirmButtonColor: "#088000",
-        cancelButtonColor: "#ff1100",
-        confirmButtonText:
-          "<span style='color: #fff; font-weight: bold;'>Ver Historial</span>",
-        cancelButtonText:
-          "<span style='color: #fff; font-weight: bold;'>Regresar</span>",
-        customClass: {
-          popup:
-            "border border-yellow-600 shadow-[0_0_20px_5px_rgba(255,152,0,0.9)] rounded-lg",
-        },
-      }).then((result) => {
+      await showCustomAlert(
+        "warning",
+        "⚠️ Folio ya atendido",
+        "El folio de consulta ya fue atendido. ¿Deseas ver el historial o regresar?",
+        "Ver Historial"
+      ).then((result) => {
         if (result.isDismissed) {
           limpiarFormulario();
         }
@@ -315,21 +273,12 @@ const CapturaIncapacidades = () => {
       if (!response.ok) {
         throw new Error("Error al guardar la incapacidad");
       }
-      playSound(true);
-      MySwal.fire({
-        icon: "success",
-        title:
-          "<span style='color: #00e676; font-weight: bold; font-size: 1.5em;'>✔️ Incapacidad guardada</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>La incapacidad se registró con éxito.</p>",
-        background: "linear-gradient(145deg, #004d40, #00251a)",
-        confirmButtonColor: "#00e676",
-        confirmButtonText:
-          "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-green-600 shadow-[0_0_20px_5px_rgba(0,230,118,0.8)] rounded-lg",
-        },
-      }).then(() => {
+      await showCustomAlert(
+        "success",
+        "Incapacidad guardada",
+        "La incapacidad se registró con éxito.",
+        "Aceptar"
+      ).then(() => {
         const encryptedClaveConsulta = btoa(folioConsulta.trim());
         router.push(
           `/capturas/incapacidades/ver-incapacidad?claveconsulta=${encryptedClaveConsulta}`
@@ -338,21 +287,12 @@ const CapturaIncapacidades = () => {
       limpiarFormulario();
     } catch (error) {
       console.error("Error al guardar incapacidad:", error);
-      playSound(false);
-      MySwal.fire({
-        icon: "error",
-        title:
-          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error al guardar</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>No se pudo completar el registro de la incapacidad.</p>",
-        background: "linear-gradient(145deg, #4a0000, #220000)",
-        confirmButtonColor: "#ff1744",
-        confirmButtonText:
-          "<span style='color: #fff; font-weight: bold;'>Reintentar</span>",
-        customClass: {
-          popup:
-            "border border-red-600 shadow-[0_0_20px_5px_rgba(255,23,68,0.8)] rounded-lg",
-        },
-      });
+      await showCustomAlert(
+        "error",
+        "Error al guardar",
+        "No se pudo completar el registro de la incapacidad.",
+        "Reintentar"
+      );
     } finally {
       setIsSaving(false);
     }

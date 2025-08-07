@@ -5,8 +5,7 @@ import "chart.js/auto";
 import { FaCalendarAlt, FaArrowLeft } from "react-icons/fa";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
-import Swal from "sweetalert2";
-import withReactContent from "sweetalert2-react-content";
+import { showCustomAlert } from "../../utils/alertas";
 import Loader from "./Loaders/Loader-azul";
 import { useRouter } from "next/router";
 
@@ -73,19 +72,6 @@ function formatExactDBDate(dbDateStr) {
   return `${dd}/${mm}/${yyyy}, ${HH}:${MM}:${SS}`;
 }
 
-//* SweetAlert + React
-const MySwal = withReactContent(Swal);
-
-//* Define las rutas de los sonidos de éxito y error
-const successSound = "/assets/applepay.mp3";
-const errorSound = "/assets/error.mp3";
-
-//! Reproduce un sonido de éxito/error
-const playSound = (isSuccess) => {
-  const audio = new Audio(isSuccess ? successSound : errorSound);
-  audio.play();
-};
-
 export default function IntervalosDeConsultas() {
   const router = useRouter();
 
@@ -137,47 +123,29 @@ export default function IntervalosDeConsultas() {
   const disableFutureDates = (date) => date > new Date();
 
   //* Manejadores de Fecha
-  const handleStartDateChange = (date) => {
+  const handleStartDateChange = async (date) => {
     if (date <= endDate) {
       setStartDate(date);
     } else {
-      playSound(false);
-      MySwal.fire({
-        icon: "error",
-        title:
-          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>⚠️ Fecha inválida</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>La fecha inicial no puede ser después de la fecha final.</p>",
-        background: "linear-gradient(145deg, #4a0000, #220000)",
-        confirmButtonColor: "#ff1744",
-        confirmButtonText:
-          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-        },
-      });
+      await showCustomAlert(
+        "error",
+        "Fecha inválida",
+        "La fecha inicial no puede ser después de la fecha final.",
+        "Aceptar"
+      );
     }
   };
 
-  const handleEndDateChange = (date) => {
+  const handleEndDateChange = async (date) => {
     if (date >= startDate) {
       setEndDate(date);
     } else {
-      playSound(false);
-      MySwal.fire({
-        icon: "error",
-        title:
-          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>⚠️ Fecha inválida</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>La fecha final no puede ser antes de la fecha inicial.</p>",
-        background: "linear-gradient(145deg, #4a0000, #220000)",
-        confirmButtonColor: "#ff1744",
-        confirmButtonText:
-          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-        },
-      });
+      await showCustomAlert(
+        "error",
+        "Fecha inválida",
+        "La fecha final no puede ser antes de la fecha inicial.",
+        "Aceptar"
+      );
     }
   };
 

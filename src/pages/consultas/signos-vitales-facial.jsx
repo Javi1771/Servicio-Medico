@@ -1,8 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import Swal from "sweetalert2";
-import withReactContent from "sweetalert2-react-content";
 import Image from "next/image";
 
 import {
@@ -14,18 +12,6 @@ import {
 } from "react-icons/fa";
 import { GiStomach, GiMedicalDrip } from "react-icons/gi";
 import { TbTemperature } from "react-icons/tb";
-
-const MySwal = withReactContent(Swal);
-
-//* Define las rutas de los sonidos de éxito y error
-const successSound = "/assets/applepay.mp3";
-const errorSound = "/assets/error.mp3";
-
-//! Reproduce un sonido de éxito/error
-const playSound = (isSuccess) => {
-  const audio = new Audio(isSuccess ? successSound : errorSound);
-  audio.play();
-};
 
 //* Función para calcular la edad en años, meses y días
 const calcularEdad = (fechaNacimiento) => {
@@ -171,21 +157,12 @@ export default function SignosVitalesFacial() {
       //? 2) Hijos mayores de 15 años → discapacidad o estudiante
       if (Number(b.ESDISCAPACITADO) === 1) {
         if (!b.URL_INCAP) {
-          playSound(false);
-          await MySwal.fire({
-            icon: "info",
-            title:
-              "<span style='color: #00bcd4; font-weight: bold; font-size: 1.5em;'>ℹ️ Falta incapacidad</span>",
-            html: `<p style='color: #fff; font-size: 1.1em;'>El beneficiario <strong>${b.NOMBRE} ${b.A_PATERNO} ${b.A_MATERNO}</strong> es discapacitado y no ha subido su documento de incapacidad.</p>`,
-            background: "linear-gradient(145deg, #004d40, #00251a)",
-            confirmButtonColor: "#00bcd4",
-            confirmButtonText:
-              "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
-            customClass: {
-              popup:
-                "border border-cyan-600 shadow-[0px_0px_20px_5px_rgba(0,188,212,0.9)] rounded-lg",
-            },
-          });
+          showCustomAlert(
+            "info",
+            "Falta incapacidad",
+            `El beneficiario <strong>${selected.NOMBRE} ${selected.A_PATERNO} ${selected.A_MATERNO}</strong> es discapacitado y aún no ha subido su documento de incapacidad.`,
+            "Aceptar"
+          );
         }
         setBeneficiario(b);
         setIsLoadingBenef(false);
@@ -193,22 +170,14 @@ export default function SignosVitalesFacial() {
       }
 
       if (Number(b.ESESTUDIANTE) === 0) {
-        playSound(false);
-        await MySwal.fire({
-          icon: "error",
-          title:
-            "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ No es estudiante</span>",
-          html: `<p style='color: #fff; font-size: 1.1em;'>El beneficiario <strong>${b.NOMBRE} ${b.A_PATERNO} ${b.A_MATERNO}</strong> no está registrado como estudiante ni como discapacitado.</p>
-               <p style='color: #ffcdd2; font-size: 1em; margin-top: 10px;'>⚠️ Debe completar sus datos en el empadronamiento para tener acceso.</p>`,
-          background: "linear-gradient(145deg, #4a0000, #220000)",
-          confirmButtonColor: "#ff1744",
-          confirmButtonText:
-            "<span style='color: #fff; font-weight: bold;'>Entendido</span>",
-          customClass: {
-            popup:
-              "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-          },
-        });
+        await showCustomAlert(
+          "error",
+          "No es estudiante",
+          `El beneficiario <strong>${b.NOMBRE} ${b.A_PATERNO} ${b.A_MATERNO}</strong> no está registrado como estudiante ni como discapacitado.
+   <p style='color: #ffcdd2; font-size: 1em; margin-top: 10px;'>⚠️ Debe completar sus datos en el empadronamiento para tener acceso.</p>`,
+          "Entendido"
+        );
+
         router.back();
         return;
       }
@@ -216,21 +185,12 @@ export default function SignosVitalesFacial() {
       if (b.VIGENCIA_ESTUDIOS) {
         const vig = new Date(b.VIGENCIA_ESTUDIOS);
         if (vig.getTime() < ahora.getTime()) {
-          playSound(false);
-          await MySwal.fire({
-            icon: "warning",
-            title:
-              "<span style='color: #ff9800; font-weight: bold; font-size: 1.5em;'>⚠️ Constancia vencida</span>",
-            html: `<p style='color: #fff; font-size: 1.1em;'>El beneficiario <strong>${b.NOMBRE} ${b.A_PATERNO} ${b.A_MATERNO}</strong> tiene la constancia de estudios vencida.</p>`,
-            background: "linear-gradient(145deg, #4a2600, #220f00)",
-            confirmButtonColor: "#ff9800",
-            confirmButtonText:
-              "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
-            customClass: {
-              popup:
-                "border border-yellow-600 shadow-[0px_0px_20px_5px_rgba(255,152,0,0.9)] rounded-lg",
-            },
-          });
+          await showCustomAlert(
+            "warning",
+            "Constancia vencida",
+            `El beneficiario <strong>${selected.NOMBRE} ${selected.A_PATERNO} ${selected.A_MATERNO}</strong> tiene la constancia de estudios vencida. Se ha regresado al beneficiario válido.`,
+            "Aceptar"
+          );
           router.back();
           return;
         }
@@ -241,23 +201,12 @@ export default function SignosVitalesFacial() {
       setIsLoadingBenef(false);
     } catch (error) {
       console.error("Error beneficiario:", error);
-      playSound(false);
-      MySwal.fire({
-        icon: "error",
-        title:
-          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error al obtener datos</span>",
-        html: `<p style='color: #fff; font-size: 1.1em;'>${
-          error.message || "No se pudo cargar la información del beneficiario."
-        }</p>`,
-        background: "linear-gradient(145deg, #4a0000, #220000)",
-        confirmButtonColor: "#ff1744",
-        confirmButtonText:
-          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-        },
-      });
+      await showCustomAlert(
+        "error",
+        "Error al buscar la nómina",
+        "Hubo un problema al buscar la nómina. Intenta nuevamente.",
+        "Aceptar"
+      );
       setIsLoadingBenef(false);
     }
   };
@@ -277,21 +226,12 @@ export default function SignosVitalesFacial() {
 
       const data = await response.json();
       if (!data || !data.nombre || !data.departamento) {
-        playSound(false);
-        MySwal.fire({
-          icon: "error",
-          title:
-            "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>⚠️ Nómina no encontrada</span>",
-          html: "<p style='color: #fff; font-size: 1.1em;'>El número de nómina no existe. Intenta nuevamente.</p>",
-          background: "linear-gradient(145deg, #4a0000, #220000)",
-          confirmButtonColor: "#ff1744",
-          confirmButtonText:
-            "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-          customClass: {
-            popup:
-              "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-          },
-        });
+        await showCustomAlert(
+          "error",
+          "Nómina no encontrada",
+          "El número de nómina ingresado no existe o no se encuentra en el sistema. Intenta nuevamente.",
+          "Aceptar"
+        );
         setIsLoadingEmployee(false);
         return;
       }
@@ -315,92 +255,26 @@ export default function SignosVitalesFacial() {
       setIsLoadingEmployee(false);
     } catch (error) {
       console.error("Error empleado:", error);
-      playSound(false);
-      MySwal.fire({
-        icon: "error",
-        title:
-          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error al buscar la nómina</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>Hubo un problema al buscar la nómina del empleado.</p>",
-        background: "linear-gradient(145deg, #4a0000, #220000)",
-        confirmButtonColor: "#ff1744",
-        confirmButtonText:
-          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-red-600 shadow-[0px_0px_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-        },
-      });
-      setIsLoadingEmployee(false);
-    }
-  };
-
-  //* Actualiza estatus (atendida)
-  const actualizarEstado = async (claveConsulta) => {
-    try {
-      const response = await fetch(
-        "/api/pacientes-consultas/actualizarclavestatus",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ claveConsulta, clavestatus: 1 }),
-        }
+      await showCustomAlert(
+        "error",
+        "Error al buscar la nómina",
+        "Hubo un problema al buscar la nómina. Intenta nuevamente.",
+        "Aceptar"
       );
-      if (!response.ok) {
-        throw new Error("Error al actualizar el estatus");
-      }
-      playSound(true);
-      MySwal.fire({
-        icon: "success",
-        title:
-          "<span style='color: #00e676; font-weight: bold; font-size: 1.5em;'>✔️ Estatus actualizado</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>La consulta fue marcada como atendida.</p>",
-        background: "linear-gradient(145deg, #003300, #001a00)",
-        confirmButtonColor: "#00e676",
-        confirmButtonText:
-          "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-green-600 shadow-[0_0_20px_5px_rgba(0,230,118,0.9)] rounded-lg",
-        },
-      });
-    } catch (error) {
-      console.error("Error al actualizar estatus:", error);
-      playSound(false);
-      MySwal.fire({
-        icon: "error",
-        title:
-          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error al actualizar estatus</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>No se pudo actualizar el estatus. Intenta nuevamente.</p>",
-        background: "linear-gradient(145deg, #4a0000, #220000)",
-        confirmButtonColor: "#ff1744",
-        confirmButtonText:
-          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-red-600 shadow-[0_0_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-        },
-      });
+      setIsLoadingEmployee(false);
     }
   };
 
   //* Guardar la consulta
   const handleSave = async () => {
     if (!beneficiario) {
-      playSound(false);
-      MySwal.fire({
-        icon: "error",
-        title:
-          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>Beneficiario no válido</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>No se ha podido cargar al beneficiario correctamente.</p>",
-        background: "linear-gradient(145deg, #4a0000, #220000)",
-        confirmButtonColor: "#ff1744",
-        confirmButtonText:
-          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-red-600 shadow-[0_0_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-        },
-      });
+      await showCustomAlert(
+        "error",
+        "Beneficiario no válido",
+        "No se ha podido cargar al beneficiario correctamente.",
+        "Aceptar"
+      );
+
       return;
     }
 
@@ -468,47 +342,25 @@ export default function SignosVitalesFacial() {
         throw new Error("Error al guardar la consulta");
       }
 
-      const responseData = await resp.json();
-      //* Marcamos estatus como atendida
-      await actualizarEstado(responseData.claveConsulta);
-
       //* Alerta de éxito
-      playSound(true);
-      MySwal.fire({
-        icon: "success",
-        title:
-          "<span style='color: #00e676; font-weight: bold; font-size: 1.5em;'>Consulta Guardada</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>La consulta ha sido registrada y atendida exitosamente.</p>",
-        background: "linear-gradient(145deg, #003300, #001a00)",
-        confirmButtonColor: "#00e676",
-        confirmButtonText:
-          "<span style='color: #000; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-green-600 shadow-[0_0_20px_5px_rgba(0,230,118,0.9)] rounded-lg",
-        },
-      }).then(() => {
+      await showCustomAlert(
+        "success",
+        "Consulta guardada correctamente",
+        "La consulta ha sido registrada y atendida exitosamente.",
+        "Aceptar"
+      ).then(() => {
         //* Después de la alerta, mostramos "Redirigiendo..." y navegamos
         setIsRedirecting(true);
         router.push("/consultas/signos-vitales");
       });
     } catch (error) {
       console.error("Error al guardar la consulta:", error);
-      playSound(false);
-      MySwal.fire({
-        icon: "error",
-        title:
-          "<span style='color: #ff1744; font-weight: bold; font-size: 1.5em;'>❌ Error al guardar</span>",
-        html: "<p style='color: #fff; font-size: 1.1em;'>Hubo un problema al intentar guardar la consulta.</p>",
-        background: "linear-gradient(145deg, #4a0000, #220000)",
-        confirmButtonColor: "#ff1744",
-        confirmButtonText:
-          "<span style='color: #fff; font-weight: bold;'>Aceptar</span>",
-        customClass: {
-          popup:
-            "border border-red-600 shadow-[0_0_20px_5px_rgba(255,23,68,0.9)] rounded-lg",
-        },
-      });
+      await showCustomAlert(
+        "error",
+        "❌ Error al guardar la consulta",
+        "Hubo un problema al intentar guardar la consulta. Por favor, intenta nuevamente.",
+        "Aceptar"
+      );
     } finally {
       setIsSaving(false);
     }

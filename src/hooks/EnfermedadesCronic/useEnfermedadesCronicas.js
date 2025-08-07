@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import Swal from "sweetalert2";
+import { showCustomAlert } from "../../utils/alertas";
 
 export function useEnfermedadesCronicas() {
   const [enfermedades, setEnfermedades] = useState([]);
@@ -11,16 +11,6 @@ export function useEnfermedadesCronicas() {
   useEffect(() => {
     fetchEnfermedades();
   }, []);
-
-  //* Define las rutas de los sonidos de éxito y error
-  const successSound = "/assets/applepay.mp3";
-  const errorSound = "/assets/error.mp3";
-
-  //! Reproduce un sonido de éxito/error
-  const playSound = (isSuccess) => {
-    const audio = new Audio(isSuccess ? successSound : errorSound);
-    audio.play();
-  };
 
   const fetchEnfermedades = async () => {
     try {
@@ -39,12 +29,12 @@ export function useEnfermedadesCronicas() {
     e.preventDefault();
 
     if (!newEnfermedad.trim()) {
-      playSound(false);
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "El campo de enfermedad crónica no puede estar vacío.",
-      });
+  await showCustomAlert(
+      "error",
+      "Error",
+      "El campo de enfermedad no puede estar vacío.",
+      "Aceptar"
+  );
       return;
     }
 
@@ -60,42 +50,40 @@ export function useEnfermedadesCronicas() {
 
       if (!response.ok) {
         if (response.status === 409) {
-          playSound(false);
-          Swal.fire({
-            icon: "error",
-            title: "Error",
-            text: "Esta enfermedad crónica ya está registrada.",
-          });
+await showCustomAlert(
+          "error",
+          "Enfermedad ya registrada",
+          "Esta enfermedad crónica ya está registrada.",
+          "Aceptar"
+        );
         } else {
-          playSound(false);
-          Swal.fire({
-            icon: "error",
-            title: "Error",
-            text: "Ocurrió un error al registrar la enfermedad crónica.",
-          });
+await showCustomAlert(
+          "error",
+          "Error al registrar la enfermedad",
+          "Ocurrió un error inesperado.",
+          "Aceptar"
+        );
         }
         return;
       }
 
-      playSound(true);
-      Swal.fire({
-        icon: "success",
-        title: "Registrado",
-        text: "La enfermedad crónica se registró exitosamente.",
-        showConfirmButton: false,
-        timer: 2000,
-      });
+await showCustomAlert(
+        "success",
+        "Enfermedad registrada",
+        "La enfermedad crónica se ha registrado correctamente.",
+        "Aceptar",
+      );
 
       setNewEnfermedad("");
       fetchEnfermedades();
     } catch (err) {
       console.error("Error al registrar la enfermedad:", err);
-      playSound(false);
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "Ocurrió un error inesperado.",
-      });
+await showCustomAlert(
+  "error",
+  "Error",
+  "Ocurrió un error inesperado.",
+  "Aceptar"
+);
     }
   };
 
@@ -103,12 +91,13 @@ export function useEnfermedadesCronicas() {
     e.preventDefault();
 
     if (!newKpi.trim()) {
-      playSound(false);
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "El KPI no puede estar vacío.",
-      });
+await showCustomAlert(
+  "error",
+  "Error",
+  "El campo de KPI no puede estar vacío.",
+  "Aceptar"
+);
+
       return;
     }
 
@@ -123,34 +112,39 @@ export function useEnfermedadesCronicas() {
       });
 
       if (!response.ok) {
-        playSound(false);
-        Swal.fire({
-          icon: "error",
-          title: "Error",
-          text: "Error al registrar el KPI.",
-        });
+await showCustomAlert(
+  "error",
+  "Error",
+  "Error al registrar el KPI.",
+  "Aceptar"
+);
+
         return;
       }
 
-      playSound(true);
-      Swal.fire({
-        icon: "success",
-        title: "Registrado",
-        text: "KPI registrado correctamente.",
-        showConfirmButton: false,
-        timer: 2000,
-      });
+await showCustomAlert(
+  "success",
+  "Registrado",
+  "KPI registrado correctamente.",
+  "Aceptar",
+  {
+    showConfirmButton: false,
+    timer: 2000
+  }
+);
+
 
       setNewKpi("");
       setSelectedEnfermedadId(null);
     } catch (err) {
       console.error("Error al registrar el KPI:", err);
-      playSound(false);
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "Ocurrió un error inesperado.",
-      });
+await showCustomAlert(
+  "error",
+  "Error",
+  "Ocurrió un error inesperado.",
+  "Aceptar"
+);
+
     }
   };
 
