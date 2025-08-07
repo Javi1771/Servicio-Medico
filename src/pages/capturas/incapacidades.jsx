@@ -233,7 +233,7 @@ const CapturaIncapacidades = () => {
       setIncapacidadData(null);
       await showCustomAlert(
         "warning",
-        "⚠️ Folio ya atendido",
+        "Folio ya atendido",
         "El folio de consulta ya fue atendido. ¿Deseas ver el historial o regresar?",
         "Ver Historial"
       ).then((result) => {

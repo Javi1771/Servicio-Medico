@@ -89,7 +89,7 @@ const InsertarUnidadForm = () => {
 
       await showCustomAlert(
         "success",
-        "✔️ Unidad insertada",
+        "Unidad insertada",
         dataResponse.message,
         "Aceptar"
       );

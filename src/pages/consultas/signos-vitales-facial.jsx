@@ -357,7 +357,7 @@ export default function SignosVitalesFacial() {
       console.error("Error al guardar la consulta:", error);
       await showCustomAlert(
         "error",
-        "❌ Error al guardar la consulta",
+        "Error al guardar la consulta",
         "Hubo un problema al intentar guardar la consulta. Por favor, intenta nuevamente.",
         "Aceptar"
       );

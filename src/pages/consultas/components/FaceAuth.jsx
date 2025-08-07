@@ -188,7 +188,7 @@ export default function FaceAuth({ beneficiaries }) {
     } else {
       await showCustomAlert(
         "warning",
-        "⚠️ No se encontró coincidencia",
+        "No se encontró coincidencia",
         "No se detectó una coincidencia con los beneficiarios registrados. Intenta de nuevo.",
         "Intentar de Nuevo",
         {

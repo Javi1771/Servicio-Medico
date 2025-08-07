@@ -51,7 +51,7 @@ const MedicalDashboard = () => {
 
   useEffect(() => {
     fetchDashboardData();
-  }, []);
+  },);
 
   const handleFilterChange = (newFilters) => {
     const updatedFilters = { ...filters, ...newFilters, offset: 0 };
