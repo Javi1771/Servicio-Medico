@@ -8,6 +8,7 @@ import HistorialConsultas from "./historial-consultas";
 import EnfermedadesCronicas from "./enfermedades-cronicas";
 import Antecedentes from "./antecedentes";
 import { FormularioContext } from "/src/context/FormularioContext";
+import { showCustomAlert } from "../../../utils/alertas";
 
 const DatosAdicionales = ({
   subPantalla,

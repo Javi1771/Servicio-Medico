@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { showCustomAlert } from "../../utils/alertas";
+import { showCustomAlert } from "../../../utils/alertas";
 import { FaCalendarAlt } from "react-icons/fa";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
