@@ -9,7 +9,7 @@ const soundMap = {
   success: "/assets/applepay.mp3",
   error: "/assets/error.mp3",
   warning: "/assets/error.mp3",
-  info: "/assets/applepay.mp3",
+  info: "/assets/error.mp3",
 };
 
 const playSound = (type) => {
