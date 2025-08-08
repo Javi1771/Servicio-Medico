@@ -52,14 +52,6 @@ export default async function handler(req, res) {
               //* Validar si es discapacitado
               if (beneficiary.ESDISCAPACITADO === 0) {
                 //console.log( `Beneficiario ${beneficiary.ID_BENEFICIARIO} no es discapacitado` );
-                return false; //! No pasa la validación si no es discapacitado
-
-                //* Validar si tiene URL de incapacidad
-              } else {
-                if (!beneficiary.URL_INCAP) {
-                  //console.log( `Beneficiario ${beneficiary.ID_BENEFICIARIO} no tiene URL de incapacidad` );
-                  return false; //! No pasa la validación si no es discapacitado y no tiene
-                } 
 
                 //* Validar si es estudiante
                 if (beneficiary.ESESTUDIANTE === 0) {
