@@ -5,11 +5,16 @@ import withReactContent from "sweetalert2-react-content";
 const MySwal = withReactContent(Swal);
 
 //* Definición de sonidos
-const successSound = "/assets/applepay.mp3";
-const errorSound = "/assets/error.mp3";
+const soundMap = {
+  success: "/assets/applepay.mp3",
+  error: "/assets/error.mp3",
+  warning: "/assets/error.mp3",
+  info: "/assets/applepay.mp3",
+};
 
-const playSound = (isSuccess) => {
-  const audio = new Audio(isSuccess ? successSound : errorSound);
+const playSound = (type) => {
+  const soundPath = soundMap[type] || soundMap.info;
+  const audio = new Audio(soundPath);
   audio.play().catch((e) => console.error("Error al reproducir sonido:", e));
 };
 
@@ -28,18 +33,13 @@ export const showCustomAlert = (
   swalOptions = {}
 ) => {
   //* Reproducir sonido según el tipo
-  if (type === "success") {
-    playSound(true);
-  } else {
-    playSound(false);
-  }
+  playSound(type);
 
   const config = {
     success: {
       icon: "success",
       color: "#00e676",
       gradient: "linear-gradient(145deg, #004d40, #00251a)",
-      borderClass: "border-green-600",
       shadowColor: "rgba(0,230,118,0.9)",
       buttonColor: "#000",
     },
@@ -47,7 +47,6 @@ export const showCustomAlert = (
       icon: "error",
       color: "#ff1744",
       gradient: "linear-gradient(145deg, #4a0000, #220000)",
-      borderClass: "border-red-600",
       shadowColor: "rgba(255,23,68,0.9)",
       buttonColor: "#fff",
     },
@@ -55,7 +54,6 @@ export const showCustomAlert = (
       icon: "warning",
       color: "#ff9800",
       gradient: "linear-gradient(145deg, #4a2600, #220f00)",
-      borderClass: "border-yellow-600",
       shadowColor: "rgba(255,152,0,0.9)",
       buttonColor: "#000",
     },
@@ -63,13 +61,12 @@ export const showCustomAlert = (
       icon: "info",
       color: "#00bcd4",
       gradient: "linear-gradient(145deg, #004d70, #002540)",
-      borderClass: "border-cyan-600",
       shadowColor: "rgba(0,188,212,0.9)",
       buttonColor: "#000",
     },
   };
 
-  const { icon, color, gradient, borderClass, shadowColor, buttonColor } =
+  const { icon, color, gradient, shadowColor, buttonColor } =
     config[type] || config.info;
 
   //* Generar título con icono automático
@@ -82,13 +79,15 @@ export const showCustomAlert = (
 
   const titleWithIcon = `${iconMap[type] || ""} ${title}`;
 
-  //! Si no se pasó timer, aplicamos 2000 ms por defecto
-  const mergedOptions = {
-    timer: swalOptions.timer ?? 2000,
-    ...swalOptions,
-  };
+  //* Estilos en línea garantizados para el popup
+  const popupStyles = `
+    border: 2px solid ${color};
+    border-radius: 8px;
+    box-shadow: 0px 0px 20px 5px ${shadowColor};
+  `;
 
-  return MySwal.fire({
+  //* Configuración base de la alerta
+  const baseConfig = {
     icon: icon,
     title: `<span style='color: ${color}; font-weight: bold; font-size: 1.5em;'>${titleWithIcon}</span>`,
     html: `<p style='color: #fff; font-size: 1.1em;'>${content}</p>`,
@@ -96,9 +95,36 @@ export const showCustomAlert = (
     confirmButtonColor: color,
     confirmButtonText: `<span style='color: ${buttonColor}; font-weight: bold;'>${confirmButtonText}</span>`,
     customClass: {
-      popup: `border ${borderClass} shadow-[0px_0px_20px_5px_${shadowColor}] rounded-lg`,
+      popup: 'custom-swal-popup', //* Clase base para referencia
     },
+  };
+
+  //* Configuración final
+  const finalConfig = {
+    ...baseConfig,
     ...swalOptions,
-    ...mergedOptions,
-  });
+    ...(!('timer' in swalOptions) && { timer: 2000 })
+  };
+
+  //* Inyectar estilos dinámicos en el head
+  const styleId = 'dynamic-swal-styles';
+  if (!document.getElementById(styleId)) {
+    const style = document.createElement('style');
+    style.id = styleId;
+    style.textContent = `
+      .custom-swal-popup {
+        ${popupStyles}
+      }
+    `;
+    document.head.appendChild(style);
+  } else {
+    //* Actualizar estilos si ya existen
+    document.getElementById(styleId).textContent = `
+      .custom-swal-popup {
+        ${popupStyles}
+      }
+    `;
+  }
+
+  return MySwal.fire(finalConfig);
 };
