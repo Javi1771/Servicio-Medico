@@ -506,6 +506,12 @@ const SignosVitales = () => {
       } else {
         setBeneficiaryData([]);
         setConsultaSeleccionada("empleado");
+        await showCustomAlert(
+          "info",
+          "Sin beneficiarios",
+          "Este empleado no tiene beneficiarios validos registrados en el sistema.",
+          "Aceptar"
+        );
       }
     } catch (error) {
       console.error("Error al buscar beneficiarios:", error);

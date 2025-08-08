@@ -72,16 +72,6 @@ export default function Login() {
       return;
     }
 
-    if (passTrim.length < 6) {
-      await showCustomAlert(
-        "error",
-        "Contraseña insegura",
-        "Debe tener al menos 6 caracteres.",
-        "Aceptar"
-      );
-      return;
-    }
-
     setIsSubmitting(true);
     console.log("Enviando solicitud de login...");
 
