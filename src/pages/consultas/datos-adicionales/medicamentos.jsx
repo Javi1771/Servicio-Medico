@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState, useEffect, useContext } from "react";
-import { showCustomAlert } from "../../utils/alertas";
+import { showCustomAlert } from "../../../utils/alertas";
 import { FormularioContext } from "/src/context/FormularioContext";
 import MedicamentoDropdown from "../components/MedicamentoDropdown";
 import HistorialMedicamentos from "../components/HistorialMedicamentos";
