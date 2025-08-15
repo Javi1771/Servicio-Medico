@@ -6,7 +6,7 @@ import {
   FaMoneyCheckAlt,
 } from "react-icons/fa";
 import { BiBuildings, BiXCircle } from "react-icons/bi";
-import showCustomAlert from "../../utils/alertas";
+import showCustomAlert from "../../../utils/alertas";
 
 const red800 = "#B10033";
 
