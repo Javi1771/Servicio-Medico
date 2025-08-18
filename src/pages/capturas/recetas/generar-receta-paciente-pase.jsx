@@ -83,10 +83,6 @@ export default function GenerarReceta() {
     );
     check("Edad del paciente (consulta.edad)", data.consulta.edad);
     check(
-      "Cédula del proveedor (consulta.cedulaproveedor)",
-      data.consulta.cedulaproveedor
-    );
-    check(
       "Fecha de consulta (consulta.fechaconsulta)",
       data.consulta.fechaconsulta
     );
@@ -245,7 +241,7 @@ export default function GenerarReceta() {
       const pdfDoc = await PDFDocument.load(existingPdfBytes);
       const firstPage = pdfDoc.getPages()[0];
 
-      // Dibujar datos en el PDF
+      //* Dibujar datos en el PDF
       firstPage.drawText(
         data.consulta?.especialidadinterconsulta === null
           ? "General"

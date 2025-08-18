@@ -20,9 +20,9 @@ export default function GenerarReceta() {
     }
   }, [router.query.claveconsulta]);
 
-  // Función mejorada para validar datos requeridos
+  //* Función mejorada para validar datos requeridos
   const validarDatosReceta = (data) => {
-    // Primero verificar si existe data.consulta
+    //* Primero verificar si existe data.consulta
     if (!data || !data.consulta) {
       return ["No se encontraron datos de consulta"];
     }
@@ -43,7 +43,7 @@ export default function GenerarReceta() {
       .filter(campo => {
         const valor = campo.valor;
         
-        // Validación más robusta
+        //* Validación más robusta
         if (valor === null || valor === undefined) return true;
         if (typeof valor === 'string') {
           const valorLimpio = valor.trim();
@@ -135,13 +135,13 @@ export default function GenerarReceta() {
     }
   };
 
-  // Función generatePdf mejorada con mejor debugging
+  //* Función generatePdf mejorada con mejor debugging
   const generatePdf = async () => {
     try {
       console.log("=== INICIANDO GENERACIÓN DE PDF ===");
       setLoading(true);
       setErrorGeneracion(false);
-      setDatosFaltantes([]); // Limpiar datos faltantes anteriores
+      setDatosFaltantes([]); //! Limpiar datos faltantes anteriores
       
       const data = await fetchRecetaData();
       
@@ -152,7 +152,7 @@ export default function GenerarReceta() {
         throw new Error("No se recibieron datos de la receta");
       }
 
-      // Validar datos faltantes con debugging mejorado
+      //* Validar datos faltantes con debugging mejorado
       const faltantes = validarDatosReceta(data);
       
       console.log("=== DEBUG: Validación completada ===");
@@ -169,7 +169,7 @@ export default function GenerarReceta() {
 
       console.log("=== SUCCESS: Todos los datos están presentes ===");
       
-      // Continuar con la generación del PDF...
+      //* Continuar con la generación del PDF...
       const existingPdfBytes = await fetch("/Receta-Doctor.pdf").then(res => {
         if (!res.ok) throw new Error("Error al cargar el PDF base");
         return res.arrayBuffer();
@@ -205,9 +205,27 @@ export default function GenerarReceta() {
         firstPage.drawText(parentescoTexto, { x: 162, y: 601, size: 13, font: boldFont });
       }
 
-      //? Firmas
-      firstPage.drawText(String(data.consulta?.nombreproveedor ?? "N/A"), { x: 110, y: 96, size: 7.5 });
-      firstPage.drawText(String(data.consulta?.cedulaproveedor ?? "N/A"), { x: 90, y: 87, size: 7.5 });
+      // ? Firmas
+      const nombreProv = String(data.consulta?.nombreproveedor ?? '').trim() || 'N/A';
+      const cedulaProvRaw = data.consulta?.cedulaproveedor;
+      const cedulaProv = String(cedulaProvRaw ?? '').trim();
+
+      const tieneCedula =
+        cedulaProv &&
+        cedulaProv !== '0' &&
+        cedulaProv.toLowerCase() !== 'n/a' &&
+        cedulaProv.toLowerCase() !== 'null' &&
+        cedulaProv.toLowerCase() !== 'undefined';
+
+      //* Si hay cédula: nombre en (110,96) y cédula en (90,87)
+      //! Si NO hay cédula: nombre en (90,87)
+      if (tieneCedula) {
+        firstPage.drawText(nombreProv, { x: 110, y: 96, size: 7.5 });
+        firstPage.drawText(cedulaProv, { x: 90, y: 87, size: 7.5 });
+      } else {
+        firstPage.drawText(nombreProv, { x: 90, y: 87, size: 10 });
+      }
+
       firstPage.drawText(String(data.consulta?.nombrepaciente ?? "N/A"), { x: 370, y: 87, size: 10 });
 
       //? Elaboró 
