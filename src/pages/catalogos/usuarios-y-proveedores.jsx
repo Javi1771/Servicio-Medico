@@ -103,7 +103,9 @@ export default function UsuariosTable() {
   }, []);
 
   const handleDeleteUser = async (usuario) => {
-    const confirmDelete = showCustomAlert(
+    if (!usuario) return;
+
+    const confirmDelete = await showCustomAlert(
       "warning",
       "¿Estás seguro?",
       "El usuario será desactivado y no podrás revertir esta acción.",
@@ -116,41 +118,40 @@ export default function UsuariosTable() {
       }
     );
 
-    if (confirmDelete.isConfirmed) {
-      try {
-        const response = await fetch(
-          `/api/usuarios-proveedores/eliminarUser?usuario=${usuario}`,
-          {
-            method: "PUT",
-          }
-        );
+    if (!confirmDelete || !confirmDelete.isConfirmed) return;
 
-        if (!response.ok) {
-          throw new Error("Error al desactivar el usuario");
-        }
+    try {
+      const response = await fetch(
+        `/api/usuarios-proveedores/eliminarUser?usuario=${encodeURIComponent(
+          String(usuario)
+        )}`,
+        { method: "PUT" }
+      );
 
-        //* Actualizar la lista de usuarios
-        const usuariosResponse = await fetch(
-          "/api/usuarios-proveedores/usuario"
-        );
-        const usuariosData = await usuariosResponse.json();
-        setUsuarios(usuariosData);
-
-        await showCustomAlert(
-          "success",
-          "Desactivado",
-          "El usuario ha sido desactivado correctamente.",
-          "Aceptar"
-        );
-      } catch (error) {
-        console.error("Error al desactivar el usuario:", error);
-        await showCustomAlert(
-          "error",
-          "Error",
-          "Hubo un problema al desactivar el usuario. Intenta nuevamente.",
-          "Aceptar"
-        );
+      if (!response.ok) {
+        const detail = await response.text().catch(() => "");
+        throw new Error(`Error al desactivar el usuario. ${detail}`);
       }
+
+      //* Recargar lista
+      const usuariosResponse = await fetch("/api/usuarios-proveedores/usuario");
+      const usuariosData = await usuariosResponse.json();
+      setUsuarios(usuariosData);
+
+      await showCustomAlert(
+        "success",
+        "Desactivado",
+        "El usuario ha sido desactivado correctamente.",
+        "Aceptar"
+      );
+    } catch (error) {
+      console.error("Error al desactivar el usuario:", error);
+      await showCustomAlert(
+        "error",
+        "Error",
+        "Hubo un problema al desactivar el usuario. Intenta nuevamente.",
+        "Aceptar"
+      );
     }
   };
 
