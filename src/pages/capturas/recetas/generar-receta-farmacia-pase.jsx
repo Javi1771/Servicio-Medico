@@ -10,8 +10,26 @@ export default function GenerarReceta() {
   const [claveconsulta, setClaveConsulta] = useState(null);
   const [loading, setLoading] = useState(false);
   const [pdfUrl, setPdfUrl] = useState(null);
-  const [, setDatosFaltantes] = useState([]);
+  const [datosFaltantes, setDatosFaltantes] = useState([]);
   const [errorGeneracion, setErrorGeneracion] = useState(false);
+
+  //! Considera vacío: null, undefined, '', 'N/A', 'null', 'undefined', NaN, strings de solo espacios
+  const isEmpty = (val) => {
+    if (val === null || val === undefined) return true;
+    if (typeof val === "number") return Number.isNaN(val);
+    if (typeof val === "string") {
+      const v = val.trim();
+      return (
+        v === "" ||
+        v.toLowerCase() === "n/a" ||
+        v.toLowerCase() === "null" ||
+        v.toLowerCase() === "undefined"
+      );
+    }
+    //* objetos/arrays vacíos
+    if (typeof val === "object") return Object.keys(val).length === 0;
+    return false;
+  };
 
   useEffect(() => {
     if (router.query.claveconsulta) {
@@ -21,44 +39,83 @@ export default function GenerarReceta() {
   }, [router.query.claveconsulta]);
 
   //* Función mejorada para validar datos requeridos
+  //* Valida TODO lo que realmente usas y loguea una tabla
   const validarDatosReceta = (data) => {
-    //* Primero verificar si existe data.consulta
-    if (!data || !data.consulta) {
+    const faltantes = [];
+    const evaluados = [];
+
+    const check = (nombre, valor, { required = true } = {}) => {
+      const missing = required && isEmpty(valor);
+      evaluados.push({
+        campo: nombre,
+        valor: isEmpty(valor) ? "(vacío)" : valor,
+        ok: !missing,
+      });
+      if (missing) faltantes.push(nombre);
+    };
+
+    //? 0) Raíz
+    check("Objeto data", data);
+    check("Objeto data.consulta", data?.consulta);
+
+    if (isEmpty(data) || isEmpty(data?.consulta)) {
+      console.group("Validación de datos de receta");
+      console.table(evaluados);
+      console.groupEnd();
       return ["No se encontraron datos de consulta"];
     }
 
-    const camposRequeridos = [
-      { nombre: "Clave de consulta", valor: data.consulta.claveconsulta },
-      { nombre: "Fecha de cita", valor: data.consulta.fechacita },
-      { nombre: "Departamento", valor: data.consulta.departamento },
-      { nombre: "Nombre del proveedor", valor: data.consulta.nombreproveedor },
-      { nombre: "Clave nómina", valor: data.consulta.clavenomina },
-      { nombre: "Nombre del paciente", valor: data.consulta.nombrepaciente },
-      { nombre: "Edad del paciente", valor: data.consulta.edad },
-      { nombre: "Cédula del proveedor", valor: data.consulta.cedulaproveedor },
-      { nombre: "Fecha de consulta", valor: data.consulta.fechaconsulta }
-    ];
+    //? 1) Requeridos duros (los pintas sí o sí en el PDF)
+    check(
+      "Clave de consulta (consulta.claveconsulta)",
+      data.consulta.claveconsulta
+    );
+    check("Fecha de cita (consulta.fechacita)", data.consulta.fechacita);
+    check("Departamento (consulta.departamento)", data.consulta.departamento);
+    check(
+      "Nombre del proveedor (consulta.nombreproveedor)",
+      data.consulta.nombreproveedor
+    );
+    check("Clave nómina (consulta.clavenomina)", data.consulta.clavenomina);
+    check(
+      "Nombre del paciente (consulta.nombrepaciente)",
+      data.consulta.nombrepaciente
+    );
+    check("Edad del paciente (consulta.edad)", data.consulta.edad);
+    check(
+      "Fecha de consulta (consulta.fechaconsulta)",
+      data.consulta.fechaconsulta
+    );
 
-    const faltantes = camposRequeridos
-      .filter(campo => {
-        const valor = campo.valor;
-        
-        //* Validación más robusta
-        if (valor === null || valor === undefined) return true;
-        if (typeof valor === 'string') {
-          const valorLimpio = valor.trim();
-          return valorLimpio === '' || valorLimpio === 'N/A' || valorLimpio === 'null' || valorLimpio === 'undefined';
-        }
-        if (typeof valor === 'number') {
-          return isNaN(valor);
-        }
-        
-        return !valor;
-      })
-      .map(campo => campo.nombre);
+    //? 2) Condicionales que usas
+    //! Si el paciente NO es empleado, imprimes parentesco en el PDF
+    if (String(data.consulta.elpacienteesempleado).toUpperCase() === "N") {
+      check(
+        "Parentesco (consulta.parentescoNombre)",
+        data.consulta.parentescoNombre
+      );
+    }
 
-    console.log("Campos evaluados:", camposRequeridos.map(c => ({nombre: c.nombre, valor: c.valor})));
-    console.log("Campos faltantes:", faltantes);
+    //* Si hay interconsulta con especialidad, usas especialidadNombre
+    //* (Cuando especialidadinterconsulta no sea null/empty, exige nombre)
+    if (!isEmpty(data.consulta.especialidadinterconsulta)) {
+      check(
+        "Nombre de especialidad (consulta.especialidadNombre)",
+        data.consulta.especialidadNombre
+      );
+    }
+
+    //? 3) (Opcional) Si esperas medicamentos, puedes activar esta línea:
+    //* check('Listado de medicamentos (data.medicamentos)', data.medicamentos);
+
+    console.group("Validación de datos de receta");
+    console.table(evaluados);
+    if (faltantes.length) {
+      console.warn("FALTAN CAMPOS:", faltantes);
+    } else {
+      console.info("Validación OK: no faltan campos requeridos.");
+    }
+    console.groupEnd();
 
     return faltantes;
   };
@@ -76,7 +133,9 @@ export default function GenerarReceta() {
         return "No encontrado";
       }
 
-      return `${data.nombre ?? ""} ${data.a_paterno ?? ""} ${data.a_materno ?? ""}`.trim();
+      return `${data.nombre ?? ""} ${data.a_paterno ?? ""} ${
+        data.a_materno ?? ""
+      }`.trim();
     } catch (error) {
       console.error("Error al obtener el nombre del empleado:", error);
       return "Error al cargar";
@@ -84,13 +143,13 @@ export default function GenerarReceta() {
   };
 
   const drawMultilineText = (page, text, x, y, maxWidth, fontSize) => {
-    const words = text.split(' ');
-    let line = '';
+    const words = text.split(" ");
+    let line = "";
     let currentY = y;
     const maxCharsPerLine = Math.floor(maxWidth / (fontSize * 0.6));
 
     for (let i = 0; i < words.length; i++) {
-      const testLine = line + (line ? ' ' : '') + words[i];
+      const testLine = line + (line ? " " : "") + words[i];
 
       if (testLine.length > maxCharsPerLine) {
         page.drawText(line, { x, y: currentY, size: fontSize });
@@ -114,9 +173,11 @@ export default function GenerarReceta() {
     if (!claveconsulta) return null;
 
     try {
-      const response = await fetch(`/api/recetas/recetaPaciente?claveconsulta=${claveconsulta}`);
+      const response = await fetch(
+        `/api/recetas/recetaPaciente?claveconsulta=${claveconsulta}`
+      );
       if (!response.ok) throw new Error("Error al obtener datos de la receta");
-      
+
       const data = await response.json();
       let nombreCompleto = "No encontrado";
 
@@ -124,10 +185,10 @@ export default function GenerarReceta() {
         nombreCompleto = await fetchNombreEmpleado(data.consulta.clavenomina);
       }
 
-      return { 
-        ...data, 
+      return {
+        ...data,
         nombreEmpleado: nombreCompleto,
-        folioSurtimiento: data.folioSurtimiento ?? null
+        folioSurtimiento: data.folioSurtimiento ?? null,
       };
     } catch (error) {
       console.error("Error al obtener datos de la receta:", error);
@@ -135,7 +196,7 @@ export default function GenerarReceta() {
     }
   };
 
-  //* Función generatePdf mejorada con mejor debugging
+    //* Función generatePdf mejorada con mejor debugging
   const generatePdf = async () => {
     try {
       console.log("=== INICIANDO GENERACIÓN DE PDF ===");
@@ -283,21 +344,40 @@ export default function GenerarReceta() {
                 <h2 className="text-2xl font-bold text-red-200 mb-3">
                   ❌ No se pudo generar el pase
                 </h2>
-                
+
                 <div className="bg-black/30 p-4 rounded-lg mb-4">
                   <p className="text-red-300 mb-3">
-                    La receta proviene del sistema ControlMed y presenta inconsistencias que impiden su generación en PANDORA.
+                    La receta proviene del sistema ControlMed y presenta
+                    inconsistencias que impiden su generación en PANDORA.
                   </p>
                 </div>
-                
+
                 <div className="bg-yellow-900/40 p-4 rounded-lg border border-yellow-600">
-                  <p className="text-yellow-200 font-semibold">Recomendación:</p>
+                  <p className="text-yellow-200 font-semibold">
+                    Recomendación:
+                  </p>
                   <p className="text-yellow-100">
-                    Por favor, utiliza ControlMed para recetas originadas en ese sistema y PANDORA solo para recetas creadas dentro de su propio ecosistema. Esto nos ayudará a liberar ControlMed para su posterior retiro y migración completa a PANDORA.
+                    Por favor, utiliza ControlMed para recetas originadas en ese
+                    sistema y PANDORA solo para recetas creadas dentro de su
+                    propio ecosistema. Esto nos ayudará a liberar ControlMed
+                    para su posterior retiro y migración completa a PANDORA.
                   </p>
                 </div>
               </div>
             </div>
+          </div>
+        )}
+
+        {datosFaltantes.length > 0 && (
+          <div className="mt-4 bg-black/30 p-4 rounded-lg">
+            <p className="text-red-200 font-semibold mb-2">
+              Campos faltantes o inválidos detectados:
+            </p>
+            <ul className="list-disc list-inside text-red-100 space-y-1">
+              {datosFaltantes.map((f) => (
+                <li key={f}>{f}</li>
+              ))}
+            </ul>
           </div>
         )}
 
