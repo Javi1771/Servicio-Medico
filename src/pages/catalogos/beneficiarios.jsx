@@ -438,7 +438,6 @@ export default function RegistroBeneficiario() {
     try {
       let isVideoReady = false;
 
-      playSound(true);
       const result = await Swal.fire({
         title: "Captura una foto",
         html: '<video id="video" autoplay></video>',
@@ -468,7 +467,6 @@ export default function RegistroBeneficiario() {
         preConfirm: () => {
           if (!isVideoReady) {
             // Evita que SweetAlert se cierre si la cámara no está lista
-            playSound(false);
             Swal.showValidationMessage(
               "La cámara no está lista. Intenta de nuevo."
             );
@@ -1695,7 +1693,6 @@ export default function RegistroBeneficiario() {
     // Llamamos a la función validateDocuments
     const { success, message } = validateDocuments(formData);
     if (!success) {
-      playSound(false);
       await showCustomAlert("error", "Error", message, "Aceptar");
       setIsSubmitting(false);
       return; // Detenemos el proceso si falta algún documento obligatorio
@@ -1953,7 +1950,6 @@ export default function RegistroBeneficiario() {
       fetchBeneficiarios();
     } catch (error) {
       console.error("Error al enviar el formulario:", error.message);
-      playSound(false);
       await showCustomAlert("error", "Error", error.message, "Aceptar");
     } finally {
       setIsSubmitting(false);
