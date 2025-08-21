@@ -25,6 +25,69 @@ import { useRouter } from "next/router";
 import ConsultasAtendidas from "./consultas-adicionales/consultas-atendidas";
 import { showCustomAlert } from "../../utils/alertas";
 
+// ===================== DEBUG / HELPERS =====================
+const DEBUG_BENEF = true;
+const dbg = (...a) => {
+  if (DEBUG_BENEF) console.log(...a);
+};
+const dbgWarn = (...a) => {
+  if (DEBUG_BENEF) console.warn(...a);
+};
+const dbgGroup = (title) => {
+  if (DEBUG_BENEF) console.group(title);
+};
+const dbgGroupEnd = () => {
+  if (DEBUG_BENEF) console.groupEnd();
+};
+
+const asNum = (v) => Number(v ?? 0);
+const asStr = (v) => (v == null ? "" : String(v)).trim();
+
+/** Acepta "dd/mm/yyyy" | "YYYY-MM-DD" | ISO o Date */
+const parseFechaConservadora = (raw) => {
+  if (!raw) return null;
+  if (raw instanceof Date) return raw;
+  const str = String(raw);
+
+  // dd/mm/yyyy (si en algún caso lo recibes)
+  const mSlash = str.match(/(\d{2})\/(\d{2})\/(\d{4})/);
+  if (mSlash) {
+    const d = Number(mSlash[1]),
+      m = Number(mSlash[2]),
+      y = Number(mSlash[3]);
+    return new Date(y, m - 1, d);
+  }
+
+  // YYYY-MM-DD o ISO
+  const mIso = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (mIso) {
+    const y = Number(mIso[1]),
+      m = Number(mIso[2]),
+      d = Number(mIso[3]);
+    // IMPORTANTE: construir como local para evitar desfases
+    return new Date(y, m - 1, d);
+  }
+
+  const dt = new Date(str);
+  return isNaN(dt.getTime()) ? null : dt;
+};
+
+/** Fin de día en horario LOCAL de la fecha dada */
+const endOfDayLocalFront = (raw) => {
+  const base = parseFechaConservadora(raw);
+  if (!base) return null;
+  return new Date(
+    base.getFullYear(),
+    base.getMonth(),
+    base.getDate(),
+    23,
+    59,
+    59,
+    999
+  );
+};
+
+// ===================== EDAD (igual que tenías) =====================
 const calcularEdad = (fechaNacimiento) => {
   if (!fechaNacimiento)
     return { display: "0 años, 0 meses, 0 días", dbFormat: "0 años y 0 meses" };
@@ -103,90 +166,194 @@ const SignosVitales = () => {
     router.push("/consultas/face-test");
   };
 
+  // ===================== VALIDACIÓN CON LOGS =====================
   const validateBeneficiariesOnLoad = async (beneficiaryData) => {
     if (!beneficiaryData || beneficiaryData.length === 0) {
-      console.log("No hay beneficiarios en los datos recibidos.");
+      dbgWarn("🚫 No hay beneficiarios en los datos recibidos.");
       return;
     }
 
-    const fechaActual = new Date();
+    const ahora = new Date();
+    const ahoraTs = Date.now();
     const beneficiariosValidosConIndice = [];
+    const summary = []; // para console.table
+
+    dbg("🌐 TZ offset (min):", new Date().getTimezoneOffset());
+    dbg("🕒 Ahora:", ahora.toString(), "|", ahora.toISOString());
+    dbg("🔧 Iniciando validación. Total:", beneficiaryData.length);
 
     beneficiaryData.forEach((beneficiario, index) => {
-      console.log(
-        `🔎 Evaluando beneficiario [${index}] ${beneficiario.NOMBRE} ${beneficiario.A_PATERNO} ${beneficiario.A_MATERNO}`
-      );
+      const fullName = `${beneficiario.NOMBRE} ${beneficiario.A_PATERNO} ${beneficiario.A_MATERNO}`;
+      dbgGroup(`🔎 [${index}] ${fullName}`);
+      const row = {
+        idx: index,
+        nombre: fullName,
+        activo: asStr(beneficiario.ACTIVO),
+        parentesco: asNum(
+          beneficiario.PARENTESCO ?? beneficiario.ID_PARENTESCO
+        ),
+        esDiscapacitado: asNum(beneficiario.ESDISCAPACITADO),
+        esEstudiante: asNum(beneficiario.ESESTUDIANTE),
+        vigRaw: asStr(beneficiario.VIGENCIA_ESTUDIOS),
+        vigFmt: asStr(beneficiario.VIGENCIA_ESTUDIOS_FORMAT),
+        vigEodTs: beneficiario.VIGENCIA_ESTUDIOS_EOD_TS ?? null,
+        razon: "",
+        aceptado: false,
+      };
 
-      // Si no es hijo, pasa directo
-      if (Number(beneficiario.PARENTESCO) !== 2) {
-        console.log("✅ Aceptado: No es hijo (parentesco != 2).");
-        beneficiariosValidosConIndice.push({ beneficiario, index });
-        return;
-      }
-
-      // Validar fecha nacimiento
-      if (!beneficiario.F_NACIMIENTO) {
-        console.log("❌ Rechazado: No tiene fecha de nacimiento.");
-        return;
-      }
-
-      const [fechaParte] = beneficiario.F_NACIMIENTO.split(" ");
-      const nacimiento = new Date(fechaParte);
-      const diffMs = fechaActual - nacimiento;
-      const edadAnios = new Date(diffMs).getUTCFullYear() - 1970;
-      console.log(
-        `📅 Fecha nacimiento: ${nacimiento.toISOString()} → Edad: ${edadAnios}`
-      );
-
-      // Caso 1: hijo menor de 15
-      if (edadAnios <= 15) {
-        console.log("✅ Aceptado: Es hijo menor de 15 años.");
-        beneficiariosValidosConIndice.push({ beneficiario, index });
-        return;
-      }
-
-      // Caso 2: hijo mayor de 15
-      console.log("➡️ Es hijo mayor de 15, se revisan condiciones...");
-
-      if (Number(beneficiario.ESDISCAPACITADO) === 1) {
-        console.log("ℹ️ Es discapacitado.");
-        if (!beneficiario.URL_INCAP) {
-          console.log("❌ Rechazado: No tiene constancia de incapacidad.");
+      try {
+        // Si lo estás filtrando en el back por ACTIVO, esto es redundante; igual logueamos:
+        if (row.activo.toUpperCase() !== "A") {
+          row.razon = "Inactivo";
+          dbg("❌ Rechazado:", row.razon);
+          summary.push(row);
+          dbgGroupEnd();
           return;
         }
-        console.log("✅ Aceptado: Discapacitado con constancia.");
-        beneficiariosValidosConIndice.push({ beneficiario, index });
-        return;
-      }
 
-      if (Number(beneficiario.ESESTUDIANTE) === 1) {
-        console.log("ℹ️ Es estudiante.");
-        if (beneficiario.VIGENCIA_ESTUDIOS) {
-          const vigencia = new Date(beneficiario.VIGENCIA_ESTUDIOS);
-          if (vigencia.getTime() >= fechaActual.getTime()) {
-            console.log(
-              `✅ Aceptado: Constancia vigente (${vigencia.toISOString()}).`
-            );
+        // 1) Si NO es hijo (parentesco != 2) → pasa directo
+        if (row.parentesco !== 2) {
+          row.razon = "No es hijo (pasa directo)";
+          row.aceptado = true;
+          dbg("✅ Aceptado:", row.razon);
+          beneficiariosValidosConIndice.push({ beneficiario, index });
+          summary.push(row);
+          dbgGroupEnd();
+          return;
+        }
+
+        // 2) Hijo: checar nacimiento y edad
+        if (!beneficiario.F_NACIMIENTO) {
+          row.razon = "Sin fecha de nacimiento";
+          dbg("❌ Rechazado:", row.razon);
+          summary.push(row);
+          dbgGroupEnd();
+          return;
+        }
+
+        // Tratar "YYYY-MM-DD" como local (evita desfases)
+        const [fechaParte] = asStr(beneficiario.F_NACIMIENTO).split(" ");
+        const nacimiento = (() => {
+          if (fechaParte.includes("-")) {
+            const [y, m, d] = fechaParte.split("-").map(Number);
+            if (y && m && d) return new Date(y, m - 1, d, 0, 0, 0, 0);
+          }
+          return new Date(fechaParte);
+        })();
+
+        const edadMs = ahora - nacimiento;
+        const edadAnios = new Date(edadMs).getUTCFullYear() - 1970;
+        dbg(
+          "📅 Nacimiento:",
+          nacimiento.toString(),
+          "| ISO:",
+          nacimiento.toISOString(),
+          "| Edad:",
+          edadAnios
+        );
+
+        if (edadAnios <= 15) {
+          row.razon = "Hijo menor de 15";
+          row.aceptado = true;
+          dbg("✅ Aceptado:", row.razon);
+          beneficiariosValidosConIndice.push({ beneficiario, index });
+          summary.push(row);
+          dbgGroupEnd();
+          return;
+        }
+
+        // 3) Mayor de 15 → revisar discapacidad/estudios
+        dbg("➡️ Mayor de 15, revisando discapacidad/estudios…");
+
+        if (row.esDiscapacitado === 1) {
+          dbg("ℹ️ Discapacitado. URL_INCAP:", beneficiario.URL_INCAP);
+          if (!beneficiario.URL_INCAP) {
+            row.razon = "Discapacitado sin constancia (URL_INCAP vacío)";
+            dbg("❌ Rechazado:", row.razon);
+            summary.push(row);
+            dbgGroupEnd();
+            return;
+          }
+          row.razon = "Discapacitado con constancia";
+          row.aceptado = true;
+          dbg("✅ Aceptado:", row.razon);
+          beneficiariosValidosConIndice.push({ beneficiario, index });
+          summary.push(row);
+          dbgGroupEnd();
+          return;
+        }
+
+        if (row.esEstudiante === 1) {
+          dbg("ℹ️ Estudiante.");
+
+          // === CLAVE: comparar con fecha CRUDA del back ===
+          // Si el back te manda VIGENCIA_ESTUDIOS_EOD_TS (recomendado), úsalo:
+          let vigenciaEod =
+            row.vigEodTs != null
+              ? new Date(Number(row.vigEodTs))
+              : endOfDayLocalFront(beneficiario.VIGENCIA_ESTUDIOS);
+
+          dbg(
+            "🧪 Vigencia (EOD) =>",
+            row.vigEodTs != null
+              ? `TS:${row.vigEodTs}`
+              : asStr(beneficiario.VIGENCIA_ESTUDIOS),
+            "→",
+            vigenciaEod?.toString()
+          );
+
+          if (!vigenciaEod) {
+            row.razon = "Estudiante sin constancia de estudios";
+            dbg("❌ Rechazado:", row.razon);
+            summary.push(row);
+            dbgGroupEnd();
+            return;
+          }
+
+          if (vigenciaEod.getTime() >= ahoraTs) {
+            row.razon = "Constancia vigente";
+            row.aceptado = true;
+            dbg("✅ Aceptado:", row.razon);
             beneficiariosValidosConIndice.push({ beneficiario, index });
+            summary.push(row);
+            dbgGroupEnd();
             return;
           } else {
-            console.log(
-              `❌ Rechazado: Constancia vencida (${vigencia.toISOString()}).`
+            row.razon = `Constancia vencida (vigenciaEod < ahora)`;
+            dbg(
+              "❌ Rechazado:",
+              row.razon,
+              "| vigenciaEod:",
+              vigenciaEod.toISOString(),
+              "| ahora:",
+              new Date(ahoraTs).toISOString()
             );
+            summary.push(row);
+            dbgGroupEnd();
             return;
           }
         }
-        console.log("❌ Rechazado: Estudiante sin constancia de estudios.");
-        return;
-      }
 
-      console.log(
-        "❌ Rechazado: Mayor de 15, no discapacitado, no estudiante."
-      );
+        row.razon = "Mayor de 15, no discapacitado, no estudiante";
+        dbg("❌ Rechazado:", row.razon);
+        summary.push(row);
+        dbgGroupEnd();
+      } catch (e) {
+        row.razon = "Excepción en validación";
+        dbgWarn("⚠️ Error procesando beneficiario:", e);
+        summary.push(row);
+        dbgGroupEnd();
+      }
     });
 
+    // Resumen
+    try {
+      console.table(summary);
+      window.__benefDebug = { summary, beneficiariosValidosConIndice };
+    } catch {}
+
     if (beneficiariosValidosConIndice.length === 0) {
-      console.log("⚠️ No hay beneficiarios válidos → Se selecciona empleado.");
+      dbgWarn("⚠️ No hay beneficiarios válidos → Se selecciona empleado.");
       setConsultaSeleccionada("empleado");
 
       await showCustomAlert(
@@ -204,13 +371,14 @@ const SignosVitales = () => {
     }
 
     const primerValido = beneficiariosValidosConIndice[0];
-    console.log(
+    dbg(
       `✅ Primer beneficiario válido seleccionado → [${primerValido.index}] ${primerValido.beneficiario.NOMBRE} ${primerValido.beneficiario.A_PATERNO}`
     );
     setSelectedBeneficiaryIndex(primerValido.index);
     window.beneficiariosValidos = beneficiariosValidosConIndice;
   };
 
+  // ===================== DATA/ACCIONES =====================
   const cargarPacientesDelDia = async () => {
     try {
       const response = await fetch(
@@ -248,7 +416,6 @@ const SignosVitales = () => {
         "Por favor, ingresa el número de nómina antes de guardar.",
         "Aceptar"
       );
-
       setIsSaving(false);
       return;
     }
@@ -385,9 +552,7 @@ const SignosVitales = () => {
     try {
       const response = await fetch("/api/empleado", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ num_nom: nomina }),
       });
 
@@ -405,7 +570,6 @@ const SignosVitales = () => {
           "El número de nómina ingresado no existe o no se encuentra en el sistema. Intenta nuevamente.",
           "Aceptar"
         );
-
         setEmpleadoEncontrado(false);
         setShowConsulta(false);
         return;
@@ -437,7 +601,6 @@ const SignosVitales = () => {
         "Hubo un problema al buscar la nómina. Intenta nuevamente.",
         "Aceptar"
       );
-
       setEmpleadoEncontrado(false);
       setShowConsulta(false);
     }
@@ -447,13 +610,29 @@ const SignosVitales = () => {
     try {
       const response = await fetch("/api/beneficiarios/beneficiario", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ nomina }),
       });
 
       const data = await response.json();
+
+      // LOG de lo que llega del back
+      dbg(
+        "📥 Beneficiarios (raw back):",
+        data?.beneficiarios?.map((b) => ({
+          ID_BENEFICIARIO: b.ID_BENEFICIARIO,
+          NOMBRE: `${b.NOMBRE} ${b.A_PATERNO} ${b.A_MATERNO}`,
+          ACTIVO: b.ACTIVO,
+          PARENTESCO: b.PARENTESCO,
+          ID_PARENTESCO: b.ID_PARENTESCO,
+          ESDISCAPACITADO: b.ESDISCAPACITADO,
+          ESESTUDIANTE: b.ESESTUDIANTE,
+          F_NACIMIENTO: b.F_NACIMIENTO,
+          VIGENCIA_ESTUDIOS: b.VIGENCIA_ESTUDIOS,
+          VIGENCIA_ESTUDIOS_FORMAT: b.VIGENCIA_ESTUDIOS_FORMAT,
+          VIGENCIA_ESTUDIOS_EOD_TS: b.VIGENCIA_ESTUDIOS_EOD_TS, // si lo agregas en back
+        }))
+      );
 
       if (data.beneficiarios && data.beneficiarios.length > 0) {
         setBeneficiaryData(data.beneficiarios);
@@ -495,6 +674,8 @@ const SignosVitales = () => {
       validateBeneficiariesOnLoad(beneficiaryData);
     }
   }, [beneficiaryData]);
+
+  // ⬇️ tu return(...) va aquí
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-900 to-black text-white">
