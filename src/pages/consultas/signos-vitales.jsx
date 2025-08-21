@@ -105,6 +105,7 @@ const SignosVitales = () => {
 
   const validateBeneficiariesOnLoad = async (beneficiaryData) => {
     if (!beneficiaryData || beneficiaryData.length === 0) {
+      console.log("No hay beneficiarios en los datos recibidos.");
       return;
     }
 
@@ -112,47 +113,80 @@ const SignosVitales = () => {
     const beneficiariosValidosConIndice = [];
 
     beneficiaryData.forEach((beneficiario, index) => {
+      console.log(
+        `🔎 Evaluando beneficiario [${index}] ${beneficiario.NOMBRE} ${beneficiario.A_PATERNO} ${beneficiario.A_MATERNO}`
+      );
+
+      // Si no es hijo, pasa directo
       if (Number(beneficiario.PARENTESCO) !== 2) {
+        console.log("✅ Aceptado: No es hijo (parentesco != 2).");
         beneficiariosValidosConIndice.push({ beneficiario, index });
         return;
       }
 
-      if (beneficiario.F_NACIMIENTO) {
-        const [fechaParte] = beneficiario.F_NACIMIENTO.split(" ");
-        const nacimiento = new Date(fechaParte);
-        const diffMs = fechaActual - nacimiento;
-        const edadAnios = new Date(diffMs).getUTCFullYear() - 1970;
+      // Validar fecha nacimiento
+      if (!beneficiario.F_NACIMIENTO) {
+        console.log("❌ Rechazado: No tiene fecha de nacimiento.");
+        return;
+      }
 
-        if (edadAnios <= 15) {
-          beneficiariosValidosConIndice.push({ beneficiario, index });
-          return;
-        }
+      const [fechaParte] = beneficiario.F_NACIMIENTO.split(" ");
+      const nacimiento = new Date(fechaParte);
+      const diffMs = fechaActual - nacimiento;
+      const edadAnios = new Date(diffMs).getUTCFullYear() - 1970;
+      console.log(
+        `📅 Fecha nacimiento: ${nacimiento.toISOString()} → Edad: ${edadAnios}`
+      );
 
-        if (Number(beneficiario.ESDISCAPACITADO) === 0) {
-          return;
-        }
+      // Caso 1: hijo menor de 15
+      if (edadAnios <= 15) {
+        console.log("✅ Aceptado: Es hijo menor de 15 años.");
+        beneficiariosValidosConIndice.push({ beneficiario, index });
+        return;
+      }
 
+      // Caso 2: hijo mayor de 15
+      console.log("➡️ Es hijo mayor de 15, se revisan condiciones...");
+
+      if (Number(beneficiario.ESDISCAPACITADO) === 1) {
+        console.log("ℹ️ Es discapacitado.");
         if (!beneficiario.URL_INCAP) {
+          console.log("❌ Rechazado: No tiene constancia de incapacidad.");
           return;
         }
+        console.log("✅ Aceptado: Discapacitado con constancia.");
+        beneficiariosValidosConIndice.push({ beneficiario, index });
+        return;
+      }
 
-        if (Number(beneficiario.ESESTUDIANTE) === 0) {
-          return;
-        }
-
+      if (Number(beneficiario.ESESTUDIANTE) === 1) {
+        console.log("ℹ️ Es estudiante.");
         if (beneficiario.VIGENCIA_ESTUDIOS) {
           const vigencia = new Date(beneficiario.VIGENCIA_ESTUDIOS);
           if (vigencia.getTime() >= fechaActual.getTime()) {
+            console.log(
+              `✅ Aceptado: Constancia vigente (${vigencia.toISOString()}).`
+            );
             beneficiariosValidosConIndice.push({ beneficiario, index });
+            return;
+          } else {
+            console.log(
+              `❌ Rechazado: Constancia vencida (${vigencia.toISOString()}).`
+            );
+            return;
           }
-          return;
         }
-
-        beneficiariosValidosConIndice.push({ beneficiario, index });
+        console.log("❌ Rechazado: Estudiante sin constancia de estudios.");
+        return;
       }
+
+      console.log(
+        "❌ Rechazado: Mayor de 15, no discapacitado, no estudiante."
+      );
     });
 
     if (beneficiariosValidosConIndice.length === 0) {
+      console.log("⚠️ No hay beneficiarios válidos → Se selecciona empleado.");
       setConsultaSeleccionada("empleado");
 
       await showCustomAlert(
@@ -170,90 +204,11 @@ const SignosVitales = () => {
     }
 
     const primerValido = beneficiariosValidosConIndice[0];
+    console.log(
+      `✅ Primer beneficiario válido seleccionado → [${primerValido.index}] ${primerValido.beneficiario.NOMBRE} ${primerValido.beneficiario.A_PATERNO}`
+    );
     setSelectedBeneficiaryIndex(primerValido.index);
     window.beneficiariosValidos = beneficiariosValidosConIndice;
-  };
-
-  const handleBeneficiarySelect = async (index) => {
-    const selected = beneficiaryData[index];
-    const fechaActual = new Date();
-
-    const regresarABeneficiarioValido = () => {
-      if (
-        window.beneficiariosValidos &&
-        window.beneficiariosValidos.length > 0
-      ) {
-        const primerValido = window.beneficiariosValidos[0];
-        setSelectedBeneficiaryIndex(primerValido.index);
-      }
-    };
-
-    if (Number(selected.PARENTESCO) !== 2) {
-      setSelectedBeneficiaryIndex(index);
-      return;
-    }
-
-    if (selected.F_NACIMIENTO) {
-      const [fechaParte] = selected.F_NACIMIENTO.split(" ");
-      const nacimiento = new Date(fechaParte);
-      const diffMs = fechaActual - nacimiento;
-      const edadAnios = new Date(diffMs).getUTCFullYear() - 1970;
-
-      if (edadAnios <= 15) {
-        setSelectedBeneficiaryIndex(index);
-        return;
-      }
-    }
-
-    if (Number(selected.ESDISCAPACITADO) === 1) {
-      if (!selected.URL_INCAP) {
-        showCustomAlert(
-          "info",
-          "Falta incapacidad",
-          `El beneficiario <strong>${selected.NOMBRE} ${selected.A_PATERNO} ${selected.A_MATERNO}</strong> es discapacitado y aún no ha subido su documento de incapacidad.`,
-          "Aceptar"
-        ).then(() => {
-          regresarABeneficiarioValido();
-        });
-        regresarABeneficiarioValido();
-      }
-      setSelectedBeneficiaryIndex(index);
-      return;
-    }
-
-    if (Number(selected.ESESTUDIANTE) === 0) {
-      showCustomAlert(
-        "error",
-        "Datos incompletos",
-        `El beneficiario <strong>${selected.NOMBRE} ${selected.A_PATERNO} ${selected.A_MATERNO}</strong> no está registrado como estudiante ni como discapacitado.
-        <p style='color: #ffcdd2; font-size: 1em; margin-top: 10px;'>⚠️ Debe completar sus datos en el empadronamiento para tener acceso.</p>`,
-        "Entendido"
-      ).then(() => {
-        regresarABeneficiarioValido();
-      });
-
-      regresarABeneficiarioValido();
-      return;
-    }
-
-    if (selected.VIGENCIA_ESTUDIOS) {
-      const vigencia = new Date(selected.VIGENCIA_ESTUDIOS);
-      if (vigencia.getTime() < fechaActual.getTime()) {
-        await showCustomAlert(
-          "warning",
-          "Constancia vencida",
-          `El beneficiario <strong>${selected.NOMBRE} ${selected.A_PATERNO} ${selected.A_MATERNO}</strong> tiene la constancia de estudios vencida. Se ha regresado al beneficiario válido.`,
-          "Aceptar"
-        ).then(() => {
-          regresarABeneficiarioValido();
-        });
-
-        regresarABeneficiarioValido();
-        return;
-      }
-    }
-
-    setSelectedBeneficiaryIndex(index);
   };
 
   const cargarPacientesDelDia = async () => {
