@@ -27,18 +27,8 @@ import { showCustomAlert } from "../../utils/alertas";
 
 // ===================== DEBUG / HELPERS =====================
 const DEBUG_BENEF = true;
-const dbg = (...a) => {
-  if (DEBUG_BENEF) console.log(...a);
-};
-const dbgWarn = (...a) => {
-  if (DEBUG_BENEF) console.warn(...a);
-};
-const dbgGroup = (title) => {
-  if (DEBUG_BENEF) console.group(title);
-};
-const dbgGroupEnd = () => {
-  if (DEBUG_BENEF) console.groupEnd();
-};
+const dbg = (...a) => { if (DEBUG_BENEF) console.log(...a); };
+const dbgWarn = (...a) => { if (DEBUG_BENEF) console.warn(...a); };
 
 const asNum = (v) => Number(v ?? 0);
 const asStr = (v) => (v == null ? "" : String(v)).trim();
@@ -49,22 +39,17 @@ const parseFechaConservadora = (raw) => {
   if (raw instanceof Date) return raw;
   const str = String(raw);
 
-  // dd/mm/yyyy (si en algún caso lo recibes)
+  // dd/mm/yyyy
   const mSlash = str.match(/(\d{2})\/(\d{2})\/(\d{4})/);
   if (mSlash) {
-    const d = Number(mSlash[1]),
-      m = Number(mSlash[2]),
-      y = Number(mSlash[3]);
+    const d = Number(mSlash[1]), m = Number(mSlash[2]), y = Number(mSlash[3]);
     return new Date(y, m - 1, d);
   }
 
   // YYYY-MM-DD o ISO
   const mIso = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
   if (mIso) {
-    const y = Number(mIso[1]),
-      m = Number(mIso[2]),
-      d = Number(mIso[3]);
-    // IMPORTANTE: construir como local para evitar desfases
+    const y = Number(mIso[1]), m = Number(mIso[2]), d = Number(mIso[3]);
     return new Date(y, m - 1, d);
   }
 
@@ -76,15 +61,7 @@ const parseFechaConservadora = (raw) => {
 const endOfDayLocalFront = (raw) => {
   const base = parseFechaConservadora(raw);
   if (!base) return null;
-  return new Date(
-    base.getFullYear(),
-    base.getMonth(),
-    base.getDate(),
-    23,
-    59,
-    59,
-    999
-  );
+  return new Date(base.getFullYear(), base.getMonth(), base.getDate(), 23, 59, 59, 999);
 };
 
 // ===================== EDAD (igual que tenías) =====================
@@ -111,12 +88,10 @@ const calcularEdad = (fechaNacimiento) => {
     let dias = hoy.getDate() - nacimiento.getDate();
 
     if (meses < 0 || (meses === 0 && dias < 0)) {
-      años--;
-      meses += 12;
+      años--; meses += 12;
     }
     if (dias < 0) {
-      meses--;
-      dias += new Date(hoy.getFullYear(), hoy.getMonth(), 0).getDate();
+      meses--; dias += new Date(hoy.getFullYear(), hoy.getMonth(), 0).getDate();
     }
 
     const displayFormat = `${años} años, ${meses} meses, ${dias} días`;
@@ -140,18 +115,13 @@ const SignosVitales = () => {
     workstation: "",
     grupoNomina: "",
     cuotaSindical: "",
+    fecha_nacimiento: "",
   });
   const [nomina, setNomina] = useState("");
   const [showConsulta, setShowConsulta] = useState(false);
   const [selectedBeneficiaryIndex, setSelectedBeneficiaryIndex] = useState(-1);
   const [signosVitales, setSignosVitales] = useState({
-    ta: "",
-    temperatura: "",
-    fc: "",
-    oxigenacion: "",
-    altura: "",
-    peso: "",
-    glucosa: "",
+    ta: "", temperatura: "", fc: "", oxigenacion: "", altura: "", peso: "", glucosa: "",
   });
   const [empleadoEncontrado, setEmpleadoEncontrado] = useState(false);
 
@@ -162,325 +132,152 @@ const SignosVitales = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [beneficiaryData, setBeneficiaryData] = useState([]);
 
-  const handleFaceRecognition = () => {
-    router.push("/consultas/face-test");
+  // NUEVO: índices válidos calculados por un solo validador
+  const [validBeneficiaryIndices, setValidBeneficiaryIndices] = useState([]);
+
+  const handleFaceRecognition = () => router.push("/consultas/face-test");
+
+  // ========= Validador ÚNICO (carga y selección usan lo mismo) =========
+  const validateSingleBeneficiary = (beneficiario, ahoraTs) => {
+    try {
+      const nowTs = ahoraTs ?? Date.now();
+
+      const activo = asStr(beneficiario.ACTIVO).toUpperCase() === "A";
+      if (!activo) return { ok: false, reason: "Inactivo" };
+
+      // Si no es hijo (2) → válido directo
+      const parentesco = asNum(beneficiario.PARENTESCO ?? beneficiario.ID_PARENTESCO);
+      if (parentesco !== 2) return { ok: true, reason: "No es hijo (pasa directo)" };
+
+      // Es hijo: requiere F_NACIMIENTO
+      const f = asStr(beneficiario.F_NACIMIENTO);
+      if (!f) return { ok: false, reason: "Sin fecha de nacimiento" };
+
+      // Construir fecha local si viene 'YYYY-MM-DD'
+      const [fechaParte] = f.split(" ");
+      let nacimiento = new Date(fechaParte);
+      if (fechaParte.includes("-")) {
+        const [y, m, d] = fechaParte.split("-").map(Number);
+        if (y && m && d) nacimiento = new Date(y, m - 1, d, 0, 0, 0, 0);
+      }
+      const edadMs = new Date(nowTs).getTime() - nacimiento.getTime();
+      const edadAnios = new Date(edadMs).getUTCFullYear() - 1970;
+
+      if (edadAnios <= 15) return { ok: true, reason: "Hijo menor de 15" };
+
+      // Mayor de 15: discapacidad con constancia, o estudiante con vigencia vigente
+      const esDis = asNum(beneficiario.ESDISCAPACITADO) === 1;
+      if (esDis) {
+        if (!beneficiario.URL_INCAP) return { ok: false, reason: "Discapacitado sin constancia" };
+        return { ok: true, reason: "Discapacitado con constancia" };
+      }
+
+      const esEst = asNum(beneficiario.ESESTUDIANTE) === 1;
+      if (!esEst) return { ok: false, reason: "Mayor de 15, no discapacitado, no estudiante" };
+
+      // Estudiante: vigencia al final del día
+      const vigEod =
+        beneficiario.VIGENCIA_ESTUDIOS_EOD_TS != null
+          ? new Date(Number(beneficiario.VIGENCIA_ESTUDIOS_EOD_TS))
+          : endOfDayLocalFront(beneficiario.VIGENCIA_ESTUDIOS);
+
+      if (!vigEod) return { ok: false, reason: "Estudiante sin constancia de estudios" };
+      if (vigEod.getTime() >= nowTs) return { ok: true, reason: "Constancia vigente" };
+
+      return { ok: false, reason: "Constancia vencida" };
+    } catch {
+      return { ok: false, reason: "Excepción en validación" };
+    }
   };
 
-  // ===================== VALIDACIÓN CON LOGS =====================
-  const validateBeneficiariesOnLoad = async (beneficiaryData) => {
-    if (!beneficiaryData || beneficiaryData.length === 0) {
+  // ===================== VALIDACIÓN (sin efectos, controlada) =====================
+  const validateBeneficiariesOnLoad = async (list) => {
+    if (!list || list.length === 0) {
       dbgWarn("🚫 No hay beneficiarios en los datos recibidos.");
+      setValidBeneficiaryIndices([]);
       return;
     }
 
-    const ahora = new Date();
-    const ahoraTs = Date.now();
-    const beneficiariosValidosConIndice = [];
-    const summary = []; // para console.table
+    const nowTs = Date.now();
+    const validIdxs = [];
+    const summary = [];
 
-    dbg("🌐 TZ offset (min):", new Date().getTimezoneOffset());
-    dbg("🕒 Ahora:", ahora.toString(), "|", ahora.toISOString());
-    dbg("🔧 Iniciando validación. Total:", beneficiaryData.length);
-
-    beneficiaryData.forEach((beneficiario, index) => {
-      const fullName = `${beneficiario.NOMBRE} ${beneficiario.A_PATERNO} ${beneficiario.A_MATERNO}`;
-      dbgGroup(`🔎 [${index}] ${fullName}`);
-      const row = {
-        idx: index,
-        nombre: fullName,
-        activo: asStr(beneficiario.ACTIVO),
-        parentesco: asNum(
-          beneficiario.PARENTESCO ?? beneficiario.ID_PARENTESCO
-        ),
-        esDiscapacitado: asNum(beneficiario.ESDISCAPACITADO),
-        esEstudiante: asNum(beneficiario.ESESTUDIANTE),
-        vigRaw: asStr(beneficiario.VIGENCIA_ESTUDIOS),
-        vigFmt: asStr(beneficiario.VIGENCIA_ESTUDIOS_FORMAT),
-        vigEodTs: beneficiario.VIGENCIA_ESTUDIOS_EOD_TS ?? null,
-        razon: "",
-        aceptado: false,
-      };
-
-      try {
-        // Si lo estás filtrando en el back por ACTIVO, esto es redundante; igual logueamos:
-        if (row.activo.toUpperCase() !== "A") {
-          row.razon = "Inactivo";
-          dbg("❌ Rechazado:", row.razon);
-          summary.push(row);
-          dbgGroupEnd();
-          return;
-        }
-
-        // 1) Si NO es hijo (parentesco != 2) → pasa directo
-        if (row.parentesco !== 2) {
-          row.razon = "No es hijo (pasa directo)";
-          row.aceptado = true;
-          dbg("✅ Aceptado:", row.razon);
-          beneficiariosValidosConIndice.push({ beneficiario, index });
-          summary.push(row);
-          dbgGroupEnd();
-          return;
-        }
-
-        // 2) Hijo: checar nacimiento y edad
-        if (!beneficiario.F_NACIMIENTO) {
-          row.razon = "Sin fecha de nacimiento";
-          dbg("❌ Rechazado:", row.razon);
-          summary.push(row);
-          dbgGroupEnd();
-          return;
-        }
-
-        // Tratar "YYYY-MM-DD" como local (evita desfases)
-        const [fechaParte] = asStr(beneficiario.F_NACIMIENTO).split(" ");
-        const nacimiento = (() => {
-          if (fechaParte.includes("-")) {
-            const [y, m, d] = fechaParte.split("-").map(Number);
-            if (y && m && d) return new Date(y, m - 1, d, 0, 0, 0, 0);
-          }
-          return new Date(fechaParte);
-        })();
-
-        const edadMs = ahora - nacimiento;
-        const edadAnios = new Date(edadMs).getUTCFullYear() - 1970;
-        dbg(
-          "📅 Nacimiento:",
-          nacimiento.toString(),
-          "| ISO:",
-          nacimiento.toISOString(),
-          "| Edad:",
-          edadAnios
-        );
-
-        if (edadAnios <= 15) {
-          row.razon = "Hijo menor de 15";
-          row.aceptado = true;
-          dbg("✅ Aceptado:", row.razon);
-          beneficiariosValidosConIndice.push({ beneficiario, index });
-          summary.push(row);
-          dbgGroupEnd();
-          return;
-        }
-
-        // 3) Mayor de 15 → revisar discapacidad/estudios
-        dbg("➡️ Mayor de 15, revisando discapacidad/estudios…");
-
-        if (row.esDiscapacitado === 1) {
-          dbg("ℹ️ Discapacitado. URL_INCAP:", beneficiario.URL_INCAP);
-          if (!beneficiario.URL_INCAP) {
-            row.razon = "Discapacitado sin constancia (URL_INCAP vacío)";
-            dbg("❌ Rechazado:", row.razon);
-            summary.push(row);
-            dbgGroupEnd();
-            return;
-          }
-          row.razon = "Discapacitado con constancia";
-          row.aceptado = true;
-          dbg("✅ Aceptado:", row.razon);
-          beneficiariosValidosConIndice.push({ beneficiario, index });
-          summary.push(row);
-          dbgGroupEnd();
-          return;
-        }
-
-        if (row.esEstudiante === 1) {
-          dbg("ℹ️ Estudiante.");
-
-          // === CLAVE: comparar con fecha CRUDA del back ===
-          // Si el back te manda VIGENCIA_ESTUDIOS_EOD_TS (recomendado), úsalo:
-          let vigenciaEod =
-            row.vigEodTs != null
-              ? new Date(Number(row.vigEodTs))
-              : endOfDayLocalFront(beneficiario.VIGENCIA_ESTUDIOS);
-
-          dbg(
-            "🧪 Vigencia (EOD) =>",
-            row.vigEodTs != null
-              ? `TS:${row.vigEodTs}`
-              : asStr(beneficiario.VIGENCIA_ESTUDIOS),
-            "→",
-            vigenciaEod?.toString()
-          );
-
-          if (!vigenciaEod) {
-            row.razon = "Estudiante sin constancia de estudios";
-            dbg("❌ Rechazado:", row.razon);
-            summary.push(row);
-            dbgGroupEnd();
-            return;
-          }
-
-          if (vigenciaEod.getTime() >= ahoraTs) {
-            row.razon = "Constancia vigente";
-            row.aceptado = true;
-            dbg("✅ Aceptado:", row.razon);
-            beneficiariosValidosConIndice.push({ beneficiario, index });
-            summary.push(row);
-            dbgGroupEnd();
-            return;
-          } else {
-            row.razon = `Constancia vencida (vigenciaEod < ahora)`;
-            dbg(
-              "❌ Rechazado:",
-              row.razon,
-              "| vigenciaEod:",
-              vigenciaEod.toISOString(),
-              "| ahora:",
-              new Date(ahoraTs).toISOString()
-            );
-            summary.push(row);
-            dbgGroupEnd();
-            return;
-          }
-        }
-
-        row.razon = "Mayor de 15, no discapacitado, no estudiante";
-        dbg("❌ Rechazado:", row.razon);
-        summary.push(row);
-        dbgGroupEnd();
-      } catch (e) {
-        row.razon = "Excepción en validación";
-        dbgWarn("⚠️ Error procesando beneficiario:", e);
-        summary.push(row);
-        dbgGroupEnd();
-      }
+    list.forEach((b, index) => {
+      const fullName = `${b.NOMBRE} ${b.A_PATERNO} ${b.A_MATERNO}`;
+      const { ok, reason } = validateSingleBeneficiary(b, nowTs);
+      summary.push({ idx: index, nombre: fullName, ok, reason });
+      if (ok) validIdxs.push(index);
     });
 
-    // Resumen
     try {
       console.table(summary);
-      window.__benefDebug = { summary, beneficiariosValidosConIndice };
     } catch {}
 
-    if (beneficiariosValidosConIndice.length === 0) {
+    setValidBeneficiaryIndices(validIdxs);
+    dbg("✅ Índices válidos:", validIdxs);
+
+    if (validIdxs.length === 0) {
       dbgWarn("⚠️ No hay beneficiarios válidos → Se selecciona empleado.");
       setConsultaSeleccionada("empleado");
+      setSelectedBeneficiaryIndex(-1);
 
       await showCustomAlert(
         "info",
         "Redirección automática",
         "No hay beneficiarios válidos disponibles. Se ha seleccionado automáticamente la consulta para el empleado.",
         "Continuar",
-        {
-          timer: 2500,
-          timerProgressBar: true,
-          showConfirmButton: false,
-        }
+        { timer: 2500, timerProgressBar: true, showConfirmButton: false }
       );
       return;
     }
 
-    const primerValido = beneficiariosValidosConIndice[0];
-    dbg(
-      `✅ Primer beneficiario válido seleccionado → [${primerValido.index}] ${primerValido.beneficiario.NOMBRE} ${primerValido.beneficiario.A_PATERNO}`
-    );
-    setSelectedBeneficiaryIndex(primerValido.index);
-    window.beneficiariosValidos = beneficiariosValidosConIndice;
+    setSelectedBeneficiaryIndex(validIdxs[0]);
+    dbg(`🎯 Primer válido seleccionado → [${validIdxs[0]}]`);
   };
 
   const handleBeneficiarySelect = async (index) => {
-    const selected = beneficiaryData[index];
-    const fechaActual = new Date();
+    if (!beneficiaryData || !beneficiaryData.length) return;
 
-    const regresarABeneficiarioValido = () => {
-      if (
-        window.beneficiariosValidos &&
-        window.beneficiariosValidos.length > 0
-      ) {
-        const primerValido = window.beneficiariosValidos[0];
-        setSelectedBeneficiaryIndex(primerValido.index);
-      }
-    };
+    const b = beneficiaryData[index];
+    const { ok, reason } = validateSingleBeneficiary(b);
 
-    if (Number(selected.PARENTESCO) !== 2) {
+    if (ok) {
       setSelectedBeneficiaryIndex(index);
       return;
     }
 
-    if (selected.F_NACIMIENTO) {
-      const [fechaParte] = selected.F_NACIMIENTO.split(" ");
-      const nacimiento = new Date(fechaParte);
-      const diffMs = fechaActual - nacimiento;
-      const edadAnios = new Date(diffMs).getUTCFullYear() - 1970;
+    const firstValid = validBeneficiaryIndices[0];
 
-      if (edadAnios <= 15) {
-        setSelectedBeneficiaryIndex(index);
-        return;
-      }
+    await showCustomAlert(
+      "warning",
+      "No se puede seleccionar",
+      `El beneficiario <strong>${b.NOMBRE} ${b.A_PATERNO} ${b.A_MATERNO}</strong> no cumple los requisitos: <br><br><em>${reason}</em>`,
+      "Entendido"
+    );
+
+    if (firstValid != null) {
+      setSelectedBeneficiaryIndex(firstValid);
+    } else {
+      setConsultaSeleccionada("empleado");
+      setSelectedBeneficiaryIndex(-1);
     }
-
-    if (Number(selected.ESDISCAPACITADO) === 1) {
-      if (!selected.URL_INCAP) {
-        showCustomAlert(
-          "info",
-          "Falta incapacidad",
-          `El beneficiario <strong>${selected.NOMBRE} ${selected.A_PATERNO} ${selected.A_MATERNO}</strong> es discapacitado y aún no ha subido su documento de incapacidad.`,
-          "Aceptar"
-        ).then(() => {
-          regresarABeneficiarioValido();
-        });
-        regresarABeneficiarioValido();
-      }
-      setSelectedBeneficiaryIndex(index);
-      return;
-    }
-
-    if (Number(selected.ESESTUDIANTE) === 0) {
-      showCustomAlert(
-        "error",
-        "Datos incompletos",
-        `El beneficiario <strong>${selected.NOMBRE} ${selected.A_PATERNO} ${selected.A_MATERNO}</strong> no está registrado como estudiante ni como discapacitado.
-        <p style='color: #ffcdd2; font-size: 1em; margin-top: 10px;'>⚠️ Debe completar sus datos en el empadronamiento para tener acceso.</p>`,
-        "Entendido"
-      ).then(() => {
-        regresarABeneficiarioValido();
-      });
-
-      regresarABeneficiarioValido();
-      return;
-    }
-
-    if (selected.VIGENCIA_ESTUDIOS) {
-      const vigencia = new Date(selected.VIGENCIA_ESTUDIOS);
-      if (vigencia.getTime() < fechaActual.getTime()) {
-        await showCustomAlert(
-          "warning",
-          "Constancia vencida",
-          `El beneficiario <strong>${selected.NOMBRE} ${selected.A_PATERNO} ${selected.A_MATERNO}</strong> tiene la constancia de estudios vencida. Se ha regresado al beneficiario válido.`,
-          "Aceptar"
-        ).then(() => {
-          regresarABeneficiarioValido();
-        });
-
-        regresarABeneficiarioValido();
-        return;
-      }
-    }
-
-    setSelectedBeneficiaryIndex(index);
   };
 
   // ===================== DATA/ACCIONES =====================
   const cargarPacientesDelDia = async () => {
     try {
-      const response = await fetch(
-        "/api/pacientes-consultas/consultasHoy?clavestatus=1"
-      );
+      const response = await fetch("/api/pacientes-consultas/consultasHoy?clavestatus=1");
       const data = await response.json();
 
       if (response.ok && data.consultas?.length > 0) {
         const consultasOrdenadas = data.consultas.sort(
           (a, b) => new Date(a.fechaconsulta) - new Date(b.fechaconsulta)
         );
-
-        setPacientes((prevPacientes) => {
-          if (
-            JSON.stringify(prevPacientes) !== JSON.stringify(consultasOrdenadas)
-          ) {
-            return consultasOrdenadas;
-          }
-          return prevPacientes;
-        });
+        setPacientes((prev) =>
+          JSON.stringify(prev) !== JSON.stringify(consultasOrdenadas)
+            ? consultasOrdenadas
+            : prev
+        );
       }
     } catch (error) {
       console.error("Error al cargar consultas del día:", error);
@@ -503,18 +300,14 @@ const SignosVitales = () => {
     }
 
     const now = new Date();
-    const fechaConsulta = `${now.getFullYear()}-${String(
-      now.getMonth() + 1
-    ).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")} ${String(
-      now.getHours()
-    ).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}:${String(
-      now.getSeconds()
-    ).padStart(2, "0")}`;
+    const fechaConsulta = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(
+      now.getDate()
+    ).padStart(2, "0")} ${String(now.getHours()).padStart(2, "0")}:${String(
+      now.getMinutes()
+    ).padStart(2, "0")}:${String(now.getSeconds()).padStart(2, "0")}`;
 
     const selectedBeneficiary =
-      selectedBeneficiaryIndex >= 0
-        ? beneficiaryData[selectedBeneficiaryIndex]
-        : null;
+      selectedBeneficiaryIndex >= 0 ? beneficiaryData[selectedBeneficiaryIndex] : null;
 
     const consultaData = {
       fechaconsulta: fechaConsulta,
@@ -563,15 +356,13 @@ const SignosVitales = () => {
       });
 
       if (response.ok) {
-        const responseData = await response.json();
-
+        await response.json();
         await showCustomAlert(
           "success",
           "Consulta guardada correctamente",
           "La consulta ha sido registrada y atendida exitosamente.",
           "Aceptar"
         );
-
         handleCloseModal();
         await cargarPacientesDelDia();
       } else {
@@ -600,35 +391,33 @@ const SignosVitales = () => {
       workstation: "",
       grupoNomina: "",
       cuotaSindical: "",
+      fecha_nacimiento: "",
     });
-    setSignosVitales({
-      ta: "",
-      temperatura: "",
-      fc: "",
-      oxigenacion: "",
-      altura: "",
-      peso: "",
-      glucosa: "",
-    });
+    setSignosVitales({ ta: "", temperatura: "", fc: "", oxigenacion: "", altura: "", peso: "", glucosa: "" });
     setNomina("");
     setEmpleadoEncontrado(false);
     setBeneficiaryData([]);
+    setValidBeneficiaryIndices([]);
     setSelectedBeneficiaryIndex(-1);
+    setConsultaSeleccionada("empleado");
   };
 
-  const handleRadioChange = (value) => {
+  const handleRadioChange = async (value) => {
     setConsultaSeleccionada(value);
+
     if (value === "beneficiario") {
-      handleSearchBeneficiary();
+      // Trae y luego valida (para evitar carreras)
+      const list = await handleSearchBeneficiary();
+      await validateBeneficiariesOnLoad(list);
     } else {
+      // empleado
       setBeneficiaryData([]);
+      setValidBeneficiaryIndices([]);
       setSelectedBeneficiaryIndex(-1);
     }
   };
 
-  const handleCloseModal = () => {
-    setShowConsulta(false);
-  };
+  const handleCloseModal = () => setShowConsulta(false);
 
   const handleSearch = async () => {
     try {
@@ -640,12 +429,7 @@ const SignosVitales = () => {
 
       const data = await response.json();
 
-      if (
-        !data ||
-        Object.keys(data).length === 0 ||
-        !data.nombre ||
-        !data.departamento
-      ) {
+      if (!data || Object.keys(data).length === 0 || !data.nombre || !data.departamento) {
         await showCustomAlert(
           "error",
           "Nómina no encontrada",
@@ -663,9 +447,7 @@ const SignosVitales = () => {
 
       setPatientData({
         photo: "/user_icon_.png",
-        name: `${data.nombre ?? ""} ${data.a_paterno ?? ""} ${
-          data.a_materno ?? ""
-        }`,
+        name: `${data.nombre ?? ""} ${data.a_paterno ?? ""} ${data.a_materno ?? ""}`,
         age: display,
         department: data.departamento ?? "",
         workstation: data.puesto ?? "",
@@ -688,6 +470,7 @@ const SignosVitales = () => {
     }
   };
 
+  // AHORA devuelve la lista y no valida aquí adentro
   const handleSearchBeneficiary = async () => {
     try {
       const response = await fetch("/api/beneficiarios/beneficiario", {
@@ -698,48 +481,28 @@ const SignosVitales = () => {
 
       const data = await response.json();
 
-      // LOG de lo que llega del back
-      dbg(
-        "📥 Beneficiarios (raw back):",
-        data?.beneficiarios?.map((b) => ({
-          ID_BENEFICIARIO: b.ID_BENEFICIARIO,
-          NOMBRE: `${b.NOMBRE} ${b.A_PATERNO} ${b.A_MATERNO}`,
-          ACTIVO: b.ACTIVO,
-          PARENTESCO: b.PARENTESCO,
-          ID_PARENTESCO: b.ID_PARENTESCO,
-          ESDISCAPACITADO: b.ESDISCAPACITADO,
-          ESESTUDIANTE: b.ESESTUDIANTE,
-          F_NACIMIENTO: b.F_NACIMIENTO,
-          VIGENCIA_ESTUDIOS: b.VIGENCIA_ESTUDIOS,
-          VIGENCIA_ESTUDIOS_FORMAT: b.VIGENCIA_ESTUDIOS_FORMAT,
-          VIGENCIA_ESTUDIOS_EOD_TS: b.VIGENCIA_ESTUDIOS_EOD_TS, // si lo agregas en back
-        }))
-      );
-
+      dbg("📥 Beneficiarios (raw back):", data?.beneficiarios);
       if (data.beneficiarios && data.beneficiarios.length > 0) {
         setBeneficiaryData(data.beneficiarios);
-        validateBeneficiariesOnLoad(data.beneficiarios);
+        return data.beneficiarios; // devolvemos la lista para que la valide quien la llamó
       } else {
         setBeneficiaryData([]);
-        setConsultaSeleccionada("empleado");
-        await showCustomAlert(
-          "info",
-          "Sin beneficiarios",
-          "Este empleado no tiene beneficiarios validos registrados en el sistema.",
-          "Aceptar"
-        );
+        setValidBeneficiaryIndices([]);
+        setSelectedBeneficiaryIndex(-1);
+        return [];
       }
     } catch (error) {
       console.error("Error al buscar beneficiarios:", error);
+      setBeneficiaryData([]);
+      setValidBeneficiaryIndices([]);
+      setSelectedBeneficiaryIndex(-1);
+      return [];
     }
   };
 
   const handleVitalChange = (e) => {
     const { name, value } = e.target;
-    setSignosVitales((prevState) => ({
-      ...prevState,
-      [name]: value,
-    }));
+    setSignosVitales((prevState) => ({ ...prevState, [name]: value }));
   };
 
   useEffect(() => {
@@ -751,30 +514,14 @@ const SignosVitales = () => {
     setUsername(user);
   }, []);
 
-  useEffect(() => {
-    if (consultaSeleccionada === "beneficiario") {
-      validateBeneficiariesOnLoad(beneficiaryData);
-    }
-  }, [beneficiaryData]);
+  // Eliminado el efecto que revalidaba beneficiaryData automáticamente
+  // para evitar condiciones de carrera.
 
-  // ⬇️ tu return(...) va aquí
-
+  // ⬇️ UI
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-900 to-black text-white">
       <header className="relative">
-        <div
-          className="
-      absolute top-4 right-4
-      flex items-center
-      px-6 py-3 md:px-8 md:py-4
-      rounded-lg
-      text-white font-medium text-sm md:text-lg
-      bg-gradient-to-r from-[#890677] via-[#075e85] to-[#890677]
-      shadow-md
-      backdrop-blur-sm
-      border border-white/20
-    "
-        >
+        <div className="absolute top-4 right-4 flex items-center px-6 py-3 md:px-8 md:py-4 rounded-lg text-white font-medium text-sm md:text-lg bg-gradient-to-r from-[#890677] via-[#075e85] to-[#890677] shadow-md backdrop-blur-sm border border-white/20">
           <Stethoscope className="mr-2 h-6 w-6" />
           Bienvenid@ {username}
         </div>
@@ -783,19 +530,8 @@ const SignosVitales = () => {
       <header className="px-4 py-4 md:px-12 flex items-center">
         <Link href="/inicio-servicio-medico">
           <button className="flex items-center px-4 py-2 bg-gradient-to-r from-[#00ffee] to-[#ec0dea] hover:from-[#00d9c1] hover:to-[#e600b8] rounded-full text-white font-semibold shadow-lg shadow-teal-500/50 transition-all duration-300 transform hover:scale-105 hover:rotate-1 active:scale-95 focus:outline-none focus:ring-2 focus:ring-teal-400">
-            <svg
-              className="w-5 h-5 mr-2"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M15 19l-7-7 7-7"
-              />
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
             Regresar
           </button>
@@ -804,16 +540,8 @@ const SignosVitales = () => {
 
       <main className="px-4 py-8 md:px-12 flex flex-col items-center">
         <div className="flex flex-col items-center">
-          <Image
-            src="/estetoscopio.png"
-            alt="Estetoscopio"
-            width={160}
-            height={160}
-            className="h-24 w-24 md:h-40 md:w-40 object-cover rounded-full bg-gray-600"
-          />
-          <h1 className="mt-4 text-3xl md:text-5xl font-extrabold text-center">
-            Registro de Pacientes
-          </h1>
+          <Image src="/estetoscopio.png" alt="Estetoscopio" width={160} height={160} className="h-24 w-24 md:h-40 md:w-40 object-cover rounded-full bg-gray-600" />
+          <h1 className="mt-4 text-3xl md:text-5xl font-extrabold text-center">Registro de Pacientes</h1>
         </div>
 
         <div className="mt-8 flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-6">
@@ -821,18 +549,8 @@ const SignosVitales = () => {
             onClick={handleAdd}
             className="flex items-center justify-center px-6 py-3 md:px-8 md:py-4 rounded-full text-white font-bold text-sm md:text-lg uppercase bg-gradient-to-r from-[#6b00ff] via-[#b400ff] to-[#ff00ff] shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:outline-none"
           >
-            <svg
-              className="w-6 h-6 text-white animate-pulse mr-2"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M16 11c2.485 0 4.5-2.015 4.5-4.5S18.485 2 16 2s-4.5 2.015-4.5 4.5S13.515 11 16 11zM6 20h16a1 1 0 001-1v-1c0-2.5-3-5-8-5s-8 2.5-8 5v1a1 1 0 001 1z"
-              />
+            <svg className="w-6 h-6 text-white animate-pulse mr-2" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16 11c2.485 0 4.5-2.015 4.5-4.5S18.485 2 16 2s-4.5 2.015-4.5 4.5S13.515 11 16 11zM6 20h16a1 1 0 001-1v-1c0-2.5-3-5-8-5s-8 2.5-8 5v1a1 1 0 001 1z" />
             </svg>
             Agregar Paciente Por Nómina
           </button>
@@ -841,18 +559,8 @@ const SignosVitales = () => {
             onClick={handleFaceRecognition}
             className="flex items-center justify-center px-6 py-3 md:px-8 md:py-4 rounded-full text-white font-bold text-sm md:text-lg uppercase bg-gradient-to-r from-[#00ff87] via-[#00d4ff] to-[#0095ff] shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:outline-none"
           >
-            <svg
-              className="w-6 h-6 text-white animate-spin-slow mr-2"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M3 3h6v6H3zM15 3h6v6h-6zM3 15h6v6H3zM15 15h6v6h-6zM9 9h6v6H9z"
-              />
+            <svg className="w-6 h-6 text-white animate-spin-slow mr-2" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h6v6H3zM15 3h6v6h-6zM3 15h6v6H3zM15 15h6v6h-6zM9 9h6v6H9z" />
             </svg>
             Agregar Paciente Por Escaneo Facial
           </button>
@@ -861,9 +569,7 @@ const SignosVitales = () => {
 
       <div className="w-full space-y-8">
         <div className="w-full overflow-x-auto p-6 bg-gradient-to-b from-gray-900 to-gray-800 rounded-xl shadow-lg mb-8">
-          <h1 className="text-3xl font-bold mb-6 text-center text-yellow-300 tracking-wide">
-            Pacientes en Lista de Espera
-          </h1>
+          <h1 className="text-3xl font-bold mb-6 text-center text-yellow-300 tracking-wide">Pacientes en Lista de Espera</h1>
           <table className="min-w-full text-gray-300 border-separate border-spacing-y-3">
             <thead>
               <tr className="bg-gray-800 bg-opacity-80 text-sm uppercase tracking-wider font-semibold">
@@ -876,29 +582,16 @@ const SignosVitales = () => {
             <tbody>
               {pacientes.length > 0 ? (
                 pacientes.map((paciente, index) => (
-                  <tr
-                    key={index}
-                    className="bg-gray-700 bg-opacity-50 hover:bg-gradient-to-r from-yellow-500 to-yellow-700 transition duration-300 ease-in-out rounded-lg shadow-md"
-                  >
-                    <td className="py-4 px-6 font-medium text-center">
-                      {paciente.clavenomina || "N/A"}
-                    </td>
-                    <td className="py-4 px-6 text-center">
-                      {paciente.nombrepaciente || "No disponible"}
-                    </td>
-                    <td className="py-4 px-6 text-center">
-                      {paciente.edad || "Desconocida"}
-                    </td>
-                    <td className="py-4 px-6 text-center">
-                      {paciente.departamento || "No asignado"}
-                    </td>
+                  <tr key={index} className="bg-gray-700 bg-opacity-50 hover:bg-gradient-to-r from-yellow-500 to-yellow-700 transition duration-300 ease-in-out rounded-lg shadow-md">
+                    <td className="py-4 px-6 font-medium text-center">{paciente.clavenomina || "N/A"}</td>
+                    <td className="py-4 px-6 text-center">{paciente.nombrepaciente || "No disponible"}</td>
+                    <td className="py-4 px-6 text-center">{paciente.edad || "Desconocida"}</td>
+                    <td className="py-4 px-6 text-center">{paciente.departamento || "No asignado"}</td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan="4" className="text-center py-4 text-gray-400">
-                    No hay consultas para el día de hoy.
-                  </td>
+                  <td colSpan="4" className="text-center py-4 text-gray-400">No hay consultas para el día de hoy.</td>
                 </tr>
               )}
             </tbody>
@@ -912,22 +605,10 @@ const SignosVitales = () => {
 
       {showConsulta && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div
-            className="bg-gray-900 p-6 md:p-8 rounded-3xl shadow-[0_0_20px_5px_rgba(0,255,255,0.7)] w-full max-w-[90vw] md:max-w-[70vw] max-h-[90vh] overflow-y-auto relative 
-  scrollbar-thin scrollbar-thumb-glow scrollbar-track-dark custom-scrollbar futuristic-scroll"
-          >
-            <button
-              onClick={handleCloseModal}
-              className="absolute top-4 right-4 text-gray-400 hover:text-white"
-            >
-              X
-            </button>
-            <h2 className="text-2xl md:text-3xl font-semibold mb-4">
-              Consulta General
-            </h2>
-            <p className="text-xs md:text-sm mb-2">
-              Fecha: {new Date().toLocaleDateString()}
-            </p>
+          <div className="bg-gray-900 p-6 md:p-8 rounded-3xl shadow-[0_0_20px_5px_rgba(0,255,255,0.7)] w-full max-w-[90vw] md:max-w-[70vw] max-h-[90vh] overflow-y-auto relative scrollbar-thin scrollbar-thumb-glow scrollbar-track-dark custom-scrollbar futuristic-scroll">
+            <button onClick={handleCloseModal} className="absolute top-4 right-4 text-gray-400 hover:text-white">X</button>
+            <h2 className="text-2xl md:text-3xl font-semibold mb-4">Consulta General</h2>
+            <p className="text-xs md:text-sm mb-2">Fecha: {new Date().toLocaleDateString()}</p>
 
             <input
               type="text"
@@ -937,37 +618,22 @@ const SignosVitales = () => {
               className="mt-2 mb-4 p-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:border-blue-400 transition duration-200 w-full"
             />
 
-            <button
-              onClick={handleSearch}
-              className="bg-blue-600 px-4 md:px-5 py-2 rounded-lg hover:bg-blue-500 transition duration-200 font-semibold w-full"
-            >
+            <button onClick={handleSearch} className="bg-blue-600 px-4 md:px-5 py-2 rounded-lg hover:bg-blue-500 transition duration-200 font-semibold w-full">
               Buscar
             </button>
 
-            <fieldset
-              disabled={!empleadoEncontrado}
-              className={!empleadoEncontrado ? "opacity-50" : ""}
-            >
-              <fieldset
-                disabled={!empleadoEncontrado}
-                className={
-                  !empleadoEncontrado ? "opacity-50 cursor-not-allowed" : ""
-                }
-              >
+            <fieldset disabled={!empleadoEncontrado} className={!empleadoEncontrado ? "opacity-50" : ""}>
+              <fieldset disabled={!empleadoEncontrado} className={!empleadoEncontrado ? "opacity-50 cursor-not-allowed" : ""}>
                 <div className="flex flex-col items-center mt-8 mb-8 p-8 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 rounded-xl border border-white-500 shadow-2xl backdrop-blur-lg w-full max-w-xs sm:max-w-md md:max-w-lg mx-auto neon-container">
-                  <p className="text-lg font-semibold mb-6 text-center text-white tracking-wider neon-title">
-                    ¿Quién va a consulta?
-                  </p>
+                  <p className="text-lg font-semibold mb-6 text-center text-white tracking-wider neon-title">¿Quién va a consulta?</p>
                   <div className="flex flex-col sm:flex-row sm:justify-center items-center space-y-6 sm:space-y-0 sm:space-x-8 w-full px-6">
-                    <label
-                      className={`relative flex flex-col items-center p-6 rounded-xl bg-gradient-to-r from-gray-800 to-gray-900 border border-gray-700 shadow-lg ${
-                        empleadoEncontrado
-                          ? consultaSeleccionada === "empleado"
-                            ? "shadow-blue-500 scale-105 transition-transform transform"
-                            : "hover:shadow-blue-500/80 hover:scale-105 transition-transform transform"
-                          : "cursor-not-allowed"
-                      } neon-card transition duration-500 ease-out`}
-                    >
+                    <label className={`relative flex flex-col items-center p-6 rounded-xl bg-gradient-to-r from-gray-800 to-gray-900 border border-gray-700 shadow-lg ${
+                      empleadoEncontrado
+                        ? consultaSeleccionada === "empleado"
+                          ? "shadow-blue-500 scale-105 transition-transform transform"
+                          : "hover:shadow-blue-500/80 hover:scale-105 transition-transform transform"
+                        : "cursor-not-allowed"
+                    } neon-card transition duration-500 ease-out`}>
                       <input
                         type="radio"
                         name="consulta"
@@ -978,87 +644,70 @@ const SignosVitales = () => {
                         disabled={!empleadoEncontrado}
                       />
                       <span className="text-white text-lg font-semibold flex items-center space-x-2 neon-text">
-                        <span className="text-blue-400 text-2xl glowing-icon">
-                          👔
-                        </span>
-                        <span className="uppercase tracking-wider">
-                          Empleado
-                        </span>
+                        <span className="text-blue-400 text-2xl glowing-icon">👔</span>
+                        <span className="uppercase tracking-wider">Empleado</span>
                       </span>
                     </label>
 
-                    <label
-                      className={`relative flex flex-col items-center p-6 rounded-xl bg-gradient-to-r from-gray-800 to-gray-900 border border-gray-700 shadow-lg ${
-                        empleadoEncontrado
-                          ? consultaSeleccionada === "beneficiario"
-                            ? "shadow-yellow-500 scale-105 transition-transform transform"
-                            : "hover:shadow-yellow-500/80 hover:scale-105 transition-transform transform"
-                          : "cursor-not-allowed"
-                      } neon-card transition duration-500 ease-out`}
-                    >
+                    <label className={`relative flex flex-col items-center p-6 rounded-xl bg-gradient-to-r from-gray-800 to-gray-900 border border-gray-700 shadow-lg ${
+                      empleadoEncontrado
+                        ? consultaSeleccionada === "beneficiario"
+                          ? "shadow-yellow-500 scale-105 transition-transform transform"
+                          : "hover:shadow-yellow-500/80 hover:scale-105 transition-transform transform"
+                        : "cursor-not-allowed"
+                    } neon-card transition duration-500 ease-out`}>
                       <input
                         type="radio"
                         name="consulta"
                         value="beneficiario"
                         className="form-radio h-6 w-6 text-yellow-500 focus:ring-yellow-400 focus:ring-2 cursor-pointer absolute top-4 right-4 opacity-0"
                         checked={consultaSeleccionada === "beneficiario"}
-                        onChange={() => {
-                          handleRadioChange("beneficiario");
-                          handleSearchBeneficiary();
-                        }}
+                        onChange={async () => { await handleRadioChange("beneficiario"); }}
                         disabled={!empleadoEncontrado}
                       />
                       <span className="text-white text-lg font-semibold flex items-center space-x-2 neon-text">
-                        <span className="text-yellow-400 text-2xl glowing-icon">
-                          👨‍👩‍👧‍👦
-                        </span>
-                        <span className="uppercase tracking-wider">
-                          Beneficiario
-                        </span>
+                        <span className="text-yellow-400 text-2xl glowing-icon">👨‍👩‍👧‍👦</span>
+                        <span className="uppercase tracking-wider">Beneficiario</span>
                       </span>
                     </label>
                   </div>
                 </div>
               </fieldset>
-              {consultaSeleccionada === "beneficiario" &&
-                beneficiaryData?.length > 0 && (
-                  <div className="flex flex-col items-start mt-4 bg-gray-800 p-4 rounded-lg shadow-lg space-y-4">
-                    <label className="text-yellow-400 font-semibold">
-                      Seleccionar Beneficiario:
-                    </label>
-                    <select
-                      value={selectedBeneficiaryIndex}
-                      onChange={(e) =>
-                        handleBeneficiarySelect(parseInt(e.target.value))
-                      }
-                      className="bg-gray-700 p-2 rounded-md text-white w-full"
-                    >
-                      {beneficiaryData.map((beneficiary, index) => (
-                        <option key={index} value={index}>
-                          {`${beneficiary.NOMBRE} ${beneficiary.A_PATERNO} ${beneficiary.A_MATERNO} - ${beneficiary.PARENTESCO_DESC}`}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
+
+              {consultaSeleccionada === "beneficiario" && beneficiaryData?.length > 0 && (
+                <div className="flex flex-col items-start mt-4 bg-gray-800 p-4 rounded-lg shadow-lg space-y-4">
+                  <label className="text-yellow-400 font-semibold">Seleccionar Beneficiario:</label>
+                  <select
+                    value={selectedBeneficiaryIndex >= 0 ? selectedBeneficiaryIndex : ""}
+                    onChange={(e) => handleBeneficiarySelect(parseInt(e.target.value, 10))}
+                    className="bg-gray-700 p-2 rounded-md text-white w-full"
+                  >
+                    <option value="" disabled>— Selecciona un beneficiario —</option>
+                    {beneficiaryData.map((beneficiary, index) => (
+                      <option key={index} value={index}>
+                        {`${beneficiary.NOMBRE} ${beneficiary.A_PATERNO} ${beneficiary.A_MATERNO} - ${beneficiary.PARENTESCO_DESC}${
+                          validBeneficiaryIndices.includes(index) ? "" : " (no válido)"
+                        }`}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
               <div className="flex flex-col md:flex-row md:items-start mt-6 bg-gray-900 p-6 rounded-3xl shadow-2xl border border-teal-500">
                 <div className="relative">
-                  {consultaSeleccionada === "beneficiario" &&
-                  selectedBeneficiaryIndex >= 0 ? (
+                  {consultaSeleccionada === "beneficiario" && selectedBeneficiaryIndex >= 0 ? (
                     <Image
-                      src={beneficiaryData[selectedBeneficiaryIndex].FOTO_URL || "/user_icon_.png" }
-                      //src={"/user_icon_.png"}
+                      src={beneficiaryData[selectedBeneficiaryIndex].FOTO_URL || "/user_icon_.png"}
+                      //src={ "/user_icon_.png"}
                       alt="Foto del Beneficiario"
                       width={120}
                       height={120}
                       className="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-yellow-400 shadow-xl transition-transform transform hover:scale-110"
                     />
-                  ) : consultaSeleccionada === "empleado" &&
-                    empleadoEncontrado ? (
+                  ) : consultaSeleccionada === "empleado" && empleadoEncontrado ? (
                     <Image
-                       src={empleadoEncontrado.FOTO_URL || "/user_icon_.png"}
-                     // src={"/user_icon_.png"}
+                      src={patientData.photo || "/user_icon_.png"}
                       alt="Foto del Empleado"
                       width={120}
                       height={120}
@@ -1085,8 +734,7 @@ const SignosVitales = () => {
                       <FaUser className="mr-3 text-teal-400 text-3xl" />
                       Paciente:{" "}
                       <span className="font-normal text-white ml-2">
-                        {consultaSeleccionada === "beneficiario" &&
-                        selectedBeneficiaryIndex >= 0
+                        {consultaSeleccionada === "beneficiario" && selectedBeneficiaryIndex >= 0
                           ? `${beneficiaryData[selectedBeneficiaryIndex].NOMBRE} ${beneficiaryData[selectedBeneficiaryIndex].A_PATERNO} ${beneficiaryData[selectedBeneficiaryIndex].A_MATERNO}`
                           : patientData.name || ""}
                       </span>
@@ -1096,8 +744,7 @@ const SignosVitales = () => {
                       <FaBirthdayCake className="mr-3 text-yellow-400 text-xl" />
                       Edad:{" "}
                       <span className="font-normal text-white ml-2">
-                        {consultaSeleccionada === "beneficiario" &&
-                        selectedBeneficiaryIndex >= 0
+                        {consultaSeleccionada === "beneficiario" && selectedBeneficiaryIndex >= 0
                           ? beneficiaryData[selectedBeneficiaryIndex].EDAD
                           : patientData.age || ""}
                       </span>
@@ -1108,47 +755,35 @@ const SignosVitales = () => {
                         <p className="text-lg text-gray-300 flex items-center mt-2">
                           <FaBuilding className="mr-3 text-indigo-400 text-xl" />
                           Puesto:{" "}
-                          <span className="font-normal text-white ml-2">
-                            {patientData.workstation || ""}
-                          </span>
+                          <span className="font-normal text-white ml-2">{patientData.workstation || ""}</span>
                         </p>
                         <p className="text-lg text-gray-300 flex items-center mt-2">
                           <FaIdCard className="mr-3 text-green-400 text-xl" />
                           Departamento:{" "}
-                          <span className="font-normal text-white ml-2">
-                            {patientData.department || ""}
-                          </span>
+                          <span className="font-normal text-white ml-2">{patientData.department || ""}</span>
                         </p>
                       </>
                     )}
 
-                    {consultaSeleccionada === "beneficiario" &&
-                      selectedBeneficiaryIndex >= 0 && (
-                        <p className="text-lg text-gray-300 flex items-center mt-2">
-                          <FaUsers className="mr-3 text-pink-400 text-xl" />
-                          Parentesco:{" "}
-                          <span className="font-normal text-white ml-2">
-                            {beneficiaryData[selectedBeneficiaryIndex]
-                              .PARENTESCO_DESC || ""}
-                          </span>
-                        </p>
-                      )}
+                    {consultaSeleccionada === "beneficiario" && selectedBeneficiaryIndex >= 0 && (
+                      <p className="text-lg text-gray-300 flex items-center mt-2">
+                        <FaUsers className="mr-3 text-pink-400 text-xl" />
+                        Parentesco:{" "}
+                        <span className="font-normal text-white ml-2">
+                          {beneficiaryData[selectedBeneficiaryIndex].PARENTESCO_DESC || ""}
+                        </span>
+                      </p>
+                    )}
                   </div>
                 </div>
 
                 {patientData.grupoNomina === "NS" && (
                   <div className="md:ml-auto mt-4 md:mt-0 p-6 bg-gradient-to-br from-gray-800 to-gray-700 rounded-3xl shadow-lg border border-yellow-500">
-                    <p className="text-xl font-bold text-yellow-400 flex items-center justify-center">
-                      🏛️ SINDICALIZADO
-                    </p>
+                    <p className="text-xl font-bold text-yellow-400 flex items-center justify-center">🏛️ SINDICALIZADO</p>
                     <p className="text-md md:text-lg text-white text-center mt-2">
                       Sindicato:{" "}
                       <span className="font-semibold text-yellow-300">
-                        {patientData.cuotaSindical === "S"
-                          ? "SUTSMSJR"
-                          : patientData.cuotaSindical === ""
-                          ? "SITAM"
-                          : "No afiliado"}
+                        {patientData.cuotaSindical === "S" ? "SUTSMSJR" : patientData.cuotaSindical === "" ? "SITAM" : "No afiliado"}
                       </span>
                     </p>
                   </div>
@@ -1156,22 +791,15 @@ const SignosVitales = () => {
               </div>
 
               <div className="mt-10 p-6 bg-gray-900 rounded-3xl shadow-2xl border border-teal-500">
-                <h3 className="text-3xl font-extrabold text-center text-teal-300 mb-8 uppercase tracking-wider">
-                  🔹 Signos Vitales 🔹
-                </h3>
+                <h3 className="text-3xl font-extrabold text-center text-teal-300 mb-8 uppercase tracking-wider">🔹 Signos Vitales 🔹</h3>
 
                 <form className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <label className="flex items-center bg-gray-800 p-4 rounded-xl shadow-lg border border-gray-700 hover:border-teal-400 transition-all duration-300">
                     <FaHeartbeat className="text-red-400 text-3xl mr-4" />
                     <div className="flex-1">
-                      <span className="block text-teal-300 font-semibold">
-                        Tensión Arterial
-                      </span>
+                      <span className="block text-teal-300 font-semibold">Tensión Arterial</span>
                       <input
-                        type="text"
-                        name="ta"
-                        value={signosVitales.ta}
-                        onChange={handleVitalChange}
+                        type="text" name="ta" value={signosVitales.ta} onChange={handleVitalChange}
                         className="mt-1 block w-full rounded-md bg-gray-700 text-white p-2 border border-gray-600 focus:border-teal-400 focus:ring-2 focus:ring-teal-500 transition"
                         placeholder="Ejemplo: 120/80"
                       />
@@ -1181,14 +809,9 @@ const SignosVitales = () => {
                   <label className="flex items-center bg-gray-800 p-4 rounded-xl shadow-lg border border-gray-700 hover:border-teal-400 transition-all duration-300">
                     <FaTemperatureHigh className="text-yellow-400 text-3xl mr-4" />
                     <div className="flex-1">
-                      <span className="block text-teal-300 font-semibold">
-                        Temperatura (°C)
-                      </span>
+                      <span className="block text-teal-300 font-semibold">Temperatura (°C)</span>
                       <input
-                        type="number"
-                        name="temperatura"
-                        value={signosVitales.temperatura}
-                        onChange={handleVitalChange}
+                        type="number" name="temperatura" value={signosVitales.temperatura} onChange={handleVitalChange}
                         className="mt-1 block w-full rounded-md bg-gray-700 text-white p-2 border border-gray-600 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-500 transition"
                         placeholder="Ejemplo: 36.5"
                       />
@@ -1198,14 +821,9 @@ const SignosVitales = () => {
                   <label className="flex items-center bg-gray-800 p-4 rounded-xl shadow-lg border border-gray-700 hover:border-teal-400 transition-all duration-300">
                     <FaHeartbeat className="text-red-500 text-3xl mr-4" />
                     <div className="flex-1">
-                      <span className="block text-teal-300 font-semibold">
-                        Frecuencia Cardíaca (bpm)
-                      </span>
+                      <span className="block text-teal-300 font-semibold">Frecuencia Cardíaca (bpm)</span>
                       <input
-                        type="number"
-                        name="fc"
-                        value={signosVitales.fc}
-                        onChange={handleVitalChange}
+                        type="number" name="fc" value={signosVitales.fc} onChange={handleVitalChange}
                         className="mt-1 block w-full rounded-md bg-gray-700 text-white p-2 border border-gray-600 focus:border-red-400 focus:ring-2 focus:ring-red-500 transition"
                         placeholder="Ejemplo: 75"
                       />
@@ -1215,14 +833,9 @@ const SignosVitales = () => {
                   <label className="flex items-center bg-gray-800 p-4 rounded-xl shadow-lg border border-gray-700 hover:border-teal-400 transition-all duration-300">
                     <FaTint className="text-blue-400 text-3xl mr-4" />
                     <div className="flex-1">
-                      <span className="block text-teal-300 font-semibold">
-                        Oxigenación (%)
-                      </span>
+                      <span className="block text-teal-300 font-semibold">Oxigenación (%)</span>
                       <input
-                        type="number"
-                        name="oxigenacion"
-                        value={signosVitales.oxigenacion}
-                        onChange={handleVitalChange}
+                        type="number" name="oxigenacion" value={signosVitales.oxigenacion} onChange={handleVitalChange}
                         className="mt-1 block w-full rounded-md bg-gray-700 text-white p-2 border border-gray-600 focus:border-blue-400 focus:ring-2 focus:ring-blue-500 transition"
                         placeholder="Ejemplo: 98"
                       />
@@ -1232,14 +845,9 @@ const SignosVitales = () => {
                   <label className="flex items-center bg-gray-800 p-4 rounded-xl shadow-lg border border-gray-700 hover:border-teal-400 transition-all duration-300">
                     <FaRuler className="text-green-400 text-3xl mr-4" />
                     <div className="flex-1">
-                      <span className="block text-teal-300 font-semibold">
-                        Altura (cm)
-                      </span>
+                      <span className="block text-teal-300 font-semibold">Altura (cm)</span>
                       <input
-                        type="number"
-                        name="altura"
-                        value={signosVitales.altura}
-                        onChange={handleVitalChange}
+                        type="number" name="altura" value={signosVitales.altura} onChange={handleVitalChange}
                         className="mt-1 block w-full rounded-md bg-gray-700 text-white p-2 border border-gray-600 focus:border-green-400 focus:ring-2 focus:ring-green-500 transition"
                         placeholder="Ejemplo: 175"
                       />
@@ -1249,14 +857,9 @@ const SignosVitales = () => {
                   <label className="flex items-center bg-gray-800 p-4 rounded-xl shadow-lg border border-gray-700 hover:border-teal-400 transition-all duration-300">
                     <FaWeight className="text-orange-400 text-3xl mr-4" />
                     <div className="flex-1">
-                      <span className="block text-teal-300 font-semibold">
-                        Peso (kg)
-                      </span>
+                      <span className="block text-teal-300 font-semibold">Peso (kg)</span>
                       <input
-                        type="number"
-                        name="peso"
-                        value={signosVitales.peso}
-                        onChange={handleVitalChange}
+                        type="number" name="peso" value={signosVitales.peso} onChange={handleVitalChange}
                         className="mt-1 block w-full rounded-md bg-gray-700 text-white p-2 border border-gray-600 focus:border-orange-400 focus:ring-2 focus:ring-orange-500 transition"
                         placeholder="Ejemplo: 70"
                       />
@@ -1266,14 +869,9 @@ const SignosVitales = () => {
                   <label className="flex items-center bg-gray-800 p-4 rounded-xl shadow-lg border border-gray-700 hover:border-teal-400 transition-all duration-300">
                     <FaNotesMedical className="text-purple-400 text-3xl mr-4" />
                     <div className="flex-1">
-                      <span className="block text-teal-300 font-semibold">
-                        Glucosa (mg/dL)
-                      </span>
+                      <span className="block text-teal-300 font-semibold">Glucosa (mg/dL)</span>
                       <input
-                        type="number"
-                        name="glucosa"
-                        value={signosVitales.glucosa}
-                        onChange={handleVitalChange}
+                        type="number" name="glucosa" value={signosVitales.glucosa} onChange={handleVitalChange}
                         className="mt-1 block w-full rounded-md bg-gray-700 text-white p-2 border border-gray-600 focus:border-purple-400 focus:ring-2 focus:ring-purple-500 transition"
                         placeholder="Ejemplo: 90"
                       />
@@ -1286,10 +884,10 @@ const SignosVitales = () => {
                     onClick={handleSave}
                     disabled={isSaving}
                     className={`relative px-8 py-4 text-lg font-bold uppercase rounded-lg 
-      bg-gray-900 border border-transparent 
-      shadow-[0_0_20px_4px_rgba(255,255,0,0.7)] hover:shadow-[0_0_40px_8px_rgba(255,255,0,0.9)] 
-      hover:text-white transition-all duration-300 ease-in-out group 
-      ${!isSaving ? "text-yellow-400" : "text-gray-500 cursor-not-allowed"}`}
+                      bg-gray-900 border border-transparent 
+                      shadow-[0_0_20px_4px_rgba(255,255,0,0.7)] hover:shadow-[0_0_40px_8px_rgba(255,255,0,0.9)] 
+                      hover:text-white transition-all duration-300 ease-in-out group 
+                      ${!isSaving ? "text-yellow-400" : "text-gray-500 cursor-not-allowed"}`}
                   >
                     <span className="absolute inset-0 rounded-lg border-2 border-yellow-500 opacity-50 blur-lg group-hover:opacity-100 group-hover:blur-xl transition-all duration-500"></span>
                     <span className="relative z-10">
