@@ -378,6 +378,88 @@ const SignosVitales = () => {
     window.beneficiariosValidos = beneficiariosValidosConIndice;
   };
 
+  const handleBeneficiarySelect = async (index) => {
+    const selected = beneficiaryData[index];
+    const fechaActual = new Date();
+
+    const regresarABeneficiarioValido = () => {
+      if (
+        window.beneficiariosValidos &&
+        window.beneficiariosValidos.length > 0
+      ) {
+        const primerValido = window.beneficiariosValidos[0];
+        setSelectedBeneficiaryIndex(primerValido.index);
+      }
+    };
+
+    if (Number(selected.PARENTESCO) !== 2) {
+      setSelectedBeneficiaryIndex(index);
+      return;
+    }
+
+    if (selected.F_NACIMIENTO) {
+      const [fechaParte] = selected.F_NACIMIENTO.split(" ");
+      const nacimiento = new Date(fechaParte);
+      const diffMs = fechaActual - nacimiento;
+      const edadAnios = new Date(diffMs).getUTCFullYear() - 1970;
+
+      if (edadAnios <= 15) {
+        setSelectedBeneficiaryIndex(index);
+        return;
+      }
+    }
+
+    if (Number(selected.ESDISCAPACITADO) === 1) {
+      if (!selected.URL_INCAP) {
+        showCustomAlert(
+          "info",
+          "Falta incapacidad",
+          `El beneficiario <strong>${selected.NOMBRE} ${selected.A_PATERNO} ${selected.A_MATERNO}</strong> es discapacitado y aún no ha subido su documento de incapacidad.`,
+          "Aceptar"
+        ).then(() => {
+          regresarABeneficiarioValido();
+        });
+        regresarABeneficiarioValido();
+      }
+      setSelectedBeneficiaryIndex(index);
+      return;
+    }
+
+    if (Number(selected.ESESTUDIANTE) === 0) {
+      showCustomAlert(
+        "error",
+        "Datos incompletos",
+        `El beneficiario <strong>${selected.NOMBRE} ${selected.A_PATERNO} ${selected.A_MATERNO}</strong> no está registrado como estudiante ni como discapacitado.
+        <p style='color: #ffcdd2; font-size: 1em; margin-top: 10px;'>⚠️ Debe completar sus datos en el empadronamiento para tener acceso.</p>`,
+        "Entendido"
+      ).then(() => {
+        regresarABeneficiarioValido();
+      });
+
+      regresarABeneficiarioValido();
+      return;
+    }
+
+    if (selected.VIGENCIA_ESTUDIOS) {
+      const vigencia = new Date(selected.VIGENCIA_ESTUDIOS);
+      if (vigencia.getTime() < fechaActual.getTime()) {
+        await showCustomAlert(
+          "warning",
+          "Constancia vencida",
+          `El beneficiario <strong>${selected.NOMBRE} ${selected.A_PATERNO} ${selected.A_MATERNO}</strong> tiene la constancia de estudios vencida. Se ha regresado al beneficiario válido.`,
+          "Aceptar"
+        ).then(() => {
+          regresarABeneficiarioValido();
+        });
+
+        regresarABeneficiarioValido();
+        return;
+      }
+    }
+
+    setSelectedBeneficiaryIndex(index);
+  };
+
   // ===================== DATA/ACCIONES =====================
   const cargarPacientesDelDia = async () => {
     try {
@@ -965,10 +1047,8 @@ const SignosVitales = () => {
                   {consultaSeleccionada === "beneficiario" &&
                   selectedBeneficiaryIndex >= 0 ? (
                     <Image
-                      src={
-                        beneficiaryData[selectedBeneficiaryIndex].FOTO_URL ||
-                        "/user_icon_.png"
-                      }
+                      src={beneficiaryData[selectedBeneficiaryIndex].FOTO_URL || "/user_icon_.png" }
+                      //src={"/user_icon_.png"}
                       alt="Foto del Beneficiario"
                       width={120}
                       height={120}
@@ -977,7 +1057,8 @@ const SignosVitales = () => {
                   ) : consultaSeleccionada === "empleado" &&
                     empleadoEncontrado ? (
                     <Image
-                      src={empleadoEncontrado.FOTO_URL || "/user_icon_.png"}
+                       src={empleadoEncontrado.FOTO_URL || "/user_icon_.png"}
+                     // src={"/user_icon_.png"}
                       alt="Foto del Empleado"
                       width={120}
                       height={120}
