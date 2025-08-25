@@ -8,6 +8,7 @@ export const useMedicamentos = () => {
   // Cargar medicamentos al montar el componente
   useEffect(() => {
     fetchMedicamentos();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Obtener medicamentos de la API
@@ -40,49 +41,42 @@ export const useMedicamentos = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...medicamentoData,
-          precio: parseFloat(medicamentoData.precio), // conversión a número
+          // conversión a número con respaldo a 0 si viene vacío
+          precio: Number.isNaN(parseFloat(medicamentoData.precio))
+            ? 0
+            : parseFloat(medicamentoData.precio),
         }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        // Alerta de éxito
         await showCustomAlert(
           "success",
           "Registrado",
           "El medicamento fue registrado exitosamente.",
-          "Aceptar",
+          "Aceptar"
         );
-
         fetchMedicamentos();
       } else {
-        // Alerta de error (duplicado u otro)
         await showCustomAlert(
           "error",
           "Error",
           `${
-            data.message === "El medicamento ya está registrado."
+            data?.message === "El medicamento ya está registrado."
               ? "El medicamento o el EAN ya está registrado en el inventario."
-              : data.message || "Error al registrar el medicamento."
+              : data?.message || "Error al registrar el medicamento."
           }`,
-          "Aceptar",
+          "Aceptar"
         );
 
-        // Si quieres además que el banner de 'message' aparezca:
-        if (data.message !== "El medicamento ya está registrado.") {
-          setMessage(data.message || "Error al registrar el medicamento.");
+        if (data?.message !== "El medicamento ya está registrado.") {
+          setMessage(data?.message || "Error al registrar el medicamento.");
         }
       }
     } catch (error) {
       console.error("Error interno:", error);
-      await showCustomAlert(
-        "error",
-        "Error",
-        "Error interno del servidor.",
-        "Aceptar",
-      );
-
+      await showCustomAlert("error", "Error", "Error interno del servidor.", "Aceptar");
       setMessage("Error interno del servidor.");
     }
   };
@@ -91,7 +85,7 @@ export const useMedicamentos = () => {
   // ELIMINAR (DELETE) MEDICAMENTO
   // ===========================
   const deleteMedicamento = async (id) => {
-    await showCustomAlert(
+    const result = await showCustomAlert(
       "warning",
       "¿Estás seguro?",
       "Confirma si quieres eliminar este medicamento del inventario",
@@ -105,49 +99,45 @@ export const useMedicamentos = () => {
         customClass: {
           popup: "border border-orange-600 rounded-lg",
         },
-        didOpen: () => {
-          const popup = Swal.getPopup();
-          popup.style.boxShadow = "0px 0px 20px 5px rgba(255,152,0,0.9)";
-          popup.style.borderRadius = "15px";
+        // Evitamos depender de Swal.getPopup(); SweetAlert2 pasa el popup como argumento
+        didOpen: (popup) => {
+          if (popup) {
+            popup.style.boxShadow = "0px 0px 20px 5px rgba(255,152,0,0.9)";
+            popup.style.borderRadius = "15px";
+          }
         },
       }
     );
 
-    if (result.isConfirmed) {
-      try {
-        const response = await fetch("/api/farmacia/eliminarMedicamento", {
-          method: "DELETE",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id }),
-        });
+    if (!result?.isConfirmed) return;
 
-        const data = await response.json();
-        if (response.ok) {
-          await showCustomAlert(
-            "success",
-            "Eliminado",
-            "El medicamento fue eliminado exitosamente.",
-            "Aceptar",
-          );
+    try {
+      const response = await fetch("/api/farmacia/eliminarMedicamento", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
 
-          fetchMedicamentos();
-        } else {
-          await showCustomAlert(
-            "error",
-            "Error",
-            data.message || "No se pudo eliminar el medicamento.",
-            "Aceptar",
-          );
-        }
-      } catch (error) {
-        console.error("Error al eliminar medicamento:", error);
+      const data = await response.json();
+      if (response.ok) {
+        await showCustomAlert(
+          "success",
+          "Eliminado",
+          "El medicamento fue eliminado exitosamente.",
+          "Aceptar"
+        );
+        fetchMedicamentos();
+      } else {
         await showCustomAlert(
           "error",
           "Error",
-          "Error interno del servidor.",
-          "Aceptar",
+          data?.message || "No se pudo eliminar el medicamento.",
+          "Aceptar"
         );
       }
+    } catch (error) {
+      console.error("Error al eliminar medicamento:", error);
+      await showCustomAlert("error", "Error", "Error interno del servidor.", "Aceptar");
     }
   };
 
@@ -165,7 +155,7 @@ export const useMedicamentos = () => {
       maximo,
       minimo,
       medida,
-      precio, // <-- Asegúrate de traer precio
+      precio,
     } = medicamentoData;
 
     try {
@@ -181,8 +171,8 @@ export const useMedicamentos = () => {
           piezas,
           maximo,
           minimo,
-          medida: parseInt(medida, 10),
-          precio: parseFloat(precio), // <-- Convertimos a número
+          medida: Number.isNaN(parseInt(medida, 10)) ? 0 : parseInt(medida, 10),
+          precio: Number.isNaN(parseFloat(precio)) ? 0 : parseFloat(precio),
         }),
       });
 
@@ -192,26 +182,20 @@ export const useMedicamentos = () => {
           "success",
           "Éxito",
           "El medicamento fue editado exitosamente.",
-          "Aceptar",
+          "Aceptar"
         );
-
         fetchMedicamentos();
       } else {
         await showCustomAlert(
           "error",
           "Error",
-          data.message || "No se pudo editar el medicamento.",
-          "Aceptar",
+          data?.message || "No se pudo editar el medicamento.",
+          "Aceptar"
         );
       }
     } catch (error) {
       console.error("Error al editar medicamento:", error);
-      await showCustomAlert(
-        "error",
-        "Error",
-        "Error interno del servidor.",
-        "Aceptar",
-      );
+      await showCustomAlert("error", "Error", "Error interno del servidor.", "Aceptar");
     }
   };
 

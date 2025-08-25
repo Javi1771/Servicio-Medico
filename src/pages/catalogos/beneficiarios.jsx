@@ -7,7 +7,7 @@ import styles from "../css/beneficiarios.module.css";
 import { useRouter } from "next/router";
 import { jsPDF } from "jspdf";
 import { FaCamera } from "react-icons/fa";
-import * as faceapi from "face-api.js";
+//import * as faceapi from "face-api.js";
 import SignatureCanvas from "react-signature-canvas";
 
 import {
@@ -169,45 +169,45 @@ export default function RegistroBeneficiario() {
   }
 
   /**const de modelo facial */
-  const [modelsLoaded, setModelsLoaded] = useState(false);
+  //const [modelsLoaded, setModelsLoaded] = useState(false);
 
-  useEffect(() => {
-    // Cargamos los modelos de face-api al montar el componente (sólo se hace 1 vez)
-    async function loadFaceApiModels() {
-      try {
-        const MODEL_URL = "/models"; // Asegúrate de tenerlos en /public/models
-        await faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL);
-        await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
-        await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
-        setModelsLoaded(true);
-        //console.log("[face-api] Modelos cargados correctamente en el front");
-      } catch (err) {
-        console.error("[face-api] Error al cargar modelos:", err);
-      }
-    }
-    loadFaceApiModels();
-  }, []);
+  // useEffect(() => {
+  //   // Cargamos los modelos de face-api al montar el componente (sólo se hace 1 vez)
+  //   async function loadFaceApiModels() {
+  //     try {
+  //       const MODEL_URL = "/models"; // Asegúrate de tenerlos en /public/models
+  //       await faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL);
+  //       await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
+  //       await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
+  //       setModelsLoaded(true);
+  //       //console.log("[face-api] Modelos cargados correctamente en el front");
+  //     } catch (err) {
+  //       console.error("[face-api] Error al cargar modelos:", err);
+  //     }
+  //   }
+  //   loadFaceApiModels();
+  // }, []);
 
   // Función para convertir una imagen base64 a un descriptor *************************************************
-  async function computeDescriptorFromBase64(base64Image) {
-    try {
-      if (!modelsLoaded) {
-        console.warn("Modelos face-api no están listos todavía");
-        return null;
-      }
-      // Creamos un objeto <img> a partir de la base64
-      const img = await faceapi.fetchImage(base64Image);
-      const detection = await faceapi
-        .detectSingleFace(img)
-        .withFaceLandmarks()
-        .withFaceDescriptor();
+  // async function computeDescriptorFromBase64(base64Image) {
+  //   try {
+  //     if (!modelsLoaded) {
+  //       console.warn("Modelos face-api no están listos todavía");
+  //       return null;
+  //     }
+  //     // Creamos un objeto <img> a partir de la base64
+  //     const img = await faceapi.fetchImage(base64Image);
+  //     const detection = await faceapi
+  //       .detectSingleFace(img)
+  //       .withFaceLandmarks()
+  //       .withFaceDescriptor();
 
-      return detection ? detection.descriptor : null;
-    } catch (error) {
-      console.error("[computeDescriptorFromBase64] Error:", error);
-      return null;
-    }
-  }
+  //     return detection ? detection.descriptor : null;
+  //   } catch (error) {
+  //     console.error("[computeDescriptorFromBase64] Error:", error);
+  //     return null;
+  //   }
+  // }
   /*********************************** */
 
   const calcularVigencia = (
@@ -440,93 +440,64 @@ export default function RegistroBeneficiario() {
 
       const result = await Swal.fire({
         title: "Captura una foto",
-        html: '<video id="video" autoplay></video>',
+        html: '<video id="video" autoplay playsinline></video>',
         showCancelButton: true,
         confirmButtonText: "Capturar",
-
-        // Se ejecuta justo antes de que aparezca la alerta
         willOpen: () => {
           const video = document.getElementById("video");
           navigator.mediaDevices
             .getUserMedia({ video: true })
             .then((stream) => {
               video.srcObject = stream;
-              window.localStream = stream;
+              window.__photoStream = stream; // guarda el stream para apagarlo
               video.addEventListener("loadedmetadata", () => {
                 isVideoReady = true;
               });
             })
-            .catch((error) => {
-              console.error("Error al acceder a la cámara:", error);
-              // Evita que SweetAlert se cierre si la cámara falla
+            .catch(() => {
               Swal.showValidationMessage("No se pudo acceder a la cámara.");
             });
         },
-
-        // Se ejecuta cuando el usuario hace clic en "Capturar"
         preConfirm: () => {
           if (!isVideoReady) {
-            // Evita que SweetAlert se cierre si la cámara no está lista
             Swal.showValidationMessage(
               "La cámara no está lista. Intenta de nuevo."
             );
             return false;
           }
-
-          // Capturamos la imagen del <video> en un <canvas>
           const video = document.getElementById("video");
           const canvas = document.createElement("canvas");
           canvas.width = video.videoWidth;
           canvas.height = video.videoHeight;
-          const context = canvas.getContext("2d");
-          context.drawImage(video, 0, 0, canvas.width, canvas.height);
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-          // Convertimos el contenido del canvas a base64
           const base64Image = canvas.toDataURL("image/jpeg");
 
-          // Detenemos la cámara aquí (después de capturar)
-          if (window.localStream) {
-            window.localStream.getTracks().forEach((track) => track.stop());
+          // apagar cámara
+          if (window.__photoStream) {
+            window.__photoStream.getTracks().forEach((t) => t.stop());
+            window.__photoStream = null;
           }
-
-          // Retornamos la imagen base64 para que SweetAlert la reciba en `result.value`
           return base64Image;
         },
-
-        // Ya no detenemos la cámara en willClose porque la detenemos en preConfirm
         willClose: () => {
-          // vacío
+          if (window.__photoStream) {
+            window.__photoStream.getTracks().forEach((t) => t.stop());
+            window.__photoStream = null;
+          }
         },
       });
 
-      // Revisa si el usuario confirmó (isConfirmed) y si result.value trae la imagen base64
       if (result.isConfirmed && result.value) {
         const base64Image = result.value;
-        // 1. Muestra la previsualización
-        setImagePreview(base64Image);
-
-        // 2. (Opcional) Detectar rostro con face-api
-        const descriptor = await computeDescriptorFromBase64(base64Image);
-        if (!descriptor) {
-          await showCustomAlert(
-            "error",
-            "Error",
-            "No se detectó un rostro en la imagen.",
-            "Aceptar"
-          );
-
-          return;
-        }
-        const descriptorArray = Array.from(descriptor);
-        const descriptorJSON = JSON.stringify(descriptorArray);
+        setImagePreview(base64Image); // muestra al instante
         setFormData((prev) => ({
+          // limpia descriptor (opcional)
           ...prev,
-          descriptorFacial: descriptorJSON,
+          descriptorFacial: "",
         }));
-        //console.log("Descriptor facial calculado:", descriptorJSON);
-
-        // 3. Subir la imagen a tu servidor
-        await uploadImage(base64Image);
+        await uploadImage(base64Image); // sube al servidor
       }
     } catch (error) {
       console.error("Error al capturar/subir la foto:", error);
@@ -1449,7 +1420,7 @@ export default function RegistroBeneficiario() {
       "error",
       "Empleado No Encontrado",
       "No se ha encontrado ningún empleado con ese número de nómina.",
-      "Cerrar",
+      "Cerrar"
     );
   }
 
@@ -3408,10 +3379,22 @@ export default function RegistroBeneficiario() {
             </div>
 
             {/* Vista previa de la imagen */}
-            {imagePreview && (
+            {/* {imagePreview && (
               <div className={styles.imagePreview}>
                 <Image
                   src={formData.imageUrl}
+                  alt="Vista previa de la foto"
+                  width={150}
+                  height={150}
+                  className={styles.previewImage}
+                />
+              </div>
+            )} */}
+
+            {(imagePreview || formData.imageUrl) && (
+              <div className={styles.imagePreview}>
+                <Image
+                  src={imagePreview || formData.imageUrl}
                   alt="Vista previa de la foto"
                   width={150}
                   height={150}
